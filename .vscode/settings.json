@@ -1,0 +1,16 @@
+{
+    // 🧠 CallPilot (Copilot Chat) komutlarına otomatik izin
+  "github.copilot.chat.enableCommandExecution": true,
+  
+  // 📁 Workspace güvenlik uyarılarını kapat
+  "security.workspace.trust.enabled": false,
+
+  // 💻 Terminal komutlarına otomatik izin ver
+  "terminal.integrated.allowWorkspaceCommands": true,
+
+  // 🚀 Aynı anda birden fazla Copilot isteğine izin ver
+  "github.copilot.chat.allowMultipleRequests": true,
+
+  // 🔕 “Allow this action?” uyarılarını sustur
+  "github.copilot.chat.suppressCommandExecutionWarning": true
+}

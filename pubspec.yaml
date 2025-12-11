@@ -1,0 +1,30 @@
+name: esas_v1
+description: "ESAS V1"
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.0.3
+  dio: ^5.4.0
+  go_router: ^14.0.0
+  intl: ^0.20.0
+  flutter_localizations:
+    sdk: flutter
+  flutter_holo_date_picker: ^2.0.0
+  url_launcher: ^6.3.2
+  syncfusion_flutter_pdfviewer: ^31.2.5
+  file_picker: ^10.3.6
+  flutter_slidable: ^4.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
