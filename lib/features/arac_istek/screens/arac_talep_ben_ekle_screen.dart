@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -41,6 +42,11 @@ class _AracTalepBenEkleScreenState
   int _gidisDakika = 0;
   int _donusSaat = 9;
   int _donusDakika = 0;
+  List<_IstekNedeniItem> _istekNedenleri = [];
+  bool _istekNedeniLoading = false;
+  String? _istekNedeniError;
+  int? _selectedIstekNedeniId;
+  String _selectedIstekNedeniText = '';
 
   @override
   void dispose() {
@@ -503,6 +509,89 @@ class _AracTalepBenEkleScreenState
                 ],
               ),
               const SizedBox(height: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Araç İstek Nedeni',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_istekNedeniLoading)
+                    Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  else if (_istekNedeniError != null)
+                    Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.red.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                      ),
+                      child: Center(
+                        child: Text(
+                          _istekNedeniError ?? 'Hata',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    )
+                  else
+                    GestureDetector(
+                      onTap: _openIstekNedeniBottomSheet,
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _selectedIstekNedeniText.isEmpty
+                                    ? 'Nedeni Seçiniz'
+                                    : _selectedIstekNedeniText,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: _selectedIstekNedeniText.isEmpty
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.grey.shade600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 32),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
@@ -536,6 +625,52 @@ class _AracTalepBenEkleScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _ensureIstekNedenleriLoaded() async {
+    if (_istekNedenleri.isNotEmpty) return;
+    if (_istekNedeniLoading) return;
+
+    setState(() {
+      _istekNedeniLoading = true;
+      _istekNedeniError = null;
+    });
+
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        'https://esasapi.eyuboglu.k12.tr/api/TalepYonetimi/AracIstekNedeniDoldur',
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final List<dynamic> data = response.data is List
+            ? response.data
+            : (response.data is Map && response.data['data'] != null)
+            ? response.data['data']
+            : [];
+
+        final items = data.map((item) {
+          final id = item['id'] ?? item['ID'];
+          final text = item['istekNedeni'] ?? item['ad'] ?? item['Ad'] ?? '';
+          return _IstekNedeniItem(id: id, ad: text);
+        }).toList();
+
+        setState(() {
+          _istekNedenleri = items;
+          _istekNedeniLoading = false;
+        });
+      } else {
+        setState(() {
+          _istekNedeniError = 'Veri yüklenemedi';
+          _istekNedeniLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _istekNedeniError = 'Hata: ${e.toString()}';
+        _istekNedeniLoading = false;
+      });
+    }
   }
 
   void _submitForm() {
@@ -702,6 +837,127 @@ class _AracTalepBenEkleScreenState
     }
   }
 
+  Future<void> _openIstekNedeniBottomSheet() async {
+    await _ensureIstekNedenleriLoaded();
+
+    if (!mounted) return;
+
+    final selected = await showModalBottomSheet<_IstekNedeniItem>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                String query = '';
+                final searchController = TextEditingController();
+                final filtered = _istekNedenleri
+                    .where(
+                      (item) =>
+                          item.ad.toLowerCase().contains(query.toLowerCase()),
+                    )
+                    .toList();
+
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[400],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              child: TextField(
+                                controller: searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Ara',
+                                  prefixIcon: const Icon(Icons.search),
+                                  suffixIcon: query.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            searchController.clear();
+                                            setModalState(() {
+                                              query = '';
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setModalState(() {
+                                    query = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: ListView.separated(
+                                controller: scrollController,
+                                shrinkWrap: true,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: filtered.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 0.5, thickness: 0.5),
+                                itemBuilder: (context, index) {
+                                  final item = filtered[index];
+                                  return ListTile(
+                                    title: Text(item.ad),
+                                    onTap: () => Navigator.pop(context, item),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedIstekNedeniId = selected.id;
+        _selectedIstekNedeniText = selected.ad;
+      });
+    }
+  }
+
   void _addEntry(GidilecekYer yer) {
     final controller = TextEditingController();
     setState(() {
@@ -715,4 +971,11 @@ class _YerEntry {
   final TextEditingController adresController;
 
   _YerEntry({required this.yer, required this.adresController});
+}
+
+class _IstekNedeniItem {
+  final dynamic id;
+  final String ad;
+
+  _IstekNedeniItem({required this.id, required this.ad});
 }
