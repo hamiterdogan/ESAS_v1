@@ -726,6 +726,24 @@ class _AracTalepBenEkleScreenState
                   ),
                 ),
               ),
+              if (_selectedOgrenciIds.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: _openSecilenOgrenciListesiBottomSheet,
+                      child: Text(
+                        'Seçilen Öğrencileri Listele',
+                        style: TextStyle(
+                          color: AppColors.gradientStart,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 32),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -1259,6 +1277,194 @@ class _AracTalepBenEkleScreenState
                                         });
                                         setState(() {});
                                         if (_selectedPersonelIds.isEmpty) {
+                                          Navigator.pop(context);
+                                        }
+                                      },
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Tamam',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openSecilenOgrenciListesiBottomSheet() async {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setModalState) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 50),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Seçilen Öğrenciler',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (dialogContext) => AlertDialog(
+                                    title: const Text('Dikkat'),
+                                    content: const Text(
+                                      'Tüm seçilen öğrenciler listeden çıkarılacaktır. Emin misiniz?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext);
+                                        },
+                                        child: const Text('Vazgeç'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext);
+                                          setModalState(() {
+                                            _selectedOgrenciIds.clear();
+                                          });
+                                          setState(() {});
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text(
+                                          'Evet',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'Tümünü Sil',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: ListView.builder(
+                            controller: scrollController,
+                            itemCount: _selectedOgrenciIds.length,
+                            itemBuilder: (context, index) {
+                              final ogrenciNumara = _selectedOgrenciIds
+                                  .elementAt(index);
+                              final ogrenci = _ogrenciList.firstWhere(
+                                (o) => '${o.numara}' == ogrenciNumara,
+                                orElse: () => _FilterOgrenciItem(
+                                  okulKodu: '',
+                                  sinif: '',
+                                  numara: -1,
+                                  adi: 'Bilinmeyen',
+                                  soyadi: 'Öğrenci',
+                                ),
+                              );
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 0,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '${ogrenci.adi} ${ogrenci.soyadi}'
+                                            .trim(),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.grey[600],
+                                        size: 26,
+                                      ),
+                                      onPressed: () {
+                                        setModalState(() {
+                                          _selectedOgrenciIds.remove(
+                                            ogrenciNumara,
+                                          );
+                                        });
+                                        setState(() {});
+                                        if (_selectedOgrenciIds.isEmpty) {
                                           Navigator.pop(context);
                                         }
                                       },
@@ -1954,7 +2160,8 @@ class _AracTalepBenEkleScreenState
     Set<String> selectedTakimlar,
     Set<String> selectedOgrenci,
   ) {
-    final hasFilters = selectedOkulKodlari.isNotEmpty ||
+    final hasFilters =
+        selectedOkulKodlari.isNotEmpty ||
         selectedSeviyeler.isNotEmpty ||
         selectedSiniflar.isNotEmpty ||
         selectedKulupler.isNotEmpty ||
