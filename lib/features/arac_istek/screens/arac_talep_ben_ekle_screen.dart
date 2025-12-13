@@ -1769,7 +1769,7 @@ class _AracTalepBenEkleScreenState
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_currentFilterPage.isEmpty) {
                           setState(() {
                             _selectedOgrenciIds
@@ -1778,6 +1778,14 @@ class _AracTalepBenEkleScreenState
                           });
                           Navigator.pop(context);
                         } else {
+                          // Filtre seçimi yapıldığında API'ye istekte bulun
+                          await _applyOgrenciFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                          );
                           setModalState(() => _currentFilterPage = '');
                         }
                       },
@@ -1846,6 +1854,55 @@ class _AracTalepBenEkleScreenState
     if (names.isEmpty) return '${ids.length} öğrenci seçildi';
     if (names.length <= 2) return names.join(', ');
     return '${names.length} öğrenci seçildi';
+  }
+
+  Future<void> _applyOgrenciFilters(
+    Set<String> selectedOkulKodlari,
+    Set<String> selectedSeviyeler,
+    Set<String> selectedSiniflar,
+    Set<String> selectedKulupler,
+    Set<String> selectedTakimlar,
+  ) async {
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.post(
+        '/TalepYonetimi/MobilOgrenciFiltrele',
+        data: {
+          'okulKodlari': selectedOkulKodlari.isEmpty
+              ? ['0']
+              : selectedOkulKodlari.toList(),
+          'seviyeler':
+              selectedSeviyeler.isEmpty ? ['0'] : selectedSeviyeler.toList(),
+          'siniflar':
+              selectedSiniflar.isEmpty ? ['0'] : selectedSiniflar.toList(),
+          'kulupler':
+              selectedKulupler.isEmpty ? ['0'] : selectedKulupler.toList(),
+          'takimlar':
+              selectedTakimlar.isEmpty ? ['0'] : selectedTakimlar.toList(),
+        },
+      );
+
+      final filterResponse = _OgrenciFilterResponse.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+
+      if (mounted) {
+        setState(() {
+          _okulKoduList = filterResponse.okulKodu;
+          _seviyeList = filterResponse.seviye;
+          _sinifList = filterResponse.sinif;
+          _kulupList = filterResponse.kulup;
+          _takimList = filterResponse.takim;
+          _ogrenciList = filterResponse.ogrenci;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Filtre uygulanırken hata: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildGorevYeriFilterPage(
