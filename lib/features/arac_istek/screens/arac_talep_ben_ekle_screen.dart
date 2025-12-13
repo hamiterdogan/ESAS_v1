@@ -679,7 +679,7 @@ class _AracTalepBenEkleScreenState
                         alignment: Alignment.centerLeft,
                       ),
                       child: Text(
-                        'Seçilen personeli listele',
+                        'Seçilen personelleri listele',
                         style: TextStyle(
                           color: AppColors.gradientStart,
                           fontSize: 15,
