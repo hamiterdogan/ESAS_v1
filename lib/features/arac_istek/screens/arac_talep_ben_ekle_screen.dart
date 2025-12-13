@@ -682,7 +682,7 @@ class _AracTalepBenEkleScreenState
                         'Seçilen personeli listele',
                         style: TextStyle(
                           color: AppColors.gradientStart,
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -734,10 +734,10 @@ class _AracTalepBenEkleScreenState
                     child: TextButton(
                       onPressed: _openSecilenOgrenciListesiBottomSheet,
                       child: Text(
-                        'Seçilen Öğrencileri Listele',
+                        'Seçilen öğrencileri listele',
                         style: TextStyle(
                           color: AppColors.gradientStart,
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
