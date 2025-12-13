@@ -590,7 +590,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),

@@ -280,7 +280,6 @@ class _GidilecekYerSecimScreenState
                         itemBuilder: (context, index) {
                           final item = filtered[index];
                           final isSelected = _selectedIds.contains(item.id);
-                          final isLastItem = index == filtered.length - 1;
                           final shouldShowInput =
                               isSelected && !item.ad.contains('Eyüboğlu');
                           final controller = shouldShowInput

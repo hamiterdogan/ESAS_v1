@@ -475,7 +475,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         ),
                         const SizedBox(width: 12),
                         Icon(
-                          Icons.arrow_forward_ios,
+                          Icons.chevron_right,
                           color: Colors.grey[400],
                           size: 20,
                         ),

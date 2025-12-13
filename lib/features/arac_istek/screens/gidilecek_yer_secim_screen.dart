@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
-import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
 // Arşiv: Bu dosya artık kullanılmıyor.
 // İçerik `gidilecek_yer_secim_screen_sil.dart` dosyasına taşındı.

@@ -732,7 +732,7 @@ class _IsteklerimListesiState extends ConsumerState<_IsteklerimListesi> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),
@@ -1812,7 +1812,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),
@@ -2255,6 +2255,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Accordion başlık widget'ı
+  // ignore: unused_element
   Widget _buildAccordionItem({
     required String title,
     required String selectedValue,
@@ -2334,6 +2335,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Filtre seçeneği tile widget'ı
+  // ignore: unused_element
   Widget _buildFilterOptionTile({
     required String label,
     required bool isSelected,
@@ -2357,6 +2359,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Personel filtresi içeriği - Çoklu Seçim (Gelen kutusundaki talep edenler)
+  // ignore: unused_element
   Widget _buildPersonelFilterContentMulti({
     required TextEditingController searchController,
     required String searchQuery,
@@ -2498,6 +2501,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Talep Türü filtresi içeriği - API'den çoklu seçim
+  // ignore: unused_element
   Widget _buildTalepTuruFilterContent({required StateSetter setModalState}) {
     if (_mevcutTalepTurleri.isEmpty) {
       return const Padding(
@@ -2579,6 +2583,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Görev filtresi içeriği - API'den çoklu seçim
+  // ignore: unused_element
   Widget _buildGorevFilterContent({required StateSetter setModalState}) {
     // Mevcut taleplerdeki görevleri göster (API'den değil)
     if (_mevcutGorevler.isEmpty) {
@@ -2661,6 +2666,7 @@ class _GelenKutusuListesiState extends ConsumerState<_GelenKutusuListesi> {
   }
 
   // Görev Yeri filtresi içeriği - ListView'deki verilerden çoklu seçim
+  // ignore: unused_element
   Widget _buildGorevYeriFilterContent({required StateSetter setModalState}) {
     if (_mevcutGorevYerleri.isEmpty) {
       return const Padding(
