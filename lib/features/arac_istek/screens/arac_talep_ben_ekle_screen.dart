@@ -1699,26 +1699,54 @@ class _AracTalepBenEkleScreenState
             Widget buildDetail() {
               switch (_currentFilterPage) {
                 case 'okul':
-                  return _buildOkulFilterPage(setModalState, localSelectedOkul);
+                  return _buildOkulFilterPage(
+                    setModalState,
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
                 case 'seviye':
                   return _buildSeviyeFilterPage(
                     setModalState,
                     localSelectedSeviye,
+                    localSelectedOkul,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
                   );
                 case 'sinif':
                   return _buildSinifFilterPage(
                     setModalState,
                     localSelectedSinif,
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
                   );
                 case 'kulup':
                   return _buildKulupFilterPage(
                     setModalState,
                     localSelectedKulup,
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
                   );
                 case 'takim':
                   return _buildTakimFilterPage(
                     setModalState,
                     localSelectedTakim,
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedOgrenci,
                   );
                 case 'ogrenci':
                   return _buildOgrenciFilterPage(
@@ -1785,6 +1813,15 @@ class _AracTalepBenEkleScreenState
                             localSelectedSinif,
                             localSelectedKulup,
                             localSelectedTakim,
+                          );
+                          // Öğrenci seçimini filtrelere göre senkronize et
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
                           );
                           setModalState(() => _currentFilterPage = '');
                         }
@@ -1871,14 +1908,18 @@ class _AracTalepBenEkleScreenState
           'okulKodlari': selectedOkulKodlari.isEmpty
               ? ['0']
               : selectedOkulKodlari.toList(),
-          'seviyeler':
-              selectedSeviyeler.isEmpty ? ['0'] : selectedSeviyeler.toList(),
-          'siniflar':
-              selectedSiniflar.isEmpty ? ['0'] : selectedSiniflar.toList(),
-          'kulupler':
-              selectedKulupler.isEmpty ? ['0'] : selectedKulupler.toList(),
-          'takimlar':
-              selectedTakimlar.isEmpty ? ['0'] : selectedTakimlar.toList(),
+          'seviyeler': selectedSeviyeler.isEmpty
+              ? ['0']
+              : selectedSeviyeler.toList(),
+          'siniflar': selectedSiniflar.isEmpty
+              ? ['0']
+              : selectedSiniflar.toList(),
+          'kulupler': selectedKulupler.isEmpty
+              ? ['0']
+              : selectedKulupler.toList(),
+          'takimlar': selectedTakimlar.isEmpty
+              ? ['0']
+              : selectedTakimlar.toList(),
         },
       );
 
@@ -1898,11 +1939,37 @@ class _AracTalepBenEkleScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Filtre uygulanırken hata: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Filtre uygulanırken hata: $e')));
       }
     }
+  }
+
+  void _syncOgrenciSelectionFromFilters(
+    Set<String> selectedOkulKodlari,
+    Set<String> selectedSeviyeler,
+    Set<String> selectedSiniflar,
+    Set<String> selectedKulupler,
+    Set<String> selectedTakimlar,
+    Set<String> selectedOgrenci,
+  ) {
+    final hasFilters = selectedOkulKodlari.isNotEmpty ||
+        selectedSeviyeler.isNotEmpty ||
+        selectedSiniflar.isNotEmpty ||
+        selectedKulupler.isNotEmpty ||
+        selectedTakimlar.isNotEmpty;
+
+    if (!hasFilters) {
+      selectedOgrenci.clear();
+      return;
+    }
+
+    // Filtrelere uygun öğrencileri seç
+    final ogrenciNumaralari = _ogrenciList.map((o) => '${o.numara}').toSet();
+    selectedOgrenci
+      ..clear()
+      ..addAll(ogrenciNumaralari);
   }
 
   Widget _buildGorevYeriFilterPage(
@@ -2308,6 +2375,11 @@ class _AracTalepBenEkleScreenState
   Widget _buildOkulFilterPage(
     StateSetter setModalState,
     Set<String> localSelectedOkul,
+    Set<String> localSelectedSeviye,
+    Set<String> localSelectedSinif,
+    Set<String> localSelectedKulup,
+    Set<String> localSelectedTakim,
+    Set<String> localSelectedOgrenci,
   ) {
     if (_okulKoduList.isEmpty) {
       return const Center(child: Text('Okul verisi bulunamadı'));
@@ -2317,12 +2389,32 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedOkul.clear()),
+          onClear: () {
+            setModalState(() {
+              localSelectedOkul.clear();
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
+            });
+          },
           onSelectAll: () {
             setModalState(() {
               localSelectedOkul
                 ..clear()
                 ..addAll(_okulKoduList);
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
             });
           },
         ),
@@ -2344,6 +2436,14 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedOkul.remove(okul);
                     }
+                    _syncOgrenciSelectionFromFilters(
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
                   });
                 },
                 title: Text(
@@ -2371,6 +2471,11 @@ class _AracTalepBenEkleScreenState
   Widget _buildSeviyeFilterPage(
     StateSetter setModalState,
     Set<String> localSelectedSeviye,
+    Set<String> localSelectedOkul,
+    Set<String> localSelectedSinif,
+    Set<String> localSelectedKulup,
+    Set<String> localSelectedTakim,
+    Set<String> localSelectedOgrenci,
   ) {
     if (_seviyeList.isEmpty) {
       return const Center(child: Text('Seviye verisi bulunamadı'));
@@ -2380,12 +2485,32 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedSeviye.clear()),
+          onClear: () {
+            setModalState(() {
+              localSelectedSeviye.clear();
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
+            });
+          },
           onSelectAll: () {
             setModalState(() {
               localSelectedSeviye
                 ..clear()
                 ..addAll(_seviyeList);
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
             });
           },
         ),
@@ -2407,6 +2532,14 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedSeviye.remove(seviye);
                     }
+                    _syncOgrenciSelectionFromFilters(
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
                   });
                 },
                 title: Text(
@@ -2434,6 +2567,11 @@ class _AracTalepBenEkleScreenState
   Widget _buildSinifFilterPage(
     StateSetter setModalState,
     Set<String> localSelectedSinif,
+    Set<String> localSelectedOkul,
+    Set<String> localSelectedSeviye,
+    Set<String> localSelectedKulup,
+    Set<String> localSelectedTakim,
+    Set<String> localSelectedOgrenci,
   ) {
     if (_sinifList.isEmpty) {
       return const Center(child: Text('Sınıf verisi bulunamadı'));
@@ -2443,12 +2581,32 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedSinif.clear()),
+          onClear: () {
+            setModalState(() {
+              localSelectedSinif.clear();
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
+            });
+          },
           onSelectAll: () {
             setModalState(() {
               localSelectedSinif
                 ..clear()
                 ..addAll(_sinifList);
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
             });
           },
         ),
@@ -2470,6 +2628,14 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedSinif.remove(sinif);
                     }
+                    _syncOgrenciSelectionFromFilters(
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
                   });
                 },
                 title: Text(
@@ -2497,6 +2663,11 @@ class _AracTalepBenEkleScreenState
   Widget _buildKulupFilterPage(
     StateSetter setModalState,
     Set<String> localSelectedKulup,
+    Set<String> localSelectedOkul,
+    Set<String> localSelectedSeviye,
+    Set<String> localSelectedSinif,
+    Set<String> localSelectedTakim,
+    Set<String> localSelectedOgrenci,
   ) {
     if (_kulupList.isEmpty) {
       return const Center(child: Text('Kulüp verisi bulunamadı'));
@@ -2506,12 +2677,32 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedKulup.clear()),
+          onClear: () {
+            setModalState(() {
+              localSelectedKulup.clear();
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
+            });
+          },
           onSelectAll: () {
             setModalState(() {
               localSelectedKulup
                 ..clear()
                 ..addAll(_kulupList);
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
             });
           },
         ),
@@ -2533,6 +2724,14 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedKulup.remove(kulup);
                     }
+                    _syncOgrenciSelectionFromFilters(
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
                   });
                 },
                 title: Text(
@@ -2560,6 +2759,11 @@ class _AracTalepBenEkleScreenState
   Widget _buildTakimFilterPage(
     StateSetter setModalState,
     Set<String> localSelectedTakim,
+    Set<String> localSelectedOkul,
+    Set<String> localSelectedSeviye,
+    Set<String> localSelectedSinif,
+    Set<String> localSelectedKulup,
+    Set<String> localSelectedOgrenci,
   ) {
     if (_takimList.isEmpty) {
       return const Center(child: Text('Takım verisi bulunamadı'));
@@ -2569,12 +2773,32 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedTakim.clear()),
+          onClear: () {
+            setModalState(() {
+              localSelectedTakim.clear();
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
+            });
+          },
           onSelectAll: () {
             setModalState(() {
               localSelectedTakim
                 ..clear()
                 ..addAll(_takimList);
+              _syncOgrenciSelectionFromFilters(
+                localSelectedOkul,
+                localSelectedSeviye,
+                localSelectedSinif,
+                localSelectedKulup,
+                localSelectedTakim,
+                localSelectedOgrenci,
+              );
             });
           },
         ),
@@ -2596,6 +2820,14 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedTakim.remove(takim);
                     }
+                    _syncOgrenciSelectionFromFilters(
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
                   });
                 },
                 title: Text(
