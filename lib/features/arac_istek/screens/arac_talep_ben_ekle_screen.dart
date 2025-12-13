@@ -1431,12 +1431,14 @@ class _AracTalepBenEkleScreenState
                   return _buildGorevYeriFilterPage(
                     setModalState,
                     localSelectedGorevYeri,
+                    localSelectedPersonel,
                   );
                 case 'gorev':
                   return _buildGorevFilterPage(
                     setModalState,
                     localSelectedGorev,
                     localSelectedGorevYeri,
+                    localSelectedPersonel,
                   );
                 case 'personel':
                 default:
@@ -1850,6 +1852,7 @@ class _AracTalepBenEkleScreenState
   Widget _buildGorevYeriFilterPage(
     StateSetter setModalState,
     Set<int> localSelectedGorevYeri,
+    Set<int> localSelectedPersonel,
   ) {
     if (_gorevYerleri.isEmpty) {
       return const Center(child: Text('Görev yeri verisi bulunamadı'));
@@ -1859,12 +1862,20 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedGorevYeri.clear()),
+          onClear: () => setModalState(() {
+            localSelectedGorevYeri.clear();
+            localSelectedPersonel.clear();
+          }),
           onSelectAll: () {
             setModalState(() {
               localSelectedGorevYeri
                 ..clear()
                 ..addAll(_gorevYerleri.map((g) => g.id));
+              // Tüm görev yerlerine ait personelleri otomatik seç
+              _updatePersonelBasedOnGorevYeri(
+                localSelectedGorevYeri,
+                localSelectedPersonel,
+              );
             });
           },
         ),
@@ -1883,6 +1894,11 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedGorevYeri.remove(yer.id);
                     }
+                    // Görev yeri seçimi değiştiğinde personelleri güncelle
+                    _updatePersonelBasedOnGorevYeri(
+                      localSelectedGorevYeri,
+                      localSelectedPersonel,
+                    );
                   });
                 },
                 title: Text(
@@ -1911,6 +1927,7 @@ class _AracTalepBenEkleScreenState
     StateSetter setModalState,
     Set<int> localSelectedGorev,
     Set<int> localSelectedGorevYeri,
+    Set<int> localSelectedPersonel,
   ) {
     if (_gorevler.isEmpty) {
       return const Center(child: Text('Görev verisi bulunamadı'));
@@ -1946,12 +1963,20 @@ class _AracTalepBenEkleScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildSelectActions(
-          onClear: () => setModalState(() => localSelectedGorev.clear()),
+          onClear: () => setModalState(() {
+            localSelectedGorev.clear();
+            localSelectedPersonel.clear();
+          }),
           onSelectAll: () {
             setModalState(() {
               localSelectedGorev
                 ..clear()
                 ..addAll(filteredGorevler.map((g) => g.id));
+              // Tüm görevlere ait personelleri otomatik seç
+              _updatePersonelBasedOnGorev(
+                localSelectedGorev,
+                localSelectedPersonel,
+              );
             });
           },
         ),
@@ -1970,6 +1995,11 @@ class _AracTalepBenEkleScreenState
                     } else {
                       localSelectedGorev.remove(gorev.id);
                     }
+                    // Görev seçimi değiştiğinde personelleri güncelle
+                    _updatePersonelBasedOnGorev(
+                      localSelectedGorev,
+                      localSelectedPersonel,
+                    );
                   });
                 },
                 title: Text(
@@ -1992,6 +2022,46 @@ class _AracTalepBenEkleScreenState
         ),
       ],
     );
+  }
+
+  // Görev yerine ait personelleri otomatik seç
+  void _updatePersonelBasedOnGorevYeri(
+    Set<int> selectedGorevYeri,
+    Set<int> selectedPersonel,
+  ) {
+    if (selectedGorevYeri.isEmpty) {
+      selectedPersonel.clear();
+      return;
+    }
+
+    // Seçili görev yerlerine ait personelleri bul
+    final personelForGorevYeri = _personeller
+        .where((p) => selectedGorevYeri.contains(p.gorevYeriId ?? -1))
+        .map((p) => p.personelId)
+        .toSet();
+
+    selectedPersonel.clear();
+    selectedPersonel.addAll(personelForGorevYeri);
+  }
+
+  // Göreve ait personelleri otomatik seç
+  void _updatePersonelBasedOnGorev(
+    Set<int> selectedGorev,
+    Set<int> selectedPersonel,
+  ) {
+    if (selectedGorev.isEmpty) {
+      selectedPersonel.clear();
+      return;
+    }
+
+    // Seçili görevlere ait personelleri bul
+    final personelForGorev = _personeller
+        .where((p) => selectedGorev.contains(p.gorevId ?? -1))
+        .map((p) => p.personelId)
+        .toSet();
+
+    selectedPersonel.clear();
+    selectedPersonel.addAll(personelForGorev);
   }
 
   Widget _buildPersonelFilterPage(
