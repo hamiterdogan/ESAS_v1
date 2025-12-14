@@ -745,6 +745,15 @@ class _AracTalepBenEkleScreenState
                   ),
                 ),
               const SizedBox(height: 32),
+              Text(
+                'Toplam yolcu sayısı: ${_selectedPersonelIds.length + _selectedOgrenciIds.length}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: AppColors.primaryGradient,
@@ -1818,11 +1827,12 @@ class _AracTalepBenEkleScreenState
       return;
     }
 
-    final localSelectedOkul = <String>{};
-    final localSelectedSeviye = <String>{};
-    final localSelectedSinif = <String>{};
-    final localSelectedKulup = <String>{};
-    final localSelectedTakim = <String>{};
+    // State'ten mevcut seçimleri yükle
+    final localSelectedOkul = {..._selectedOkulKodu};
+    final localSelectedSeviye = {..._selectedSeviye};
+    final localSelectedSinif = {..._selectedSinif};
+    final localSelectedKulup = {..._selectedKulup};
+    final localSelectedTakim = {..._selectedTakim};
     final localSelectedOgrenci = {..._selectedOgrenciIds};
     _currentFilterPage = '';
 
@@ -1842,9 +1852,9 @@ class _AracTalepBenEkleScreenState
         builder: (context, scrollController) => StatefulBuilder(
           builder: (context, setModalState) {
             Widget buildMain() {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return ListView(
+                controller: scrollController,
+                padding: EdgeInsets.zero,
                 children: [
                   _buildFilterMainItem(
                     title: 'Okul',
@@ -1883,10 +1893,7 @@ class _AracTalepBenEkleScreenState
                         setModalState(() => _currentFilterPage = 'ogrenci'),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 25,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: Text(
                       'Seçilen öğrenci sayısı: ${localSelectedOgrenci.length}',
                       style: TextStyle(
@@ -1907,6 +1914,7 @@ class _AracTalepBenEkleScreenState
                 case 'okul':
                   return _buildOkulFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedOkul,
                     localSelectedSeviye,
                     localSelectedSinif,
@@ -1917,6 +1925,7 @@ class _AracTalepBenEkleScreenState
                 case 'seviye':
                   return _buildSeviyeFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedSeviye,
                     localSelectedOkul,
                     localSelectedSinif,
@@ -1927,6 +1936,7 @@ class _AracTalepBenEkleScreenState
                 case 'sinif':
                   return _buildSinifFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedSinif,
                     localSelectedOkul,
                     localSelectedSeviye,
@@ -1937,6 +1947,7 @@ class _AracTalepBenEkleScreenState
                 case 'kulup':
                   return _buildKulupFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedKulup,
                     localSelectedOkul,
                     localSelectedSeviye,
@@ -1947,6 +1958,7 @@ class _AracTalepBenEkleScreenState
                 case 'takim':
                   return _buildTakimFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedTakim,
                     localSelectedOkul,
                     localSelectedSeviye,
@@ -1957,6 +1969,7 @@ class _AracTalepBenEkleScreenState
                 case 'ogrenci':
                   return _buildOgrenciFilterPage(
                     setModalState,
+                    scrollController,
                     localSelectedOgrenci,
                   );
                 default:
@@ -1964,86 +1977,125 @@ class _AracTalepBenEkleScreenState
               }
             }
 
-            return Stack(
+            return Column(
               children: [
-                SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        child: const Text(
-                          'Filtrele',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.5,
-                        ),
-                        child: _currentFilterPage.isEmpty
-                            ? buildMain()
-                            : buildDetail(),
-                      ),
-                      const SizedBox(height: 80),
-                    ],
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: const Text(
+                    'Filtrele',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
-                Positioned(
-                  bottom: 50,
-                  left: 16,
-                  right: 16,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (_currentFilterPage.isEmpty) {
-                          setState(() {
-                            _selectedOgrenciIds
-                              ..clear()
-                              ..addAll(localSelectedOgrenci);
-                          });
-                          Navigator.pop(context);
-                        } else {
-                          // Filtre seçimi yapıldığında API'ye istekte bulun
-                          await _applyOgrenciFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                          );
-                          // Öğrenci seçimini filtrelere göre senkronize et
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
-                          setModalState(() => _currentFilterPage = '');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                Expanded(
+                  child: _currentFilterPage.isEmpty
+                      ? buildMain()
+                      : buildDetail(),
+                ),
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_currentFilterPage.isEmpty) {
+                            setState(() {
+                              // Filtre seçimlerini state'e kaydet
+                              _selectedOkulKodu
+                                ..clear()
+                                ..addAll(localSelectedOkul);
+                              _selectedSeviye
+                                ..clear()
+                                ..addAll(localSelectedSeviye);
+                              _selectedSinif
+                                ..clear()
+                                ..addAll(localSelectedSinif);
+                              _selectedKulup
+                                ..clear()
+                                ..addAll(localSelectedKulup);
+                              _selectedTakim
+                                ..clear()
+                                ..addAll(localSelectedTakim);
+                              // Öğrenci seçimini kaydet
+                              _selectedOgrenciIds
+                                ..clear()
+                                ..addAll(localSelectedOgrenci);
+                            });
+                            Navigator.pop(context);
+                          } else {
+                            // Filtre seçimi yapıldığında API'ye istekte bulun
+                            await _applyOgrenciFilters(
+                              localSelectedOkul,
+                              localSelectedSeviye,
+                              localSelectedSinif,
+                              localSelectedKulup,
+                              localSelectedTakim,
+                            );
+
+                            // API'den gelen filtre listelerine göre seçimleri senkronize et
+                            final validOkullar = _okulKoduList.toSet();
+                            final validSeviyeler = _seviyeList.toSet();
+                            final validSiniflar = _sinifList.toSet();
+                            final validKuluplar = _kulupList.toSet();
+                            final validTakimlar = _takimList.toSet();
+
+                            localSelectedOkul.retainAll(validOkullar);
+                            localSelectedSeviye.retainAll(validSeviyeler);
+                            localSelectedSinif.retainAll(validSiniflar);
+                            localSelectedKulup.retainAll(validKuluplar);
+                            localSelectedTakim.retainAll(validTakimlar);
+
+                            // Öğrenci seçimini filtrelere göre senkronize et
+                            _syncOgrenciSelectionFromFilters(
+                              localSelectedOkul,
+                              localSelectedSeviye,
+                              localSelectedSinif,
+                              localSelectedKulup,
+                              localSelectedTakim,
+                              localSelectedOgrenci,
+                            );
+
+                            // Filtre seçimlerini ve öğrenci seçimini state'e kaydet
+                            setState(() {
+                              _selectedOkulKodu
+                                ..clear()
+                                ..addAll(localSelectedOkul);
+                              _selectedSeviye
+                                ..clear()
+                                ..addAll(localSelectedSeviye);
+                              _selectedSinif
+                                ..clear()
+                                ..addAll(localSelectedSinif);
+                              _selectedKulup
+                                ..clear()
+                                ..addAll(localSelectedKulup);
+                              _selectedTakim
+                                ..clear()
+                                ..addAll(localSelectedTakim);
+                              _selectedOgrenciIds
+                                ..clear()
+                                ..addAll(localSelectedOgrenci);
+                            });
+                            setModalState(() => _currentFilterPage = '');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF014B92),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                        child: Text(
+                          _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -2089,14 +2141,28 @@ class _AracTalepBenEkleScreenState
 
   String _summaryForOgrenci(Set<String> ids) {
     if (ids.isEmpty) return 'Seçiniz';
-    final names = _ogrenciList
-        .where((o) => ids.contains('${o.numara}'))
-        .map((o) => '${o.adi} ${o.soyadi}'.trim())
-        .where((name) => name.isNotEmpty)
-        .toList();
-    if (names.isEmpty) return '${ids.length} öğrenci seçildi';
-    if (names.length <= 2) return names.join(', ');
-    return '${names.length} öğrenci seçildi';
+
+    // _ogrenciList içinde aynı numara birden fazla kez gelebiliyor.
+    // Sayımı her zaman seçili Set üzerinden (unique numara) yap.
+    if (ids.length > 2) return '${ids.length} öğrenci seçildi';
+
+    final Map<String, String> numaraToName = {};
+    for (final o in _ogrenciList) {
+      final numara = '${o.numara}';
+      if (!ids.contains(numara)) continue;
+
+      final name = '${o.adi} ${o.soyadi}'.trim();
+      if (name.isEmpty) continue;
+
+      numaraToName.putIfAbsent(numara, () => name);
+    }
+
+    final names = numaraToName.values.toList();
+    if (names.length == ids.length && names.isNotEmpty) {
+      return names.join(', ');
+    }
+
+    return '${ids.length} öğrenci seçildi';
   }
 
   Future<void> _applyOgrenciFilters(
@@ -2581,6 +2647,7 @@ class _AracTalepBenEkleScreenState
 
   Widget _buildOkulFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSeviye,
     Set<String> localSelectedSinif,
@@ -2592,91 +2659,158 @@ class _AracTalepBenEkleScreenState
       return const Center(child: Text('Okul verisi bulunamadı'));
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSelectActions(
-          onClear: () {
-            setModalState(() {
-              localSelectedOkul.clear();
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-          onSelectAll: () {
-            setModalState(() {
-              localSelectedOkul
-                ..clear()
-                ..addAll(_okulKoduList);
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
-            itemCount: _okulKoduList.length,
-            itemBuilder: (context, index) {
-              final okul = _okulKoduList[index];
-              final isSelected = localSelectedOkul.contains(okul);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedOkul.add(okul);
-                    } else {
-                      localSelectedOkul.remove(okul);
-                    }
-                    _syncOgrenciSelectionFromFilters(
-                      localSelectedOkul,
-                      localSelectedSeviye,
-                      localSelectedSinif,
-                      localSelectedKulup,
-                      localSelectedTakim,
-                      localSelectedOgrenci,
-                    );
-                  });
-                },
-                title: Text(
-                  okul,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: Colors.black87,
+    final searchController = TextEditingController();
+    String searchQuery = '';
+
+    List<String> applyFilters() {
+      if (searchQuery.isEmpty) return _okulKoduList;
+      final q = searchQuery.toLowerCase();
+      return _okulKoduList.where((s) => s.toLowerCase().contains(q)).toList();
+    }
+
+    return StatefulBuilder(
+      builder: (context, innerSetState) {
+        final filtered = applyFilters();
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Okul ara...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            searchController.clear();
+                            innerSetState(() => searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.gradientStart,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                activeColor: const Color(0xFF014B92),
-                checkboxShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                onChanged: (val) => innerSetState(() => searchQuery = val),
+              ),
+            ),
+            _buildSelectActions(
+              onClear: () {
+                setModalState(() {
+                  localSelectedOkul.clear();
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+              onSelectAll: () {
+                setModalState(() {
+                  localSelectedOkul
+                    ..clear()
+                    ..addAll(filtered);
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+            ),
+            if (filtered.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Sonuç bulunamadı',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final okul = filtered[index];
+                    final isSelected = localSelectedOkul.contains(okul);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      onChanged: (val) {
+                        setModalState(() {
+                          if (val == true) {
+                            localSelectedOkul.add(okul);
+                          } else {
+                            localSelectedOkul.remove(okul);
+                          }
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
+                          );
+                        });
+                        innerSetState(() {});
+                      },
+                      title: Text(
+                        okul,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      activeColor: const Color(0xFF014B92),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildSeviyeFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedSeviye,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSinif,
@@ -2688,91 +2822,157 @@ class _AracTalepBenEkleScreenState
       return const Center(child: Text('Seviye verisi bulunamadı'));
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSelectActions(
-          onClear: () {
-            setModalState(() {
-              localSelectedSeviye.clear();
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-          onSelectAll: () {
-            setModalState(() {
-              localSelectedSeviye
-                ..clear()
-                ..addAll(_seviyeList);
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
-            itemCount: _seviyeList.length,
-            itemBuilder: (context, index) {
-              final seviye = _seviyeList[index];
-              final isSelected = localSelectedSeviye.contains(seviye);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedSeviye.add(seviye);
-                    } else {
-                      localSelectedSeviye.remove(seviye);
-                    }
-                    _syncOgrenciSelectionFromFilters(
-                      localSelectedOkul,
-                      localSelectedSeviye,
-                      localSelectedSinif,
-                      localSelectedKulup,
-                      localSelectedTakim,
-                      localSelectedOgrenci,
-                    );
-                  });
-                },
-                title: Text(
-                  seviye,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: Colors.black87,
+    final searchController = TextEditingController();
+    String searchQuery = '';
+
+    List<String> applyFilters() {
+      if (searchQuery.isEmpty) return _seviyeList;
+      final q = searchQuery.toLowerCase();
+      return _seviyeList.where((s) => s.toLowerCase().contains(q)).toList();
+    }
+
+    return StatefulBuilder(
+      builder: (context, innerSetState) {
+        final filtered = applyFilters();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Seviye ara...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            searchController.clear();
+                            innerSetState(() => searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.gradientStart,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                activeColor: const Color(0xFF014B92),
-                checkboxShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                onChanged: (val) => innerSetState(() => searchQuery = val),
+              ),
+            ),
+            _buildSelectActions(
+              onClear: () {
+                setModalState(() {
+                  localSelectedSeviye.clear();
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+              onSelectAll: () {
+                setModalState(() {
+                  localSelectedSeviye
+                    ..clear()
+                    ..addAll(filtered);
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+            ),
+            if (filtered.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Sonuç bulunamadı',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final seviye = filtered[index];
+                    final isSelected = localSelectedSeviye.contains(seviye);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      onChanged: (val) {
+                        setModalState(() {
+                          if (val == true) {
+                            localSelectedSeviye.add(seviye);
+                          } else {
+                            localSelectedSeviye.remove(seviye);
+                          }
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
+                          );
+                        });
+                        innerSetState(() {});
+                      },
+                      title: Text(
+                        seviye,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      activeColor: const Color(0xFF014B92),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildSinifFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedSinif,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSeviye,
@@ -2784,91 +2984,157 @@ class _AracTalepBenEkleScreenState
       return const Center(child: Text('Sınıf verisi bulunamadı'));
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSelectActions(
-          onClear: () {
-            setModalState(() {
-              localSelectedSinif.clear();
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-          onSelectAll: () {
-            setModalState(() {
-              localSelectedSinif
-                ..clear()
-                ..addAll(_sinifList);
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
-            itemCount: _sinifList.length,
-            itemBuilder: (context, index) {
-              final sinif = _sinifList[index];
-              final isSelected = localSelectedSinif.contains(sinif);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedSinif.add(sinif);
-                    } else {
-                      localSelectedSinif.remove(sinif);
-                    }
-                    _syncOgrenciSelectionFromFilters(
-                      localSelectedOkul,
-                      localSelectedSeviye,
-                      localSelectedSinif,
-                      localSelectedKulup,
-                      localSelectedTakim,
-                      localSelectedOgrenci,
-                    );
-                  });
-                },
-                title: Text(
-                  sinif,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: Colors.black87,
+    final searchController = TextEditingController();
+    String searchQuery = '';
+
+    List<String> applyFilters() {
+      if (searchQuery.isEmpty) return _sinifList;
+      final q = searchQuery.toLowerCase();
+      return _sinifList.where((s) => s.toLowerCase().contains(q)).toList();
+    }
+
+    return StatefulBuilder(
+      builder: (context, innerSetState) {
+        final filtered = applyFilters();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Sınıf ara...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            searchController.clear();
+                            innerSetState(() => searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.gradientStart,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                activeColor: const Color(0xFF014B92),
-                checkboxShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                onChanged: (val) => innerSetState(() => searchQuery = val),
+              ),
+            ),
+            _buildSelectActions(
+              onClear: () {
+                setModalState(() {
+                  localSelectedSinif.clear();
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+              onSelectAll: () {
+                setModalState(() {
+                  localSelectedSinif
+                    ..clear()
+                    ..addAll(filtered);
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+            ),
+            if (filtered.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Sonuç bulunamadı',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final sinif = filtered[index];
+                    final isSelected = localSelectedSinif.contains(sinif);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      onChanged: (val) {
+                        setModalState(() {
+                          if (val == true) {
+                            localSelectedSinif.add(sinif);
+                          } else {
+                            localSelectedSinif.remove(sinif);
+                          }
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
+                          );
+                        });
+                        innerSetState(() {});
+                      },
+                      title: Text(
+                        sinif,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      activeColor: const Color(0xFF014B92),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildKulupFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedKulup,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSeviye,
@@ -2880,91 +3146,157 @@ class _AracTalepBenEkleScreenState
       return const Center(child: Text('Kulüp verisi bulunamadı'));
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSelectActions(
-          onClear: () {
-            setModalState(() {
-              localSelectedKulup.clear();
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-          onSelectAll: () {
-            setModalState(() {
-              localSelectedKulup
-                ..clear()
-                ..addAll(_kulupList);
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
-            itemCount: _kulupList.length,
-            itemBuilder: (context, index) {
-              final kulup = _kulupList[index];
-              final isSelected = localSelectedKulup.contains(kulup);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedKulup.add(kulup);
-                    } else {
-                      localSelectedKulup.remove(kulup);
-                    }
-                    _syncOgrenciSelectionFromFilters(
-                      localSelectedOkul,
-                      localSelectedSeviye,
-                      localSelectedSinif,
-                      localSelectedKulup,
-                      localSelectedTakim,
-                      localSelectedOgrenci,
-                    );
-                  });
-                },
-                title: Text(
-                  kulup,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: Colors.black87,
+    final searchController = TextEditingController();
+    String searchQuery = '';
+
+    List<String> applyFilters() {
+      if (searchQuery.isEmpty) return _kulupList;
+      final q = searchQuery.toLowerCase();
+      return _kulupList.where((s) => s.toLowerCase().contains(q)).toList();
+    }
+
+    return StatefulBuilder(
+      builder: (context, innerSetState) {
+        final filtered = applyFilters();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Kulüp ara...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            searchController.clear();
+                            innerSetState(() => searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.gradientStart,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                activeColor: const Color(0xFF014B92),
-                checkboxShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                onChanged: (val) => innerSetState(() => searchQuery = val),
+              ),
+            ),
+            _buildSelectActions(
+              onClear: () {
+                setModalState(() {
+                  localSelectedKulup.clear();
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+              onSelectAll: () {
+                setModalState(() {
+                  localSelectedKulup
+                    ..clear()
+                    ..addAll(filtered);
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+            ),
+            if (filtered.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Sonuç bulunamadı',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final kulup = filtered[index];
+                    final isSelected = localSelectedKulup.contains(kulup);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      onChanged: (val) {
+                        setModalState(() {
+                          if (val == true) {
+                            localSelectedKulup.add(kulup);
+                          } else {
+                            localSelectedKulup.remove(kulup);
+                          }
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
+                          );
+                        });
+                        innerSetState(() {});
+                      },
+                      title: Text(
+                        kulup,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      activeColor: const Color(0xFF014B92),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildTakimFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedTakim,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSeviye,
@@ -2976,91 +3308,157 @@ class _AracTalepBenEkleScreenState
       return const Center(child: Text('Takım verisi bulunamadı'));
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildSelectActions(
-          onClear: () {
-            setModalState(() {
-              localSelectedTakim.clear();
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-          onSelectAll: () {
-            setModalState(() {
-              localSelectedTakim
-                ..clear()
-                ..addAll(_takimList);
-              _syncOgrenciSelectionFromFilters(
-                localSelectedOkul,
-                localSelectedSeviye,
-                localSelectedSinif,
-                localSelectedKulup,
-                localSelectedTakim,
-                localSelectedOgrenci,
-              );
-            });
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
-            itemCount: _takimList.length,
-            itemBuilder: (context, index) {
-              final takim = _takimList[index];
-              final isSelected = localSelectedTakim.contains(takim);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedTakim.add(takim);
-                    } else {
-                      localSelectedTakim.remove(takim);
-                    }
-                    _syncOgrenciSelectionFromFilters(
-                      localSelectedOkul,
-                      localSelectedSeviye,
-                      localSelectedSinif,
-                      localSelectedKulup,
-                      localSelectedTakim,
-                      localSelectedOgrenci,
-                    );
-                  });
-                },
-                title: Text(
-                  takim,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: Colors.black87,
+    final searchController = TextEditingController();
+    String searchQuery = '';
+
+    List<String> applyFilters() {
+      if (searchQuery.isEmpty) return _takimList;
+      final q = searchQuery.toLowerCase();
+      return _takimList.where((s) => s.toLowerCase().contains(q)).toList();
+    }
+
+    return StatefulBuilder(
+      builder: (context, innerSetState) {
+        final filtered = applyFilters();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Takım ara...',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            searchController.clear();
+                            innerSetState(() => searchQuery = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: AppColors.gradientStart,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  isDense: true,
                 ),
-                activeColor: const Color(0xFF014B92),
-                checkboxShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                onChanged: (val) => innerSetState(() => searchQuery = val),
+              ),
+            ),
+            _buildSelectActions(
+              onClear: () {
+                setModalState(() {
+                  localSelectedTakim.clear();
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+              onSelectAll: () {
+                setModalState(() {
+                  localSelectedTakim
+                    ..clear()
+                    ..addAll(filtered);
+                  _syncOgrenciSelectionFromFilters(
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    localSelectedKulup,
+                    localSelectedTakim,
+                    localSelectedOgrenci,
+                  );
+                });
+                innerSetState(() {});
+              },
+            ),
+            if (filtered.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Sonuç bulunamadı',
+                  style: TextStyle(color: Colors.grey),
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final takim = filtered[index];
+                    final isSelected = localSelectedTakim.contains(takim);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      onChanged: (val) {
+                        setModalState(() {
+                          if (val == true) {
+                            localSelectedTakim.add(takim);
+                          } else {
+                            localSelectedTakim.remove(takim);
+                          }
+                          _syncOgrenciSelectionFromFilters(
+                            localSelectedOkul,
+                            localSelectedSeviye,
+                            localSelectedSinif,
+                            localSelectedKulup,
+                            localSelectedTakim,
+                            localSelectedOgrenci,
+                          );
+                        });
+                        innerSetState(() {});
+                      },
+                      title: Text(
+                        takim,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      activeColor: const Color(0xFF014B92),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildOgrenciFilterPage(
     StateSetter setModalState,
+    ScrollController scrollController,
     Set<String> localSelectedOgrenci,
   ) {
     final searchController = TextEditingController();
@@ -3151,6 +3549,7 @@ class _AracTalepBenEkleScreenState
             else
               Expanded(
                 child: ListView.builder(
+                  controller: scrollController,
                   shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
