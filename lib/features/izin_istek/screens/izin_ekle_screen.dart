@@ -319,7 +319,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       canPop: true,
       child: Scaffold(
         backgroundColor: const Color(0xFFE8E3E3),
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text(
             '�zin istek',
@@ -331,6 +331,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
         ),
         body: SingleChildScrollView(

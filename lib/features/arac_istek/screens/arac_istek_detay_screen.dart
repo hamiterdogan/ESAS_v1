@@ -45,6 +45,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
         elevation: 0,
       ),
@@ -71,60 +72,67 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
         ? detay.gorev
         : (personelAsync.value?.gorev ?? '-');
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAccordion(
-            icon: Icons.person_outline,
-            title: 'Personel Bilgileri',
-            isExpanded: _personelBilgileriExpanded,
-            onTap: () {
-              setState(() {
-                _personelBilgileriExpanded = !_personelBilgileriExpanded;
-              });
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow('Ad Soyad', adSoyad.isNotEmpty ? adSoyad : '-'),
-                _buildInfoRow(
-                  'Görev Yeri',
-                  gorevYeri.isNotEmpty ? gorevYeri : '-',
-                ),
-                _buildInfoRow(
-                  'Görevi',
-                  gorevi.isNotEmpty ? gorevi : '-',
-                  isLast: true,
-                ),
-              ],
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          60 + MediaQuery.of(context).padding.bottom,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildAccordion(
+              icon: Icons.person_outline,
+              title: 'Personel Bilgileri',
+              isExpanded: _personelBilgileriExpanded,
+              onTap: () {
+                setState(() {
+                  _personelBilgileriExpanded = !_personelBilgileriExpanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow('Ad Soyad', adSoyad.isNotEmpty ? adSoyad : '-'),
+                  _buildInfoRow(
+                    'Görev Yeri',
+                    gorevYeri.isNotEmpty ? gorevYeri : '-',
+                  ),
+                  _buildInfoRow(
+                    'Görevi',
+                    gorevi.isNotEmpty ? gorevi : '-',
+                    isLast: true,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildAccordion(
-            icon: Icons.directions_car_outlined,
-            title: 'Araç İstek Detayları',
-            isExpanded: _aracDetaylariExpanded,
-            onTap: () {
-              setState(() {
-                _aracDetaylariExpanded = !_aracDetaylariExpanded;
-              });
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _buildAracDetayRows(detay),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
-            _buildYolcuListesiAccordion(detay),
-          if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
             const SizedBox(height: 16),
-          _buildOnaySureciAccordion(),
-          const SizedBox(height: 16),
-          _buildBildirimGideceklerAccordion(),
-        ],
+            _buildAccordion(
+              icon: Icons.directions_car_outlined,
+              title: 'Araç İstek Detayları',
+              isExpanded: _aracDetaylariExpanded,
+              onTap: () {
+                setState(() {
+                  _aracDetaylariExpanded = !_aracDetaylariExpanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildAracDetayRows(detay),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
+              _buildYolcuListesiAccordion(detay),
+            if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
+              const SizedBox(height: 16),
+            _buildOnaySureciAccordion(),
+            const SizedBox(height: 16),
+            _buildBildirimGideceklerAccordion(),
+          ],
+        ),
       ),
     );
   }

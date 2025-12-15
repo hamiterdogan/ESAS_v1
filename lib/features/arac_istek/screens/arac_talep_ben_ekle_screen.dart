@@ -239,6 +239,7 @@ class _AracTalepBenEkleScreenState
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           '$aracTuru Araç Talebi',
@@ -250,6 +251,7 @@ class _AracTalepBenEkleScreenState
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
         elevation: 0,
       ),

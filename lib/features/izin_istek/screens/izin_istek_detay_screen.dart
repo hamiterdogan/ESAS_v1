@@ -29,6 +29,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
     final izinDetayAsync = ref.watch(izinIstekDetayProvider(widget.talepId));
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(
@@ -44,6 +45,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
         elevation: 0,
       ),
@@ -101,8 +103,9 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
   }
 
   Widget _buildContent(BuildContext context, IzinIstekDetayResponse detay) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

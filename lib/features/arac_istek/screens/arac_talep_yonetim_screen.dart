@@ -54,6 +54,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.go('/'),
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
           elevation: 0,
           actions: _tabController.index == 0
@@ -406,14 +407,18 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                       color: Color(0xFF014B92),
                                     ),
                                   ),
-                                  Text(
-                                    talep.aracTuru?.isNotEmpty == true
-                                        ? talep.aracTuru!
-                                        : 'Bilinmiyor',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
+                                  Flexible(
+                                    child: Text(
+                                      talep.aracTuru?.isNotEmpty == true
+                                          ? talep.aracTuru!
+                                          : 'Bilinmiyor',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -422,15 +427,21 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    tarihStr,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
+                                  Flexible(
+                                    child: Text(
+                                      tarihStr,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 10,
@@ -455,14 +466,18 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           color: statusColor,
                                         ),
                                         const SizedBox(width: 4),
-                                        Text(
-                                          talep.onayDurumu.isEmpty
-                                              ? 'Durum Bilinmiyor'
-                                              : talep.onayDurumu,
-                                          style: TextStyle(
-                                            color: statusColor,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
+                                        Flexible(
+                                          child: Text(
+                                            talep.onayDurumu.isEmpty
+                                                ? 'Durum Bilinmiyor'
+                                                : talep.onayDurumu,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: statusColor,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -506,4 +521,3 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     );
   }
 }
-

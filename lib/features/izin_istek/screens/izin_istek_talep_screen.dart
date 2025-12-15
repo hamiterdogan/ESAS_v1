@@ -88,11 +88,13 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFE8E3E3),
       appBar: const _GradientAppBar(title: 'İzin İstek', onBackLabel: 'back'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
         child: Form(
           key: _formKey,
           child: Column(
@@ -487,14 +489,19 @@ class _GradientAppBar extends ConsumerWidget implements PreferredSizeWidget {
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
               ),
               const SizedBox(width: 4),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
