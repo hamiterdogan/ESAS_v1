@@ -67,44 +67,17 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
                   //   padding: const EdgeInsets.only(right: 4),
                   //   child: InkWell(...sort...)
                   // ),
-                  // Filtreleme ikonu + label (ana sayfa ile aynı stil)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        if (_tabController.index == 0) {
-                          _devamEdenKey.currentState
-                              ?.showFilterBottomSheetPublic();
-                        } else {
-                          _tamamlananKey.currentState
-                              ?.showFilterBottomSheetPublic();
-                        }
-                      },
-                      child: const SizedBox(
-                        height: kToolbarHeight,
-                        width: 50,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.filter_alt_outlined,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Filtrele',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white,
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  CommonAppBarActionButton(
+                    label: 'Filtrele',
+                    onTap: () {
+                      if (_tabController.index == 0) {
+                        _devamEdenKey.currentState
+                            ?.showFilterBottomSheetPublic();
+                      } else {
+                        _tamamlananKey.currentState
+                            ?.showFilterBottomSheetPublic();
+                      }
+                    },
                   ),
                 ],
           bottom: TabBar(

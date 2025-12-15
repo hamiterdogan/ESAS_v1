@@ -353,10 +353,18 @@ class _AracIstekYukEkleScreenState
                   ),
                 )
               else
-                Card(
-                  elevation: 2,
-                  margin: EdgeInsets.zero,
-                  color: Colors.white,
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

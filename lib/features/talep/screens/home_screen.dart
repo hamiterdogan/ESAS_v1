@@ -47,43 +47,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: _currentIndex != 0
             ? [
-                // Filtreleme ikonu + label
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      if (_currentIndex == 1) {
-                        _isteklerimKey.currentState?.showFilterBottomSheet();
-                      } else if (_currentIndex == 2) {
-                        _gelenKutusuKey.currentState?.showFilterBottomSheet();
-                      }
-                    },
-                    child: const SizedBox(
-                      height: kToolbarHeight,
-                      width: 50,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.filter_alt_outlined,
-                            color: Colors.white,
-                            size: 30,
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Filtrele',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              height: 1.1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                CommonAppBarActionButton(
+                  label: 'Filtrele',
+                  onTap: () {
+                    if (_currentIndex == 1) {
+                      _isteklerimKey.currentState?.showFilterBottomSheet();
+                    } else if (_currentIndex == 2) {
+                      _gelenKutusuKey.currentState?.showFilterBottomSheet();
+                    }
+                  },
                 ),
               ]
             : null,
