@@ -117,7 +117,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                       activeTrackColor: AppColors.gradientStart.withValues(
                         alpha: 0.5,
                       ),
-                      activeColor: AppColors.gradientEnd,
+                      activeThumbColor: AppColors.gradientEnd,
                     ),
                     const SizedBox(width: 10),
                     const Text('1 günlük izin', style: TextStyle(fontSize: 16)),
@@ -758,3 +758,4 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     );
   }
 }
+

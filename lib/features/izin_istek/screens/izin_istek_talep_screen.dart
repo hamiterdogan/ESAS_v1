@@ -261,7 +261,7 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
                       children: [
                         Switch(
                           value: _kvkkOnay,
-                          activeColor: Colors.white,
+                          activeThumbColor: Colors.white,
                           activeTrackColor: const Color(0xFF014B92),
                           onChanged: (v) => setState(() => _kvkkOnay = v),
                         ),
@@ -336,7 +336,7 @@ class _Card extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -546,3 +546,5 @@ class _GradientButton extends ConsumerWidget {
     );
   }
 }
+
+

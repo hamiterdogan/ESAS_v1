@@ -1,11 +1,16 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
 
 // Token Provider
 final tokenProvider = Provider<String>((ref) {
   return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiNDUwNyIsIkVtYWlsIjoidGVzdGV2cmVuLnRvbWJ1bEBleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJFVE9NQlVMIiwiR29yZXZJZCI6IjQ2IiwibmJmIjoxNzY0MzI5NDUwLCJleHAiOjE3OTU0MzM0NTAsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0In0.lSaV7AXUSEvbNb6m4YCwCyUcP7Tbs5hn4YoJt7WzrGg';
 });
+
+// Auth state provider - 401 durumunda true olur
+final authErrorProvider = StateProvider<bool>((ref) => false);
 
 // Current User PersonelId Provider
 final currentPersonelIdProvider = Provider<int>((ref) {
@@ -29,7 +34,10 @@ final dioProvider = Provider<Dio>((ref) {
     },
   );
 
-  dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+  // Sadece debug modda log interceptor aktif
+  if (kDebugMode) {
+    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+  }
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -37,7 +45,14 @@ final dioProvider = Provider<Dio>((ref) {
         handler.next(options);
       },
       onError: (error, handler) {
-        if (error.response?.statusCode == 401) {}
+        if (error.response?.statusCode == 401) {
+          // Token geçersiz veya süresi dolmuş
+          // authErrorProvider'ı true yap - UI bunu dinleyip kullanıcıyı bilgilendirecek
+          ref.read(authErrorProvider.notifier).state = true;
+          if (kDebugMode) {
+            print('⚠️ 401 Unauthorized - Token expired or invalid');
+          }
+        }
         handler.next(error);
       },
     ),

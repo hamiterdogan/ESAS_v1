@@ -1,4 +1,4 @@
-﻿import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -18,14 +18,14 @@ class IzinEkleFormState {
   final IzinNedeni? secilenNedeni;
   final bool isBaskasiAdinaBakinlari;
 
-  // Do�um izni
+  // Do?um izni
   final DateTime? tahminiBirthDate;
 
   // Evlilik izni
   final DateTime? evlilikTarihi;
   final String esAdi;
 
-  // Hastal�k
+  // Hastal?k
   final bool doktorRaporuVar;
   final String? hastalikDurumu; // 'acil' veya null
   final String hastalikiYaziniz;
@@ -34,13 +34,13 @@ class IzinEkleFormState {
   final String? hastalikBitisSaati; // 08-18
   final String? hastalikBitisDakikasi; // 00 veya 30
 
-  // Kurum g�revlendirmesi
+  // Kurum g?revlendirmesi
   final String? baslangicSaati;
   final String? bitisSaati;
   final bool gunlukIzinToggle;
   final String gunlukIzinBitisSaati;
 
-  // Dini gün
+  // Dini g�n
   final String diniGunAciklama;
   final DateTime? diniGunBaslangic;
   final DateTime? diniGunBitis;
@@ -189,7 +189,7 @@ class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
     );
   }
 
-  // Do�um izni
+  // Do?um izni
   void setTahminiBirthDate(DateTime? date) {
     state = state.copyWith(tahminiBirthDate: date);
   }
@@ -203,7 +203,7 @@ class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
     state = state.copyWith(esAdi: ad);
   }
 
-  // Hastal�k
+  // Hastal?k
   void toggleDoktorRaporuVar() {
     state = state.copyWith(doktorRaporuVar: !state.doktorRaporuVar);
   }
@@ -232,7 +232,7 @@ class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
     state = state.copyWith(hastalikBitisDakikasi: dakika);
   }
 
-  // Kurum g�revlendirmesi
+  // Kurum g?revlendirmesi
   void setBaslangicSaati(String saat) {
     // Toggle aktifse bitisSaati'ni 17:30 yap
     if (state.gunlukIzinToggle) {
@@ -253,7 +253,7 @@ class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
     state = state.copyWith(gunlukIzinToggle: yeniToggle, bitisSaati: bitisSaat);
   }
 
-  // Dini g�n
+  // Dini g?n
   void setDiniGunAciklama(String text) {
     state = state.copyWith(diniGunAciklama: text);
   }
@@ -322,7 +322,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
-            'İzin istek',
+            '�zin istek',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: const Color(0xFF014B92),
@@ -345,7 +345,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Başkası adına istekte bulunuyorum',
+                      'Ba�kas� ad�na istekte bulunuyorum',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -358,7 +358,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             .read(izinEkleFormProvider.notifier)
                             .toggleBaskasiAdinaBakinlari();
                       },
-                      activeColor: const Color(0xFF014B92),
+                      activeThumbColor: const Color(0xFF014B92),
                     ),
                   ],
                 ),
@@ -448,7 +448,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 child: Text(
                   formState.secilenPersonel != null
                       ? '${formState.secilenPersonel!.ad} ${formState.secilenPersonel!.soyad}'
-                      : 'Personel Se�in',
+                      : 'Personel Se?in',
                   style: TextStyle(
                     fontSize: 15,
                     color: formState.secilenPersonel != null
@@ -500,7 +500,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 child: Text(
                   formState.secilenNedeni != null
                       ? formState.secilenNedeni!.izinNedeni
-                      : '�zin T�r�',
+                      : '?zin T?r?',
                   style: TextStyle(
                     fontSize: 15,
                     color: formState.secilenNedeni != null
@@ -532,8 +532,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
   ) {
     final nedeniAdi = formState.secilenNedeni?.izinNedeni.toLowerCase() ?? '';
 
-    // 1: Do�um izni (Do�um se�ilirse)
-    if (nedeniAdi.contains('do�um')) {
+    // 1: Do?um izni (Do?um se?ilirse)
+    if (nedeniAdi.contains('do?um')) {
       return Column(
         children: [
           _buildCard(
@@ -544,7 +544,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'A��klama',
+                    'A??klama',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -559,7 +559,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         .setAciklama(value),
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'A��klama',
+                      hintText: 'A??klama',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
@@ -596,7 +596,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tahmini Do�um Tarihi',
+                    'Tahmini Do?um Tarihi',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -636,7 +636,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                 ? DateFormat(
                                     'gg.aa.yyyy',
                                   ).format(formState.tahminiBirthDate!)
-                                : 'Tarih se�iniz',
+                                : 'Tarih se?iniz',
                             style: TextStyle(
                               fontSize: 15,
                               color: formState.tahminiBirthDate != null
@@ -661,7 +661,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
     }
 
-    // 2: Evlilik izni (Evlilik se�ilirse)
+    // 2: Evlilik izni (Evlilik se?ilirse)
     if (nedeniAdi.contains('evlilik') || nedeniAdi.contains('evlen')) {
       return Column(
         children: [
@@ -712,7 +712,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                 ? DateFormat(
                                     'gg.aa.yyyy',
                                   ).format(formState.evlilikTarihi!)
-                                : 'Tarih se�iniz',
+                                : 'Tarih se?iniz',
                             style: TextStyle(
                               fontSize: 15,
                               color: formState.evlilikTarihi != null
@@ -742,13 +742,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 onChanged: (value) =>
                     ref.read(izinEkleFormProvider.notifier).setEsAdi(value),
                 decoration: InputDecoration(
-                  labelText: 'Eş Adı',
+                  labelText: 'E� Ad�',
                   labelStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF333333),
                   ),
-                  hintText: 'Eş adını giriniz',
+                  hintText: 'E� ad�n� giriniz',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                   ),
@@ -776,7 +776,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'A��klama',
+                    'A??klama',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -791,7 +791,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         .setAciklama(value),
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'A��klama',
+                      hintText: 'A??klama',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
@@ -823,8 +823,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
     }
 
-    // 3: Hastal�k (Hastal�k se�ilirse)
-    if (nedeniAdi.contains('hastal�k') || nedeniAdi.contains('hasta')) {
+    // 3: Hastal?k (Hastal?k se?ilirse)
+    if (nedeniAdi.contains('hastal?k') || nedeniAdi.contains('hasta')) {
       return Column(
         children: [
           _buildCard(
@@ -842,7 +842,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     onChanged: (_) => ref
                         .read(izinEkleFormProvider.notifier)
                         .toggleDoktorRaporuVar(),
-                    activeColor: const Color(0xFF014B92),
+                    activeThumbColor: const Color(0xFF014B92),
                   ),
                 ],
               ),
@@ -868,7 +868,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             formState.hastalikDurumu == 'acil' ? null : 'acil',
                           );
                     },
-                    activeColor: const Color(0xFF014B92),
+                    activeThumbColor: const Color(0xFF014B92),
                   ),
                 ],
               ),
@@ -883,7 +883,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Hastalığınızı Yazınız',
+                    'Hastal���n�z� Yaz�n�z',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -898,7 +898,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         .setHastalikiYaziniz(value),
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'Hastalık açıklaması',
+                      hintText: 'Hastal�k a��klamas�',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
@@ -935,7 +935,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Hastal�k Saati',
+                    'Hastal?k Saati',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -943,12 +943,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Ba�lang��
+                  // Ba?lang??
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Ba�lang��',
+                        'Ba?lang??',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -1031,12 +1031,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Biti�
+                  // Biti?
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Biti�',
+                        'Biti?',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -1125,8 +1125,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
     }
 
-    // 4: Kurum G�revlendirmesi
-    if (nedeniAdi.contains('g�revlendirme') || nedeniAdi.contains('g�rev')) {
+    // 4: Kurum G?revlendirmesi
+    if (nedeniAdi.contains('g?revlendirme') || nedeniAdi.contains('g?rev')) {
       return Column(
         children: [
           _buildCard(
@@ -1137,7 +1137,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Ba�lang�� Saati',
+                    'Ba?lang?? Saati',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1155,7 +1155,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             .setBaslangicSaati(value);
                     },
                     decoration: InputDecoration(
-                      hintText: 'Saati se�iniz',
+                      hintText: 'Saati se?iniz',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -1177,7 +1177,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    '1 günlük izin',
+                    '1 g�nl�k izin',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Switch(
@@ -1187,7 +1187,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                           .read(izinEkleFormProvider.notifier)
                           .toggleGunlukIzin();
                     },
-                    activeColor: const Color(0xFF014B92),
+                    activeThumbColor: const Color(0xFF014B92),
                   ),
                 ],
               ),
@@ -1202,7 +1202,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Bitiş Saati',
+                    'Biti� Saati',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1220,7 +1220,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             .setBitisSaati(value);
                     },
                     decoration: InputDecoration(
-                      hintText: 'Saati seçiniz',
+                      hintText: 'Saati se�iniz',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -1243,7 +1243,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'A��klama',
+                    'A??klama',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1258,7 +1258,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         .setAciklama(value),
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'A��klama',
+                      hintText: 'A??klama',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
@@ -1290,11 +1290,11 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
     }
 
-    // 5: Dini g�n
+    // 5: Dini g?n
     if (nedeniAdi.contains('dini')) {
       return Column(
         children: [
-          // Açıklama
+          // A��klama
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -1303,7 +1303,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Açıklama',
+                    'A��klama',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1318,7 +1318,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         .setDiniGunAciklama(value),
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'Açıklama',
+                      hintText: 'A��klama',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
@@ -1347,7 +1347,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // Ba�lang�� ve Biti� Tarihleri (yan yana)
+          // Ba?lang?? ve Biti? Tarihleri (yan yana)
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -1359,7 +1359,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Ba�lang�� Tarihi',
+                          'Ba?lang?? Tarihi',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -1396,7 +1396,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   ? DateFormat(
                                       'gg.aa.yyyy',
                                     ).format(formState.diniGunBaslangic!)
-                                  : 'Tarih se�iniz',
+                                  : 'Tarih se?iniz',
                               style: const TextStyle(fontSize: 13),
                             ),
                           ),
@@ -1411,7 +1411,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Biti� Tarihi',
+                          'Biti? Tarihi',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -1448,7 +1448,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   ? DateFormat(
                                       'gg.aa.yyyy',
                                     ).format(formState.diniGunBitis!)
-                                  : 'Tarih se�iniz',
+                                  : 'Tarih se?iniz',
                               style: const TextStyle(fontSize: 13),
                             ),
                           ),
@@ -1526,10 +1526,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.grey[500]!,
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey[500]!, width: 1),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -1545,7 +1542,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '💡 Dini gün izni için özel kurallar',
+                    '?? Dini g�n izni i�in �zel kurallar',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
@@ -1554,7 +1551,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Dini gün izni talep ettiğiniz tarihlerde, dersin yapılmadığını ve yapılacağı saatlerin girilemediğini belirtmeniz gerekir. Aynı zamanda bu işleme ilişkin müdürlüğümüze başvuru yapmanız zorunludur.',
+                    'Dini g�n izni talep etti�iniz tarihlerde, dersin yap�lmad���n� ve yap�laca�� saatlerin girilemedi�ini belirtmeniz gerekir. Ayn� zamanda bu i�leme ili�kin m�d�rl���m�ze ba�vuru yapman�z zorunludur.',
                     style: TextStyle(
                       fontSize: 12,
                       color: Color(0xFF666666),
@@ -1562,17 +1559,14 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Divider(
-                    color: Colors.grey[300],
-                    height: 1,
-                  ),
+                  Divider(color: Colors.grey[300], height: 1),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Expanded(
                         child: Text(
-                          'Okudum, anladım, onaylıyorum.',
+                          'Okudum, anlad�m, onayl�yorum.',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -1585,7 +1579,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         onChanged: (_) => ref
                             .read(izinEkleFormProvider.notifier)
                             .toggleDiniGunOnay(),
-                        activeColor: const Color(0xFF014B92),
+                        activeThumbColor: const Color(0xFF014B92),
                       ),
                     ],
                   ),
@@ -1597,7 +1591,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
     }
 
-    // 6: Mazeret (ve diğer durumlar)
+    // 6: Mazeret (ve di�er durumlar)
     return Column(
       children: [
         _buildCard(
@@ -1608,7 +1602,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Açıklama',
+                  'A��klama',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -1623,7 +1617,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       .setAciklama(value),
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: 'Açıklama',
+                    hintText: 'A��klama',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                       borderSide: BorderSide(
@@ -1660,7 +1654,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'İzinde Bulunacağı Adres',
+                  '�zinde Bulunaca�� Adres',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -1737,7 +1731,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Ba�lang�� Tarihi',
+                        'Ba?lang?? Tarihi',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -1774,7 +1768,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Biti� Tarihi',
+                        'Biti? Tarihi',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -1814,7 +1808,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
-                '💡 Başlangıç Tarihi seçildiğinde bitiş tarihi otomatik olarak aynı gün olarak ayarlanır. 1 günlük izin için tekrar bitiş tarihi girmenize gerek yoktur.',
+                '?? Ba�lang�� Tarihi se�ildi�inde biti� tarihi otomatik olarak ayn� g�n olarak ayarlan�r. 1 g�nl�k izin i�in tekrar biti� tarihi girmenize gerek yoktur.',
                 style: TextStyle(fontSize: 11, color: Color(0xFF1976D2)),
               ),
             ),
@@ -1854,7 +1848,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           elevation: 0,
         ),
         child: const Text(
-          'Gönder',
+          'G�nder',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -1883,7 +1877,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     if (picked != null) {
       if (isBaslangic) {
         ref.read(izinEkleFormProvider.notifier).setBaslangicTarihi(picked);
-        // 1 günlük izin için bitiş tarihini otomatik olarak başlangıç tarihi ile aynı yap
+        // 1 g�nl�k izin i�in biti� tarihini otomatik olarak ba�lang�� tarihi ile ayn� yap
         ref.read(izinEkleFormProvider.notifier).setBitisTarihi(picked);
       } else {
         ref.read(izinEkleFormProvider.notifier).setBitisTarihi(picked);
@@ -1905,62 +1899,62 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
 
     if (formState.secilenSebebiId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen izin sebebi seçiniz')),
+        const SnackBar(content: Text('L�tfen izin sebebi se�iniz')),
       );
       return;
     }
 
-    // Dini gün izni için özel validasyon
+    // Dini g�n izni i�in �zel validasyon
     if (nedeniAdi.contains('dini')) {
       if (formState.diniGunAciklama.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen açıklama giriniz')),
+          const SnackBar(content: Text('L�tfen a��klama giriniz')),
         );
         _requestFocusNextFrame(context, diniGunAciklamaFocusNode);
         return;
       }
     }
-    // Hastalık izni için özel validasyon
-    else if (nedeniAdi.contains('hastalık') || nedeniAdi.contains('hastalik')) {
+    // Hastal�k izni i�in �zel validasyon
+    else if (nedeniAdi.contains('hastal�k') || nedeniAdi.contains('hastalik')) {
       if (formState.hastalikiYaziniz.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen hastalığınızı yazınız')),
+          const SnackBar(content: Text('L�tfen hastal���n�z� yaz�n�z')),
         );
         _requestFocusNextFrame(context, hastalikYazinizFocusNode);
         return;
       }
     }
-    // Evlilik izni için özel validasyon
+    // Evlilik izni i�in �zel validasyon
     else if (nedeniAdi.contains('evlilik')) {
       if (formState.esAdi.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen eş adını giriniz')),
+          const SnackBar(content: Text('L�tfen e� ad�n� giriniz')),
         );
         _requestFocusNextFrame(context, esAdiFocusNode);
         return;
       }
       if (formState.aciklama.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen açıklama giriniz')),
+          const SnackBar(content: Text('L�tfen a��klama giriniz')),
         );
         _requestFocusNextFrame(context, aciklamaFocusNode);
         return;
       }
     }
-    // Mazeret ve diğer izin türleri için validasyon
+    // Mazeret ve di�er izin t�rleri i�in validasyon
     else {
       if (formState.aciklama.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen açıklama giriniz')),
+          const SnackBar(content: Text('L�tfen a��klama giriniz')),
         );
         _requestFocusNextFrame(context, aciklamaFocusNode);
         return;
       }
-      // Mazeret izni için adres kontrolü
+      // Mazeret izni i�in adres kontrol�
       if (formState.izindeBulunacagiAdres.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Lütfen izinde bulunacağınız adresi giriniz'),
+            content: Text('L�tfen izinde bulunaca��n�z adresi giriniz'),
           ),
         );
         _requestFocusNextFrame(context, adresFocusNode);
@@ -1971,7 +1965,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     if (formState.bitisTarihi.isBefore(formState.baslangicTarihi)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Bitiş tarihi başlangıç tarihinden sonra olmalıdır'),
+          content: Text('Biti� tarihi ba�lang�� tarihinden sonra olmal�d�r'),
         ),
       );
       return;
@@ -1987,7 +1981,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('İzin isteği başarıyla oluşturuldu'),
+        content: Text('�zin iste�i ba�ar�yla olu�turuldu'),
         backgroundColor: Colors.green,
       ),
     );
@@ -2064,7 +2058,7 @@ class _CustomTimePickerSpinnerState
                   top: BorderSide(color: Colors.grey[300]!, width: 1),
                   bottom: BorderSide(color: Colors.grey[300]!, width: 1),
                 ),
-                color: Color(0xFF014B92).withOpacity(0.05),
+                color: Color(0xFF014B92).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -2074,7 +2068,7 @@ class _CustomTimePickerSpinnerState
             itemExtent: 32,
             onSelectedItemChanged: (int index) {
               final selectedValue = widget.items[index];
-              // Disabled item se�ilirse, de�i�ikli�i kabul etme
+              // Disabled item se?ilirse, de?i?ikli?i kabul etme
               if (widget.disabledItems.contains(selectedValue)) {
                 return;
               }

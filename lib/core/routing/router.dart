@@ -5,6 +5,7 @@ import 'package:esas_v1/features/talep/models/talep_turu.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_talep_ben_ekle_screen.dart';
+import 'package:esas_v1/features/arac_istek/screens/arac_istek_yuk_ekle_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_turu_secim_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/gidilecek_yer_secim_screen.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
@@ -38,6 +39,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final tuId = int.tryParse(state.pathParameters['tuId'] ?? '') ?? 0;
         return AracTalepBenEkleScreen(tuId: tuId);
+      },
+    ),
+    GoRoute(
+      path: '/arac/yuk/ekle/:tuId',
+      builder: (context, state) {
+        final tuId = int.tryParse(state.pathParameters['tuId'] ?? '') ?? 0;
+        return AracIstekYukEkleScreen(tuId: tuId);
       },
     ),
     GoRoute(

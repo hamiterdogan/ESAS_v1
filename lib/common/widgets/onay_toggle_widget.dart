@@ -40,7 +40,7 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
             widget.onChanged(value);
           },
           activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
-          activeColor: AppColors.gradientEnd,
+          activeThumbColor: AppColors.gradientEnd,
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -50,3 +50,4 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
     );
   }
 }
+

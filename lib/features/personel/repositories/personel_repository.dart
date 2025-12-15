@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../../../core/repositories/base_repository.dart';
 import '../../../core/models/result.dart';
+import '../../../core/utils/app_logger.dart';
 import '../models/personel_models.dart';
 
 abstract class PersonelRepository {
@@ -10,41 +11,56 @@ abstract class PersonelRepository {
 class PersonelRepositoryImpl extends BaseRepository
     implements PersonelRepository {
   final Dio _dio;
+  static const _tag = 'PersonelRepository';
 
   PersonelRepositoryImpl(this._dio);
 
   @override
   Future<Result<List<Personel>>> getPersoneller() async {
     try {
-      print('🔍 Fetching personel from: /Personel/PersonelleriGetir');
+      AppLogger.api(
+        'Fetching personel',
+        url: '/Personel/PersonelleriGetir',
+        method: 'GET',
+      );
       final response = await _dio.get('/Personel/PersonelleriGetir');
-      print('✅ Response status: ${response.statusCode}');
-      print('📦 Response data type: ${response.data.runtimeType}');
+      AppLogger.api('Response received', statusCode: response.statusCode);
 
       return handleResponse(response, (data) {
         if (data is List) {
-          print('📋 Personel count: ${data.length}');
+          AppLogger.debug('Personel count: ${data.length}', tag: _tag);
           final personeller = data.map((item) {
             try {
               return Personel.fromJson(item as Map<String, dynamic>);
-            } catch (e) {
-              print('❌ Error parsing personel: $e');
-              print('🔍 Item data: $item');
+            } catch (e, stack) {
+              AppLogger.error(
+                'Error parsing personel',
+                tag: _tag,
+                error: e,
+                stackTrace: stack,
+              );
               rethrow;
             }
           }).toList();
-          print('✅ Successfully parsed ${personeller.length} personel');
+          AppLogger.info(
+            'Successfully parsed ${personeller.length} personel',
+            tag: _tag,
+          );
           return personeller;
         } else {
           throw Exception('Expected List but got ${data.runtimeType}');
         }
       });
     } on DioException catch (e) {
-      print('❌ Dio Error: ${e.message}');
-      print('🔍 Error type: ${e.type}');
+      AppLogger.error('Dio Error: ${e.message}', tag: _tag, error: e);
       return handleError(e);
-    } catch (e) {
-      print('❌ Unexpected error: $e');
+    } catch (e, stack) {
+      AppLogger.error(
+        'Unexpected error',
+        tag: _tag,
+        error: e,
+        stackTrace: stack,
+      );
       return Failure('Unexpected error: $e');
     }
   }

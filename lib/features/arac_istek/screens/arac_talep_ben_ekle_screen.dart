@@ -4,8 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
+import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
+import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
 class AracTalepBenEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -46,15 +49,14 @@ class _AracTalepBenEkleScreenState
   // Araç istek nedeni seçimi için durum
   int? _selectedAracIstekNedeniId;
   String? _customAracIstekNedeni;
-  List<_AracIstekNedeniItem> _aracIstekNedenleri = [];
-  bool _aracIstekNedeniLoading = false;
+  List<AracIstekNedeniItem> _aracIstekNedenleri = [];
   // Yolcu (personel) seçimi için durum
   final Set<int> _selectedGorevYeriIds = {};
   final Set<int> _selectedGorevIds = {};
   final Set<int> _selectedPersonelIds = {};
-  List<_GorevYeriItem> _gorevYerleri = [];
-  List<_GorevItem> _gorevler = [];
-  List<_PersonelItem> _personeller = [];
+  List<GorevYeriItem> _gorevYerleri = [];
+  List<GorevItem> _gorevler = [];
+  List<PersonelItem> _personeller = [];
   bool _personelSheetLoading = false;
   String? _personelSheetError;
   String _currentFilterPage = '';
@@ -75,9 +77,9 @@ class _AracTalepBenEkleScreenState
   List<String> _initialSinifList = [];
   List<String> _kulupList = [];
   List<String> _takimList = [];
-  List<_FilterOgrenciItem> _ogrenciList = [];
+  List<FilterOgrenciItem> _ogrenciList = [];
   bool _ogrenciSheetLoading = false;
-  String? _ogrenciSheetError = null;
+  String? _ogrenciSheetError;
   bool _isMEB = false;
 
   @override
@@ -208,13 +210,39 @@ class _AracTalepBenEkleScreenState
     );
   }
 
+  String _getAracTuruName() {
+    final aracTurleriAsync = ref.watch(aracTurleriProvider);
+    return aracTurleriAsync.when(
+      data: (list) {
+        try {
+          final selected = list.firstWhere((item) => item.id == widget.tuId);
+          return selected.tur;
+        } catch (_) {
+          return 'Araç Talebi';
+        }
+      },
+      loading: () => 'Araç Talebi',
+      error: (_, __) => 'Araç Talebi',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final aracTuru = _getAracTuruName();
+
+    // Eğer araç türü "Yük" ise, yük ekranına yönlendir
+    if (aracTuru == 'Yük') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.replace('/arac/yuk/ekle/${widget.tuId}');
+      });
+      return const SizedBox.shrink();
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Binek Araç Talebi',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          '$aracTuru Araç Talebi',
+          style: const TextStyle(color: Colors.white),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
@@ -487,7 +515,7 @@ class _AracTalepBenEkleScreenState
                     activeTrackColor: AppColors.gradientStart.withValues(
                       alpha: 0.5,
                     ),
-                    activeColor: AppColors.gradientEnd,
+                    activeThumbColor: AppColors.gradientEnd,
                     onChanged: (value) {
                       setState(() {
                         _isMEB = value;
@@ -1051,7 +1079,7 @@ class _AracTalepBenEkleScreenState
     if (_selectedAracIstekNedeniId == -1) return 'DİĞER';
     final selected = _aracIstekNedenleri.firstWhere(
       (i) => i.id == _selectedAracIstekNedeniId,
-      orElse: () => _AracIstekNedeniItem(id: -1, ad: ''),
+      orElse: () => AracIstekNedeniItem(id: -1, ad: ''),
     );
     return selected.ad;
   }
@@ -1089,7 +1117,7 @@ class _AracTalepBenEkleScreenState
         .toList();
 
     // Öğrenci listesi duplicate gelebiliyor: numara bazında tekilleştir.
-    final Map<int, _FilterOgrenciItem> numaraToOgr = {};
+    final Map<int, FilterOgrenciItem> numaraToOgr = {};
     for (final o in _ogrenciList) {
       numaraToOgr.putIfAbsent(o.numara, () => o);
     }
@@ -1130,6 +1158,7 @@ class _AracTalepBenEkleScreenState
     final istekNedeniDiger = (_selectedAracIstekNedeniId == -1)
         ? _customAracIstekNedeniController.text.trim()
         : '';
+    final aracTuru = _getAracTuruName();
 
     return AracIstekEkleReq(
       personelId: currentPersonelId,
@@ -1138,7 +1167,7 @@ class _AracTalepBenEkleScreenState
       gidisDakika: _gidisDakika.toString().padLeft(2, '0'),
       donusSaat: _donusSaat.toString().padLeft(2, '0'),
       donusDakika: _donusDakika.toString().padLeft(2, '0'),
-      aracTuru: 'Binek',
+      aracTuru: aracTuru,
       yolcuPersonelSatir: yolcuPersonelSatir,
       yolcuDepartmanId: yolcuDepartmanId,
       okullarSatir: okullarSatir,
@@ -1154,12 +1183,9 @@ class _AracTalepBenEkleScreenState
   }
 
   List<AracIstekOzetItem> _buildAracIstekOzetItems(AracIstekEkleReq req) {
+    final aracTuru = _getAracTuruName();
     final items = <AracIstekOzetItem>[
-      const AracIstekOzetItem(
-        label: 'Araç Türü',
-        value: 'Binek',
-        multiLine: false,
-      ),
+      AracIstekOzetItem(label: 'Araç Türü', value: aracTuru, multiLine: false),
       AracIstekOzetItem(
         label: 'Gidilecek Tarih',
         value: _formatDateShort(req.gidilecekTarih),
@@ -1232,11 +1258,16 @@ class _AracTalepBenEkleScreenState
   }
 
   Future<void> _sendAracIstek(AracIstekEkleReq req) async {
-    final dio = ref.read(dioProvider);
-    try {
-      await dio.post('/AracIstek/AracIstekEkle', data: req.toJson());
-    } catch (e) {
-      throw Exception('Araç talebi gönderilemedi: $e');
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.aracIstekEkle(req);
+
+    switch (result) {
+      case Success():
+        return;
+      case Failure(:final message):
+        throw Exception('Araç talebi gönderilemedi: $message');
+      case Loading():
+        throw Exception('Yükleniyor');
     }
   }
 
@@ -1297,7 +1328,7 @@ class _AracTalepBenEkleScreenState
 
     final selected = _aracIstekNedenleri.firstWhere(
       (item) => item.id == _selectedAracIstekNedeniId,
-      orElse: () => _AracIstekNedeniItem(id: -1, ad: ''),
+      orElse: () => AracIstekNedeniItem(id: -1, ad: ''),
     );
 
     return selected.ad.isNotEmpty ? selected.ad : 'Araç istek nedenini seçiniz';
@@ -1452,7 +1483,7 @@ class _AracTalepBenEkleScreenState
                   topRight: Radius.circular(16),
                 ),
               ),
-              child: FutureBuilder<List<_AracIstekNedeniItem>>(
+              child: FutureBuilder<List<AracIstekNedeniItem>>(
                 future: _fetchAracIstekNedenleri(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1586,22 +1617,17 @@ class _AracTalepBenEkleScreenState
     );
   }
 
-  Future<List<_AracIstekNedeniItem>> _fetchAracIstekNedenleri() async {
-    try {
-      final dio = ref.read(dioProvider);
-      final response = await dio.get('/AracIstek/AracIstekNedeniDoldur');
-      final data = response.data as List<dynamic>;
+  Future<List<AracIstekNedeniItem>> _fetchAracIstekNedenleri() async {
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.aracIstekNedenleriGetir();
 
-      return [
-        _AracIstekNedeniItem(id: -1, ad: 'DİĞER'),
-        ...data
-            .map(
-              (e) => _AracIstekNedeniItem.fromJson(e as Map<String, dynamic>),
-            )
-            .toList(),
-      ];
-    } catch (e) {
-      throw Exception('Nedeler yüklenemedi: $e');
+    switch (result) {
+      case Success(:final data):
+        return data;
+      case Failure(:final message):
+        throw Exception(message);
+      case Loading():
+        return [];
     }
   }
 
@@ -1695,7 +1721,7 @@ class _AracTalepBenEkleScreenState
                               );
                               final personel = _personeller.firstWhere(
                                 (p) => p.personelId == personelId,
-                                orElse: () => _PersonelItem(
+                                orElse: () => PersonelItem(
                                   personelId: -1,
                                   adi: 'Bilinmeyen',
                                   soyadi: 'Kişi',
@@ -1883,7 +1909,7 @@ class _AracTalepBenEkleScreenState
                                   .elementAt(index);
                               final ogrenci = _ogrenciList.firstWhere(
                                 (o) => '${o.numara}' == ogrenciNumara,
-                                orElse: () => _FilterOgrenciItem(
+                                orElse: () => FilterOgrenciItem(
                                   okulKodu: '',
                                   sinif: '',
                                   numara: -1,
@@ -1989,39 +2015,28 @@ class _AracTalepBenEkleScreenState
       _personelSheetError = null;
     });
 
-    try {
-      final dio = ref.read(dioProvider);
-      final results = await Future.wait([
-        dio.get('/Personel/PersonelleriGetir'),
-        dio.get('/TalepYonetimi/GorevDoldur'),
-        dio.get('/TalepYonetimi/GorevYeriDoldur'),
-      ]);
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.personelSecimVerisiGetir();
 
-      final personelData = results[0].data as List<dynamic>;
-      final gorevData = results[1].data as List<dynamic>;
-      final gorevYeriData = results[2].data as List<dynamic>;
-
-      setState(() {
-        _personeller = personelData
-            .map((e) => _PersonelItem.fromJson(e as Map<String, dynamic>))
-            .toList();
-        _gorevler = gorevData
-            .map((e) => _GorevItem.fromJson(e as Map<String, dynamic>))
-            .toList();
-        _gorevYerleri = gorevYeriData
-            .map((e) => _GorevYeriItem.fromJson(e as Map<String, dynamic>))
-            .toList();
-        _personelSheetLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _personelSheetLoading = false;
-        _personelSheetError = 'Personel verisi alınamadı: $e';
-      });
-      if (mounted) {
-        _showStatusBottomSheet(_personelSheetError ?? 'Hata', isError: true);
-      }
-      return;
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _personeller = data.personeller;
+          _gorevler = data.gorevler;
+          _gorevYerleri = data.gorevYerleri;
+          _personelSheetLoading = false;
+        });
+      case Failure(:final message):
+        setState(() {
+          _personelSheetLoading = false;
+          _personelSheetError = message;
+        });
+        if (mounted) {
+          _showStatusBottomSheet(message, isError: true);
+        }
+        return;
+      case Loading():
+        return;
     }
 
     final localSelectedGorevYeri = {..._selectedGorevYeriIds};
@@ -2237,44 +2252,34 @@ class _AracTalepBenEkleScreenState
       _ogrenciSheetError = null;
     });
 
-    try {
-      final dio = ref.read(dioProvider);
-      final response = await dio.post(
-        '/TalepYonetimi/OgrenciFiltrele',
-        data: {
-          'okulKodu': '0',
-          'seviye': '0',
-          'sinif': '0',
-          'kulup': '0',
-          'takim': '0',
-        },
-      );
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.ogrenciFiltrele();
 
-      final filterResponse = _OgrenciFilterResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-
-      setState(() {
-        _initialOkulKoduList = filterResponse.okulKodu;
-        _initialSeviyeList = filterResponse.seviye;
-        _initialSinifList = filterResponse.sinif;
-        _okulKoduList = _initialOkulKoduList;
-        _seviyeList = _initialSeviyeList;
-        _sinifList = _initialSinifList;
-        _kulupList = filterResponse.kulup;
-        _takimList = filterResponse.takim;
-        _ogrenciList = filterResponse.ogrenci;
-        _ogrenciSheetLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _ogrenciSheetLoading = false;
-        _ogrenciSheetError = 'Öğrenci verisi alınamadı: $e';
-      });
-      if (mounted) {
-        _showStatusBottomSheet(_ogrenciSheetError ?? 'Hata', isError: true);
-      }
-      return;
+    switch (result) {
+      case Success(:final data):
+        setState(() {
+          _initialOkulKoduList = data.okulKodu;
+          _initialSeviyeList = data.seviye;
+          _initialSinifList = data.sinif;
+          _okulKoduList = _initialOkulKoduList;
+          _seviyeList = _initialSeviyeList;
+          _sinifList = _initialSinifList;
+          _kulupList = data.kulup;
+          _takimList = data.takim;
+          _ogrenciList = data.ogrenci;
+          _ogrenciSheetLoading = false;
+        });
+      case Failure(:final message):
+        setState(() {
+          _ogrenciSheetLoading = false;
+          _ogrenciSheetError = message;
+        });
+        if (mounted) {
+          _showStatusBottomSheet(message, isError: true);
+        }
+        return;
+      case Loading():
+        return;
     }
 
     // State'ten mevcut seçimleri yükle
@@ -2651,45 +2656,32 @@ class _AracTalepBenEkleScreenState
     return '${ids.length} öğrenci seçildi';
   }
 
-  Future<_OgrenciFilterResponse?> _fetchOgrenciFilters(
+  Future<OgrenciFilterResponse?> _fetchOgrenciFilters(
     Set<String> selectedOkulKodlari,
     Set<String> selectedSeviyeler,
     Set<String> selectedSiniflar,
     Set<String> selectedKulupler,
     Set<String> selectedTakimlar,
   ) async {
-    try {
-      final dio = ref.read(dioProvider);
-      final response = await dio.post(
-        '/TalepYonetimi/MobilOgrenciFiltrele',
-        data: {
-          'okulKodlari': selectedOkulKodlari.isEmpty
-              ? ['0']
-              : selectedOkulKodlari.toList(),
-          'seviyeler': selectedSeviyeler.isEmpty
-              ? ['0']
-              : selectedSeviyeler.toList(),
-          'siniflar': selectedSiniflar.isEmpty
-              ? ['0']
-              : selectedSiniflar.toList(),
-          'kulupler': selectedKulupler.isEmpty
-              ? ['0']
-              : selectedKulupler.toList(),
-          // API örneklerine göre takım boşsa "" gönder.
-          'takimlar': selectedTakimlar.isEmpty
-              ? ['']
-              : selectedTakimlar.toList(),
-        },
-      );
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.mobilOgrenciFiltrele(
+      okulKodlari: selectedOkulKodlari,
+      seviyeler: selectedSeviyeler,
+      siniflar: selectedSiniflar,
+      kulupler: selectedKulupler,
+      takimlar: selectedTakimlar,
+    );
 
-      return _OgrenciFilterResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-    } catch (e) {
-      if (mounted) {
-        _showStatusBottomSheet('Filtre uygulanırken hata: $e', isError: true);
-      }
-      return null;
+    switch (result) {
+      case Success(:final data):
+        return data;
+      case Failure(:final message):
+        if (mounted) {
+          _showStatusBottomSheet(message, isError: true);
+        }
+        return null;
+      case Loading():
+        return null;
     }
   }
 
@@ -2984,7 +2976,7 @@ class _AracTalepBenEkleScreenState
     final searchController = TextEditingController();
     String searchQuery = '';
 
-    List<_PersonelItem> applyFilters() {
+    List<PersonelItem> applyFilters() {
       return _personeller.where((p) {
         final matchGorev =
             localSelectedGorev.isEmpty ||
@@ -4089,7 +4081,7 @@ class _AracTalepBenEkleScreenState
     final searchController = TextEditingController();
     String searchQuery = '';
 
-    List<_FilterOgrenciItem> applyFilters() {
+    List<FilterOgrenciItem> applyFilters() {
       return _ogrenciList.where((o) {
         final fullName = '${o.adi} ${o.soyadi}'.toLowerCase();
         final matchSearch =
@@ -4218,7 +4210,7 @@ class _AracTalepBenEkleScreenState
   }
 
   Future<void> _openYerSecimiBottomSheet() async {
-    final selected = await showModalBottomSheet<_GidilecekYerItem>(
+    final selected = await showModalBottomSheet<GidilecekYerItem>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -4239,7 +4231,7 @@ class _AracTalepBenEkleScreenState
                   topRight: Radius.circular(16),
                 ),
               ),
-              child: FutureBuilder<List<_GidilecekYerItem>>(
+              child: FutureBuilder<List<GidilecekYerItem>>(
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -4362,24 +4354,21 @@ class _AracTalepBenEkleScreenState
     }
   }
 
-  Future<List<_GidilecekYerItem>> _fetchGidilecekYerler() async {
-    try {
-      final dio = ref.read(dioProvider);
-      final response = await dio.get('/AracIstek/GidilecekYerGetir');
-      final data = response.data as List<dynamic>;
+  Future<List<GidilecekYerItem>> _fetchGidilecekYerler() async {
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.aracIstekGidilecekYerGetir();
 
-      return [
-        _GidilecekYerItem(id: 'diger', yerAdi: 'Diğer'),
-        ...data
-            .map((e) => _GidilecekYerItem.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      ];
-    } catch (e) {
-      throw Exception('Yerler yüklenemedi: $e');
+    switch (result) {
+      case Success(:final data):
+        return data;
+      case Failure(:final message):
+        throw Exception(message);
+      case Loading():
+        return [];
     }
   }
 
-  void _addEntry(_GidilecekYerItem yer) {
+  void _addEntry(GidilecekYerItem yer) {
     final controller = TextEditingController();
     setState(() {
       _entries.add(_YerEntry(yer: yer, adresController: controller));
@@ -4388,214 +4377,8 @@ class _AracTalepBenEkleScreenState
 }
 
 class _YerEntry {
-  final _GidilecekYerItem yer;
+  final GidilecekYerItem yer;
   final TextEditingController adresController;
 
   _YerEntry({required this.yer, required this.adresController});
-}
-
-int _asInt(dynamic value) {
-  if (value is int) return value;
-  if (value is String) return int.tryParse(value) ?? -1;
-  return -1;
-}
-
-class _GidilecekYerItem {
-  final dynamic id;
-  final String yerAdi;
-
-  _GidilecekYerItem({required this.id, required this.yerAdi});
-
-  factory _GidilecekYerItem.fromJson(Map<String, dynamic> json) {
-    return _GidilecekYerItem(
-      id: json['id'] ?? json['ID'] ?? -1,
-      yerAdi:
-          (json['yerAdi'] ?? json['YerAdi'] ?? json['ad'] ?? json['Ad'] ?? '')
-              .toString(),
-    );
-  }
-}
-
-class _GorevYeriItem {
-  final int id;
-  final String gorevYeriAdi;
-
-  _GorevYeriItem({required this.id, required this.gorevYeriAdi});
-
-  factory _GorevYeriItem.fromJson(Map<String, dynamic> json) {
-    return _GorevYeriItem(
-      id: _asInt(
-        json['id'] ??
-            json['ID'] ??
-            json['gorevYeriId'] ??
-            json['GorevYeriId'] ??
-            -1,
-      ),
-      gorevYeriAdi:
-          (json['gorevYeriAdi'] ??
-                  json['GorevYeriAdi'] ??
-                  json['gorevYeri'] ??
-                  json['GorevYeri'] ??
-                  json['ad'] ??
-                  json['Ad'] ??
-                  '')
-              .toString(),
-    );
-  }
-}
-
-class _GorevItem {
-  final int id;
-  final String gorevAdi;
-  final int? gorevYeriId;
-
-  _GorevItem({
-    required this.id,
-    required this.gorevAdi,
-    required this.gorevYeriId,
-  });
-
-  factory _GorevItem.fromJson(Map<String, dynamic> json) {
-    return _GorevItem(
-      id: _asInt(json['id'] ?? json['ID'] ?? json['gorevId'] ?? -1),
-      gorevAdi:
-          (json['gorev'] ??
-                  json['Gorev'] ??
-                  json['gorevAdi'] ??
-                  json['Ad'] ??
-                  '')
-              .toString(),
-      gorevYeriId: _asInt(
-        json['gorevYeriId'] ?? json['GorevYeriId'] ?? json['gorevYeriID'] ?? -1,
-      ),
-    );
-  }
-}
-
-class _PersonelItem {
-  final int personelId;
-  final String adi;
-  final String soyadi;
-  final int? gorevId;
-  final int? gorevYeriId;
-
-  _PersonelItem({
-    required this.personelId,
-    required this.adi,
-    required this.soyadi,
-    required this.gorevId,
-    required this.gorevYeriId,
-  });
-
-  factory _PersonelItem.fromJson(Map<String, dynamic> json) {
-    return _PersonelItem(
-      personelId: _asInt(
-        json['personelId'] ?? json['PersonelId'] ?? json['id'] ?? json['ID'],
-      ),
-      adi: (json['adi'] ?? json['Ad'] ?? '').toString(),
-      soyadi: (json['soyadi'] ?? json['Soyad'] ?? json['Soyadi'] ?? '')
-          .toString(),
-      gorevId: _asInt(
-        json['gorevId'] ?? json['GorevId'] ?? json['gorevID'] ?? -1,
-      ),
-      gorevYeriId: _asInt(
-        json['gorevYeriId'] ?? json['GorevYeriId'] ?? json['gorevYeriID'] ?? -1,
-      ),
-    );
-  }
-}
-
-class _AracIstekNedeniItem {
-  final dynamic id;
-  final String ad;
-
-  _AracIstekNedeniItem({required this.id, required this.ad});
-
-  factory _AracIstekNedeniItem.fromJson(Map<String, dynamic> json) {
-    return _AracIstekNedeniItem(
-      id: json['id'] ?? json['ID'] ?? -1,
-      ad:
-          (json['istekNedeni'] ??
-                  json['IstekNedeni'] ??
-                  json['ad'] ??
-                  json['Ad'] ??
-                  json['name'] ??
-                  json['Name'] ??
-                  '')
-              .toString(),
-    );
-  }
-}
-
-class _OgrenciFilterResponse {
-  final List<String> okulKodu;
-  final List<String> seviye;
-  final List<String> sinif;
-  final List<String> kulup;
-  final List<String> takim;
-  final List<_FilterOgrenciItem> ogrenci;
-
-  _OgrenciFilterResponse({
-    required this.okulKodu,
-    required this.seviye,
-    required this.sinif,
-    required this.kulup,
-    required this.takim,
-    required this.ogrenci,
-  });
-
-  factory _OgrenciFilterResponse.fromJson(Map<String, dynamic> json) {
-    return _OgrenciFilterResponse(
-      okulKodu: List<String>.from(
-        (json['okulKodu'] as List<dynamic>?)?.map((e) => e.toString()) ?? [],
-      ),
-      seviye: List<String>.from(
-        (json['seviye'] as List<dynamic>?)?.map((e) => e.toString()) ?? [],
-      ),
-      sinif: List<String>.from(
-        (json['sinif'] as List<dynamic>?)?.map((e) => e.toString()) ?? [],
-      ),
-      kulup: List<String>.from(
-        (json['kulup'] as List<dynamic>?)?.map((e) => e.toString()) ?? [],
-      ),
-      takim: List<String>.from(
-        (json['takim'] as List<dynamic>?)?.map((e) => e.toString()) ?? [],
-      ),
-      ogrenci: List<_FilterOgrenciItem>.from(
-        (json['ogrenci'] as List<dynamic>?)?.map(
-              (e) => _FilterOgrenciItem.fromJson(e as Map<String, dynamic>),
-            ) ??
-            [],
-      ),
-    );
-  }
-}
-
-class _FilterOgrenciItem {
-  final String okulKodu;
-  final String seviye;
-  final String sinif;
-  final int numara;
-  final String adi;
-  final String soyadi;
-
-  _FilterOgrenciItem({
-    required this.okulKodu,
-    this.seviye = '',
-    required this.sinif,
-    required this.numara,
-    required this.adi,
-    required this.soyadi,
-  });
-
-  factory _FilterOgrenciItem.fromJson(Map<String, dynamic> json) {
-    return _FilterOgrenciItem(
-      okulKodu: (json['okulKodu'] ?? '').toString(),
-      seviye: (json['seviye'] ?? '').toString(),
-      sinif: (json['sinif'] ?? '').toString(),
-      numara: _asInt(json['numara'] ?? -1),
-      adi: (json['adi'] ?? '').toString(),
-      soyadi: (json['soyadi'] ?? '').toString(),
-    );
-  }
 }

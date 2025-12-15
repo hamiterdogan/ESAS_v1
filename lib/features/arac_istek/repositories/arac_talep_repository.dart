@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/core/utils/app_logger.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_detay_model.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_turu_model.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
+import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
+import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 
 abstract class AracTalepRepository {
   Future<Result<TalepYonetimResponse>> aracTaleplerimiGetir({
@@ -15,10 +18,35 @@ abstract class AracTalepRepository {
   Future<Result<List<AracTuru>>> aracTurleriGetir();
 
   Future<Result<List<GidilecekYer>>> gidilecekYerleriGetir();
+
+  /// Yeni araç talebi oluştur
+  Future<Result<void>> aracIstekEkle(AracIstekEkleReq request);
+
+  /// Araç istek nedenleri dropdown'ı için verileri getir
+  Future<Result<List<AracIstekNedeniItem>>> aracIstekNedenleriGetir();
+
+  /// Personel seçimi için gerekli tüm verileri getir (personel + görev + görev yeri)
+  Future<Result<PersonelSecimData>> personelSecimVerisiGetir();
+
+  /// Öğrenci filtre verisi getir (ilk çağrı)
+  Future<Result<OgrenciFilterResponse>> ogrenciFiltrele();
+
+  /// Öğrenci filtre verisi getir (seçimlere göre)
+  Future<Result<OgrenciFilterResponse>> mobilOgrenciFiltrele({
+    required Set<String> okulKodlari,
+    required Set<String> seviyeler,
+    required Set<String> siniflar,
+    required Set<String> kulupler,
+    required Set<String> takimlar,
+  });
+
+  /// Araç istek formu için gidilecek yer dropdown'ı
+  Future<Result<List<GidilecekYerItem>>> aracIstekGidilecekYerGetir();
 }
 
 class AracTalepRepositoryImpl implements AracTalepRepository {
   final Dio _dio;
+  static const _tag = 'AracTalepRepository';
 
   AracTalepRepositoryImpl({required Dio dio}) : _dio = dio;
 
@@ -27,7 +55,11 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
     required int tip,
   }) async {
     try {
-      print('📡 AracTaleplerimiGetir çağrısı: tip=$tip');
+      AppLogger.api(
+        'AracTaleplerimiGetir çağrısı',
+        method: 'POST',
+        url: '/AracIstek/AracTaleplerimiGetir',
+      );
 
       final response = await _dio.post(
         '/AracIstek/AracTaleplerimiGetir',
@@ -36,24 +68,27 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
         options: Options(contentType: 'application/json'),
       );
 
-      print('📡 Response status: ${response.statusCode}');
-      print('📡 Response data: ${response.data}');
+      AppLogger.api('Response received', statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         final data = TalepYonetimResponse.fromJson(response.data);
-        print('✅ ${data.talepler.length} araç talebi geldi');
+        AppLogger.info('${data.talepler.length} araç talebi geldi', tag: _tag);
         return Success(data);
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
+      AppLogger.error('DioException: ${e.message}', tag: _tag, error: e);
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
-    } catch (e) {
-      print('❌ Hata: $e');
+    } catch (e, stack) {
+      AppLogger.error(
+        'Unexpected error',
+        tag: _tag,
+        error: e,
+        stackTrace: stack,
+      );
       return Failure(e.toString());
     }
   }
@@ -95,30 +130,38 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
   @override
   Future<Result<List<AracTuru>>> aracTurleriGetir() async {
     try {
-      print('📡 AracTurleriGetir API çağrısı');
+      AppLogger.api(
+        'AracTurleriGetir çağrısı',
+        method: 'GET',
+        url: '/AracIstek/AracTuruGetir',
+      );
 
       final response = await _dio.get('/AracIstek/AracTuruGetir');
 
-      print('📡 Response status: ${response.statusCode}');
-      print('📡 Response data: ${response.data}');
+      AppLogger.api('Response received', statusCode: response.statusCode);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         final aracTurleri = data
             .map((item) => AracTuru.fromJson(item as Map<String, dynamic>))
             .toList();
-        print('✅ ${aracTurleri.length} araç türü geldi');
+        AppLogger.info('${aracTurleri.length} araç türü geldi', tag: _tag);
         return Success(aracTurleri);
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
+      AppLogger.error('DioException: ${e.message}', tag: _tag, error: e);
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
-    } catch (e) {
-      print('❌ Hata: $e');
+    } catch (e, stack) {
+      AppLogger.error(
+        'Unexpected error',
+        tag: _tag,
+        error: e,
+        stackTrace: stack,
+      );
       return Failure(e.toString());
     }
   }
@@ -134,18 +177,18 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
         if (response.data is List) {
           listData = response.data as List<dynamic>;
         } else if (response.data is Map &&
-            (response.data['data'] is List ||
-                response.data['Data'] is List)) {
-          listData = (response.data['data'] ?? response.data['Data'])
-              as List<dynamic>;
+            (response.data['data'] is List || response.data['Data'] is List)) {
+          listData =
+              (response.data['data'] ?? response.data['Data']) as List<dynamic>;
         } else {
           listData = const [];
         }
 
         final yerler = listData
             .whereType<Map>()
-            .map((item) =>
-                GidilecekYer.fromJson(Map<String, dynamic>.from(item)))
+            .map(
+              (item) => GidilecekYer.fromJson(Map<String, dynamic>.from(item)),
+            )
             .toList();
         return Success(yerler);
       }
@@ -157,6 +200,176 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
       );
     } catch (e) {
       return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<void>> aracIstekEkle(AracIstekEkleReq request) async {
+    try {
+      AppLogger.api(
+        'AracIstekEkle çağrısı',
+        method: 'POST',
+        url: '/AracIstek/AracIstekEkle',
+      );
+
+      final response = await _dio.post(
+        '/AracIstek/AracIstekEkle',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      AppLogger.error('DioException: ${e.message}', tag: _tag, error: e);
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e, stack) {
+      AppLogger.error(
+        'Unexpected error',
+        tag: _tag,
+        error: e,
+        stackTrace: stack,
+      );
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<List<AracIstekNedeniItem>>> aracIstekNedenleriGetir() async {
+    try {
+      final response = await _dio.get('/AracIstek/AracIstekNedeniDoldur');
+      final data = response.data as List<dynamic>;
+
+      return Success([
+        AracIstekNedeniItem(id: -1, ad: 'DİĞER'),
+        ...data.map(
+          (e) => AracIstekNedeniItem.fromJson(e as Map<String, dynamic>),
+        ),
+      ]);
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure('Nedenler yüklenemedi: $e');
+    }
+  }
+
+  @override
+  Future<Result<PersonelSecimData>> personelSecimVerisiGetir() async {
+    try {
+      final results = await Future.wait([
+        _dio.get('/Personel/PersonelleriGetir'),
+        _dio.get('/TalepYonetimi/GorevDoldur'),
+        _dio.get('/TalepYonetimi/GorevYeriDoldur'),
+      ]);
+
+      final personelData = results[0].data as List<dynamic>;
+      final gorevData = results[1].data as List<dynamic>;
+      final gorevYeriData = results[2].data as List<dynamic>;
+
+      return Success(
+        PersonelSecimData(
+          personeller: personelData
+              .map((e) => PersonelItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+          gorevler: gorevData
+              .map((e) => GorevItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+          gorevYerleri: gorevYeriData
+              .map((e) => GorevYeriItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+      );
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure('Personel verisi alınamadı: $e');
+    }
+  }
+
+  @override
+  Future<Result<OgrenciFilterResponse>> ogrenciFiltrele() async {
+    try {
+      final response = await _dio.post(
+        '/TalepYonetimi/OgrenciFiltrele',
+        data: {
+          'okulKodu': '0',
+          'seviye': '0',
+          'sinif': '0',
+          'kulup': '0',
+          'takim': '0',
+        },
+      );
+
+      return Success(
+        OgrenciFilterResponse.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure('Öğrenci verisi alınamadı: $e');
+    }
+  }
+
+  @override
+  Future<Result<OgrenciFilterResponse>> mobilOgrenciFiltrele({
+    required Set<String> okulKodlari,
+    required Set<String> seviyeler,
+    required Set<String> siniflar,
+    required Set<String> kulupler,
+    required Set<String> takimlar,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/TalepYonetimi/MobilOgrenciFiltrele',
+        data: {
+          'okulKodlari': okulKodlari.isEmpty ? ['0'] : okulKodlari.toList(),
+          'seviyeler': seviyeler.isEmpty ? ['0'] : seviyeler.toList(),
+          'siniflar': siniflar.isEmpty ? ['0'] : siniflar.toList(),
+          'kulupler': kulupler.isEmpty ? ['0'] : kulupler.toList(),
+          'takimlar': takimlar.isEmpty ? [''] : takimlar.toList(),
+        },
+      );
+
+      return Success(
+        OgrenciFilterResponse.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure('Filtre uygulanırken hata: $e');
+    }
+  }
+
+  @override
+  Future<Result<List<GidilecekYerItem>>> aracIstekGidilecekYerGetir() async {
+    try {
+      final response = await _dio.get('/AracIstek/GidilecekYerGetir');
+      final data = response.data as List<dynamic>;
+
+      return Success([
+        GidilecekYerItem(id: 'diger', yerAdi: 'Diğer'),
+        ...data.map(
+          (e) => GidilecekYerItem.fromJson(e as Map<String, dynamic>),
+        ),
+      ]);
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure('Yerler yüklenemedi: $e');
     }
   }
 }

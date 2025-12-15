@@ -56,9 +56,12 @@ class AracIstekDetayResponse {
     final yerler = <String>[];
     for (final item in gidilecekYerlerList) {
       if (item is Map<String, dynamic>) {
+        // Önce gidilecekYer, sonra semt alanını kontrol et
+        final yer = item['gidilecekYer']?.toString().trim();
         final semt = item['semt']?.toString().trim();
-        if (semt != null && semt.isNotEmpty) {
-          yerler.add(semt);
+        final yerText = (yer != null && yer.isNotEmpty) ? yer : semt;
+        if (yerText != null && yerText.isNotEmpty) {
+          yerler.add(yerText);
         }
       }
     }
@@ -68,20 +71,95 @@ class AracIstekDetayResponse {
   // Yolcu listesi
   List<Map<String, String>> get yolcuIsimleri {
     final yolcuList = raw['yolcuIsimleri'];
-    if (yolcuList == null || yolcuList is! List) {
-      return [];
-    }
     final yolcular = <Map<String, String>>[];
-    for (final item in yolcuList) {
-      if (item is Map<String, dynamic>) {
-        yolcular.add({
-          'ad': item['perAdi']?.toString().trim() ?? '',
-          'gorevi': item['gorevi']?.toString().trim() ?? '',
-          'gorevYeri': item['gorevYeri']?.toString().trim() ?? '',
-        });
+    if (yolcuList is List) {
+      for (final item in yolcuList) {
+        if (item is Map<String, dynamic>) {
+          final kisiTipi =
+              item['kisiTipi']?.toString().trim() ??
+              item['tip']?.toString().trim() ??
+              item['type']?.toString().trim() ??
+              '';
+          yolcular.add({
+            'ad':
+                item['perAdi']?.toString().trim() ??
+                item['ad']?.toString().trim() ??
+                '',
+            'gorevi': item['gorevi']?.toString().trim() ?? '',
+            'gorevYeri': item['gorevYeri']?.toString().trim() ?? '',
+            'kisiTipi': kisiTipi,
+          });
+        }
       }
     }
+
+    final okullarSatir = raw['okullarSatir'];
+    if (okullarSatir is List) {
+      for (final item in okullarSatir) {
+        if (item is Map<String, dynamic>) {
+          final ad = item['adi']?.toString().trim() ?? '';
+          final soyad = item['soyadi']?.toString().trim() ?? '';
+          final sinif = item['sinif']?.toString().trim() ?? '';
+          final numara = item['numara']?.toString().trim() ?? '';
+          final okul = item['okulKodu']?.toString().trim() ?? '';
+          final seviye = item['seviye']?.toString().trim() ?? '';
+
+          final gorevYeri = [
+            okul,
+            sinif,
+          ].where((v) => v.isNotEmpty).join(' • ');
+          final detaylar = <String>[];
+          if (seviye.isNotEmpty) detaylar.add('Seviye: $seviye');
+          if (numara.isNotEmpty) detaylar.add('No: $numara');
+
+          yolcular.add({
+            'ad': '$ad $soyad'.trim(),
+            'gorevi': detaylar.join(' | '),
+            'gorevYeri': gorevYeri,
+            'kisiTipi': 'ogrenci',
+          });
+        }
+      }
+    }
+
     return yolcular;
+  }
+
+  // Personel sayısı
+  int get personelSayisi {
+    final yolcuList = raw['yolcuIsimleri'];
+    if (yolcuList == null || yolcuList is! List) {
+      return 0;
+    }
+    return yolcuList.where((item) {
+      if (item is Map<String, dynamic>) {
+        final kisiTipi = item['kisiTipi']?.toString().toLowerCase() ?? '';
+        return kisiTipi.contains('personel') || kisiTipi.contains('staff');
+      }
+      return false;
+    }).length;
+  }
+
+  // Öğrenci sayısı
+  int get ogrenciSayisi {
+    int count = 0;
+    final yolcuList = raw['yolcuIsimleri'];
+    if (yolcuList is List) {
+      count += yolcuList.where((item) {
+        if (item is Map<String, dynamic>) {
+          final kisiTipi = item['kisiTipi']?.toString().toLowerCase() ?? '';
+          return kisiTipi.contains('ogrenci') || kisiTipi.contains('student');
+        }
+        return false;
+      }).length;
+    }
+
+    final okullarSatir = raw['okullarSatir'];
+    if (okullarSatir is List) {
+      count += okullarSatir.length;
+    }
+
+    return count;
   }
 
   /// Ana detay alanlarını etiketli bir listeye çevirir.

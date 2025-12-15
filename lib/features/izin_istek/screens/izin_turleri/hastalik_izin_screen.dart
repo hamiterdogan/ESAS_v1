@@ -144,7 +144,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       activeTrackColor: AppColors.gradientStart.withValues(
                         alpha: 0.5,
                       ),
-                      activeColor: AppColors.gradientEnd,
+                      activeThumbColor: AppColors.gradientEnd,
                     ),
                     const Text('1 günlük izin'),
                   ],
@@ -258,7 +258,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       activeTrackColor: AppColors.gradientStart.withValues(
                         alpha: 0.5,
                       ),
-                      activeColor: AppColors.gradientEnd,
+                      activeThumbColor: AppColors.gradientEnd,
                       onChanged: (value) {
                         setState(() {
                           _acil = value;
@@ -337,7 +337,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       activeTrackColor: AppColors.gradientStart.withValues(
                         alpha: 0.5,
                       ),
-                      activeColor: AppColors.gradientEnd,
+                      activeThumbColor: AppColors.gradientEnd,
                       onChanged: (value) {
                         setState(() {
                           _doktorRaporuVar = value;
@@ -835,3 +835,4 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     );
   }
 }
+

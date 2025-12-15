@@ -14,19 +14,17 @@ final izinIstekRepositoryProvider = Provider<IzinIstekRepository>((ref) {
 });
 
 // İzin detayı provider
-final izinDetayProvider = FutureProvider.family<IzinIstekDetay, int>((
-  ref,
-  id,
-) async {
-  final repo = ref.watch(izinIstekRepositoryProvider);
-  final result = await repo.getIzinDetay(id);
+final izinDetayProvider = FutureProvider.autoDispose
+    .family<IzinIstekDetay, int>((ref, id) async {
+      final repo = ref.watch(izinIstekRepositoryProvider);
+      final result = await repo.getIzinDetay(id);
 
-  return switch (result) {
-    Success(:final data) => data,
-    Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Yükleniyor'),
-  };
-});
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+        Loading() => throw Exception('Yükleniyor'),
+      };
+    });
 
 // Personel seçim ekranı için arama sorgusu - NotifierProvider ile
 class PersonelSearchNotifier extends Notifier<String> {
@@ -44,7 +42,11 @@ final personelSecimSearchQueryProvider =
     );
 
 // Tüm personelleri getir (bir kez yükle, cache'le)
-final allPersonelProvider = FutureProvider<List<Personel>>((ref) async {
+final allPersonelProvider = FutureProvider.autoDispose<List<Personel>>((
+  ref,
+) async {
+  // Cache'leme için keepAlive - ekran kapandığında hemen dispose etme
+  ref.keepAlive();
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getPersoneller('');
 
@@ -77,7 +79,11 @@ final filteredPersonelProvider = Provider<AsyncValue<List<Personel>>>((ref) {
 });
 
 // İzin nedenlerini getir (bir kez yükle, cache'le)
-final allIzinNedenlerProvider = FutureProvider<List<IzinNedeni>>((ref) async {
+final allIzinNedenlerProvider = FutureProvider.autoDispose<List<IzinNedeni>>((
+  ref,
+) async {
+  // Cache'leme için keepAlive
+  ref.keepAlive();
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getIzinNedenleri();
 

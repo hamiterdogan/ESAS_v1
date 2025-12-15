@@ -22,6 +22,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
   bool _aracDetaylariExpanded = true;
   bool _onaySureciExpanded = true;
   bool _bildirimGideceklerExpanded = true;
+  bool _yolcuListesiExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +117,10 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
+            _buildYolcuListesiAccordion(detay),
+          if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
+            const SizedBox(height: 16),
           _buildOnaySureciAccordion(),
           const SizedBox(height: 16),
           _buildBildirimGideceklerAccordion(),
@@ -174,9 +179,12 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     final items = <MapEntry<String, String>>[];
 
     // Gidilecek Yer (alt satıra yazılacak)
-    if (detay.gidilecekYerler.isNotEmpty) {
-      items.add(MapEntry('Gidilecek Yer', detay.gidilecekYerler));
-    }
+    items.add(
+      MapEntry(
+        'Gidilecek Yer',
+        detay.gidilecekYerler.isNotEmpty ? detay.gidilecekYerler : '-',
+      ),
+    );
 
     // Tahmini Mesafe (km) (iki nokta üst üsteden sonra boşluk bırakılıp yazılacak)
     if (detay.mesafe.isNotEmpty) {
@@ -206,15 +214,15 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
       items.add(MapEntry('Talep Edilen Araç Türü', detay.aracTuru));
     }
 
-    // Araç İstek Nedeni (alt satıra yazılacak)
-    if (detay.istekNedeni.isNotEmpty && detay.istekNedeni != '0') {
+    // Araç İstek Nedeni (alt satıra yazılacak) - varsa göster
+    if (detay.istekNedeni.isNotEmpty) {
       final nedeniStr = _getIstekNedeniText(detay.istekNedeni);
       items.add(MapEntry('Araç İstek Nedeni', nedeniStr));
     }
 
-    // Diğer Neden (alt satıra yazılacak)
-    if (detay.istekNedeniDiger.isNotEmpty) {
-      items.add(MapEntry('Diğer Neden', detay.istekNedeniDiger));
+    // Açıklama (alt satıra yazılacak)
+    if (detay.aciklama.isNotEmpty) {
+      items.add(MapEntry('Açıklama', detay.aciklama));
     }
 
     // Widget'ları oluştur
@@ -222,30 +230,48 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
       final item = items[i];
       // Son eleman kontrolü: yolcu sayısı varsa o son eleman, yoksa bu eleman son
       final isLast = i == items.length - 1 && detay.yolcuSayisi.isEmpty;
-      
+
       // Hangi alanlar alt satıra yazılacak?
       final multiLineFields = [
         'Gidilecek Yer',
         'Talep Edilen Araç Türü',
         'Araç İstek Nedeni',
-        'Diğer Neden',
+        'Açıklama',
       ];
       final multiLine = multiLineFields.contains(item.key);
-      
-      rows.add(_buildInfoRow(item.key, item.value, isLast: isLast, multiLine: multiLine));
+
+      rows.add(
+        _buildInfoRow(
+          item.key,
+          item.value,
+          isLast: isLast,
+          multiLine: multiLine,
+        ),
+      );
     }
 
-    // Yolcu Listesi - özel widget olarak gösterilecek (items'tan sonra eklenir)
-    final yolcuListesi = detay.yolcuIsimleri;
-    if (yolcuListesi.isNotEmpty) {
-      // Yolcu listesi, toplam yolcu sayısından önce gelir, bu yüzden son eleman değil
-      final isLast = detay.yolcuSayisi.isEmpty;
-      rows.add(_buildYolcuListesiWidget(yolcuListesi, isLast));
+    // Personel Sayısı
+    if (detay.personelSayisi > 0) {
+      rows.add(
+        _buildInfoRow(
+          'Personel Sayısı',
+          '${detay.personelSayisi}',
+          isLast: false,
+          multiLine: false,
+        ),
+      );
     }
 
-    // Toplam Yolcu Sayısı (iki nokta üst üsteden sonra boşluk bırakılıp yazılacak) - en son
-    if (detay.yolcuSayisi.isNotEmpty) {
-      rows.add(_buildInfoRow('Toplam Yolcu Sayısı', detay.yolcuSayisi, isLast: true, multiLine: false));
+    // Öğrenci Sayısı
+    if (detay.ogrenciSayisi > 0) {
+      rows.add(
+        _buildInfoRow(
+          'Öğrenci Sayısı',
+          '${detay.ogrenciSayisi}',
+          isLast: true,
+          multiLine: false,
+        ),
+      );
     }
 
     if (rows.isEmpty) {
@@ -276,7 +302,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -311,7 +337,10 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     );
   }
 
-  Widget _buildYolcuListesiWidget(List<Map<String, String>> yolcuListesi, bool isLast) {
+  Widget _buildYolcuListesiWidget(
+    List<Map<String, String>> yolcuListesi,
+    bool isLast,
+  ) {
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: Column(
@@ -332,7 +361,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             final index = entry.key;
             final yolcu = entry.value;
             final isLastYolcu = index == yolcuListesi.length - 1;
-            
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -375,17 +404,17 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
               ],
             );
           }).toList(),
-          // Son eleman kontrolü için çizgi
-          if (!isLast) ...[
-            const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isLast = false, bool multiLine = true}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isLast = false,
+    bool multiLine = true,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: Column(
@@ -957,5 +986,213 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
         '${twoDigits(dateTime.day)}.${twoDigits(dateTime.month)}.${dateTime.year}';
     final time = '${twoDigits(dateTime.hour)}:${twoDigits(dateTime.minute)}';
     return '$date $time';
+  }
+
+  Widget _buildYolcuListesiAccordion(AracIstekDetayResponse detay) {
+    return _buildAccordion(
+      icon: Icons.people_outline,
+      title: 'Toplam Yolcu Sayısı: ${detay.yolcuSayisi}',
+      isExpanded: _yolcuListesiExpanded,
+      onTap: () {
+        setState(() {
+          _yolcuListesiExpanded = !_yolcuListesiExpanded;
+        });
+      },
+      child: _buildYolcuListesiContent(detay),
+    );
+  }
+
+  Widget _buildYolcuListesiContent(AracIstekDetayResponse detay) {
+    final yolcuList = detay.yolcuIsimleri;
+
+    String normalizeForMatch(String value) {
+      return value
+          .toLowerCase()
+          .replaceAll('ğ', 'g')
+          .replaceAll('ü', 'u')
+          .replaceAll('ş', 's')
+          .replaceAll('ı', 'i')
+          .replaceAll('ö', 'o')
+          .replaceAll('ç', 'c')
+          .trim();
+    }
+
+    // Personel ve Öğrenci kategorize et
+    final personeller = <Map<String, String>>[];
+    final ogrenciler = <Map<String, String>>[];
+
+    for (final yolcu in yolcuList) {
+      final kisiTipi = normalizeForMatch(yolcu['kisiTipi'] ?? '');
+      final gorevi = normalizeForMatch(yolcu['gorevi'] ?? '');
+      final gorevYeri = normalizeForMatch(yolcu['gorevYeri'] ?? '');
+
+      final isOgrenci =
+          kisiTipi.contains('ogrenci') ||
+          kisiTipi.contains('student') ||
+          gorevi.contains('ogrenci') ||
+          gorevi.contains('student');
+      final isPersonel =
+          kisiTipi.contains('personel') || kisiTipi.contains('staff');
+
+      if (isOgrenci) {
+        ogrenciler.add(yolcu);
+        continue;
+      }
+
+      // `kisiTipi` alanı gelmiyorsa (API'de yok / boş) yolcuları kaybetmeyelim:
+      // görev/görev yeri bilgisi olanları varsayılan olarak personel kabul ediyoruz.
+      if (isPersonel || gorevi.isNotEmpty || gorevYeri.isNotEmpty) {
+        personeller.add(yolcu);
+      } else {
+        personeller.add(yolcu);
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Personel Başlığı
+        if (personeller.isNotEmpty) ...[
+          Text(
+            'Personel (${personeller.length})',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3748),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...personeller.asMap().entries.map((entry) {
+            final index = entry.key;
+            final personel = entry.value;
+            final isLastPersonel = index == personeller.length - 1;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    personel['ad'] ?? '-',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2D3748),
+                    ),
+                  ),
+                ),
+                if (personel['gorevYeri']?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      personel['gorevYeri']!,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF718096),
+                      ),
+                    ),
+                  ),
+                ],
+                if (personel['gorevi']?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      personel['gorevi']!,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF718096),
+                      ),
+                    ),
+                  ),
+                ],
+                if (!isLastPersonel) const SizedBox(height: 12),
+              ],
+            );
+          }).toList(),
+          if (ogrenciler.isNotEmpty) const SizedBox(height: 20),
+        ],
+        // Öğrenci Başlığı
+        if (ogrenciler.isNotEmpty) ...[
+          Text(
+            'Öğrenci (${ogrenciler.length})',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3748),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...ogrenciler.asMap().entries.map((entry) {
+            final index = entry.key;
+            final ogrenci = entry.value;
+            final isLastOgrenci = index == ogrenciler.length - 1;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    ogrenci['ad'] ?? '-',
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF2D3748),
+                    ),
+                  ),
+                ),
+                if (ogrenci['gorevYeri']?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      ogrenci['gorevYeri']!,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF718096),
+                      ),
+                    ),
+                  ),
+                ],
+                if (ogrenci['gorevi']?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      ogrenci['gorevi']!,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF718096),
+                      ),
+                    ),
+                  ),
+                ],
+                if (!isLastOgrenci) const SizedBox(height: 12),
+              ],
+            );
+          }).toList(),
+        ],
+        if (personeller.isEmpty && ogrenciler.isEmpty)
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: Text(
+                'Yolcu listesi bulunamadı',
+                textAlign: TextAlign.left,
+                style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }

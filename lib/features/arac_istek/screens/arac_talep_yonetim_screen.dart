@@ -134,7 +134,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
           backgroundColor: const Color(0xFF014B92),
           icon: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             padding: const EdgeInsets.all(6),
@@ -437,7 +437,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                       vertical: 5,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.1),
+                                      color: statusColor.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
@@ -506,3 +506,4 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     );
   }
 }
+

@@ -11,7 +11,11 @@ final personelRepositoryProvider = Provider<PersonelRepository>((ref) {
 });
 
 // Personel Listesi Provider
-final personellerProvider = FutureProvider<List<Personel>>((ref) async {
+final personellerProvider = FutureProvider.autoDispose<List<Personel>>((
+  ref,
+) async {
+  // Cache'leme için keepAlive
+  ref.keepAlive();
   final repo = ref.watch(personelRepositoryProvider);
   final result = await repo.getPersoneller();
 
