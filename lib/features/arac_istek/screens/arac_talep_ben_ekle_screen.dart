@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 
 class AracTalepBenEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -35,6 +36,7 @@ class _AracTalepBenEkleScreenState
   final List<_YerEntry> _entries = [];
   late TextEditingController _mesafeController;
   late TextEditingController _customAracIstekNedeniController;
+  late TextEditingController _aciklamaController;
   int _tahminiMesafe = 1;
   DateTime? _gidilecekTarih;
   int _gidisSaat = 8;
@@ -66,16 +68,23 @@ class _AracTalepBenEkleScreenState
   List<String> _okulKoduList = [];
   List<String> _seviyeList = [];
   List<String> _sinifList = [];
+  // Okul/Seviye/Sınıf listeleri ilk çağrıda gelen haliyle sabit kalsın.
+  // Seçimler bu üç listenin içeriğini filtrelemesin.
+  List<String> _initialOkulKoduList = [];
+  List<String> _initialSeviyeList = [];
+  List<String> _initialSinifList = [];
   List<String> _kulupList = [];
   List<String> _takimList = [];
   List<_FilterOgrenciItem> _ogrenciList = [];
   bool _ogrenciSheetLoading = false;
   String? _ogrenciSheetError = null;
+  bool _isMEB = false;
 
   @override
   void dispose() {
     _mesafeController.dispose();
     _customAracIstekNedeniController.dispose();
+    _aciklamaController.dispose();
     for (final entry in _entries) {
       entry.adresController.dispose();
     }
@@ -87,6 +96,7 @@ class _AracTalepBenEkleScreenState
     super.initState();
     _mesafeController = TextEditingController(text: _tahminiMesafe.toString());
     _customAracIstekNedeniController = TextEditingController();
+    _aciklamaController = TextEditingController();
     _gidilecekTarih = DateTime.now();
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
   }
@@ -469,6 +479,27 @@ class _AracTalepBenEkleScreenState
                 ],
               ),
               const SizedBox(height: 24),
+              // MEB Toggle
+              Row(
+                children: [
+                  Switch(
+                    value: _isMEB,
+                    activeTrackColor: AppColors.gradientStart.withValues(
+                      alpha: 0.5,
+                    ),
+                    activeColor: AppColors.gradientEnd,
+                    onChanged: (value) {
+                      setState(() {
+                        _isMEB = value;
+                      });
+                    },
+                  ),
+                  const Expanded(
+                    child: Text('MEB', style: TextStyle(fontSize: 14)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
               FractionallySizedBox(
                 widthFactor: 0.45,
                 child: DatePickerBottomSheetWidget(
@@ -621,6 +652,10 @@ class _AracTalepBenEkleScreenState
                     ),
                   ),
                 ),
+
+              const SizedBox(height: 24),
+              AciklamaFieldWidget(controller: _aciklamaController),
+
               const SizedBox(height: 32),
               Text(
                 'Yolcu Seçimi',
@@ -790,9 +825,419 @@ class _AracTalepBenEkleScreenState
   }
 
   void _submitForm() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Araç talebi gönderildi')));
+    // Basit validasyonlar
+    if (_entries.isEmpty) {
+      _showStatusBottomSheet(
+        'Lütfen en az 1 gidilecek yer ekleyiniz',
+        isError: true,
+      );
+      return;
+    }
+    if (_gidilecekTarih == null) {
+      _showStatusBottomSheet('Lütfen gidilecek tarihi seçiniz', isError: true);
+      return;
+    }
+    if (_selectedAracIstekNedeniId == null) {
+      _showStatusBottomSheet(
+        'Lütfen araç istek nedenini seçiniz',
+        isError: true,
+      );
+      return;
+    }
+    if (_selectedAracIstekNedeniId == -1 &&
+        (_customAracIstekNedeniController.text.trim().isEmpty)) {
+      _showStatusBottomSheet(
+        'Lütfen diğer istek nedenini giriniz',
+        isError: true,
+      );
+      return;
+    }
+
+    // Açıklama minimum 30 karakter kontrolü (izin istek ekranlarıyla aynı)
+    if (_aciklamaController.text.length < 30) {
+      _showStatusBottomSheet(
+        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+        isError: true,
+      );
+      return;
+    }
+
+    final yolcuSayisi =
+        _selectedPersonelIds.length + _selectedOgrenciIds.length;
+    if (yolcuSayisi <= 0) {
+      _showStatusBottomSheet('Lütfen en az 1 yolcu seçiniz', isError: true);
+      return;
+    }
+
+    for (final entry in _entries) {
+      if (!entry.yer.yerAdi.contains('Eyüboğlu') &&
+          entry.adresController.text.trim().isEmpty) {
+        _showStatusBottomSheet(
+          'Lütfen yer için semt/adres giriniz',
+          isError: true,
+        );
+        return;
+      }
+    }
+
+    final request = _buildAracIstekEkleReq();
+    final ozetItems = _buildAracIstekOzetItems(request);
+
+    showAracIstekOzetBottomSheet(
+      context: context,
+      request: request,
+      talepTipi: 'Binek',
+      ozetItems: ozetItems,
+      onGonder: () async {
+        await _sendAracIstek(request);
+      },
+      onSuccess: () {
+        if (!mounted) return;
+        _showStatusBottomSheet('Araç talebi gönderildi', isError: false);
+      },
+      onError: (error) {
+        if (!mounted) return;
+        _showStatusBottomSheet(
+          error.isEmpty ? 'Hata oluştu' : error,
+          isError: true,
+        );
+      },
+    );
+  }
+
+  void _showStatusBottomSheet(String message, {bool isError = false}) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext statusContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            color: Colors.white,
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isError ? Icons.error_outline : Icons.check_circle_outline,
+                size: 64,
+                color: isError ? Colors.red : Colors.green,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(statusContext);
+
+                  // Başarı durumunda Araç Taleplerini Yönet ekranına git
+                  if (!isError) {
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      if (mounted) {
+                        // Tüm önceki ekranları temizleyip doğrudan Araç Taleplerini Yönet'e git
+                        Navigator.of(
+                          context,
+                        ).popUntil((route) => route.isFirst);
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          if (mounted) {
+                            context.go('/arac_istek');
+                          }
+                        });
+                      }
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientEnd,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatDateShort(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  String _formatTime(int hour, int minute) {
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  }
+
+  String _deriveSeviyeFromSinif(String sinif, {String fallback = '0'}) {
+    final normalized = sinif.trim().replaceAll(RegExp(r'\s+'), '');
+    if (normalized.isEmpty) return fallback;
+    if (normalized.length == 1) return normalized;
+    return normalized.substring(0, 2);
+  }
+
+  String _buildGidilecekYerSummary() {
+    if (_entries.isEmpty) return '-';
+
+    final lines = <String>[];
+    for (final e in _entries) {
+      final yer = e.yer.yerAdi.trim();
+      final semt = e.yer.yerAdi.contains('Eyüboğlu')
+          ? ''
+          : e.adresController.text.trim();
+      if (semt.isEmpty) {
+        lines.add('• $yer');
+      } else {
+        lines.add('• $yer - $semt');
+      }
+    }
+    return lines.join('\n');
+  }
+
+  String _buildSelectedPersonelSummaryForOzet() {
+    if (_selectedPersonelIds.isEmpty) return '-';
+    if (_selectedPersonelIds.length > 2) {
+      return '${_selectedPersonelIds.length} personel';
+    }
+
+    final names = _personeller
+        .where((p) => _selectedPersonelIds.contains(p.personelId))
+        .map((p) => '${p.adi} ${p.soyadi}'.trim())
+        .where((n) => n.isNotEmpty)
+        .toList();
+    if (names.isEmpty) return '${_selectedPersonelIds.length} personel';
+    return names.join(', ');
+  }
+
+  String _buildSelectedOgrenciSummaryForOzet() {
+    if (_selectedOgrenciIds.isEmpty) return '-';
+    if (_selectedOgrenciIds.length > 2) {
+      return '${_selectedOgrenciIds.length} öğrenci';
+    }
+
+    final Map<String, String> numaraToName = {};
+    for (final o in _ogrenciList) {
+      final numara = '${o.numara}';
+      if (!_selectedOgrenciIds.contains(numara)) continue;
+      final name = '${o.adi} ${o.soyadi}'.trim();
+      if (name.isEmpty) continue;
+      numaraToName.putIfAbsent(numara, () => name);
+    }
+    final names = numaraToName.values.toList();
+    if (names.length == _selectedOgrenciIds.length && names.isNotEmpty) {
+      return names.join(', ');
+    }
+    return '${_selectedOgrenciIds.length} öğrenci';
+  }
+
+  String _resolveIstekNedeni() {
+    if (_selectedAracIstekNedeniId == null) return '';
+    if (_selectedAracIstekNedeniId == -1) return 'DİĞER';
+    final selected = _aracIstekNedenleri.firstWhere(
+      (i) => i.id == _selectedAracIstekNedeniId,
+      orElse: () => _AracIstekNedeniItem(id: -1, ad: ''),
+    );
+    return selected.ad;
+  }
+
+  AracIstekEkleReq _buildAracIstekEkleReq() {
+    final currentPersonelId = ref.read(currentPersonelIdProvider);
+    final gidilecekTarih = _gidilecekTarih ?? DateTime.now();
+
+    final gorevIdToName = {for (final g in _gorevler) g.id: g.gorevAdi};
+    final gorevYeriIdToName = {
+      for (final gy in _gorevYerleri) gy.id: gy.gorevYeriAdi,
+    };
+
+    final selectedPersonel = _personeller
+        .where((p) => _selectedPersonelIds.contains(p.personelId))
+        .toList();
+    final yolcuPersonelSatir = selectedPersonel
+        .map(
+          (p) => AracIstekYolcuPersonelSatir(
+            personelId: p.personelId,
+            perAdi: '${p.adi} ${p.soyadi}'.trim(),
+            gorevi: (p.gorevId != null) ? (gorevIdToName[p.gorevId] ?? '') : '',
+            gorevYeri: (p.gorevYeriId != null)
+                ? (gorevYeriIdToName[p.gorevYeriId] ?? '')
+                : '',
+          ),
+        )
+        .toList();
+
+    final yolcuDepartmanId = selectedPersonel
+        .map((p) => p.gorevYeriId)
+        .whereType<int>()
+        .where((id) => id > 0)
+        .toSet()
+        .toList();
+
+    // Öğrenci listesi duplicate gelebiliyor: numara bazında tekilleştir.
+    final Map<int, _FilterOgrenciItem> numaraToOgr = {};
+    for (final o in _ogrenciList) {
+      numaraToOgr.putIfAbsent(o.numara, () => o);
+    }
+
+    final okullarSatir = <AracIstekOkulSatir>[];
+    for (final numaraStr in _selectedOgrenciIds) {
+      final numara = int.tryParse(numaraStr);
+      if (numara == null) continue;
+      final o = numaraToOgr[numara];
+      if (o == null) continue;
+      okullarSatir.add(
+        AracIstekOkulSatir(
+          okulKodu: o.okulKodu,
+          sinif: o.sinif,
+          seviye: _deriveSeviyeFromSinif(
+            o.sinif,
+            fallback: o.seviye.trim().isEmpty ? '0' : o.seviye.trim(),
+          ),
+          numara: o.numara,
+          adi: o.adi,
+          soyadi: o.soyadi,
+        ),
+      );
+    }
+
+    final gidilecekYerSatir = _entries
+        .map(
+          (e) => AracIstekGidilecekYerSatir(
+            gidilecekYer: e.yer.yerAdi,
+            semt: e.yer.yerAdi.contains('Eyüboğlu')
+                ? ''
+                : e.adresController.text.trim(),
+          ),
+        )
+        .toList();
+
+    final istekNedeni = _resolveIstekNedeni();
+    final istekNedeniDiger = (_selectedAracIstekNedeniId == -1)
+        ? _customAracIstekNedeniController.text.trim()
+        : '';
+
+    return AracIstekEkleReq(
+      personelId: currentPersonelId,
+      gidilecekTarih: gidilecekTarih,
+      gidisSaat: _gidisSaat.toString().padLeft(2, '0'),
+      gidisDakika: _gidisDakika.toString().padLeft(2, '0'),
+      donusSaat: _donusSaat.toString().padLeft(2, '0'),
+      donusDakika: _donusDakika.toString().padLeft(2, '0'),
+      aracTuru: 'Binek',
+      yolcuPersonelSatir: yolcuPersonelSatir,
+      yolcuDepartmanId: yolcuDepartmanId,
+      okullarSatir: okullarSatir,
+      gidilecekYerSatir: gidilecekYerSatir,
+      yolcuSayisi: _selectedPersonelIds.length + _selectedOgrenciIds.length,
+      mesafe: _tahminiMesafe,
+      istekNedeni: istekNedeni,
+      istekNedeniDiger: istekNedeniDiger,
+      aciklama: _aciklamaController.text,
+      tasinacakYuk: '',
+      meb: _isMEB,
+    );
+  }
+
+  List<AracIstekOzetItem> _buildAracIstekOzetItems(AracIstekEkleReq req) {
+    final items = <AracIstekOzetItem>[
+      const AracIstekOzetItem(
+        label: 'Araç Türü',
+        value: 'Binek',
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'Gidilecek Tarih',
+        value: _formatDateShort(req.gidilecekTarih),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'Gidiş Saati',
+        value: _formatTime(_gidisSaat, _gidisDakika),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'Dönüş Saati',
+        value: _formatTime(_donusSaat, _donusDakika),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'Tahmini Mesafe (km)',
+        value: _tahminiMesafe.toString(),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'MEB',
+        value: _isMEB ? 'Evet' : 'Hayır',
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'İstek Nedeni',
+        value: _selectedAracIstekNedeniId == -1
+            ? 'DİĞER'
+            : _buildAracIstekNedeniSummary(),
+        multiLine: true,
+      ),
+      AracIstekOzetItem(
+        label: 'Açıklama',
+        value: req.aciklama.isEmpty ? '-' : req.aciklama,
+        multiLine: true,
+      ),
+    ];
+
+    if (_selectedAracIstekNedeniId == -1) {
+      items.add(
+        AracIstekOzetItem(
+          label: 'İstek Nedeni (Diğer)',
+          value: _customAracIstekNedeniController.text.trim(),
+        ),
+      );
+    }
+
+    items.addAll([
+      AracIstekOzetItem(
+        label: 'Yolcu Sayısı',
+        value: req.yolcuSayisi.toString(),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'Seçilen Personel',
+        value: _buildSelectedPersonelSummaryForOzet(),
+      ),
+      AracIstekOzetItem(
+        label: 'Seçilen Öğrenci',
+        value: _buildSelectedOgrenciSummaryForOzet(),
+      ),
+      AracIstekOzetItem(
+        label: 'Gidilecek Yer(ler)',
+        value: _buildGidilecekYerSummary(),
+      ),
+    ]);
+
+    return items;
+  }
+
+  Future<void> _sendAracIstek(AracIstekEkleReq req) async {
+    final dio = ref.read(dioProvider);
+    try {
+      await dio.post('/AracIstek/AracIstekEkle', data: req.toJson());
+    } catch (e) {
+      throw Exception('Araç talebi gönderilemedi: $e');
+    }
   }
 
   String _buildPersonelSummary() {
@@ -820,19 +1265,25 @@ class _AracTalepBenEkleScreenState
       return 'Öğrenci seçiniz';
     }
 
-    final selectedNames = _ogrenciList
-        .where((o) => _selectedOgrenciIds.contains('${o.numara}'))
-        .map((o) => '${o.adi} ${o.soyadi}'.trim())
-        .where((name) => name.isNotEmpty)
-        .toList();
-
-    if (selectedNames.isEmpty) {
+    // _ogrenciList içinde aynı numara birden fazla kez gelebiliyor.
+    // Sayımı her zaman seçili Set üzerinden (unique numara) yap.
+    if (_selectedOgrenciIds.length > 2) {
       return '${_selectedOgrenciIds.length} öğrenci seçildi';
     }
-    if (selectedNames.length <= 2) {
-      return selectedNames.join(', ');
+
+    final Map<String, String> numaraToName = {};
+    for (final o in _ogrenciList) {
+      final numara = '${o.numara}';
+      if (!_selectedOgrenciIds.contains(numara)) continue;
+      numaraToName.putIfAbsent(numara, () => '${o.adi} ${o.soyadi}'.trim());
     }
-    return '${selectedNames.length} öğrenci seçildi';
+
+    final names = numaraToName.values.where((n) => n.isNotEmpty).toList();
+    if (names.length == _selectedOgrenciIds.length && names.length <= 2) {
+      return names.join(', ');
+    }
+
+    return '${_selectedOgrenciIds.length} öğrenci seçildi';
   }
 
   String _buildAracIstekNedeniSummary() {
@@ -1568,9 +2019,7 @@ class _AracTalepBenEkleScreenState
         _personelSheetError = 'Personel verisi alınamadı: $e';
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(_personelSheetError ?? 'Hata')));
+        _showStatusBottomSheet(_personelSheetError ?? 'Hata', isError: true);
       }
       return;
     }
@@ -1806,9 +2255,12 @@ class _AracTalepBenEkleScreenState
       );
 
       setState(() {
-        _okulKoduList = filterResponse.okulKodu;
-        _seviyeList = filterResponse.seviye;
-        _sinifList = filterResponse.sinif;
+        _initialOkulKoduList = filterResponse.okulKodu;
+        _initialSeviyeList = filterResponse.seviye;
+        _initialSinifList = filterResponse.sinif;
+        _okulKoduList = _initialOkulKoduList;
+        _seviyeList = _initialSeviyeList;
+        _sinifList = _initialSinifList;
         _kulupList = filterResponse.kulup;
         _takimList = filterResponse.takim;
         _ogrenciList = filterResponse.ogrenci;
@@ -1820,9 +2272,7 @@ class _AracTalepBenEkleScreenState
         _ogrenciSheetError = 'Öğrenci verisi alınamadı: $e';
       });
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(_ogrenciSheetError ?? 'Hata')));
+        _showStatusBottomSheet(_ogrenciSheetError ?? 'Hata', isError: true);
       }
       return;
     }
@@ -1984,9 +2434,42 @@ class _AracTalepBenEkleScreenState
                     horizontal: 16,
                     vertical: 16,
                   ),
-                  child: const Text(
-                    'Filtrele',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Filtrele',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () async {
+                          setModalState(() => _currentFilterPage = '');
+                          localSelectedOkul.clear();
+                          localSelectedSeviye.clear();
+                          localSelectedSinif.clear();
+                          localSelectedKulup.clear();
+                          localSelectedTakim.clear();
+                          localSelectedOgrenci.clear();
+
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: setModalState,
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF014B92),
+                        ),
+                        child: const Text('Tüm filtreleri temizle'),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -2027,37 +2510,40 @@ class _AracTalepBenEkleScreenState
                             });
                             Navigator.pop(context);
                           } else {
-                            // Filtre seçimi yapıldığında API'ye istekte bulun
-                            await _applyOgrenciFilters(
-                              localSelectedOkul,
-                              localSelectedSeviye,
-                              localSelectedSinif,
-                              localSelectedKulup,
-                              localSelectedTakim,
-                            );
+                            // Detay sayfasında Tamam'a basınca seçimlere göre alt
+                            // listeleri yenile. Mevcut sayfanın kendi listesi daralıp
+                            // çoklu seçimi bozmasın diye yalnız downstream güncellenir.
+                            if (_currentFilterPage != 'ogrenci') {
+                              final updateSeviye = _currentFilterPage == 'okul';
+                              final updateSinif =
+                                  _currentFilterPage == 'okul' ||
+                                  _currentFilterPage == 'seviye';
+                              final updateKulup =
+                                  _currentFilterPage == 'okul' ||
+                                  _currentFilterPage == 'seviye' ||
+                                  _currentFilterPage == 'sinif';
+                              final updateTakim =
+                                  _currentFilterPage == 'okul' ||
+                                  _currentFilterPage == 'seviye' ||
+                                  _currentFilterPage == 'sinif' ||
+                                  _currentFilterPage == 'kulup';
 
-                            // API'den gelen filtre listelerine göre seçimleri senkronize et
-                            final validOkullar = _okulKoduList.toSet();
-                            final validSeviyeler = _seviyeList.toSet();
-                            final validSiniflar = _sinifList.toSet();
-                            final validKuluplar = _kulupList.toSet();
-                            final validTakimlar = _takimList.toSet();
-
-                            localSelectedOkul.retainAll(validOkullar);
-                            localSelectedSeviye.retainAll(validSeviyeler);
-                            localSelectedSinif.retainAll(validSiniflar);
-                            localSelectedKulup.retainAll(validKuluplar);
-                            localSelectedTakim.retainAll(validTakimlar);
-
-                            // Öğrenci seçimini filtrelere göre senkronize et
-                            _syncOgrenciSelectionFromFilters(
-                              localSelectedOkul,
-                              localSelectedSeviye,
-                              localSelectedSinif,
-                              localSelectedKulup,
-                              localSelectedTakim,
-                              localSelectedOgrenci,
-                            );
+                              await _refreshOgrenciFilterData(
+                                localSelectedOkul: localSelectedOkul,
+                                localSelectedSeviye: localSelectedSeviye,
+                                localSelectedSinif: localSelectedSinif,
+                                localSelectedKulup: localSelectedKulup,
+                                localSelectedTakim: localSelectedTakim,
+                                localSelectedOgrenci: localSelectedOgrenci,
+                                rebuild: setModalState,
+                                updateSeviyeList: updateSeviye,
+                                updateSinifList: updateSinif,
+                                updateKulupList: updateKulup,
+                                updateTakimList: updateTakim,
+                                updateOgrenciList: true,
+                                autoSelectAllOgrenci: true,
+                              );
+                            }
 
                             // Filtre seçimlerini ve öğrenci seçimini state'e kaydet
                             setState(() {
@@ -2165,7 +2651,7 @@ class _AracTalepBenEkleScreenState
     return '${ids.length} öğrenci seçildi';
   }
 
-  Future<void> _applyOgrenciFilters(
+  Future<_OgrenciFilterResponse?> _fetchOgrenciFilters(
     Set<String> selectedOkulKodlari,
     Set<String> selectedSeviyeler,
     Set<String> selectedSiniflar,
@@ -2189,60 +2675,88 @@ class _AracTalepBenEkleScreenState
           'kulupler': selectedKulupler.isEmpty
               ? ['0']
               : selectedKulupler.toList(),
+          // API örneklerine göre takım boşsa "" gönder.
           'takimlar': selectedTakimlar.isEmpty
-              ? ['0']
+              ? ['']
               : selectedTakimlar.toList(),
         },
       );
 
-      final filterResponse = _OgrenciFilterResponse.fromJson(
+      return _OgrenciFilterResponse.fromJson(
         response.data as Map<String, dynamic>,
       );
-
-      if (mounted) {
-        setState(() {
-          _okulKoduList = filterResponse.okulKodu;
-          _seviyeList = filterResponse.seviye;
-          _sinifList = filterResponse.sinif;
-          _kulupList = filterResponse.kulup;
-          _takimList = filterResponse.takim;
-          _ogrenciList = filterResponse.ogrenci;
-        });
-      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Filtre uygulanırken hata: $e')));
+        _showStatusBottomSheet('Filtre uygulanırken hata: $e', isError: true);
       }
+      return null;
     }
   }
 
-  void _syncOgrenciSelectionFromFilters(
-    Set<String> selectedOkulKodlari,
-    Set<String> selectedSeviyeler,
-    Set<String> selectedSiniflar,
-    Set<String> selectedKulupler,
-    Set<String> selectedTakimlar,
-    Set<String> selectedOgrenci,
-  ) {
-    final hasFilters =
-        selectedOkulKodlari.isNotEmpty ||
-        selectedSeviyeler.isNotEmpty ||
-        selectedSiniflar.isNotEmpty ||
-        selectedKulupler.isNotEmpty ||
-        selectedTakimlar.isNotEmpty;
+  Future<void> _refreshOgrenciFilterData({
+    required Set<String> localSelectedOkul,
+    required Set<String> localSelectedSeviye,
+    required Set<String> localSelectedSinif,
+    required Set<String> localSelectedKulup,
+    required Set<String> localSelectedTakim,
+    required Set<String> localSelectedOgrenci,
+    required StateSetter rebuild,
+    bool updateSeviyeList = true,
+    bool updateSinifList = true,
+    bool updateKulupList = true,
+    bool updateTakimList = true,
+    bool updateOgrenciList = true,
+    bool autoSelectAllOgrenci = false,
+  }) async {
+    final resp = await _fetchOgrenciFilters(
+      localSelectedOkul,
+      localSelectedSeviye,
+      localSelectedSinif,
+      localSelectedKulup,
+      localSelectedTakim,
+    );
+    if (resp == null) return;
 
-    if (!hasFilters) {
-      selectedOgrenci.clear();
-      return;
-    }
+    rebuild(() {
+      // Okul listesi her zaman ilk çağrıda gelen tam liste olarak kalsın.
+      if (_initialOkulKoduList.isNotEmpty) {
+        _okulKoduList = _initialOkulKoduList;
+      } else {
+        _initialOkulKoduList = resp.okulKodu;
+        _okulKoduList = _initialOkulKoduList;
+      }
 
-    // Filtrelere uygun öğrencileri seç
-    final ogrenciNumaralari = _ogrenciList.map((o) => '${o.numara}').toSet();
-    selectedOgrenci
-      ..clear()
-      ..addAll(ogrenciNumaralari);
+      if (updateSeviyeList) {
+        _seviyeList = resp.seviye;
+      }
+      if (updateSinifList) {
+        _sinifList = resp.sinif;
+      }
+      if (updateKulupList) {
+        _kulupList = resp.kulup;
+      }
+      if (updateTakimList) {
+        _takimList = resp.takim;
+      }
+      if (updateOgrenciList) {
+        _ogrenciList = resp.ogrenci;
+      }
+
+      // Seçimleri yeni listelere göre valid et
+      localSelectedSeviye.retainAll(_seviyeList.toSet());
+      localSelectedSinif.retainAll(_sinifList.toSet());
+      localSelectedKulup.retainAll(_kulupList.toSet());
+      localSelectedTakim.retainAll(_takimList.toSet());
+
+      final validOgrenciNums = _ogrenciList.map((o) => '${o.numara}').toSet();
+      if (autoSelectAllOgrenci) {
+        localSelectedOgrenci
+          ..clear()
+          ..addAll(validOgrenciNums);
+      } else {
+        localSelectedOgrenci.retainAll(validOgrenciNums);
+      }
+    });
   }
 
   Widget _buildGorevYeriFilterPage(
@@ -2655,7 +3169,10 @@ class _AracTalepBenEkleScreenState
     Set<String> localSelectedTakim,
     Set<String> localSelectedOgrenci,
   ) {
-    if (_okulKoduList.isEmpty) {
+    final okulSource = _initialOkulKoduList.isNotEmpty
+        ? _initialOkulKoduList
+        : _okulKoduList;
+    if (okulSource.isEmpty) {
       return const Center(child: Text('Okul verisi bulunamadı'));
     }
 
@@ -2663,9 +3180,9 @@ class _AracTalepBenEkleScreenState
     String searchQuery = '';
 
     List<String> applyFilters() {
-      if (searchQuery.isEmpty) return _okulKoduList;
+      if (searchQuery.isEmpty) return okulSource;
       final q = searchQuery.toLowerCase();
-      return _okulKoduList.where((s) => s.toLowerCase().contains(q)).toList();
+      return okulSource.where((s) => s.toLowerCase().contains(q)).toList();
     }
 
     return StatefulBuilder(
@@ -2716,34 +3233,50 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedOkul.clear();
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedSeviye.clear();
+                  localSelectedSinif.clear();
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedOkul
                     ..clear()
                     ..addAll(filtered);
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedSeviye.clear();
+                  localSelectedSinif.clear();
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
             ),
             if (filtered.isEmpty)
@@ -2767,22 +3300,30 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedOkul.add(okul);
                           } else {
                             localSelectedOkul.remove(okul);
                           }
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
+                          localSelectedSeviye.clear();
+                          localSelectedSinif.clear();
+                          localSelectedKulup.clear();
+                          localSelectedTakim.clear();
                         });
-                        innerSetState(() {});
+
+                        () async {
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: innerSetState,
+                            autoSelectAllOgrenci: true,
+                          );
+                        }();
                       },
                       title: Text(
                         okul,
@@ -2878,34 +3419,50 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedSeviye.clear();
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedSinif.clear();
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedSeviye
                     ..clear()
                     ..addAll(filtered);
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedSinif.clear();
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
             ),
             if (filtered.isEmpty)
@@ -2929,22 +3486,30 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedSeviye.add(seviye);
                           } else {
                             localSelectedSeviye.remove(seviye);
                           }
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
+                          localSelectedSinif.clear();
+                          localSelectedKulup.clear();
+                          localSelectedTakim.clear();
                         });
-                        innerSetState(() {});
+
+                        () async {
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: innerSetState,
+                            updateSeviyeList: false,
+                            autoSelectAllOgrenci: true,
+                          );
+                        }();
                       },
                       title: Text(
                         seviye,
@@ -3040,34 +3605,50 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedSinif.clear();
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    updateSinifList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedSinif
                     ..clear()
                     ..addAll(filtered);
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedKulup.clear();
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    updateSinifList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
             ),
             if (filtered.isEmpty)
@@ -3091,22 +3672,30 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedSinif.add(sinif);
                           } else {
                             localSelectedSinif.remove(sinif);
                           }
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
+                          localSelectedKulup.clear();
+                          localSelectedTakim.clear();
                         });
-                        innerSetState(() {});
+
+                        () async {
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: innerSetState,
+                            updateSeviyeList: false,
+                            updateSinifList: false,
+                            autoSelectAllOgrenci: true,
+                          );
+                        }();
                       },
                       title: Text(
                         sinif,
@@ -3202,34 +3791,50 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedKulup.clear();
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    updateSinifList: false,
+                    updateKulupList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedKulup
                     ..clear()
                     ..addAll(filtered);
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
+                  localSelectedTakim.clear();
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    updateSeviyeList: false,
+                    updateSinifList: false,
+                    updateKulupList: false,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
             ),
             if (filtered.isEmpty)
@@ -3253,22 +3858,30 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedKulup.add(kulup);
                           } else {
                             localSelectedKulup.remove(kulup);
                           }
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
+                          localSelectedTakim.clear();
                         });
-                        innerSetState(() {});
+
+                        () async {
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: innerSetState,
+                            updateSeviyeList: false,
+                            updateSinifList: false,
+                            updateKulupList: false,
+                            autoSelectAllOgrenci: true,
+                          );
+                        }();
                       },
                       title: Text(
                         kulup,
@@ -3364,34 +3977,42 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedTakim.clear();
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedTakim
                     ..clear()
                     ..addAll(filtered);
-                  _syncOgrenciSelectionFromFilters(
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
                 });
-                innerSetState(() {});
+
+                () async {
+                  await _refreshOgrenciFilterData(
+                    localSelectedOkul: localSelectedOkul,
+                    localSelectedSeviye: localSelectedSeviye,
+                    localSelectedSinif: localSelectedSinif,
+                    localSelectedKulup: localSelectedKulup,
+                    localSelectedTakim: localSelectedTakim,
+                    localSelectedOgrenci: localSelectedOgrenci,
+                    rebuild: innerSetState,
+                    autoSelectAllOgrenci: true,
+                  );
+                }();
               },
             ),
             if (filtered.isEmpty)
@@ -3415,22 +4036,26 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedTakim.add(takim);
                           } else {
                             localSelectedTakim.remove(takim);
                           }
-                          _syncOgrenciSelectionFromFilters(
-                            localSelectedOkul,
-                            localSelectedSeviye,
-                            localSelectedSinif,
-                            localSelectedKulup,
-                            localSelectedTakim,
-                            localSelectedOgrenci,
-                          );
                         });
-                        innerSetState(() {});
+
+                        () async {
+                          await _refreshOgrenciFilterData(
+                            localSelectedOkul: localSelectedOkul,
+                            localSelectedSeviye: localSelectedSeviye,
+                            localSelectedSinif: localSelectedSinif,
+                            localSelectedKulup: localSelectedKulup,
+                            localSelectedTakim: localSelectedTakim,
+                            localSelectedOgrenci: localSelectedOgrenci,
+                            rebuild: innerSetState,
+                            autoSelectAllOgrenci: true,
+                          );
+                        }();
                       },
                       title: Text(
                         takim,
@@ -3526,16 +4151,14 @@ class _AracTalepBenEkleScreenState
             ),
             _buildSelectActions(
               onClear: () {
-                setModalState(() => localSelectedOgrenci.clear());
-                innerSetState(() {});
+                innerSetState(() => localSelectedOgrenci.clear());
               },
               onSelectAll: () {
-                setModalState(() {
+                innerSetState(() {
                   localSelectedOgrenci
                     ..clear()
                     ..addAll(filtered.map((o) => '${o.numara}'));
                 });
-                innerSetState(() {});
               },
             ),
             if (filtered.isEmpty)
@@ -3562,14 +4185,13 @@ class _AracTalepBenEkleScreenState
                       dense: true,
                       value: isSelected,
                       onChanged: (val) {
-                        setModalState(() {
+                        innerSetState(() {
                           if (val == true) {
                             localSelectedOgrenci.add('${ogrenci.numara}');
                           } else {
                             localSelectedOgrenci.remove('${ogrenci.numara}');
                           }
                         });
-                        innerSetState(() {});
                       },
                       title: Text(
                         '${ogrenci.adi} ${ogrenci.soyadi}',
@@ -3951,6 +4573,7 @@ class _OgrenciFilterResponse {
 
 class _FilterOgrenciItem {
   final String okulKodu;
+  final String seviye;
   final String sinif;
   final int numara;
   final String adi;
@@ -3958,6 +4581,7 @@ class _FilterOgrenciItem {
 
   _FilterOgrenciItem({
     required this.okulKodu,
+    this.seviye = '',
     required this.sinif,
     required this.numara,
     required this.adi,
@@ -3967,6 +4591,7 @@ class _FilterOgrenciItem {
   factory _FilterOgrenciItem.fromJson(Map<String, dynamic> json) {
     return _FilterOgrenciItem(
       okulKodu: (json['okulKodu'] ?? '').toString(),
+      seviye: (json['seviye'] ?? '').toString(),
       sinif: (json['sinif'] ?? '').toString(),
       numara: _asInt(json['numara'] ?? -1),
       adi: (json['adi'] ?? '').toString(),
