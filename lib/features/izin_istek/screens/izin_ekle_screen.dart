@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_nedeni.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_ekle_personel_secim_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turu_secim_screen.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
@@ -1980,9 +1981,14 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       baskaPersonelId: formState.secilenPersonel?.personelId,
     );
     ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
+
+    // Provider'ları yenile
+    ref.refresh(devamEdenIsteklerimProvider);
+    ref.refresh(tamamlananIsteklerimProvider);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('�zin iste�i ba�ar�yla olu�turuldu'),
+        content: Text('İzin isteği başarıyla oluşturuldu'),
         backgroundColor: Colors.green,
       ),
     );

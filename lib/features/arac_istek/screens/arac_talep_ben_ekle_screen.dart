@@ -974,6 +974,10 @@ class _AracTalepBenEkleScreenState
                   if (!isError) {
                     Future.delayed(const Duration(milliseconds: 500), () {
                       if (mounted) {
+                        // Provider'ları yenile
+                        ref.refresh(aracDevamEdenTaleplerProvider);
+                        ref.refresh(aracTamamlananTaleplerProvider);
+
                         // Tüm önceki ekranları temizleyip doğrudan Araç Taleplerini Yönet'e git
                         Navigator.of(
                           context,

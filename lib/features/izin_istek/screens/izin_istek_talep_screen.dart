@@ -553,5 +553,3 @@ class _GradientButton extends ConsumerWidget {
     );
   }
 }
-
-
