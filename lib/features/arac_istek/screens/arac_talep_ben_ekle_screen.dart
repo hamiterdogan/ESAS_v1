@@ -255,599 +255,641 @@ class _AracTalepBenEkleScreenState
         ),
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Gidilecek Yer',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          // Klavyeyi kapat
+          FocusScope.of(context).unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Gidilecek Yer',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width / 2,
-                  child: ElevatedButton.icon(
-                    onPressed: _openYerSecimiBottomSheet,
-                    icon: const Icon(
-                      Icons.add_location_alt_outlined,
-                      size: 27,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      'Yer Ekle',
-                      style: TextStyle(fontSize: 17, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 16),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width / 2,
+                    child: ElevatedButton.icon(
+                      onPressed: _openYerSecimiBottomSheet,
+                      icon: const Icon(
+                        Icons.add_location_alt_outlined,
+                        size: 27,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Yer Ekle',
+                        style: TextStyle(fontSize: 17, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              if (_entries.isEmpty)
-                const Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    'Henüz yer eklenmedi.',
-                    style: TextStyle(color: Colors.grey, fontSize: 15),
-                  ),
-                )
-              else
-                Card(
-                  elevation: 2,
-                  margin: EdgeInsets.zero,
-                  color: Colors.white,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = _entries[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        entry.yer.yerAdi,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black87,
+                const SizedBox(height: 12),
+                if (_entries.isEmpty)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Henüz yer eklenmedi.',
+                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                    ),
+                  )
+                else
+                  Card(
+                    elevation: 2,
+                    margin: EdgeInsets.zero,
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: _entries.length,
+                          itemBuilder: (context, index) {
+                            final entry = _entries[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          entry.yer.yerAdi,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black87,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Color(0xFF707070),
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _entries[index].adresController
-                                              .dispose();
-                                          _entries.removeAt(index);
-                                        });
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      iconSize: 22,
-                                    ),
-                                  ],
-                                ),
-                                if (!entry.yer.yerAdi.contains('Eyüboğlu'))
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8,
-                                      bottom: 12,
-                                    ),
-                                    child: TextField(
-                                      controller: entry.adresController,
-                                      decoration: InputDecoration(
-                                        hintText: 'Semt ve adres giriniz',
-                                        prefixIcon: const Icon(
-                                          Icons.location_on_outlined,
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Color(0xFF707070),
                                         ),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                        onPressed: () {
+                                          setState(() {
+                                            _entries[index].adresController
+                                                .dispose();
+                                            _entries.removeAt(index);
+                                          });
+                                        },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        iconSize: 22,
+                                      ),
+                                    ],
+                                  ),
+                                  if (!entry.yer.yerAdi.contains('Eyüboğlu'))
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 12,
+                                      ),
+                                      child: TextField(
+                                        controller: entry.adresController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Semt ve adres giriniz',
+                                          prefixIcon: const Icon(
+                                            Icons.location_on_outlined,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                const Divider(height: 16, thickness: 0.8),
-                              ],
+                                  const Divider(height: 16, thickness: 0.8),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tahmini Mesafe (km)',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: _tahminiMesafe > 1
+                              ? () => _updateMesafe(_tahminiMesafe - 1)
+                              : null,
+                          child: Container(
+                            width: 50,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(8),
+                                bottomLeft: Radius.circular(8),
+                              ),
+                              color: Colors.white,
                             ),
+                            child: Icon(
+                              Icons.remove,
+                              color: _tahminiMesafe > 1
+                                  ? Colors.black
+                                  : Colors.grey.shade300,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 64,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            color: Colors.white,
+                          ),
+                          child: TextField(
+                            controller: _mesafeController,
+                            textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(4),
+                            ],
+                            style: const TextStyle(
+                              fontSize: 17,
+                              color: Colors.black,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.only(bottom: 9),
+                            ),
+                            onChanged: (value) {
+                              if (value.isEmpty) return;
+                              final intValue = int.tryParse(value);
+                              if (intValue == null) return;
+                              if (intValue < 1) {
+                                _updateMesafe(1);
+                              } else if (intValue > 9999) {
+                                _updateMesafe(9999);
+                              } else {
+                                _updateMesafe(intValue);
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: _tahminiMesafe < 9999
+                              ? () => _updateMesafe(_tahminiMesafe + 1)
+                              : null,
+                          child: Container(
+                            width: 50,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                bottomRight: Radius.circular(8),
+                              ),
+                              color: Colors.white,
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              color: _tahminiMesafe < 9999
+                                  ? Colors.black
+                                  : Colors.grey.shade300,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          onPressed: _showMesafeInfo,
+                          icon: const Icon(
+                            Icons.info_outline,
+                            color: Colors.grey,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // MEB Toggle
+                Row(
+                  children: [
+                    Switch(
+                      value: _isMEB,
+                      activeTrackColor: AppColors.gradientStart.withValues(
+                        alpha: 0.5,
+                      ),
+                      activeThumbColor: AppColors.gradientEnd,
+                      onChanged: (value) {
+                        setState(() {
+                          _isMEB = value;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text('MEB', style: TextStyle(fontSize: 14)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        label: 'Gidilecek Tarih',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
+                        initialDate: _gidilecekTarih,
+                        minDate: DateTime.now(),
+                        maxDate: DateTime.now().add(const Duration(days: 365)),
+                        onDateChanged: (date) {
+                          setState(() {
+                            _gidilecekTarih = date;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    const Expanded(child: SizedBox()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TimePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
+                        initialHour: _gidisSaat,
+                        initialMinute: _gidisDakika,
+                        minHour: 0,
+                        maxHour: 23,
+                        allowedMinutes: _allowedMinutes,
+                        label: 'Gidiş Saati',
+                        allowAllMinutesAtMaxHour: true,
+                        onTimeChanged: (hour, minute) {
+                          setState(() {
+                            _gidisSaat = hour;
+                            _gidisDakika = minute;
+                            _syncDonusWithGidis(
+                              startHour: hour,
+                              startMinute: minute,
+                            );
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          final minDonus = _computeDonusMin(
+                            _gidisSaat,
+                            _gidisDakika,
+                          );
+                          return TimePickerBottomSheetWidget(
+                            key: ValueKey(
+                              'donus-${_gidisSaat}-${_gidisDakika}-${_donusSaat}-${_donusDakika}',
+                            ),
+                            labelStyle: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontSize: (Theme.of(context)
+                                              .textTheme
+                                              .titleSmall
+                                              ?.fontSize ??
+                                          14) +
+                                      1,
+                                ),
+                            initialHour: _donusSaat,
+                            initialMinute: _donusDakika,
+                            minHour: minDonus.$1,
+                            minMinute: minDonus.$2,
+                            maxHour: 23,
+                            allowedMinutes: _allowedMinutes,
+                            allowAllMinutesAtMaxHour: true,
+                            label: 'Dönüş Saati',
+                            onTimeChanged: (hour, minute) {
+                              setState(() {
+                                _donusSaat = hour;
+                                _donusDakika = minute;
+                              });
+                            },
                           );
                         },
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'Araç İstek Nedeni',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
                   ),
                 ),
-              const SizedBox(height: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tahmini Mesafe (km)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _openAracIstekNedeniBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: _tahminiMesafe > 1
-                            ? () => _updateMesafe(_tahminiMesafe - 1)
-                            : null,
-                        child: Container(
-                          width: 50,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              bottomLeft: Radius.circular(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _buildAracIstekNedeniSummary(),
+                            style: TextStyle(
+                              color: _selectedAracIstekNedeniId != null
+                                  ? Colors.black
+                                  : Colors.grey.shade600,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
                             ),
-                            color: Colors.white,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: _tahminiMesafe > 1
-                                ? Colors.black
-                                : Colors.grey.shade300,
-                            size: 24,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 64,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          color: Colors.white,
-                        ),
-                        child: TextField(
-                          controller: _mesafeController,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(4),
-                          ],
-                          style: const TextStyle(
-                            fontSize: 17,
-                            color: Colors.black,
+                        Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_selectedAracIstekNedeniId == -1)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextField(
+                        controller: _customAracIstekNedeniController,
+                        onChanged: (value) {
+                          setState(() {
+                            _customAracIstekNedeni = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Araç istek nedenini giriniz',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
                           ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.only(bottom: 9),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
                           ),
-                          onChanged: (value) {
-                            if (value.isEmpty) return;
-                            final intValue = int.tryParse(value);
-                            if (intValue == null) return;
-                            if (intValue < 1) {
-                              _updateMesafe(1);
-                            } else if (intValue > 9999) {
-                              _updateMesafe(9999);
-                            } else {
-                              _updateMesafe(intValue);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _tahminiMesafe < 9999
-                            ? () => _updateMesafe(_tahminiMesafe + 1)
-                            : null,
-                        child: Container(
-                          width: 50,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.gradientStart,
                             ),
-                            color: Colors.white,
                           ),
-                          child: Icon(
-                            Icons.add,
-                            color: _tahminiMesafe < 9999
-                                ? Colors.black
-                                : Colors.grey.shade300,
-                            size: 24,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: _showMesafeInfo,
-                        icon: const Icon(
-                          Icons.info_outline,
-                          color: Colors.grey,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // MEB Toggle
-              Row(
-                children: [
-                  Switch(
-                    value: _isMEB,
-                    activeTrackColor: AppColors.gradientStart.withValues(
-                      alpha: 0.5,
                     ),
-                    activeThumbColor: AppColors.gradientEnd,
-                    onChanged: (value) {
-                      setState(() {
-                        _isMEB = value;
-                      });
-                    },
                   ),
-                  const Expanded(
-                    child: Text('MEB', style: TextStyle(fontSize: 14)),
+
+                const SizedBox(height: 24),
+                AciklamaFieldWidget(controller: _aciklamaController),
+
+                const SizedBox(height: 32),
+                Text(
+                  'Yolcu Seçimi',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              FractionallySizedBox(
-                widthFactor: 0.45,
-                child: DatePickerBottomSheetWidget(
-                  label: 'Gidilecek Tarih',
-                  initialDate: _gidilecekTarih,
-                  minDate: DateTime.now(),
-                  maxDate: DateTime.now().add(const Duration(days: 365)),
-                  onDateChanged: (date) {
-                    setState(() {
-                      _gidilecekTarih = date;
-                    });
-                  },
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TimePickerBottomSheetWidget(
-                      initialHour: _gidisSaat,
-                      initialMinute: _gidisDakika,
-                      minHour: 0,
-                      maxHour: 23,
-                      allowedMinutes: _allowedMinutes,
-                      label: 'Gidiş Saati',
-                      allowAllMinutesAtMaxHour: true,
-                      onTimeChanged: (hour, minute) {
-                        setState(() {
-                          _gidisSaat = hour;
-                          _gidisDakika = minute;
-                          _syncDonusWithGidis(
-                            startHour: hour,
-                            startMinute: minute,
-                          );
-                        });
-                      },
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _openPersonelSecimBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final minDonus = _computeDonusMin(
-                          _gidisSaat,
-                          _gidisDakika,
-                        );
-                        return TimePickerBottomSheetWidget(
-                          key: ValueKey(
-                            'donus-${_gidisSaat}-${_gidisDakika}-${_donusSaat}-${_donusDakika}',
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _buildPersonelSummary(),
+                            style: TextStyle(
+                              color: _selectedPersonelIds.isNotEmpty
+                                  ? Colors.black
+                                  : Colors.grey.shade600,
+                              fontSize: 16,
+                              fontWeight: _selectedPersonelIds.isNotEmpty
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          initialHour: _donusSaat,
-                          initialMinute: _donusDakika,
-                          minHour: minDonus.$1,
-                          minMinute: minDonus.$2,
-                          maxHour: 23,
-                          allowedMinutes: _allowedMinutes,
-                          allowAllMinutesAtMaxHour: true,
-                          label: 'Dönüş Saati',
-                          onTimeChanged: (hour, minute) {
-                            setState(() {
-                              _donusSaat = hour;
-                              _donusDakika = minute;
-                            });
-                          },
-                        );
-                      },
+                        ),
+                        Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'Araç İstek Nedeni',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
                 ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: _openAracIstekNedeniBottomSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                if (_selectedPersonelIds.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 5, left: 10),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: TextButton(
+                        onPressed: _openSecilenPersonelListesiBottomSheet,
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                        ),
+                        child: Text(
+                          'Seçilen personelleri listele',
+                          style: TextStyle(
+                            color: AppColors.gradientStart,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _openOgrenciSecimBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _buildOgrenciSummary(),
+                            style: TextStyle(
+                              color: _selectedOgrenciIds.isNotEmpty
+                                  ? Colors.black
+                                  : Colors.grey.shade600,
+                              fontSize: 16,
+                              fontWeight: _selectedOgrenciIds.isNotEmpty
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                      ],
+                    ),
+                  ),
+                ),
+                if (_selectedOgrenciIds.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: _openSecilenOgrenciListesiBottomSheet,
+                        child: Text(
+                          'Seçilen öğrencileri listele',
+                          style: TextStyle(
+                            color: AppColors.gradientStart,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 32),
+                Text(
+                  'Toplam yolcu sayısı: ${_selectedPersonelIds.length + _selectedOgrenciIds.length}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!),
+                    gradient: AppColors.primaryGradient,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _buildAracIstekNedeniSummary(),
-                          style: TextStyle(
-                            color: _selectedAracIstekNedeniId != null
-                                ? Colors.black
-                                : Colors.grey.shade600,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade600),
-                    ],
-                  ),
-                ),
-              ),
-              if (_selectedAracIstekNedeniId == -1)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
                   child: SizedBox(
                     width: double.infinity,
-                    child: TextField(
-                      controller: _customAracIstekNedeniController,
-                      onChanged: (value) {
-                        setState(() {
-                          _customAracIstekNedeni = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Araç istek nedenini giriniz',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppColors.gradientStart,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
                         ),
                       ),
-                    ),
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-              AciklamaFieldWidget(controller: _aciklamaController),
-
-              const SizedBox(height: 32),
-              Text(
-                'Yolcu Seçimi',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: _openPersonelSecimBottomSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _buildPersonelSummary(),
-                          style: TextStyle(
-                            color: _selectedPersonelIds.isNotEmpty
-                                ? Colors.black
-                                : Colors.grey.shade600,
-                            fontSize: 16,
-                            fontWeight: _selectedPersonelIds.isNotEmpty
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade600),
-                    ],
-                  ),
-                ),
-              ),
-              if (_selectedPersonelIds.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 5, left: 10),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: TextButton(
-                      onPressed: _openSecilenPersonelListesiBottomSheet,
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.centerLeft,
-                      ),
-                      child: Text(
-                        'Seçilen personelleri listele',
+                      child: const Text(
+                        'Gönder',
                         style: TextStyle(
-                          color: AppColors.gradientStart,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: _openOgrenciSecimBottomSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _buildOgrenciSummary(),
-                          style: TextStyle(
-                            color: _selectedOgrenciIds.isNotEmpty
-                                ? Colors.black
-                                : Colors.grey.shade600,
-                            fontSize: 16,
-                            fontWeight: _selectedOgrenciIds.isNotEmpty
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade600),
-                    ],
-                  ),
-                ),
-              ),
-              if (_selectedOgrenciIds.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: _openSecilenOgrenciListesiBottomSheet,
-                      child: Text(
-                        'Seçilen öğrencileri listele',
-                        style: TextStyle(
-                          color: AppColors.gradientStart,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 32),
-              Text(
-                'Toplam yolcu sayısı: ${_selectedPersonelIds.length + _selectedOgrenciIds.length}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 16),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

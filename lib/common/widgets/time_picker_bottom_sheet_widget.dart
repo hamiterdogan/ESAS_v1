@@ -13,6 +13,7 @@ class TimePickerBottomSheetWidget extends ConsumerStatefulWidget {
   final Function(int hour, int minute) onTimeChanged;
   final String? label;
   final bool allowAllMinutesAtMaxHour;
+  final TextStyle? labelStyle;
 
   const TimePickerBottomSheetWidget({
     super.key,
@@ -25,6 +26,7 @@ class TimePickerBottomSheetWidget extends ConsumerStatefulWidget {
     required this.onTimeChanged,
     this.label,
     this.allowAllMinutesAtMaxHour = false,
+    this.labelStyle,
   });
 
   @override
@@ -285,11 +287,12 @@ class _TimePickerBottomSheetWidgetState
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               widget.label!,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+              style: widget.labelStyle ??
+                  const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
             ),
           ),
         GestureDetector(

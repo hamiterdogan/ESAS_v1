@@ -11,6 +11,7 @@ class DatePickerBottomSheetWidget extends ConsumerStatefulWidget {
   final Function(DateTime date) onDateChanged;
   final String? label;
   final String? placeholder;
+  final TextStyle? labelStyle;
 
   const DatePickerBottomSheetWidget({
     super.key,
@@ -20,6 +21,7 @@ class DatePickerBottomSheetWidget extends ConsumerStatefulWidget {
     required this.onDateChanged,
     this.label,
     this.placeholder,
+    this.labelStyle,
   });
 
   @override
@@ -388,39 +390,41 @@ class _DatePickerBottomSheetWidgetState
       children: [
         if (widget.label != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
+            padding: const EdgeInsets.only(bottom: 4.0),
             child: Text(
               widget.label!,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+              style: widget.labelStyle ??
+                  const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF666666),
+                  ),
             ),
           ),
         GestureDetector(
           onTap: _showDatePickerBottomSheet,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10.5),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.calendar_today, size: 24, color: Colors.grey[600]),
-                const SizedBox(width: 12),
+                const Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: Color(0xFF014B92),
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _formatDate(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: _selectedDate != null
-                          ? Colors.black87
-                          : Colors.grey[500],
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black,
                     ),
                   ),
                 ),

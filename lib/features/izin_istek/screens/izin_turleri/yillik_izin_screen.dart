@@ -132,6 +132,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
                         onDateChanged: (date) {
@@ -162,6 +165,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
+                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                                  ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
                                   ? _getNextSelectableDay(_baslangicTarihi!)
@@ -181,6 +187,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialHour: _baslangicSaat,
                         initialMinute: _baslangicDakika,
                         minHour: 8,
@@ -212,6 +221,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                         allowAllMinutesAtMaxHour: true,
                         allowedMinutes: const [0, 30],
                         label: 'Bitiş Saati',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         onTimeChanged: (hour, minute) {
                           setState(() {
                             _bitisSaat = hour;
@@ -234,7 +246,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                 const SizedBox(height: 24),
                 Text(
                   'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

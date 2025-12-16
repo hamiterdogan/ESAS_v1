@@ -565,76 +565,108 @@ class _AracIstekYukEkleScreenState
               ),
               const SizedBox(height: 24),
 
-              FractionallySizedBox(
-                widthFactor: 0.45,
-                child: DatePickerBottomSheetWidget(
-                  label: 'Gidilecek Tarih',
-                  initialDate: _gidilecekTarih,
-                  minDate: DateTime.now(),
-                  maxDate: DateTime.now().add(const Duration(days: 365)),
-                  onDateChanged: (date) {
-                    setState(() {
-                      _gidilecekTarih = date;
-                    });
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        label: 'Gidilecek Tarih',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
+                        initialDate: _gidilecekTarih,
+                        minDate: DateTime.now(),
+                        maxDate: DateTime.now().add(const Duration(days: 365)),
+                        onDateChanged: (date) {
+                          setState(() {
+                            _gidilecekTarih = date;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TimePickerBottomSheetWidget(
-                      initialHour: _gidisSaat,
-                      initialMinute: _gidisDakika,
-                      minHour: 0,
-                      maxHour: 23,
-                      allowedMinutes: _allowedMinutes,
-                      label: 'Gidiş Saati',
-                      allowAllMinutesAtMaxHour: true,
-                      onTimeChanged: (hour, minute) {
-                        setState(() {
-                          _gidisSaat = hour;
-                          _gidisDakika = minute;
-                          _syncDonusWithGidis(
-                            startHour: hour,
-                            startMinute: minute,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TimePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
+                        initialHour: _gidisSaat,
+                        initialMinute: _gidisDakika,
+                        minHour: 0,
+                        maxHour: 23,
+                        allowedMinutes: _allowedMinutes,
+                        label: 'Gidiş Saati',
+                        allowAllMinutesAtMaxHour: true,
+                        onTimeChanged: (hour, minute) {
+                          setState(() {
+                            _gidisSaat = hour;
+                            _gidisDakika = minute;
+                            _syncDonusWithGidis(
+                              startHour: hour,
+                              startMinute: minute,
+                            );
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          final minDonus = _computeDonusMin(
+                            _gidisSaat,
+                            _gidisDakika,
                           );
-                        });
-                      },
+                          return TimePickerBottomSheetWidget(
+                            key: ValueKey(
+                              'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
+                            ),
+                            labelStyle: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(
+                                  fontSize: (Theme.of(context)
+                                              .textTheme
+                                              .titleSmall
+                                              ?.fontSize ??
+                                          14) +
+                                      1,
+                                ),
+                            initialHour: _donusSaat,
+                            initialMinute: _donusDakika,
+                            minHour: minDonus.$1,
+                            minMinute: minDonus.$2,
+                            maxHour: 23,
+                            allowedMinutes: _allowedMinutes,
+                            allowAllMinutesAtMaxHour: true,
+                            label: 'Dönüş Saati',
+                            onTimeChanged: (hour, minute) {
+                              setState(() {
+                                _donusSaat = hour;
+                                _donusDakika = minute;
+                              });
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final minDonus = _computeDonusMin(
-                          _gidisSaat,
-                          _gidisDakika,
-                        );
-                        return TimePickerBottomSheetWidget(
-                          key: ValueKey(
-                            'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
-                          ),
-                          initialHour: _donusSaat,
-                          initialMinute: _donusDakika,
-                          minHour: minDonus.$1,
-                          minMinute: minDonus.$2,
-                          maxHour: 23,
-                          allowedMinutes: _allowedMinutes,
-                          allowAllMinutesAtMaxHour: true,
-                          label: 'Dönüş Saati',
-                          onTimeChanged: (hour, minute) {
-                            setState(() {
-                              _donusSaat = hour;
-                              _donusDakika = minute;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               const SizedBox(height: 24),
 
               // Taşınacak Yük

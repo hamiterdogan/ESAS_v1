@@ -282,7 +282,7 @@ class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
 }
 
 final izinEkleFormProvider =
-    NotifierProvider<IzinEkleFormNotifier, IzinEkleFormState>(
+    NotifierProvider.autoDispose<IzinEkleFormNotifier, IzinEkleFormState>(
       () => IzinEkleFormNotifier(),
     );
 
@@ -308,6 +308,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     _esAdiFocusNode.dispose();
     _hastalikYazinizFocusNode.dispose();
     _diniGunAciklamaFocusNode.dispose();
+    // Form state'i temizle ekran kapanırken
+    ref.invalidate(izinEkleFormProvider);
     super.dispose();
   }
 
@@ -335,66 +337,77 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 80),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Ba�kas� ad�na istekte bulunuyorum',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            // Klavyeyi kapat
+            FocusScope.of(context).unfocus();
+          },
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 80),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Ba�kas� ad�na istekte bulunuyorum',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    Switch(
-                      value: formState.isBaskasiAdinaBakinlari,
-                      onChanged: (_) {
-                        ref
-                            .read(izinEkleFormProvider.notifier)
-                            .toggleBaskasiAdinaBakinlari();
-                      },
-                      activeThumbColor: const Color(0xFF014B92),
-                    ),
-                  ],
+                      Switch(
+                        value: formState.isBaskasiAdinaBakinlari,
+                        onChanged: (_) {
+                          ref
+                              .read(izinEkleFormProvider.notifier)
+                              .toggleBaskasiAdinaBakinlari();
+                        },
+                        activeThumbColor: const Color(0xFF014B92),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              if (formState.isBaskasiAdinaBakinlari)
-                _personelSecimCard(context, ref, formState),
-              if (formState.isBaskasiAdinaBakinlari) const SizedBox(height: 12),
-              _izinTuruCard(context, ref, formState),
-              const SizedBox(height: 12),
-              _buildDynamicFields(
-                context,
-                ref,
-                formState,
-                _aciklamaFocusNode,
-                _adresFocusNode,
-                _esAdiFocusNode,
-                _hastalikYazinizFocusNode,
-                _diniGunAciklamaFocusNode,
-              ),
-              const SizedBox(height: 12),
-              _tarihlerCard(context, ref, formState),
-              const SizedBox(height: 24),
-              _gonderButonu(
-                context,
-                ref,
-                formState,
-                _aciklamaFocusNode,
-                _adresFocusNode,
-                _esAdiFocusNode,
-                _hastalikYazinizFocusNode,
-                _diniGunAciklamaFocusNode,
-              ),
-            ],
+                const SizedBox(height: 12),
+                if (formState.isBaskasiAdinaBakinlari)
+                  _personelSecimCard(context, ref, formState),
+                if (formState.isBaskasiAdinaBakinlari)
+                  const SizedBox(height: 12),
+                _izinTuruCard(context, ref, formState),
+                const SizedBox(height: 12),
+                _buildDynamicFields(
+                  context,
+                  ref,
+                  formState,
+                  _aciklamaFocusNode,
+                  _adresFocusNode,
+                  _esAdiFocusNode,
+                  _hastalikYazinizFocusNode,
+                  _diniGunAciklamaFocusNode,
+                ),
+                const SizedBox(height: 12),
+                _tarihlerCard(context, ref, formState),
+                const SizedBox(height: 24),
+                _gonderButonu(
+                  context,
+                  ref,
+                  formState,
+                  _aciklamaFocusNode,
+                  _adresFocusNode,
+                  _esAdiFocusNode,
+                  _hastalikYazinizFocusNode,
+                  _diniGunAciklamaFocusNode,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -548,12 +561,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   const Text(
                     'A??klama',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: Color(0xFF666666),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   TextField(
                     focusNode: aciklamaFocusNode,
                     onChanged: (value) => ref
@@ -590,74 +603,80 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildCard(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Tahmini Do?um Tarihi',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate:
-                            formState.tahminiBirthDate ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                      );
-                      if (picked != null) {
-                        ref
-                            .read(izinEkleFormProvider.notifier)
-                            .setTahminiBirthDate(picked);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            formState.tahminiBirthDate != null
-                                ? DateFormat(
-                                    'gg.aa.yyyy',
-                                  ).format(formState.tahminiBirthDate!)
-                                : 'Tarih se?iniz',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: formState.tahminiBirthDate != null
-                                  ? Colors.black
-                                  : Colors.grey[700],
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Tahmini Do?um Tarihi',
+                          style: TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  formState.tahminiBirthDate ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                            );
+                            if (picked != null) {
+                              ref
+                                  .read(izinEkleFormProvider.notifier)
+                                  .setTahminiBirthDate(picked);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 19.5,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  formState.tahminiBirthDate != null
+                                      ? DateFormat(
+                                          'gg.aa.yyyy',
+                                        ).format(formState.tahminiBirthDate!)
+                                      : 'Tarih se?iniz',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: formState.tahminiBirthDate != null
+                                        ? Colors.black
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.calendar_today,
+                                  color: Color(0xFF014B92),
+                                  size: 20,
+                                ),
+                              ],
                             ),
                           ),
-                          const Icon(
-                            Icons.calendar_today,
-                            color: Color(0xFF014B92),
-                            size: 20,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       );
@@ -665,75 +684,86 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
 
     // 2: Evlilik izni (Evlilik se?ilirse)
     if (nedeniAdi.contains('evlilik') || nedeniAdi.contains('evlen')) {
+      final dateTitleStyle =
+          Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ??
+          const TextStyle(fontSize: 19, fontWeight: FontWeight.w700);
+
       return Column(
         children: [
-          _buildCard(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Evlilik Tarihi',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: formState.evlilikTarihi ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                      );
-                      if (picked != null) {
-                        ref
-                            .read(izinEkleFormProvider.notifier)
-                            .setEvlilikTarihi(picked);
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            formState.evlilikTarihi != null
-                                ? DateFormat(
-                                    'gg.aa.yyyy',
-                                  ).format(formState.evlilikTarihi!)
-                                : 'Tarih se?iniz',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: formState.evlilikTarihi != null
-                                  ? Colors.black
-                                  : Colors.grey[700],
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildCard(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Evlilik Tarihi', style: dateTitleStyle),
+                        const SizedBox(height: 4),
+                        GestureDetector(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  formState.evlilikTarihi ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                            );
+                            if (picked != null) {
+                              ref
+                                  .read(izinEkleFormProvider.notifier)
+                                  .setEvlilikTarihi(picked);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 15.5,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 18,
+                                  color: Color(0xFF014B92),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    formState.evlilikTarihi != null
+                                        ? DateFormat(
+                                            'gg.aa.yyyy',
+                                          ).format(formState.evlilikTarihi!)
+                                        : 'gg.aa.yyyy',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: formState.evlilikTarihi != null
+                                          ? Colors.black
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const Icon(
-                            Icons.calendar_today,
-                            color: Color(0xFF014B92),
-                            size: 20,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(width: 20),
+              Expanded(flex: 1, child: Container()),
+            ],
           ),
           const SizedBox(height: 12),
           _buildCard(
@@ -746,9 +776,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                 decoration: InputDecoration(
                   labelText: 'E� Ad�',
                   labelStyle: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF333333),
+                    color: Color(0xFF666666),
                   ),
                   hintText: 'E� ad�n� giriniz',
                   border: OutlineInputBorder(
@@ -780,9 +810,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   const Text(
                     'A??klama',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: Color(0xFF666666),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1360,13 +1390,16 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Ba?lang?? Tarihi',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF666666),
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ) ??
+                              const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
@@ -1387,7 +1420,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 8,
+                              vertical: 13,
                             ),
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
@@ -1412,13 +1445,16 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Biti? Tarihi',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF666666),
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ) ??
+                              const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
@@ -1439,7 +1475,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 8,
+                              vertical: 13,
                             ),
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.grey[300]!),
@@ -1718,6 +1754,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     WidgetRef ref,
     IzinEkleFormState formState,
   ) {
+    final dateTitleStyle =
+        Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ??
+        const TextStyle(fontSize: 19, fontWeight: FontWeight.w700);
+
     return _buildCard(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1728,72 +1770,84 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             Row(
               children: [
                 Expanded(
+                  flex: 1,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Ba?lang?? Tarihi',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF666666),
-                        ),
-                      ),
+                      Text('Ba?lang?? Tarihi', style: dateTitleStyle),
                       const SizedBox(height: 4),
                       GestureDetector(
                         onTap: () => _secTarih(context, ref, true, formState),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
-                            vertical: 8,
+                            vertical: 15.5,
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey[300]!),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(
-                            DateFormat(
-                              'gg.aa.yyyy',
-                            ).format(formState.baslangicTarihi),
-                            style: const TextStyle(fontSize: 13),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 18,
+                                color: Color(0xFF014B92),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  DateFormat(
+                                    'gg.aa.yyyy',
+                                  ).format(formState.baslangicTarihi),
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 20),
                 Expanded(
+                  flex: 1,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Biti? Tarihi',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF666666),
-                        ),
-                      ),
+                      Text('Biti? Tarihi', style: dateTitleStyle),
                       const SizedBox(height: 4),
                       GestureDetector(
                         onTap: () => _secTarih(context, ref, false, formState),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
-                            vertical: 8,
+                            vertical: 15.5,
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey[300]!),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(
-                            DateFormat(
-                              'gg.aa.yyyy',
-                            ).format(formState.bitisTarihi),
-                            style: const TextStyle(fontSize: 13),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 18,
+                                color: Color(0xFF014B92),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  DateFormat(
+                                    'gg.aa.yyyy',
+                                  ).format(formState.bitisTarihi),
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1850,7 +1904,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           elevation: 0,
         ),
         child: const Text(
-          'G�nder',
+          'Gönder',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,

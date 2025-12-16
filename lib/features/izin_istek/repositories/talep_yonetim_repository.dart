@@ -5,6 +5,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_istek_detay_model.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_talepleri_model.dart';
 import 'package:esas_v1/features/izin_istek/models/gorev_model.dart';
 import 'package:esas_v1/features/izin_istek/models/gorev_yeri_model.dart';
+import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 
 abstract class TalepYonetimRepository {
   Future<Result<TalepYonetimResponse>> taleplerimiGetir({
@@ -26,12 +27,17 @@ abstract class TalepYonetimRepository {
   Future<Result<List<Gorev>>> gorevleriGetir();
 
   Future<Result<List<GorevYeri>>> gorevYerleriniGetir();
+
+  Future<Result<OnayDurumuResponse>> onayDurumuGetir({
+    required int talepId,
+    required String onayTipi,
+  });
 }
 
 class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
-  final Dio _dio;
+  final Dio dio;
 
-  TalepYonetimRepositoryImpl({required Dio dio}) : _dio = dio;
+  TalepYonetimRepositoryImpl({required this.dio});
 
   @override
   Future<Result<TalepYonetimResponse>> taleplerimiGetir({
@@ -40,7 +46,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     try {
       print('📡 TaleplerimiGetir API çağrısı: tip=$tip');
 
-      final response = await _dio.post(
+      final response = await dio.post(
         '/TalepYonetimi/TaleplerimiGetir',
         data: {'tip': tip},
         options: Options(contentType: 'application/json'),
@@ -69,7 +75,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   Future<Result<IzinTalepleriResponse>> izinTaleplerimiGetir() async {
     try {
       print('📡 API çağrısı başlıyor: /IzinIstek/IzinTaleplerimiGetir');
-      final response = await _dio.post(
+      final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
         data: '{}',
         options: Options(contentType: 'application/json'),
@@ -105,7 +111,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
       print(
         '📡 API çağrısı başlıyor: /IzinIstek/IzinTaleplerimiGetir (tip: $tip)',
       );
-      final response = await _dio.post(
+      final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
         data: '{"tip": $tip}',
         options: Options(contentType: 'application/json'),
@@ -143,7 +149,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     required int id,
   }) async {
     try {
-      final response = await _dio.post(
+      final response = await dio.post(
         '/IzinIstek/IzinIstekDetay',
         data: {'id': id},
       );
@@ -164,7 +170,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<void>> izinIstekSil({required int id}) async {
     try {
-      final response = await _dio.post(
+      final response = await dio.post(
         '/IzinIstek/IzinIstekSil',
         data: {'id': id},
       );
@@ -185,7 +191,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   Future<Result<List<Gorev>>> gorevleriGetir() async {
     try {
       print('📡 GorevDoldur API çağrısı başlıyor');
-      final response = await _dio.get('/TalepYonetimi/GorevDoldur');
+      final response = await dio.get('/TalepYonetimi/GorevDoldur');
 
       print('📡 Response alındı. Status: ${response.statusCode}');
       print('📡 Response data type: ${response.data.runtimeType}');
@@ -240,7 +246,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   Future<Result<List<GorevYeri>>> gorevYerleriniGetir() async {
     try {
       print('📡 GorevYeriDoldur API çağrısı başlıyor');
-      final response = await _dio.get('/TalepYonetimi/GorevYeriDoldur');
+      final response = await dio.get('/TalepYonetimi/GorevYeriDoldur');
 
       print('📡 Response alındı. Status: ${response.statusCode}');
       print('📡 Response data type: ${response.data.runtimeType}');
@@ -282,6 +288,60 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
       }
 
       return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      print('❌ DioException: ${e.message}');
+      print('❌ Response: ${e.response?.data}');
+      return Failure(e.message ?? 'Bağlantı hatası');
+    } catch (e) {
+      print('❌ Hata: $e');
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<OnayDurumuResponse>> onayDurumuGetir({
+    required int talepId,
+    required String onayTipi,
+  }) async {
+    try {
+      print(
+        '📡 OnayDurumuGetir API çağrısı: talepId=$talepId, onayTipi=$onayTipi',
+      );
+
+      // onayTipi bazı listelerde farklı/boş gelebiliyor; API sabit "İzin İstek" bekliyor.
+      final normalizedOnayTipi = onayTipi.trim().isNotEmpty
+          ? onayTipi.trim()
+          : 'İzin İstek';
+
+      final response = await dio.post(
+        '/TalepYonetimi/OnayDurumuGetir',
+        data: {'onayTipi': normalizedOnayTipi, 'onayKayitID': talepId},
+        options: Options(contentType: 'application/json'),
+      );
+
+      print('📡 Response alındı. Status: ${response.statusCode}');
+
+      // API response'ı Map'e dönüştür
+      late Map<String, dynamic> data;
+      if (response.data is Map) {
+        final Map<String, dynamic> map = Map<String, dynamic>.from(
+          response.data as Map,
+        );
+        // Eğer { data: {...} } şeklinde sarmalanmışsa aç
+        data = map.containsKey('data') && map['data'] is Map
+            ? Map<String, dynamic>.from(map['data'] as Map)
+            : map;
+      } else {
+        data = <String, dynamic>{};
+      }
+
+      if (data.isNotEmpty) {
+        final result = OnayDurumuResponse.fromJson(data);
+        print('✅ OnayDurumu başarıyla alındı');
+        return Success(result);
+      }
+
+      return Failure('Onay durumu verisi boş');
     } on DioException catch (e) {
       print('❌ DioException: ${e.message}');
       print('❌ Response: ${e.response?.data}');

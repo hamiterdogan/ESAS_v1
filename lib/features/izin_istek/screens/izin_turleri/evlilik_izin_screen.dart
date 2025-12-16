@@ -115,6 +115,14 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                       child: DatePickerBottomSheetWidget(
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
                         onDateChanged: (date) {
                           setState(() {
                             _baslangicTarihi = date;
@@ -139,6 +147,14 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                             ? _getNextSelectableDay(_baslangicTarihi!)
                             : null,
                         label: 'Bitiş Tarihi',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
                         onDateChanged: (date) {
                           setState(() {
                             _bitisTarihi = date;
@@ -151,19 +167,43 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 const SizedBox(height: 24),
 
                 // Evlilik Tarihi
-                DatePickerBottomSheetWidget(
-                  initialDate: _evlilikTarihi,
-                  label: 'Evlilik Tarihi',
-                  onDateChanged: (date) {
-                    setState(() {
-                      _evlilikTarihi = date;
-                    });
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        initialDate: _evlilikTarihi,
+                        label: 'Evlilik Tarihi',
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.fontSize ??
+                                      14) +
+                                  1,
+                            ),
+                        onDateChanged: (date) {
+                          setState(() {
+                            _evlilikTarihi = date;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
                 // Eş Adı
-                Text('Eş Adı', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  'Eş Adı',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                    14) +
+                                1,
+                      ),
+                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _esAdiController,
@@ -219,7 +259,12 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 // İzinde Bulunacağı Adres
                 Text(
                   'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                    14) +
+                                1,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

@@ -107,6 +107,9 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
                         onDateChanged: (date) {
@@ -128,6 +131,9 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                     const SizedBox(width: 24),
                     Expanded(
                       child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialDate: _bitisTarihi,
                         minDate: _baslangicTarihi != null
                             ? _getNextSelectableDay(_baslangicTarihi!)
@@ -144,14 +150,25 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 ),
                 const SizedBox(height: 24),
                 // Tahmini Doğum Tarihi
-                DatePickerBottomSheetWidget(
-                  initialDate: _tahminiDogumTarihi,
-                  label: 'Tahmini Doğum Tarihi',
-                  onDateChanged: (date) {
-                    setState(() {
-                      _tahminiDogumTarihi = date;
-                    });
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
+                        initialDate: _tahminiDogumTarihi,
+                        label: 'Tahmini Doğum Tarihi',
+                        onDateChanged: (date) {
+                          setState(() {
+                            _tahminiDogumTarihi = date;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -169,7 +186,9 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 // İzinde Bulunacağı Adres
                 Text(
                   'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

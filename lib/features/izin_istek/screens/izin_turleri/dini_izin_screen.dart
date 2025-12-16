@@ -130,6 +130,9 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
                         onDateChanged: (date) {
@@ -160,6 +163,9 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
+                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                                  ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
                                   ? _getNextSelectableDay(_baslangicTarihi!)

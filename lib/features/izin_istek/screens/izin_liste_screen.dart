@@ -6,6 +6,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turu_secim_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 
 class IzinListeScreen extends ConsumerStatefulWidget {
   const IzinListeScreen({super.key});
@@ -825,26 +826,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
               children: [
                 SizedBox(
                   height: MediaQuery.of(context).size.height * 0.5,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.filter_list_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Filtre kriterlerine uygun talep yok',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  child: Center(child: Container()),
                 ),
               ],
             ),
@@ -1145,4 +1127,3 @@ class _IzinTalepKarti extends StatelessWidget {
     );
   }
 }
-

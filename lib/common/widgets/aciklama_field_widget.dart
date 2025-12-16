@@ -49,7 +49,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           'Açıklama',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
-                (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 2,
+                (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
           ),
         ),
         const SizedBox(height: 8),

@@ -32,11 +32,7 @@ class CommonAppBarActionButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                color: Colors.white,
-                size: iconSize,
-              ),
+              Icon(icon, color: Colors.white, size: iconSize),
               const SizedBox(height: 2),
               Text(
                 label,

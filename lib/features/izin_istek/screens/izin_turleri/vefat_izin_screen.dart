@@ -175,6 +175,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
+                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                            ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
                         onDateChanged: (date) {
@@ -199,6 +202,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
+                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                                  ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
                                   ? _getNextSelectableDay(_baslangicTarihi!)
@@ -216,7 +222,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 const SizedBox(height: 24),
                 Text(
                   'Vefat Edenin Yakınlık Derecesi',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -268,7 +276,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 const SizedBox(height: 24),
                 Text(
                   'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

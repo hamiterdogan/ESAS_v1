@@ -32,36 +32,17 @@ final onayDurumuProvider =
       ref,
       args,
     ) async {
-      final dio = ref.watch(dioProvider);
-      // onayTipi bazı listelerde farklı/boş gelebiliyor; API sabit "İzin İstek" bekliyor.
-      final onayTipi = args.onayTipi.trim().isNotEmpty
-          ? args.onayTipi.trim()
-          : 'İzin İstek';
+      final repo = ref.watch(izinIstekDetayRepositoryProvider);
+      final result = await repo.onayDurumuGetir(
+        talepId: args.talepId,
+        onayTipi: args.onayTipi,
+      );
 
-      try {
-        final response = await dio.post(
-          '/TalepYonetimi/OnayDurumuGetir',
-          data: {'onayTipi': onayTipi, 'onayKayitID': args.talepId},
-        );
-
-        // API response'ı Map'e dönüştür
-        late Map<String, dynamic> data;
-        if (response.data is Map) {
-          final Map<String, dynamic> map = Map<String, dynamic>.from(
-            response.data as Map,
-          );
-          // Eğer { data: {...} } şeklinde sarmalanmışsa aç
-          data = map.containsKey('data') && map['data'] is Map
-              ? Map<String, dynamic>.from(map['data'] as Map)
-              : map;
-        } else {
-          data = <String, dynamic>{};
-        }
-
-        return OnayDurumuResponse.fromJson(data);
-      } catch (e) {
-        throw Exception('Onay durumu alınamadı: $e');
-      }
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+        Loading() => throw Exception('Loading'),
+      };
     });
 
 // Personel bilgisi getir
