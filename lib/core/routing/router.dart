@@ -15,6 +15,7 @@ import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_turu_secim_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/a4_kagidi_istek_screen.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_baski_istek_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -98,9 +99,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/dokumantasyon/baski',
-      builder: (context, state) => EmptyTalepScreen(
-        talep: TalepTuru.fromEnum(TalepTuruEnum.dokumantasyonIstek),
-      ),
+      builder: (context, state) => const DokumantasyonBaskiIstekScreen(),
     ),
     GoRoute(
       path: '/egitim_istek',
