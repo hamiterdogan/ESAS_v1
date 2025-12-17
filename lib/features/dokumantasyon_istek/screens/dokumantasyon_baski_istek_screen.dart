@@ -69,7 +69,7 @@ class _DokumantasyonBaskiIstekScreenState
   String? _classSheetError;
   String _currentFilterPage = '';
   int _totalStudentCount = 0;
-  
+
   // Lock mechanism for multi-tap prevention
   bool _isActionInProgress = false;
 
@@ -96,6 +96,9 @@ class _DokumantasyonBaskiIstekScreenState
     _sayfaSayisiController.dispose();
     super.dispose();
   }
+
+  // Accumulative class selection (with counts)
+  final List<_SelectedClass> _accumulatedClasses = [];
 
   bool get _hasInitialCache =>
       _initialOkulKoduList.isNotEmpty &&
@@ -235,7 +238,7 @@ class _DokumantasyonBaskiIstekScreenState
         ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
       }
     } finally {
-       if (mounted) setState(() => _isActionInProgress = false);
+      if (mounted) setState(() => _isActionInProgress = false);
     }
   }
 
@@ -321,6 +324,7 @@ class _DokumantasyonBaskiIstekScreenState
                     },
                   ),
                 ),
+              const SizedBox(height: 50),
             ],
           ),
         );
@@ -384,11 +388,14 @@ class _DokumantasyonBaskiIstekScreenState
                     },
                   ),
                 ),
+              const SizedBox(height: 50),
             ],
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   void _submit() {
@@ -856,14 +863,9 @@ class _DokumantasyonBaskiIstekScreenState
                     children: [
                       Expanded(
                         child: Text(
-                          _buildClassSelectionSummary(),
+                          'Yeni sınıf ekle',
                           style: TextStyle(
-                            color:
-                                _selectedSinif.isNotEmpty ||
-                                    _selectedSeviye.isNotEmpty ||
-                                    _selectedOkulKodu.isNotEmpty
-                                ? Colors.black
-                                : Colors.grey.shade600,
+                            color: Colors.grey.shade600,
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
                           ),
@@ -876,6 +878,31 @@ class _DokumantasyonBaskiIstekScreenState
                   ),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: _showSelectedClassesList,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.only(left: 8),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      _accumulatedClasses.isEmpty
+                          ? 'Seçilen sınıflar'
+                          : 'Seçilen sınıflar (${_accumulatedClasses.fold<int>(0, (p, c) => p + c.ogrenciSayisi)} öğrenci)',
+                      style: const TextStyle(
+                        color: AppColors.gradientStart,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 32),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -905,6 +932,7 @@ class _DokumantasyonBaskiIstekScreenState
                   ),
                 ),
               ),
+              const SizedBox(height: 50),
             ],
           ),
         ),
@@ -1003,340 +1031,372 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _openSinifSecimBottomSheet() async {
-  if (_isActionInProgress) return;
-  setState(() => _isActionInProgress = true);
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
 
-  try {
-    _showBlockingLoadingDialog();
-    // UI'nin dialog'u çizmesi için bir frame ver.
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+    try {
+      _showBlockingLoadingDialog();
+      // UI'nin dialog'u çizmesi için bir frame ver.
+      await Future<void>.delayed(const Duration(milliseconds: 10));
 
-    setState(() {
-      _classSheetLoading = true;
-      _classSheetError = null;
-    });
+      setState(() {
+        _classSheetLoading = true;
+        _classSheetError = null;
+      });
 
-    if (!_hasInitialCache) {
-      // Initial load: Get everything to populate initial lists
-      final repo = ref.read(aracTalepRepositoryProvider);
-      final result = await repo.ogrenciFiltrele();
+      if (!_hasInitialCache) {
+        // Initial load: Get everything to populate initial lists
+        final repo = ref.read(aracTalepRepositoryProvider);
+        final result = await repo.ogrenciFiltrele();
 
-      switch (result) {
-        case Success(:final data):
-          setState(() {
-            _initialOkulKoduList = data.okulKodu; // All schools
-            _initialSeviyeList = data.seviye; // All levels (initially)
-            _initialSinifList = data.sinif; // All classes (initially)
+        switch (result) {
+          case Success(:final data):
+            setState(() {
+              _initialOkulKoduList = data.okulKodu; // All schools
+              _initialSeviyeList = data.seviye; // All levels (initially)
+              _initialSinifList = data.sinif; // All classes (initially)
 
-            _okulKoduList = _initialOkulKoduList;
-            _seviyeList = _initialSeviyeList;
-            _sinifList = _initialSinifList;
+              _okulKoduList = _initialOkulKoduList;
+              _seviyeList = _initialSeviyeList;
+              _sinifList = _initialSinifList;
 
-            _classSheetLoading = false;
-          });
-        case Failure(:final message):
-          setState(() {
-            _classSheetLoading = false;
-            _classSheetError = message;
-          });
-          _hideBlockingLoadingDialog();
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Veri yüklenemedi: $message')));
-          }
-          return;
-        case Loading():
-          _hideBlockingLoadingDialog();
-          return;
+              _classSheetLoading = false;
+            });
+          case Failure(:final message):
+            setState(() {
+              _classSheetLoading = false;
+              _classSheetError = message;
+            });
+            _hideBlockingLoadingDialog();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Veri yüklenemedi: $message')),
+              );
+            }
+            return;
+          case Loading():
+            _hideBlockingLoadingDialog();
+            return;
+        }
       }
-    }
 
-    // Load current selections
-    final localSelectedOkul = {..._selectedOkulKodu};
-    final localSelectedSeviye = {..._selectedSeviye};
-    final localSelectedSinif = {..._selectedSinif};
-    int localStudentCount = _totalStudentCount;
+      // Load current selections
+      final localSelectedOkul = {..._selectedOkulKodu};
+      final localSelectedSeviye = {..._selectedSeviye};
+      final localSelectedSinif = {..._selectedSinif};
+      int localStudentCount = _totalStudentCount;
 
-    // Temp set for detail pages (Discard logic)
-    final Set<String> tempSelectedItems = {};
+      // Temp set for detail pages (Discard logic)
+      final Set<String> tempSelectedItems = {};
 
-    // Perform an initial hierarchical refresh to ensure lists are consistent with selections
-    await _refreshClassFilterData(
-      localSelectedOkul: localSelectedOkul,
-      localSelectedSeviye: localSelectedSeviye,
-      localSelectedSinif: localSelectedSinif,
-      rebuild: (fn) =>
-          fn(), // Execute synchronously without rebuilding main screen to prevent flicker
-      updateSeviyeList: true,
-      updateSinifList: true,
-      onUpdateCount: (c) => localStudentCount = c,
-    );
+      // Perform an initial hierarchical refresh to ensure lists are consistent with selections
+      await _refreshClassFilterData(
+        localSelectedOkul: localSelectedOkul,
+        localSelectedSeviye: localSelectedSeviye,
+        localSelectedSinif: localSelectedSinif,
+        rebuild: (fn) =>
+            fn(), // Execute synchronously without rebuilding main screen to prevent flicker
+        updateSeviyeList: true,
+        updateSinifList: true,
+        onUpdateCount: (c) => localStudentCount = c,
+      );
 
-    _hideBlockingLoadingDialog();
-    _currentFilterPage = '';
+      _hideBlockingLoadingDialog();
+      _currentFilterPage = '';
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    await showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.67,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => StatefulBuilder(
-          builder: (context, setModalState) {
-            Widget buildMain() {
-              return ListView(
-                controller: scrollController,
-                padding: EdgeInsets.zero,
+      await showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        isScrollControlled: true,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.67,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) => StatefulBuilder(
+            builder: (context, setModalState) {
+              Widget buildMain() {
+                return ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildFilterMainItem(
+                      title: 'Okul',
+                      selectedValue: _summaryForOkul(localSelectedOkul),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedOkul);
+                        setModalState(() => _currentFilterPage = 'okul');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Seviye',
+                      selectedValue: _summaryForSeviye(localSelectedSeviye),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedSeviye);
+                        setModalState(() => _currentFilterPage = 'seviye');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Sınıf',
+                      selectedValue: _summaryForSinif(localSelectedSinif),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedSinif);
+                        setModalState(() => _currentFilterPage = 'sinif');
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        'Seçilen öğrenci sayısı: $localStudentCount',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: localStudentCount == 0
+                              ? const Color(0xFFD32F2F)
+                              : AppColors.gradientStart,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              Widget buildDetail() {
+                switch (_currentFilterPage) {
+                  case 'okul':
+                    return _buildOkulFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems, // Use temp
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      onUpdateCount: (c) =>
+                          setModalState(() => localStudentCount = c),
+                    );
+                  case 'seviye':
+                    return _buildSeviyeFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems, // Use temp
+                      localSelectedOkul,
+                      localSelectedSinif,
+                      onUpdateCount: (c) =>
+                          setModalState(() => localStudentCount = c),
+                    );
+                  case 'sinif':
+                    return _buildSinifFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems, // Use temp
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      onUpdateCount: (c) =>
+                          setModalState(() => localStudentCount = c),
+                    );
+                  default:
+                    return buildMain();
+                }
+              }
+
+              return Column(
                 children: [
-                  _buildFilterMainItem(
-                    title: 'Okul',
-                    selectedValue: _summaryForOkul(localSelectedOkul),
-                    onTap: () {
-                      tempSelectedItems.clear();
-                      tempSelectedItems.addAll(localSelectedOkul);
-                      setModalState(() => _currentFilterPage = 'okul');
-                    },
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      children: [
+                        if (_currentFilterPage.isNotEmpty)
+                          InkWell(
+                            onTap: () {
+                              // BACK pressed: Discard changes
+                              setModalState(() {
+                                _currentFilterPage = '';
+                                tempSelectedItems.clear();
+                              });
+                            },
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back_ios,
+                                  size: 20,
+                                  color: AppColors.gradientStart,
+                                ),
+                                Text(
+                                  'Geri',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.gradientStart,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          const Text(
+                            'Filtrele',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        const Spacer(),
+                        // Only show 'Temizle' on main page
+                        if (_currentFilterPage.isEmpty)
+                          TextButton(
+                            onPressed: () async {
+                              setModalState(() => _currentFilterPage = '');
+                              localSelectedOkul.clear();
+                              localSelectedSeviye.clear();
+                              localSelectedSinif.clear();
+
+                              await _refreshClassFilterData(
+                                localSelectedOkul: localSelectedOkul,
+                                localSelectedSeviye: localSelectedSeviye,
+                                localSelectedSinif: localSelectedSinif,
+                                rebuild: setModalState,
+                                onUpdateCount: (c) =>
+                                    setModalState(() => localStudentCount = c),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF014B92),
+                            ),
+                            child: const Text('Tüm filtreleri temizle'),
+                          ),
+                      ],
+                    ),
                   ),
-                  _buildFilterMainItem(
-                    title: 'Seviye',
-                    selectedValue: _summaryForSeviye(localSelectedSeviye),
-                    onTap: () {
-                      tempSelectedItems.clear();
-                      tempSelectedItems.addAll(localSelectedSeviye);
-                      setModalState(() => _currentFilterPage = 'seviye');
-                    },
+                  Expanded(
+                    child: _currentFilterPage.isEmpty
+                        ? buildMain()
+                        : buildDetail(),
                   ),
-                  _buildFilterMainItem(
-                    title: 'Sınıf',
-                    selectedValue: _summaryForSinif(localSelectedSinif),
-                    onTap: () {
-                      tempSelectedItems.clear();
-                      tempSelectedItems.addAll(localSelectedSinif);
-                      setModalState(() => _currentFilterPage = 'sinif');
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Text(
-                      'Seçilen öğrenci sayısı: $localStudentCount',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: localStudentCount == 0
-                            ? const Color(0xFFD32F2F)
-                            : AppColors.gradientStart,
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 66),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_currentFilterPage.isEmpty) {
+                              // Uygula
+                              // Fetch student counts for the current selection
+                              final resp = await _fetchFilters(
+                                localSelectedOkul,
+                                localSelectedSeviye,
+                                localSelectedSinif,
+                              );
+
+                              if (resp != null && mounted) {
+                                // Build counts per "Okul - Sınıf"
+                                final Map<String, int> counts = {};
+                                for (final o in resp.ogrenci) {
+                                  final key = '${o.okulKodu} - ${o.sinif}';
+                                  counts[key] = (counts[key] ?? 0) + 1;
+                                }
+
+                                setState(() {
+                                  for (final entry in counts.entries) {
+                                    _upsertSelectedClass(
+                                      entry.key,
+                                      entry.value,
+                                    );
+                                  }
+
+                                  // Seçim listesindeki ama count bulunmayanları da ekle (0 öğrenci ile)
+                                  for (final sinif in localSelectedSinif) {
+                                    final okullar = localSelectedOkul.isEmpty
+                                        ? _initialOkulKoduList
+                                        : localSelectedOkul;
+
+                                    for (final okul in okullar) {
+                                      final key = '$okul - $sinif';
+                                      if (!counts.containsKey(key)) {
+                                        _upsertSelectedClass(key, 0);
+                                      }
+                                    }
+                                  }
+
+                                  // Clear filters for next use
+                                  _selectedOkulKodu.clear();
+                                  _selectedSeviye.clear();
+                                  _selectedSinif.clear();
+                                  _totalStudentCount = 0;
+                                });
+
+                                Navigator.pop(context);
+                              }
+                            } else {
+                              // "TAMAM" pressed: Commit temp -> local
+                              if (_currentFilterPage == 'okul') {
+                                localSelectedOkul.clear();
+                                localSelectedOkul.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'seviye') {
+                                localSelectedSeviye.clear();
+                                localSelectedSeviye.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'sinif') {
+                                localSelectedSinif.clear();
+                                localSelectedSinif.addAll(tempSelectedItems);
+                              }
+
+                              // Refresh downstream lists logic
+                              final updateSeviye = _currentFilterPage == 'okul';
+                              final updateSinif =
+                                  _currentFilterPage == 'okul' ||
+                                  _currentFilterPage == 'seviye';
+
+                              await _refreshClassFilterData(
+                                localSelectedOkul: localSelectedOkul,
+                                localSelectedSeviye: localSelectedSeviye,
+                                localSelectedSinif: localSelectedSinif,
+                                rebuild: setModalState,
+                                updateSeviyeList: updateSeviye,
+                                updateSinifList: updateSinif,
+                                onUpdateCount: (c) =>
+                                    setModalState(() => localStudentCount = c),
+                              );
+
+                              setModalState(() {
+                                _currentFilterPage = '';
+                                tempSelectedItems.clear(); // cleanup
+                              });
+                            }
+                          },
+
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF014B92),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
               );
-            }
-
-            Widget buildDetail() {
-              switch (_currentFilterPage) {
-                case 'okul':
-                  return _buildOkulFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems, // Use temp
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    onUpdateCount: (c) =>
-                        setModalState(() => localStudentCount = c),
-                  );
-                case 'seviye':
-                  return _buildSeviyeFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems, // Use temp
-                    localSelectedOkul,
-                    localSelectedSinif,
-                    onUpdateCount: (c) =>
-                        setModalState(() => localStudentCount = c),
-                  );
-                case 'sinif':
-                  return _buildSinifFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems, // Use temp
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    onUpdateCount: (c) =>
-                        setModalState(() => localStudentCount = c),
-                  );
-                default:
-                  return buildMain();
-              }
-            }
-
-            return Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                      if (_currentFilterPage.isNotEmpty)
-                        InkWell(
-                          onTap: () {
-                            // BACK pressed: Discard changes
-                            setModalState(() {
-                              _currentFilterPage = '';
-                              tempSelectedItems.clear();
-                            });
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(
-                                Icons.arrow_back_ios,
-                                size: 20,
-                                color: AppColors.gradientStart,
-                              ),
-                              Text(
-                                'Geri',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: AppColors.gradientStart,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        const Text(
-                          'Filtrele',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      const Spacer(),
-                      // Only show 'Temizle' on main page
-                      if (_currentFilterPage.isEmpty)
-                        TextButton(
-                          onPressed: () async {
-                            setModalState(() => _currentFilterPage = '');
-                            localSelectedOkul.clear();
-                            localSelectedSeviye.clear();
-                            localSelectedSinif.clear();
-
-                            await _refreshClassFilterData(
-                              localSelectedOkul: localSelectedOkul,
-                              localSelectedSeviye: localSelectedSeviye,
-                              localSelectedSinif: localSelectedSinif,
-                              rebuild: setModalState,
-                              onUpdateCount: (c) =>
-                                  setModalState(() => localStudentCount = c),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF014B92),
-                          ),
-                          child: const Text('Tüm filtreleri temizle'),
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: _currentFilterPage.isEmpty
-                      ? buildMain()
-                      : buildDetail(),
-                ),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          if (_currentFilterPage.isEmpty) {
-                            // Uygula
-                            setState(() {
-                              _selectedOkulKodu
-                                ..clear()
-                                ..addAll(localSelectedOkul);
-                              _selectedSeviye
-                                ..clear()
-                                ..addAll(localSelectedSeviye);
-                              _selectedSinif
-                                ..clear()
-                                ..addAll(localSelectedSinif);
-
-                              _totalStudentCount = localStudentCount;
-                            });
-                            Navigator.pop(context);
-                          } else {
-                            // "TAMAM" pressed: Commit temp -> local
-                            if (_currentFilterPage == 'okul') {
-                              localSelectedOkul.clear();
-                              localSelectedOkul.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'seviye') {
-                              localSelectedSeviye.clear();
-                              localSelectedSeviye.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'sinif') {
-                              localSelectedSinif.clear();
-                              localSelectedSinif.addAll(tempSelectedItems);
-                            }
-
-                            // Refresh downstream lists logic
-                            final updateSeviye = _currentFilterPage == 'okul';
-                            final updateSinif =
-                                _currentFilterPage == 'okul' ||
-                                _currentFilterPage == 'seviye';
-
-                            await _refreshClassFilterData(
-                              localSelectedOkul: localSelectedOkul,
-                              localSelectedSeviye: localSelectedSeviye,
-                              localSelectedSinif: localSelectedSinif,
-                              rebuild: setModalState,
-                              updateSeviyeList: updateSeviye,
-                              updateSinifList: updateSinif,
-                              onUpdateCount: (c) =>
-                                  setModalState(() => localStudentCount = c),
-                            );
-
-                            setModalState(() {
-                              _currentFilterPage = '';
-                              tempSelectedItems.clear(); // cleanup
-                            });
-                          }
-                        },
-
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF014B92),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            },
+          ),
         ),
-      ),
-    );
+      );
     } catch (e) {
       debugPrint('Error in class sheet: $e');
       _hideBlockingLoadingDialog();
@@ -1373,6 +1433,156 @@ class _DokumantasyonBaskiIstekScreenState
       case Loading():
         return null;
     }
+  }
+
+  void _showSelectedClassesList() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setStartModalState) {
+                return Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Seçilen Sınıflar',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _accumulatedClasses.clear();
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: const Text(
+                              'Tümünü Temizle',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        final displayList = _accumulatedClasses
+                            .where((e) => e.ogrenciSayisi > 0)
+                            .toList();
+
+                        if (displayList.isEmpty) {
+                          return const Center(
+                            child: Text('Görüntülenecek sınıf yok.'),
+                          );
+                        }
+
+                        return ListView.builder(
+                          controller: scrollController,
+                          itemCount: displayList.length,
+                          itemBuilder: (context, index) {
+                            final item = displayList[index];
+                            final label =
+                                '${item.okul} - ${item.sinif} (${item.ogrenciSayisi} öğrenci)';
+                            return Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey.shade100,
+                                  ),
+                                ),
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  label,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Color(0xFF424242),
+                                  ),
+                                  onPressed: () {
+                                    setStartModalState(() {
+                                      _accumulatedClasses.remove(item);
+                                    });
+                                    // Also update main screen
+                                    setState(() {});
+
+                                    // If no visible items left, verify state
+                                     final remainingVisible = _accumulatedClasses.where((e) => e.ogrenciSayisi > 0);
+                                    if (remainingVisible.isEmpty) {
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 66),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.gradientStart,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _refreshClassFilterData({
@@ -1445,6 +1655,26 @@ class _DokumantasyonBaskiIstekScreenState
           }
         });
       }
+    }
+  }
+
+  void _upsertSelectedClass(String key, int count) {
+    final parts = key.split(' - ');
+    final okul = parts.length >= 2 ? parts[0].trim() : 'Okul';
+    final sinif = parts.length >= 2 ? parts[1].trim() : key.trim();
+
+    final idx = _accumulatedClasses.indexWhere(
+      (e) => e.okul == okul && e.sinif == sinif,
+    );
+
+    if (idx >= 0) {
+      _accumulatedClasses[idx] = _accumulatedClasses[idx].copyWith(
+        ogrenciSayisi: count,
+      );
+    } else {
+      _accumulatedClasses.add(
+        _SelectedClass(okul: okul, sinif: sinif, ogrenciSayisi: count),
+      );
     }
   }
 
@@ -1896,5 +2126,25 @@ class _DokumantasyonBaskiIstekScreenState
       return '${_selectedOkulKodu.length} okul seçildi';
     }
     return 'Sınıf Seçiniz';
+  }
+}
+
+class _SelectedClass {
+  final String okul;
+  final String sinif;
+  final int ogrenciSayisi;
+
+  const _SelectedClass({
+    required this.okul,
+    required this.sinif,
+    required this.ogrenciSayisi,
+  });
+
+  _SelectedClass copyWith({int? ogrenciSayisi}) {
+    return _SelectedClass(
+      okul: okul,
+      sinif: sinif,
+      ogrenciSayisi: ogrenciSayisi ?? this.ogrenciSayisi,
+    );
   }
 }

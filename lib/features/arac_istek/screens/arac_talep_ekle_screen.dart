@@ -10,18 +10,18 @@ import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
-class AracTalepBenEkleScreen extends ConsumerStatefulWidget {
+class AracTalepEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
 
-  const AracTalepBenEkleScreen({super.key, required this.tuId});
+  const AracTalepEkleScreen({super.key, required this.tuId});
 
   @override
-  ConsumerState<AracTalepBenEkleScreen> createState() =>
-      _AracTalepBenEkleScreenState();
+  ConsumerState<AracTalepEkleScreen> createState() =>
+      _AracTalepEkleScreenState();
 }
 
-class _AracTalepBenEkleScreenState
-    extends ConsumerState<AracTalepBenEkleScreen> {
+class _AracTalepEkleScreenState
+    extends ConsumerState<AracTalepEkleScreen> {
   static const List<int> _allowedMinutes = [
     0,
     5,
