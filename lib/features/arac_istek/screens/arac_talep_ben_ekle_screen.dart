@@ -82,6 +82,46 @@ class _AracTalepBenEkleScreenState
   String? _ogrenciSheetError;
   bool _isMEB = false;
 
+  // Lock mechanism for multi-tap prevention
+  bool _isActionInProgress = false;
+
+  bool get _hasOgrenciBaseCache {
+    return _initialOkulKoduList.isNotEmpty &&
+        _initialSeviyeList.isNotEmpty &&
+        _initialSinifList.isNotEmpty;
+  }
+
+  void _showBlockingLoadingDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.2), // Dim background slightly
+      builder: (dialogContext) {
+        return Center(
+          child: Container(
+            width: 175,
+            height: 175,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            alignment: Alignment.center,
+            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          ),
+        );
+      },
+    );
+  }
+
+  void _hideBlockingLoadingDialog() {
+    if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+  }
+
   @override
   void dispose() {
     _mesafeController.dispose();
@@ -169,6 +209,9 @@ class _AracTalepBenEkleScreenState
   }
 
   void _showMesafeInfo() {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -207,7 +250,9 @@ class _AracTalepBenEkleScreenState
           ],
         ),
       ),
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   String _getAracTuruName() {
@@ -542,11 +587,12 @@ class _AracTalepBenEkleScreenState
                     Expanded(
                       child: DatePickerBottomSheetWidget(
                         label: 'Gidilecek Tarih',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -569,11 +615,12 @@ class _AracTalepBenEkleScreenState
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -608,14 +655,12 @@ class _AracTalepBenEkleScreenState
                             key: ValueKey(
                               'donus-${_gidisSaat}-${_gidisDakika}-${_donusSaat}-${_donusDakika}',
                             ),
-                            labelStyle: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            labelStyle: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
-                                  fontSize: (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
                                           14) +
                                       1,
                                 ),
@@ -797,7 +842,9 @@ class _AracTalepBenEkleScreenState
                   ),
                 const SizedBox(height: 12),
                 GestureDetector(
-                  onTap: _ogrenciSheetLoading ? null : _openOgrenciSecimBottomSheet,
+                  onTap: _ogrenciSheetLoading
+                      ? null
+                      : _openOgrenciSecimBottomSheet,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -831,13 +878,16 @@ class _AracTalepBenEkleScreenState
                           const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(
+                            child: BrandedLoadingIndicator(
+                              size: 20,
                               strokeWidth: 2,
-                              color: AppColors.gradientStart,
                             ),
                           )
                         else
-                          Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                          Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade600,
+                          ),
                       ],
                     ),
                   ),
@@ -907,84 +957,94 @@ class _AracTalepBenEkleScreenState
   }
 
   void _submitForm() {
-    // Basit validasyonlar
-    if (_entries.isEmpty) {
-      _showStatusBottomSheet(
-        'Lütfen en az 1 gidilecek yer ekleyiniz',
-        isError: true,
-      );
-      return;
-    }
-    if (_gidilecekTarih == null) {
-      _showStatusBottomSheet('Lütfen gidilecek tarihi seçiniz', isError: true);
-      return;
-    }
-    if (_selectedAracIstekNedeniId == null) {
-      _showStatusBottomSheet(
-        'Lütfen araç istek nedenini seçiniz',
-        isError: true,
-      );
-      return;
-    }
-    if (_selectedAracIstekNedeniId == -1 &&
-        (_customAracIstekNedeniController.text.trim().isEmpty)) {
-      _showStatusBottomSheet(
-        'Lütfen diğer istek nedenini giriniz',
-        isError: true,
-      );
-      return;
-    }
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
 
-    // Açıklama minimum 30 karakter kontrolü (izin istek ekranlarıyla aynı)
-    if (_aciklamaController.text.length < 30) {
-      _showStatusBottomSheet(
-        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-        isError: true,
-      );
-      return;
-    }
-
-    final yolcuSayisi =
-        _selectedPersonelIds.length + _selectedOgrenciIds.length;
-    if (yolcuSayisi <= 0) {
-      _showStatusBottomSheet('Lütfen en az 1 yolcu seçiniz', isError: true);
-      return;
-    }
-
-    for (final entry in _entries) {
-      if (!entry.yer.yerAdi.contains('Eyüboğlu') &&
-          entry.adresController.text.trim().isEmpty) {
+    try {
+      // Basit validasyonlar
+      if (_entries.isEmpty) {
         _showStatusBottomSheet(
-          'Lütfen yer için semt/adres giriniz',
+          'Lütfen en az 1 gidilecek yer ekleyiniz',
           isError: true,
         );
         return;
       }
-    }
-
-    final request = _buildAracIstekEkleReq();
-    final ozetItems = _buildAracIstekOzetItems(request);
-
-    showAracIstekOzetBottomSheet(
-      context: context,
-      request: request,
-      talepTipi: 'Binek',
-      ozetItems: ozetItems,
-      onGonder: () async {
-        await _sendAracIstek(request);
-      },
-      onSuccess: () {
-        if (!mounted) return;
-        _showStatusBottomSheet('Araç talebi gönderildi', isError: false);
-      },
-      onError: (error) {
-        if (!mounted) return;
+      if (_gidilecekTarih == null) {
         _showStatusBottomSheet(
-          error.isEmpty ? 'Hata oluştu' : error,
+          'Lütfen gidilecek tarihi seçiniz',
           isError: true,
         );
-      },
-    );
+        return;
+      }
+      if (_selectedAracIstekNedeniId == null) {
+        _showStatusBottomSheet(
+          'Lütfen araç istek nedenini seçiniz',
+          isError: true,
+        );
+        return;
+      }
+      if (_selectedAracIstekNedeniId == -1 &&
+          (_customAracIstekNedeniController.text.trim().isEmpty)) {
+        _showStatusBottomSheet(
+          'Lütfen diğer istek nedenini giriniz',
+          isError: true,
+        );
+        return;
+      }
+
+      // Açıklama minimum 30 karakter kontrolü (izin istek ekranlarıyla aynı)
+      if (_aciklamaController.text.length < 30) {
+        _showStatusBottomSheet(
+          'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          isError: true,
+        );
+        return;
+      }
+
+      final yolcuSayisi =
+          _selectedPersonelIds.length + _selectedOgrenciIds.length;
+      if (yolcuSayisi <= 0) {
+        _showStatusBottomSheet('Lütfen en az 1 yolcu seçiniz', isError: true);
+        return;
+      }
+
+      for (final entry in _entries) {
+        if (!entry.yer.yerAdi.contains('Eyüboğlu') &&
+            entry.adresController.text.trim().isEmpty) {
+          _showStatusBottomSheet(
+            'Lütfen yer için semt/adres giriniz',
+            isError: true,
+          );
+          return;
+        }
+      }
+
+      final request = _buildAracIstekEkleReq();
+      final ozetItems = _buildAracIstekOzetItems(request);
+
+      showAracIstekOzetBottomSheet(
+        context: context,
+        request: request,
+        talepTipi: 'Binek',
+        ozetItems: ozetItems,
+        onGonder: () async {
+          await _sendAracIstek(request);
+        },
+        onSuccess: () {
+          if (!mounted) return;
+          _showStatusBottomSheet('Araç talebi gönderildi', isError: false);
+        },
+        onError: (error) {
+          if (!mounted) return;
+          _showStatusBottomSheet(
+            error.isEmpty ? 'Hata oluştu' : error,
+            isError: true,
+          );
+        },
+      );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   void _showStatusBottomSheet(String message, {bool isError = false}) {
@@ -1504,9 +1564,9 @@ class _AracTalepBenEkleScreenState
                         Text(
                           subtitle,
                           style: TextStyle(
-                             fontSize: 14,
-                             color: Colors.grey.shade600,
-                             fontStyle: FontStyle.italic,
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ],
@@ -1539,7 +1599,10 @@ class _AracTalepBenEkleScreenState
     final searchController = TextEditingController();
     String query = '';
 
-    return showModalBottomSheet<void>(
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -1561,7 +1624,7 @@ class _AracTalepBenEkleScreenState
                 future: _fetchAracIstekNedenleri(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: BrandedLoadingIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -1688,7 +1751,9 @@ class _AracTalepBenEkleScreenState
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   Future<List<AracIstekNedeniItem>> _fetchAracIstekNedenleri() async {
@@ -1706,7 +1771,10 @@ class _AracTalepBenEkleScreenState
   }
 
   Future<void> _openSecilenPersonelListesiBottomSheet() async {
-    return showModalBottomSheet<void>(
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -1891,11 +1959,16 @@ class _AracTalepBenEkleScreenState
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   Future<void> _openSecilenOgrenciListesiBottomSheet() async {
-    return showModalBottomSheet<void>(
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
@@ -2079,642 +2152,236 @@ class _AracTalepBenEkleScreenState
           },
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   Future<void> _openPersonelSecimBottomSheet() async {
+    if (_isActionInProgress) return;
     if (_personelSheetLoading) return;
-    setState(() {
-      _personelSheetLoading = true;
-      _personelSheetError = null;
-    });
+    setState(() => _isActionInProgress = true);
+    try {
+      _showBlockingLoadingDialog();
+      await Future<void>.delayed(const Duration(milliseconds: 10));
 
-    final repo = ref.read(aracTalepRepositoryProvider);
-    final result = await repo.personelSecimVerisiGetir();
+      setState(() {
+        _personelSheetLoading = true;
+        _personelSheetError = null;
+      });
 
-    switch (result) {
-      case Success(:final data):
-        setState(() {
-          _personeller = data.personeller;
-          _gorevler = data.gorevler;
-          _gorevYerleri = data.gorevYerleri;
-          _personelSheetLoading = false;
-        });
-      case Failure(:final message):
-        setState(() {
-          _personelSheetLoading = false;
-          _personelSheetError = message;
-        });
-        if (mounted) {
-          _showStatusBottomSheet(message, isError: true);
-        }
-        return;
-      case Loading():
-        return;
-    }
+      final repo = ref.read(aracTalepRepositoryProvider);
+      final result = await repo.personelSecimVerisiGetir();
 
-    final localSelectedGorevYeri = {..._selectedGorevYeriIds};
-    final localSelectedGorev = {..._selectedGorevIds};
-    final localSelectedPersonel = {..._selectedPersonelIds};
-    _currentFilterPage = '';
+      switch (result) {
+        case Success(:final data):
+          setState(() {
+            _personeller = data.personeller;
+            _gorevler = data.gorevler;
+            _gorevYerleri = data.gorevYerleri;
+            _personelSheetLoading = false;
+          });
+        case Failure(:final message):
+          setState(() {
+            _personelSheetLoading = false;
+            _personelSheetError = message;
+          });
+          _hideBlockingLoadingDialog();
+          if (mounted) {
+            _showStatusBottomSheet(message, isError: true);
+          }
+          return;
+        case Loading():
+          _hideBlockingLoadingDialog();
+          return;
+      }
 
-    if (!mounted) return;
+      _hideBlockingLoadingDialog();
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.67,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => StatefulBuilder(
-          builder: (context, setModalState) {
-            Widget buildMain() {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildFilterMainItem(
-                    title: 'Görev Yeri',
-                    selectedValue: _summaryForGorevYeri(localSelectedGorevYeri),
-                    onTap: () =>
-                        setModalState(() => _currentFilterPage = 'gorevYeri'),
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Görev',
-                    selectedValue: _summaryForGorev(localSelectedGorev),
-                    onTap: () =>
-                        setModalState(() => _currentFilterPage = 'gorev'),
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Personel',
-                    selectedValue: _summaryForPersonel(localSelectedPersonel),
-                    onTap: () =>
-                        setModalState(() => _currentFilterPage = 'personel'),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 25,
+      final localSelectedGorevYeri = {..._selectedGorevYeriIds};
+      final localSelectedGorev = {..._selectedGorevIds};
+      final localSelectedPersonel = {..._selectedPersonelIds};
+      _currentFilterPage = '';
+
+      if (!mounted) return;
+
+      if (!mounted) return;
+
+      await showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        isScrollControlled: true,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.67,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) => StatefulBuilder(
+            builder: (context, setModalState) {
+              Widget buildMain() {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFilterMainItem(
+                      title: 'Görev Yeri',
+                      selectedValue: _summaryForGorevYeri(
+                        localSelectedGorevYeri,
+                      ),
+                      onTap: () =>
+                          setModalState(() => _currentFilterPage = 'gorevYeri'),
                     ),
-                    child: Text(
-                      'Seçilen yolcu sayısı: ${localSelectedPersonel.length}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: localSelectedPersonel.isEmpty
-                            ? const Color(0xFFD32F2F)
-                            : AppColors.gradientStart,
-                      ),
+                    _buildFilterMainItem(
+                      title: 'Görev',
+                      selectedValue: _summaryForGorev(localSelectedGorev),
+                      onTap: () =>
+                          setModalState(() => _currentFilterPage = 'gorev'),
                     ),
-                  ),
-                ],
-              );
-            }
-
-            Widget buildDetail() {
-              switch (_currentFilterPage) {
-                case 'gorevYeri':
-                  return _buildGorevYeriFilterPage(
-                    setModalState,
-                    localSelectedGorevYeri,
-                    localSelectedGorev,
-                    localSelectedPersonel,
-                  );
-                case 'gorev':
-                  return _buildGorevFilterPage(
-                    setModalState,
-                    localSelectedGorev,
-                    localSelectedGorevYeri,
-                    localSelectedPersonel,
-                  );
-                case 'personel':
-                default:
-                  return _buildPersonelFilterPage(
-                    setModalState,
-                    localSelectedPersonel,
-                    localSelectedGorev,
-                    localSelectedGorevYeri,
-                  );
-              }
-            }
-
-            return Stack(
-              children: [
-                SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_currentFilterPage.isNotEmpty)
-                              Expanded(
-                                flex: 0,
-                                child: InkWell(
-                                  onTap: () => setModalState(
-                                    () => _currentFilterPage = '',
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.arrow_back, size: 20),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Geri',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            else
-                              const SizedBox(width: 64),
-                            const Spacer(),
-                            Text(
-                              _currentFilterPage.isEmpty
-                                  ? 'Filtrele'
-                                  : _getFilterTitle(_currentFilterPage),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            const SizedBox(width: 64),
-                          ],
-                        ),
-                      ),
-                      const Divider(),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.5,
-                        ),
-                        child: _currentFilterPage.isEmpty
-                            ? buildMain()
-                            : buildDetail(),
-                      ),
-                      const SizedBox(height: 80),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  bottom: 50,
-                  left: 16,
-                  right: 16,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentFilterPage.isEmpty) {
-                          // Ana sayfadayız, seçimleri kaydet ve kapat
-                          setState(() {
-                            _selectedGorevYeriIds
-                              ..clear()
-                              ..addAll(localSelectedGorevYeri);
-                            _selectedGorevIds
-                              ..clear()
-                              ..addAll(localSelectedGorev);
-                            _selectedPersonelIds
-                              ..clear()
-                              ..addAll(localSelectedPersonel);
-                          });
-                          Navigator.pop(context);
-                        } else {
-                          // Detay sayfasındayız, ana sayfaya dön
-                          setModalState(() => _currentFilterPage = '');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                    _buildFilterMainItem(
+                      title: 'Personel',
+                      selectedValue: _summaryForPersonel(localSelectedPersonel),
+                      onTap: () =>
+                          setModalState(() => _currentFilterPage = 'personel'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 25,
                       ),
                       child: Text(
-                        _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                        'Seçilen yolcu sayısı: ${localSelectedPersonel.length}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: localSelectedPersonel.isEmpty
+                              ? const Color(0xFFD32F2F)
+                              : AppColors.gradientStart,
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openOgrenciSecimBottomSheet() async {
-    setState(() {
-      _ogrenciSheetLoading = true;
-      _ogrenciSheetError = null;
-    });
-
-    final repo = ref.read(aracTalepRepositoryProvider);
-    final result = await repo.ogrenciFiltrele();
-
-    switch (result) {
-      case Success(:final data):
-        setState(() {
-          _initialOkulKoduList = data.okulKodu;
-          _initialSeviyeList = data.seviye;
-          _initialSinifList = data.sinif;
-          _okulKoduList = _initialOkulKoduList;
-          _seviyeList = _initialSeviyeList;
-          _sinifList = _initialSinifList;
-          _kulupList = data.kulup;
-          _takimList = data.takim;
-          _ogrenciList = data.ogrenci;
-          _ogrenciSheetLoading = false;
-        });
-      case Failure(:final message):
-        setState(() {
-          _ogrenciSheetLoading = false;
-          _ogrenciSheetError = message;
-        });
-        if (mounted) {
-          _showStatusBottomSheet(message, isError: true);
-        }
-        return;
-      case Loading():
-        return;
-    }
-
-    // State'ten mevcut seçimleri yükle
-    final localSelectedOkul = {..._selectedOkulKodu};
-    final localSelectedSeviye = {..._selectedSeviye};
-    final localSelectedSinif = {..._selectedSinif};
-    final localSelectedKulup = {..._selectedKulup};
-    final localSelectedTakim = {..._selectedTakim};
-    final localSelectedOgrenci = {..._selectedOgrenciIds};
-
-    // Temp set for detail pages (Discard logic)
-    final Set<String> tempSelectedItems = {};
-    
-    
-    // Initial hierarchical refresh
-    await _refreshOgrenciFilterData(
-      localSelectedOkul: localSelectedOkul,
-      localSelectedSeviye: localSelectedSeviye,
-      localSelectedSinif: localSelectedSinif,
-      localSelectedKulup: localSelectedKulup,
-      localSelectedTakim: localSelectedTakim,
-      localSelectedOgrenci: localSelectedOgrenci,
-      rebuild: setState,
-      updateSeviyeList: true,
-      updateSinifList: true,
-      updateKulupList: true,
-      updateTakimList: true,
-      // updateOgrenciList: true // Maybe initial load is enough? 
-      // Actually we should refresh student list too to be consistent with filters
-      updateOgrenciList: true, 
-    );
-    
-    _currentFilterPage = '';
-
-    if (!mounted) return;
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.67,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => StatefulBuilder(
-          builder: (context, setModalState) {
-            Widget buildMain() {
-              return ListView(
-                controller: scrollController,
-                padding: EdgeInsets.zero,
-                children: [
-                  _buildFilterMainItem(
-                    title: 'Okul',
-                    selectedValue: _summaryForOkul(localSelectedOkul),
-                    onTap: () {
-                      tempSelectedItems.clear();
-                      tempSelectedItems.addAll(localSelectedOkul);
-                      setModalState(() => _currentFilterPage = 'okul');
-                    },
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Seviye',
-                    selectedValue: _summaryForSeviye(localSelectedSeviye),
-                    onTap: () {
-                       tempSelectedItems.clear();
-                       tempSelectedItems.addAll(localSelectedSeviye);
-                       setModalState(() => _currentFilterPage = 'seviye');
-                    },
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Sınıf',
-                    selectedValue: _summaryForSinif(localSelectedSinif),
-                    onTap: () {
-                       tempSelectedItems.clear();
-                       tempSelectedItems.addAll(localSelectedSinif);
-                       setModalState(() => _currentFilterPage = 'sinif');
-                    },
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Kulüp',
-                    selectedValue: _summaryForKulup(localSelectedKulup),
-                    onTap: () {
-                       tempSelectedItems.clear();
-                       tempSelectedItems.addAll(localSelectedKulup);
-                       setModalState(() => _currentFilterPage = 'kulup');
-                    },
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Takım',
-                    selectedValue: _summaryForTakim(localSelectedTakim),
-                    onTap: () {
-                       tempSelectedItems.clear();
-                       tempSelectedItems.addAll(localSelectedTakim);
-                       setModalState(() => _currentFilterPage = 'takim');
-                    },
-                  ),
-                  _buildFilterMainItem(
-                    title: 'Öğrenci',
-                    selectedValue: _summaryForOgrenci(localSelectedOgrenci),
-                    onTap: () {
-                       tempSelectedItems.clear();
-                       tempSelectedItems.addAll(localSelectedOgrenci);
-                       setModalState(() => _currentFilterPage = 'ogrenci');
-                    },
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: Text(
-                      'Seçilen öğrenci sayısı: ${localSelectedOgrenci.length}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: localSelectedOgrenci.isEmpty
-                            ? const Color(0xFFD32F2F)
-                            : AppColors.gradientStart,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            Widget buildDetail() {
-              switch (_currentFilterPage) {
-                case 'okul':
-                  return _buildOkulFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
-                case 'seviye':
-                  return _buildSeviyeFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                    localSelectedOkul,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
-                case 'sinif':
-                  return _buildSinifFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedKulup,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
-                case 'kulup':
-                  return _buildKulupFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedTakim,
-                    localSelectedOgrenci,
-                  );
-                case 'takim':
-                  return _buildTakimFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                    localSelectedOkul,
-                    localSelectedSeviye,
-                    localSelectedSinif,
-                    localSelectedKulup,
-                    localSelectedOgrenci,
-                  );
-                case 'ogrenci':
-                  return _buildOgrenciFilterPage(
-                    setModalState,
-                    scrollController,
-                    tempSelectedItems,
-                  );
-                default:
-                  return buildMain();
+                  ],
+                );
               }
-            }
 
-            return Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  child: Row(
-                    children: [
-                       if (_currentFilterPage.isNotEmpty)
-                          InkWell(
-                            onTap: () {
-                              // BACK pressed: Discard changes
-                              setModalState(() {
-                                _currentFilterPage = '';
-                                tempSelectedItems.clear(); 
-                              });
-                            },
-                            child: const Row(
-                              children: [
-                                Icon(Icons.arrow_back_ios, size: 20, color: AppColors.gradientStart),
-                                Text(
-                                  'Geri', 
-                                  style: TextStyle(fontSize: 16, color: AppColors.gradientStart)
+              Widget buildDetail() {
+                switch (_currentFilterPage) {
+                  case 'gorevYeri':
+                    return _buildGorevYeriFilterPage(
+                      setModalState,
+                      localSelectedGorevYeri,
+                      localSelectedGorev,
+                      localSelectedPersonel,
+                    );
+                  case 'gorev':
+                    return _buildGorevFilterPage(
+                      setModalState,
+                      localSelectedGorev,
+                      localSelectedGorevYeri,
+                      localSelectedPersonel,
+                    );
+                  case 'personel':
+                  default:
+                    return _buildPersonelFilterPage(
+                      setModalState,
+                      localSelectedPersonel,
+                      localSelectedGorev,
+                      localSelectedGorevYeri,
+                    );
+                }
+              }
+
+              return Stack(
+                children: [
+                  SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_currentFilterPage.isNotEmpty)
+                                Expanded(
+                                  flex: 0,
+                                  child: InkWell(
+                                    onTap: () => setModalState(
+                                      () => _currentFilterPage = '',
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.arrow_back, size: 20),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Geri',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                const SizedBox(width: 64),
+                              const Spacer(),
+                              Text(
+                                _currentFilterPage.isEmpty
+                                    ? 'Filtrele'
+                                    : _getFilterTitle(_currentFilterPage),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            ),
-                          )
-                        else 
-                          const Text(
-                            'Filtrele',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
+                              ),
+                              const Spacer(),
+                              const SizedBox(width: 64),
+                            ],
                           ),
-                      const Spacer(),
-                      // Only show 'Temizle' on main page
-                      if (_currentFilterPage.isEmpty)
-                        TextButton(
-                          onPressed: () async {
-                            setModalState(() => _currentFilterPage = '');
-                            localSelectedOkul.clear();
-                            localSelectedSeviye.clear();
-                            localSelectedSinif.clear();
-                            localSelectedKulup.clear();
-                            localSelectedTakim.clear();
-                            localSelectedOgrenci.clear();
-
-                            await _refreshOgrenciFilterData(
-                              localSelectedOkul: localSelectedOkul,
-                              localSelectedSeviye: localSelectedSeviye,
-                              localSelectedSinif: localSelectedSinif,
-                              localSelectedKulup: localSelectedKulup,
-                              localSelectedTakim: localSelectedTakim,
-                              localSelectedOgrenci: localSelectedOgrenci,
-                              rebuild: setModalState,
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF014B92),
-                          ),
-                          child: const Text('Tüm filtreleri temizle'),
                         ),
-                    ],
+                        const Divider(),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height * 0.5,
+                          ),
+                          child: _currentFilterPage.isEmpty
+                              ? buildMain()
+                              : buildDetail(),
+                        ),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: _currentFilterPage.isEmpty
-                      ? buildMain()
-                      : buildDetail(),
-                ),
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  Positioned(
+                    bottom: 50,
+                    left: 16,
+                    right: 16,
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () async {
+                        onPressed: () {
                           if (_currentFilterPage.isEmpty) {
+                            // Ana sayfadayız, seçimleri kaydet ve kapat
                             setState(() {
-                              // Filtre seçimlerini state'e kaydet
-                              _selectedOkulKodu
+                              _selectedGorevYeriIds
                                 ..clear()
-                                ..addAll(localSelectedOkul);
-                              _selectedSeviye
+                                ..addAll(localSelectedGorevYeri);
+                              _selectedGorevIds
                                 ..clear()
-                                ..addAll(localSelectedSeviye);
-                              _selectedSinif
+                                ..addAll(localSelectedGorev);
+                              _selectedPersonelIds
                                 ..clear()
-                                ..addAll(localSelectedSinif);
-                              _selectedKulup
-                                ..clear()
-                                ..addAll(localSelectedKulup);
-                              _selectedTakim
-                                ..clear()
-                                ..addAll(localSelectedTakim);
-                              // Öğrenci seçimini kaydet
-                              _selectedOgrenciIds
-                                ..clear()
-                                ..addAll(localSelectedOgrenci);
+                                ..addAll(localSelectedPersonel);
                             });
                             Navigator.pop(context);
                           } else {
-                            // "TAMAM" pressed: Commit temp -> local
-                            if (_currentFilterPage == 'okul') {
-                                localSelectedOkul.clear();
-                                localSelectedOkul.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'seviye') {
-                                localSelectedSeviye.clear();
-                                localSelectedSeviye.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'sinif') {
-                                localSelectedSinif.clear();
-                                localSelectedSinif.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'kulup') {
-                                localSelectedKulup.clear();
-                                localSelectedKulup.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'takim') {
-                                localSelectedTakim.clear();
-                                localSelectedTakim.addAll(tempSelectedItems);
-                            } else if (_currentFilterPage == 'ogrenci') {
-                                localSelectedOgrenci.clear();
-                                localSelectedOgrenci.addAll(tempSelectedItems);
-                            }
-
-                            // Refresh downstream lists logic
-                            if (_currentFilterPage != 'ogrenci') {
-                              final updateSeviye = _currentFilterPage == 'okul';
-                              final updateSinif =
-                                  _currentFilterPage == 'okul' ||
-                                  _currentFilterPage == 'seviye';
-                              final updateKulup =
-                                  _currentFilterPage == 'okul' ||
-                                  _currentFilterPage == 'seviye' ||
-                                  _currentFilterPage == 'sinif';
-                              final updateTakim =
-                                  _currentFilterPage == 'okul' ||
-                                  _currentFilterPage == 'seviye' ||
-                                  _currentFilterPage == 'sinif' ||
-                                  _currentFilterPage == 'kulup';
-
-                              await _refreshOgrenciFilterData(
-                                localSelectedOkul: localSelectedOkul,
-                                localSelectedSeviye: localSelectedSeviye,
-                                localSelectedSinif: localSelectedSinif,
-                                localSelectedKulup: localSelectedKulup,
-                                localSelectedTakim: localSelectedTakim,
-                                localSelectedOgrenci: localSelectedOgrenci,
-                                rebuild: setModalState,
-                                updateSeviyeList: updateSeviye,
-                                updateSinifList: updateSinif,
-                                updateKulupList: updateKulup,
-                                updateTakimList: updateTakim,
-                                updateOgrenciList: true,
-                                autoSelectAllOgrenci: true,
-                              );
-                            } else {
-                                // For student selection, we might want to refresh count only
-                                // But _refreshOgrenciFilterData also updates count logic if needed
-                                // Just simple setState to reflect changes in Main view summary is enough
-                                setModalState((){});
-                            }
-
-                            setModalState(() {
-                                _currentFilterPage = '';
-                                tempSelectedItems.clear(); // cleanup
-                            });
+                            // Detay sayfasındayız, ana sayfaya dön
+                            setModalState(() => _currentFilterPage = '');
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -2734,13 +2401,491 @@ class _AracTalepBenEkleScreenState
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
+  }
+
+  Future<void> _openOgrenciSecimBottomSheet() async {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    try {
+      _showBlockingLoadingDialog();
+      // UI'nin dialog'u çizmesi için bir frame ver.
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      setState(() {
+        _ogrenciSheetLoading = true;
+        _ogrenciSheetError = null;
+      });
+
+      // İlk açılışta filtre verisini sunucudan al, sonraki açılışlarda cache kullan.
+      if (!_hasOgrenciBaseCache) {
+        final repo = ref.read(aracTalepRepositoryProvider);
+        final result = await repo.ogrenciFiltrele();
+
+        switch (result) {
+          case Success(:final data):
+            setState(() {
+              _initialOkulKoduList = data.okulKodu;
+              _initialSeviyeList = data.seviye;
+              _initialSinifList = data.sinif;
+              _okulKoduList = _initialOkulKoduList;
+              _seviyeList = _initialSeviyeList;
+              _sinifList = _initialSinifList;
+              _kulupList = data.kulup;
+              _takimList = data.takim;
+              _ogrenciList = data.ogrenci;
+            });
+          case Failure(:final message):
+            setState(() {
+              _ogrenciSheetLoading = false;
+              _ogrenciSheetError = message;
+            });
+            _hideBlockingLoadingDialog();
+            if (mounted) {
+              _showStatusBottomSheet(message, isError: true);
+            }
+            return;
+          case Loading():
+            _hideBlockingLoadingDialog();
+            return;
+        }
+      }
+
+      // State'ten mevcut seçimleri yükle
+      final localSelectedOkul = {..._selectedOkulKodu};
+      final localSelectedSeviye = {..._selectedSeviye};
+      final localSelectedSinif = {..._selectedSinif};
+      final localSelectedKulup = {..._selectedKulup};
+      final localSelectedTakim = {..._selectedTakim};
+
+      // Daha önce seçim yapıldıysa, sadece öğrenci listesini (ve downstream: kulüp/takım) tek çağrıyla güncelle.
+      final bool hasAnyFilter =
+          localSelectedOkul.isNotEmpty ||
+          localSelectedSeviye.isNotEmpty ||
+          localSelectedSinif.isNotEmpty ||
+          localSelectedKulup.isNotEmpty ||
+          localSelectedTakim.isNotEmpty;
+
+      if (hasAnyFilter) {
+        final resp = await _fetchOgrenciFilters(
+          localSelectedOkul,
+          localSelectedSeviye,
+          localSelectedSinif,
+          localSelectedKulup,
+          localSelectedTakim,
+        );
+        if (resp != null && mounted) {
+          setState(() {
+            // Okul/Seviye/Sınıf listeleri ilk çağrıdaki gibi sabit kalsın.
+            _okulKoduList = _initialOkulKoduList;
+            _seviyeList = _initialSeviyeList;
+            _sinifList = _initialSinifList;
+
+            _kulupList = resp.kulup;
+            _takimList = resp.takim;
+            _ogrenciList = resp.ogrenci;
+          });
+        }
+      } else {
+        // Filtre yoksa upstream listeleri cache'ten sabitle.
+        if (mounted) {
+          setState(() {
+            _okulKoduList = _initialOkulKoduList;
+            _seviyeList = _initialSeviyeList;
+            _sinifList = _initialSinifList;
+          });
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _ogrenciSheetLoading = false;
+        });
+      }
+
+      _hideBlockingLoadingDialog();
+      final localSelectedOgrenci = {..._selectedOgrenciIds};
+
+      // Temp set for detail pages (Discard logic)
+      final Set<String> tempSelectedItems = {};
+
+      _currentFilterPage = '';
+
+      if (!mounted) return;
+
+      if (!mounted) return;
+
+      await showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        isScrollControlled: true,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.67,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) => StatefulBuilder(
+            builder: (context, setModalState) {
+              Widget buildMain() {
+                return ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildFilterMainItem(
+                      title: 'Okul',
+                      selectedValue: _summaryForOkul(localSelectedOkul),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedOkul);
+                        setModalState(() => _currentFilterPage = 'okul');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Seviye',
+                      selectedValue: _summaryForSeviye(localSelectedSeviye),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedSeviye);
+                        setModalState(() => _currentFilterPage = 'seviye');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Sınıf',
+                      selectedValue: _summaryForSinif(localSelectedSinif),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedSinif);
+                        setModalState(() => _currentFilterPage = 'sinif');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Kulüp',
+                      selectedValue: _summaryForKulup(localSelectedKulup),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedKulup);
+                        setModalState(() => _currentFilterPage = 'kulup');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Takım',
+                      selectedValue: _summaryForTakim(localSelectedTakim),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedTakim);
+                        setModalState(() => _currentFilterPage = 'takim');
+                      },
+                    ),
+                    _buildFilterMainItem(
+                      title: 'Öğrenci',
+                      selectedValue: _summaryForOgrenci(localSelectedOgrenci),
+                      onTap: () {
+                        tempSelectedItems.clear();
+                        tempSelectedItems.addAll(localSelectedOgrenci);
+                        setModalState(() => _currentFilterPage = 'ogrenci');
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        'Seçilen öğrenci sayısı: ${localSelectedOgrenci.length}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: localSelectedOgrenci.isEmpty
+                              ? const Color(0xFFD32F2F)
+                              : AppColors.gradientStart,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              Widget buildDetail() {
+                switch (_currentFilterPage) {
+                  case 'okul':
+                    return _buildOkulFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
+                  case 'seviye':
+                    return _buildSeviyeFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                      localSelectedOkul,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
+                  case 'sinif':
+                    return _buildSinifFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedKulup,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
+                  case 'kulup':
+                    return _buildKulupFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedTakim,
+                      localSelectedOgrenci,
+                    );
+                  case 'takim':
+                    return _buildTakimFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                      localSelectedOkul,
+                      localSelectedSeviye,
+                      localSelectedSinif,
+                      localSelectedKulup,
+                      localSelectedOgrenci,
+                    );
+                  case 'ogrenci':
+                    return _buildOgrenciFilterPage(
+                      setModalState,
+                      scrollController,
+                      tempSelectedItems,
+                    );
+                  default:
+                    return buildMain();
+                }
+              }
+
+              return Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      children: [
+                        if (_currentFilterPage.isNotEmpty)
+                          InkWell(
+                            onTap: () {
+                              // BACK pressed: Discard changes
+                              setModalState(() {
+                                _currentFilterPage = '';
+                                tempSelectedItems.clear();
+                              });
+                            },
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back_ios,
+                                  size: 20,
+                                  color: AppColors.gradientStart,
+                                ),
+                                Text(
+                                  'Geri',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.gradientStart,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          const Text(
+                            'Filtrele',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        const Spacer(),
+                        // Only show 'Temizle' on main page
+                        if (_currentFilterPage.isEmpty)
+                          TextButton(
+                            onPressed: () async {
+                              setModalState(() => _currentFilterPage = '');
+                              localSelectedOkul.clear();
+                              localSelectedSeviye.clear();
+                              localSelectedSinif.clear();
+                              localSelectedKulup.clear();
+                              localSelectedTakim.clear();
+                              localSelectedOgrenci.clear();
+
+                              await _refreshOgrenciFilterData(
+                                localSelectedOkul: localSelectedOkul,
+                                localSelectedSeviye: localSelectedSeviye,
+                                localSelectedSinif: localSelectedSinif,
+                                localSelectedKulup: localSelectedKulup,
+                                localSelectedTakim: localSelectedTakim,
+                                localSelectedOgrenci: localSelectedOgrenci,
+                                rebuild: setModalState,
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF014B92),
+                            ),
+                            child: const Text('Tüm filtreleri temizle'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: _currentFilterPage.isEmpty
+                        ? buildMain()
+                        : buildDetail(),
+                  ),
+                  SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_currentFilterPage.isEmpty) {
+                              setState(() {
+                                // Filtre seçimlerini state'e kaydet
+                                _selectedOkulKodu
+                                  ..clear()
+                                  ..addAll(localSelectedOkul);
+                                _selectedSeviye
+                                  ..clear()
+                                  ..addAll(localSelectedSeviye);
+                                _selectedSinif
+                                  ..clear()
+                                  ..addAll(localSelectedSinif);
+                                _selectedKulup
+                                  ..clear()
+                                  ..addAll(localSelectedKulup);
+                                _selectedTakim
+                                  ..clear()
+                                  ..addAll(localSelectedTakim);
+                                // Öğrenci seçimini kaydet
+                                _selectedOgrenciIds
+                                  ..clear()
+                                  ..addAll(localSelectedOgrenci);
+                              });
+                              Navigator.pop(context);
+                            } else {
+                              // "TAMAM" pressed: Commit temp -> local
+                              if (_currentFilterPage == 'okul') {
+                                localSelectedOkul.clear();
+                                localSelectedOkul.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'seviye') {
+                                localSelectedSeviye.clear();
+                                localSelectedSeviye.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'sinif') {
+                                localSelectedSinif.clear();
+                                localSelectedSinif.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'kulup') {
+                                localSelectedKulup.clear();
+                                localSelectedKulup.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'takim') {
+                                localSelectedTakim.clear();
+                                localSelectedTakim.addAll(tempSelectedItems);
+                              } else if (_currentFilterPage == 'ogrenci') {
+                                localSelectedOgrenci.clear();
+                                localSelectedOgrenci.addAll(tempSelectedItems);
+                              }
+
+                              // Refresh downstream lists logic
+                              if (_currentFilterPage != 'ogrenci') {
+                                final updateSeviye =
+                                    _currentFilterPage == 'okul';
+                                final updateSinif =
+                                    _currentFilterPage == 'okul' ||
+                                    _currentFilterPage == 'seviye';
+                                final updateKulup =
+                                    _currentFilterPage == 'okul' ||
+                                    _currentFilterPage == 'seviye' ||
+                                    _currentFilterPage == 'sinif';
+                                final updateTakim =
+                                    _currentFilterPage == 'okul' ||
+                                    _currentFilterPage == 'seviye' ||
+                                    _currentFilterPage == 'sinif' ||
+                                    _currentFilterPage == 'kulup';
+
+                                await _refreshOgrenciFilterData(
+                                  localSelectedOkul: localSelectedOkul,
+                                  localSelectedSeviye: localSelectedSeviye,
+                                  localSelectedSinif: localSelectedSinif,
+                                  localSelectedKulup: localSelectedKulup,
+                                  localSelectedTakim: localSelectedTakim,
+                                  localSelectedOgrenci: localSelectedOgrenci,
+                                  rebuild: setModalState,
+                                  updateSeviyeList: updateSeviye,
+                                  updateSinifList: updateSinif,
+                                  updateKulupList: updateKulup,
+                                  updateTakimList: updateTakim,
+                                  updateOgrenciList: true,
+                                  autoSelectAllOgrenci: true,
+                                );
+                              } else {
+                                // For student selection, we might want to refresh count only
+                                // But _refreshOgrenciFilterData also updates count logic if needed
+                                // Just simple setState to reflect changes in Main view summary is enough
+                                setModalState(() {});
+                              }
+
+                              setModalState(() {
+                                _currentFilterPage = '';
+                                tempSelectedItems.clear(); // cleanup
+                              });
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF014B92),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   String _summaryForOkul(Set<String> ids) {
@@ -2844,117 +2989,100 @@ class _AracTalepBenEkleScreenState
     bool updateOgrenciList = false,
     bool autoSelectAllOgrenci = false,
   }) async {
-    
-    // 1. Update Seviye (Depends ONLY on School)
-    if (updateSeviyeList) {
-      final resp = await _fetchOgrenciFilters(
-        localSelectedOkul,
-        {}, // No Level
-        {}, // No Class
-        {}, // No Club
-        {}, // No Team
-      );
-      if (resp != null) {
-        rebuild(() {
-          _seviyeList = resp.seviye;
-          localSelectedSeviye.retainAll(_seviyeList.toSet());
-        });
-      }
+    // Bu fonksiyon geçmişte ardışık 4-5 istek atıyordu. UX'te gecikmeye sebep olmaması için
+    // tek bir API çağrısı ile gerekli listeleri güncelliyoruz.
+    final bool shouldFetch =
+        updateSeviyeList ||
+        updateSinifList ||
+        updateKulupList ||
+        updateTakimList ||
+        updateOgrenciList;
+    if (!shouldFetch) return;
+
+    final Set<String> reqOkul = localSelectedOkul;
+    Set<String> reqSeviye = localSelectedSeviye;
+    Set<String> reqSinif = localSelectedSinif;
+    Set<String> reqKulup = localSelectedKulup;
+    Set<String> reqTakim = localSelectedTakim;
+
+    // Hedef "seviye" ise sadece okul gönder.
+    if (updateSeviyeList &&
+        !updateSinifList &&
+        !updateKulupList &&
+        !updateTakimList &&
+        !updateOgrenciList) {
+      reqSeviye = {};
+      reqSinif = {};
+      reqKulup = {};
+      reqTakim = {};
+    } else if (updateSinifList &&
+        !updateKulupList &&
+        !updateTakimList &&
+        !updateOgrenciList) {
+      // Hedef "sınıf" ise okul + seviye gönder.
+      reqSinif = {};
+      reqKulup = {};
+      reqTakim = {};
+    } else if (updateKulupList && !updateTakimList && !updateOgrenciList) {
+      // Hedef "kulüp" ise okul + seviye + sınıf gönder.
+      reqKulup = {};
+      reqTakim = {};
+    } else if (updateTakimList && !updateOgrenciList) {
+      // Hedef "takım" ise okul + seviye + sınıf + kulüp gönder.
+      reqTakim = {};
     }
 
-    // 2. Update Class (Depends on School AND Level)
-    if (updateSinifList) {
-      final resp = await _fetchOgrenciFilters(
-        localSelectedOkul,
-        localSelectedSeviye,
-        {}, // No Class
-        {}, // No Club
-        {}, // No Team
-      );
-      if (resp != null) {
-        rebuild(() {
-          _sinifList = resp.sinif;
-          localSelectedSinif.retainAll(_sinifList.toSet());
-        });
+    final resp = await _fetchOgrenciFilters(
+      reqOkul,
+      reqSeviye,
+      reqSinif,
+      reqKulup,
+      reqTakim,
+    );
+    if (resp == null) return;
+
+    rebuild(() {
+      if (updateSeviyeList) {
+        _seviyeList = resp.seviye;
+        localSelectedSeviye.retainAll(_seviyeList.toSet());
       }
-    }
-
-    // 3. Update Club (Depends on School AND Level AND Class)
-    // Note: User requirement says Club filter affects Student list but
-    // Club selection itself depends on School/Level/Class? 
-    // "kulüp seçimi okul, seviye ve sınıf başlıklarının filtresini etkilemeyecek" => This means Upstream doesn't change.
-    // But does Club list *content* depend on S/L/C? Usually yes.
-    // The requirement "hiyerarşi: ... siniflar, kulupler, takimlar" implies Club list is filtered by class.
-    if (updateKulupList) {
-      final resp = await _fetchOgrenciFilters(
-        localSelectedOkul,
-        localSelectedSeviye,
-        localSelectedSinif,
-        {}, // No Club
-        {}, // No Team
-      );
-      if (resp != null) {
-        rebuild(() {
-          _kulupList = resp.kulup;
-          localSelectedKulup.retainAll(_kulupList.toSet());
-        });
+      if (updateSinifList) {
+        _sinifList = resp.sinif;
+        localSelectedSinif.retainAll(_sinifList.toSet());
       }
-    }
-
-    // 4. Update Team (Depends on School AND Level AND Class AND Club)
-    if (updateTakimList) {
-      final resp = await _fetchOgrenciFilters(
-        localSelectedOkul,
-        localSelectedSeviye,
-        localSelectedSinif,
-        localSelectedKulup,
-        {}, // No Team
-      );
-      if (resp != null) {
-        rebuild(() {
-          _takimList = resp.takim;
-          localSelectedTakim.retainAll(_takimList.toSet());
-        });
+      if (updateKulupList) {
+        _kulupList = resp.kulup;
+        localSelectedKulup.retainAll(_kulupList.toSet());
       }
-    }
+      if (updateTakimList) {
+        _takimList = resp.takim;
+        localSelectedTakim.retainAll(_takimList.toSet());
+      }
+      if (updateOgrenciList) {
+        _ogrenciList = resp.ogrenci;
 
-    // 5. Update Student List (Depends on ALL)
-    if (updateOgrenciList) {
-      final resp = await _fetchOgrenciFilters(
-        localSelectedOkul,
-        localSelectedSeviye,
-        localSelectedSinif,
-        localSelectedKulup,
-        localSelectedTakim,
-      );
-      if (resp != null) {
-        rebuild(() {
-          _ogrenciList = resp.ogrenci;
-          
-          final validOgrenciNums = _ogrenciList.map((o) => '${o.numara}').toSet();
-          
-          // Check if all filters are empty (meaning "All" in API terms)
-          final bool filtersEmpty = localSelectedOkul.isEmpty &&
-              localSelectedSeviye.isEmpty &&
-              localSelectedSinif.isEmpty &&
-              localSelectedKulup.isEmpty &&
-              localSelectedTakim.isEmpty;
+        final validOgrenciNums = _ogrenciList.map((o) => '${o.numara}').toSet();
 
-          if (autoSelectAllOgrenci) {
-            if (filtersEmpty) {
-               // If filters are empty, we don't want to auto-select ALL students in the database.
-               localSelectedOgrenci.clear();
-            } else {
-               localSelectedOgrenci
-                ..clear()
-                ..addAll(validOgrenciNums);
-            }
+        final bool filtersEmpty =
+            localSelectedOkul.isEmpty &&
+            localSelectedSeviye.isEmpty &&
+            localSelectedSinif.isEmpty &&
+            localSelectedKulup.isEmpty &&
+            localSelectedTakim.isEmpty;
+
+        if (autoSelectAllOgrenci) {
+          if (filtersEmpty) {
+            localSelectedOgrenci.clear();
           } else {
-             localSelectedOgrenci.retainAll(validOgrenciNums);
+            localSelectedOgrenci
+              ..clear()
+              ..addAll(validOgrenciNums);
           }
-        });
+        } else {
+          localSelectedOgrenci.retainAll(validOgrenciNums);
+        }
       }
-    }
+    });
   }
 
   Widget _buildGorevYeriFilterPage(
@@ -4441,7 +4569,7 @@ class _AracTalepBenEkleScreenState
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: BrandedLoadingIndicator());
                   }
 
                   if (snapshot.hasError) {

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:file_picker/file_picker.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
@@ -14,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
   const DokumantasyonBaskiIstekScreen({super.key});
@@ -64,11 +64,14 @@ class _DokumantasyonBaskiIstekScreenState
   List<String> _initialOkulKoduList = [];
   List<String> _initialSeviyeList = [];
   List<String> _initialSinifList = [];
-  
+
   bool _classSheetLoading = false;
   String? _classSheetError;
   String _currentFilterPage = '';
   int _totalStudentCount = 0;
+  
+  // Lock mechanism for multi-tap prevention
+  bool _isActionInProgress = false;
 
   @override
   void initState() {
@@ -77,8 +80,9 @@ class _DokumantasyonBaskiIstekScreenState
     _aciklamaController = TextEditingController();
     _dosyaIcerikController = TextEditingController();
     _baskiAdediController = TextEditingController(text: _baskiAdedi.toString());
-    _sayfaSayisiController =
-        TextEditingController(text: _sayfaSayisi.toString());
+    _sayfaSayisiController = TextEditingController(
+      text: _sayfaSayisi.toString(),
+    );
 
     _fetchDokumanTurleri();
     _fetchBaskiBoyutlari();
@@ -93,6 +97,42 @@ class _DokumantasyonBaskiIstekScreenState
     super.dispose();
   }
 
+  bool get _hasInitialCache =>
+      _initialOkulKoduList.isNotEmpty &&
+      _initialSeviyeList.isNotEmpty &&
+      _initialSinifList.isNotEmpty;
+
+  void _showBlockingLoadingDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.2), // Dim background slightly
+      builder: (dialogContext) {
+        return Center(
+          child: Container(
+            width: 175,
+            height: 175,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            alignment: Alignment.center,
+            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          ),
+        );
+      },
+    );
+  }
+
+  void _hideBlockingLoadingDialog() {
+    if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+  }
+
   Future<void> _fetchDokumanTurleri() async {
     setState(() {
       _isLoadingDokumanTurleri = true;
@@ -100,14 +140,14 @@ class _DokumantasyonBaskiIstekScreenState
 
     try {
       final dio = ref.read(dioProvider);
-      final response =
-          await dio.get('/DokumantasyonIstek/DokumanTuruGetir');
+      final response = await dio.get('/DokumantasyonIstek/DokumanTuruGetir');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         setState(() {
-          _dokumanTurleri =
-              data.map((e) => DokumanTurModel.fromJson(e)).toList();
+          _dokumanTurleri = data
+              .map((e) => DokumanTurModel.fromJson(e))
+              .toList();
         });
       }
     } catch (e) {
@@ -163,6 +203,9 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _pickFiles() async {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
@@ -175,7 +218,7 @@ class _DokumantasyonBaskiIstekScreenState
           'doc',
           'docx',
           'xls',
-          'xlsx'
+          'xlsx',
         ],
       );
 
@@ -187,10 +230,12 @@ class _DokumantasyonBaskiIstekScreenState
     } catch (e) {
       debugPrint('Error picking files: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dosya seçimi başarısız: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
       }
+    } finally {
+       if (mounted) setState(() => _isActionInProgress = false);
     }
   }
 
@@ -223,6 +268,9 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _showDokumanTuruBottomSheet() {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -237,13 +285,15 @@ class _DokumantasyonBaskiIstekScreenState
             children: [
               Text(
                 'Doküman Türü Seçiniz',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               if (_isLoadingDokumanTurleri)
-                const Center(child: CircularProgressIndicator())
+                const Center(
+                  child: BrandedLoadingIndicator(size: 48, strokeWidth: 3),
+                )
               else if (_dokumanTurleri.isEmpty)
                 const Center(child: Text('Doküman türü bulunamadı'))
               else
@@ -255,8 +305,10 @@ class _DokumantasyonBaskiIstekScreenState
                       final item = _dokumanTurleri[index];
                       return ListTile(
                         leading: _selectedDokumanTuru?.id == item.id
-                            ? const Icon(Icons.check,
-                                color: AppColors.gradientStart)
+                            ? const Icon(
+                                Icons.check,
+                                color: AppColors.gradientStart,
+                              )
                             : const SizedBox(width: 24), // Placeholder
                         title: Text(item.tur),
                         onTap: () {
@@ -273,10 +325,15 @@ class _DokumantasyonBaskiIstekScreenState
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
   }
 
   void _showBaskiBoyutuBottomSheet() {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -291,13 +348,15 @@ class _DokumantasyonBaskiIstekScreenState
             children: [
               Text(
                 'Baskı Boyutu Seçiniz',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               if (_isLoadingBaskiBoyutlari)
-                const Center(child: CircularProgressIndicator())
+                const Center(
+                  child: BrandedLoadingIndicator(size: 48, strokeWidth: 3),
+                )
               else if (_baskiBoyutlari.isEmpty)
                 const Center(child: Text('Baskı boyutu bulunamadı'))
               else
@@ -309,8 +368,10 @@ class _DokumantasyonBaskiIstekScreenState
                       final item = _baskiBoyutlari[index];
                       return ListTile(
                         leading: _baskiBoyutu == item
-                            ? const Icon(Icons.check,
-                                color: AppColors.gradientStart)
+                            ? const Icon(
+                                Icons.check,
+                                color: AppColors.gradientStart,
+                              )
                             : const SizedBox(width: 24),
                         title: Text(item),
                         onTap: () {
@@ -331,12 +392,19 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _submit() {
-    // Implement submit logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dokümantasyon baskı isteği hazırlandı (placeholder)'),
-      ),
-    );
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    try {
+      // Implement submit logic
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dokümantasyon baskı isteği hazırlandı (placeholder)'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   @override
@@ -369,13 +437,10 @@ class _DokumantasyonBaskiIstekScreenState
               Text(
                 'Teslim edilecek tarih',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: (Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.fontSize ??
-                              14) +
-                          1,
-                    ),
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                ),
               ),
               const SizedBox(height: 4),
               Row(
@@ -407,21 +472,20 @@ class _DokumantasyonBaskiIstekScreenState
               Text(
                 'Doküman Türü',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: (Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.fontSize ??
-                              14) +
-                          1,
-                    ),
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _showDokumanTuruBottomSheet,
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.grey.shade300),
@@ -455,15 +519,15 @@ class _DokumantasyonBaskiIstekScreenState
                       children: [
                         Text(
                           'Baskı Adedi',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context)
-                                                .textTheme
-                                                .titleSmall
-                                                ?.fontSize ??
-                                            14) +
-                                        1,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         _buildSpinnerRow(
@@ -481,15 +545,15 @@ class _DokumantasyonBaskiIstekScreenState
                       children: [
                         Text(
                           'Sayfa Sayısı',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context)
-                                                .textTheme
-                                                .titleSmall
-                                                ?.fontSize ??
-                                            14) +
-                                        1,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         _buildSpinnerRow(
@@ -508,15 +572,13 @@ class _DokumantasyonBaskiIstekScreenState
                 child: Text(
                   'Toplam Sayfa: ${_baskiAdedi * _sayfaSayisi}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                        fontSize: (Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.fontSize ??
-                                14) +
-                            2,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontSize:
+                        (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                            14) +
+                        2,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -525,21 +587,20 @@ class _DokumantasyonBaskiIstekScreenState
               Text(
                 'Baskı Boyutu',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: (Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.fontSize ??
-                              14) +
-                          1,
-                    ),
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _showBaskiBoyutuBottomSheet,
                 child: Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: Colors.grey.shade300),
@@ -564,7 +625,7 @@ class _DokumantasyonBaskiIstekScreenState
 
               AciklamaFieldWidget(controller: _aciklamaController),
               const SizedBox(height: 24),
-              
+
               // Renkli Baskı Toggle
               Row(
                 children: [
@@ -598,7 +659,10 @@ class _DokumantasyonBaskiIstekScreenState
                     },
                   ),
                   const Expanded(
-                    child: Text('Arkalı Önlü Baskı', style: TextStyle(fontSize: 14)),
+                    child: Text(
+                      'Arkalı Önlü Baskı',
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ),
                 ],
               ),
@@ -617,7 +681,10 @@ class _DokumantasyonBaskiIstekScreenState
                     },
                   ),
                   const Expanded(
-                    child: Text('Çoğaltılacak kopya elden teslim edilecektir', style: TextStyle(fontSize: 14)),
+                    child: Text(
+                      'Çoğaltılacak kopya elden teslim edilecektir',
+                      style: TextStyle(fontSize: 14),
+                    ),
                   ),
                 ],
               ),
@@ -628,13 +695,11 @@ class _DokumantasyonBaskiIstekScreenState
                 Text(
                   'Basılacak Dosya',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.fontSize ??
-                                14) +
-                            1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -649,8 +714,11 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.cloud_upload_outlined,
-                            size: 24, color: Colors.grey),
+                        const Icon(
+                          Icons.cloud_upload_outlined,
+                          size: 24,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 2),
                         Text(
                           'Dosya Seçmek İçin Dokunun',
@@ -688,8 +756,10 @@ class _DokumantasyonBaskiIstekScreenState
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.insert_drive_file_outlined,
-                                color: Colors.grey),
+                            const Icon(
+                              Icons.insert_drive_file_outlined,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -700,8 +770,11 @@ class _DokumantasyonBaskiIstekScreenState
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.close,
-                                  color: Colors.red, size: 20),
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                                size: 20,
+                              ),
                               onPressed: () => _removeFile(index),
                             ),
                           ],
@@ -716,13 +789,11 @@ class _DokumantasyonBaskiIstekScreenState
                 Text(
                   'Dosyaların İçeriğini Belirtiniz',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.fontSize ??
-                                14) +
-                            1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -762,13 +833,10 @@ class _DokumantasyonBaskiIstekScreenState
               Text(
                 'Dokümanın İstendiği Sınıflar',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize: (Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.fontSize ??
-                              14) +
-                          1,
-                    ),
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                ),
               ),
               const SizedBox(height: 12),
               GestureDetector(
@@ -790,7 +858,10 @@ class _DokumantasyonBaskiIstekScreenState
                         child: Text(
                           _buildClassSelectionSummary(),
                           style: TextStyle(
-                            color: _selectedSinif.isNotEmpty || _selectedSeviye.isNotEmpty || _selectedOkulKodu.isNotEmpty
+                            color:
+                                _selectedSinif.isNotEmpty ||
+                                    _selectedSeviye.isNotEmpty ||
+                                    _selectedOkulKodu.isNotEmpty
                                 ? Colors.black
                                 : Colors.grey.shade600,
                             fontSize: 16,
@@ -932,157 +1003,181 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _openSinifSecimBottomSheet() async {
-  setState(() {
-    _classSheetLoading = true;
-    _classSheetError = null;
-  });
+  if (_isActionInProgress) return;
+  setState(() => _isActionInProgress = true);
 
-  // Initial load: Get everything to populate initial lists
-  final repo = ref.read(aracTalepRepositoryProvider);
-  final result = await repo.ogrenciFiltrele();
+  try {
+    _showBlockingLoadingDialog();
+    // UI'nin dialog'u çizmesi için bir frame ver.
+    await Future<void>.delayed(const Duration(milliseconds: 10));
 
-  switch (result) {
-    case Success(:final data):
-      setState(() {
-        _initialOkulKoduList = data.okulKodu; // All schools
-        _initialSeviyeList = data.seviye; // All levels (initially)
-        _initialSinifList = data.sinif; // All classes (initially)
-        
-        _okulKoduList = _initialOkulKoduList;
-        _seviyeList = _initialSeviyeList;
-        _sinifList = _initialSinifList;
-        
-        _classSheetLoading = false;
-      });
-    case Failure(:final message):
-      setState(() {
-        _classSheetLoading = false;
-        _classSheetError = message;
-      });
-      if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Veri yüklenemedi: $message')),
-        );
+    setState(() {
+      _classSheetLoading = true;
+      _classSheetError = null;
+    });
+
+    if (!_hasInitialCache) {
+      // Initial load: Get everything to populate initial lists
+      final repo = ref.read(aracTalepRepositoryProvider);
+      final result = await repo.ogrenciFiltrele();
+
+      switch (result) {
+        case Success(:final data):
+          setState(() {
+            _initialOkulKoduList = data.okulKodu; // All schools
+            _initialSeviyeList = data.seviye; // All levels (initially)
+            _initialSinifList = data.sinif; // All classes (initially)
+
+            _okulKoduList = _initialOkulKoduList;
+            _seviyeList = _initialSeviyeList;
+            _sinifList = _initialSinifList;
+
+            _classSheetLoading = false;
+          });
+        case Failure(:final message):
+          setState(() {
+            _classSheetLoading = false;
+            _classSheetError = message;
+          });
+          _hideBlockingLoadingDialog();
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Veri yüklenemedi: $message')));
+          }
+          return;
+        case Loading():
+          _hideBlockingLoadingDialog();
+          return;
       }
-      return;
-    case Loading():
-      return;
-  }
+    }
 
-  // Load current selections
-  final localSelectedOkul = {..._selectedOkulKodu};
-  final localSelectedSeviye = {..._selectedSeviye};
-  final localSelectedSinif = {..._selectedSinif};
+    // Load current selections
+    final localSelectedOkul = {..._selectedOkulKodu};
+    final localSelectedSeviye = {..._selectedSeviye};
+    final localSelectedSinif = {..._selectedSinif};
+    int localStudentCount = _totalStudentCount;
 
-   // Temp set for detail pages (Discard logic)
-  final Set<String> tempSelectedItems = {};
-  
-  // Perform an initial hierarchical refresh to ensure lists are consistent with selections
-  await _refreshClassFilterData(
-    localSelectedOkul: localSelectedOkul,
-    localSelectedSeviye: localSelectedSeviye,
-    localSelectedSinif: localSelectedSinif,
-    rebuild: setState, // Use main setState initially
-    updateSeviyeList: true,
-    updateSinifList: true,
-  );
+    // Temp set for detail pages (Discard logic)
+    final Set<String> tempSelectedItems = {};
 
-  _currentFilterPage = '';
+    // Perform an initial hierarchical refresh to ensure lists are consistent with selections
+    await _refreshClassFilterData(
+      localSelectedOkul: localSelectedOkul,
+      localSelectedSeviye: localSelectedSeviye,
+      localSelectedSinif: localSelectedSinif,
+      rebuild: (fn) =>
+          fn(), // Execute synchronously without rebuilding main screen to prevent flicker
+      updateSeviyeList: true,
+      updateSinifList: true,
+      onUpdateCount: (c) => localStudentCount = c,
+    );
 
-  if (!mounted) return;
+    _hideBlockingLoadingDialog();
+    _currentFilterPage = '';
 
-  showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    isScrollControlled: true,
-    builder: (context) => DraggableScrollableSheet(
-      initialChildSize: 0.67,
-      minChildSize: 0.5,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) => StatefulBuilder(
-        builder: (context, setModalState) {
-          Widget buildMain() {
-            return ListView(
-              controller: scrollController,
-              padding: EdgeInsets.zero,
-              children: [
-                 _buildFilterMainItem(
-                  title: 'Okul',
-                  selectedValue: _summaryForOkul(localSelectedOkul),
-                  onTap: () {
-                    tempSelectedItems.clear();
-                    tempSelectedItems.addAll(localSelectedOkul);
-                    setModalState(() => _currentFilterPage = 'okul');
-                  }, 
-                ),
-                _buildFilterMainItem(
-                  title: 'Seviye',
-                  selectedValue: _summaryForSeviye(localSelectedSeviye),
-                  onTap: () {
-                    tempSelectedItems.clear();
-                    tempSelectedItems.addAll(localSelectedSeviye);
-                    setModalState(() => _currentFilterPage = 'seviye');
-                  },
-                ),
-                _buildFilterMainItem(
-                  title: 'Sınıf',
-                  selectedValue: _summaryForSinif(localSelectedSinif),
-                  onTap: () {
-                    tempSelectedItems.clear();
-                    tempSelectedItems.addAll(localSelectedSinif);
-                    setModalState(() => _currentFilterPage = 'sinif');
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Text(
-                    'Seçilen öğrenci sayısı: $_totalStudentCount',
-                    style: TextStyle(
-                      fontSize: 19,
-                      color: _totalStudentCount == 0 ? Colors.red.shade700 : AppColors.gradientStart,
-                      fontWeight: FontWeight.w500,
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.67,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => StatefulBuilder(
+          builder: (context, setModalState) {
+            Widget buildMain() {
+              return ListView(
+                controller: scrollController,
+                padding: EdgeInsets.zero,
+                children: [
+                  _buildFilterMainItem(
+                    title: 'Okul',
+                    selectedValue: _summaryForOkul(localSelectedOkul),
+                    onTap: () {
+                      tempSelectedItems.clear();
+                      tempSelectedItems.addAll(localSelectedOkul);
+                      setModalState(() => _currentFilterPage = 'okul');
+                    },
+                  ),
+                  _buildFilterMainItem(
+                    title: 'Seviye',
+                    selectedValue: _summaryForSeviye(localSelectedSeviye),
+                    onTap: () {
+                      tempSelectedItems.clear();
+                      tempSelectedItems.addAll(localSelectedSeviye);
+                      setModalState(() => _currentFilterPage = 'seviye');
+                    },
+                  ),
+                  _buildFilterMainItem(
+                    title: 'Sınıf',
+                    selectedValue: _summaryForSinif(localSelectedSinif),
+                    onTap: () {
+                      tempSelectedItems.clear();
+                      tempSelectedItems.addAll(localSelectedSinif);
+                      setModalState(() => _currentFilterPage = 'sinif');
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Text(
+                      'Seçilen öğrenci sayısı: $localStudentCount',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: localStudentCount == 0
+                            ? const Color(0xFFD32F2F)
+                            : AppColors.gradientStart,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          }
-
-          Widget buildDetail() {
-            switch (_currentFilterPage) {
-              case 'okul':
-                return _buildOkulFilterPage(
-                  setModalState,
-                  scrollController,
-                  tempSelectedItems, // Use temp
-                  localSelectedSeviye,
-                  localSelectedSinif,
-                );
-              case 'seviye':
-                return _buildSeviyeFilterPage(
-                  setModalState,
-                  scrollController,
-                  tempSelectedItems, // Use temp
-                  localSelectedOkul,
-                  localSelectedSinif,
-                );
-              case 'sinif':
-                return _buildSinifFilterPage(
-                  setModalState,
-                  scrollController,
-                  tempSelectedItems, // Use temp
-                  localSelectedOkul,
-                  localSelectedSeviye,
-                );
-              default:
-                return buildMain();
+                ],
+              );
             }
-          }
 
-           return Column(
+            Widget buildDetail() {
+              switch (_currentFilterPage) {
+                case 'okul':
+                  return _buildOkulFilterPage(
+                    setModalState,
+                    scrollController,
+                    tempSelectedItems, // Use temp
+                    localSelectedSeviye,
+                    localSelectedSinif,
+                    onUpdateCount: (c) =>
+                        setModalState(() => localStudentCount = c),
+                  );
+                case 'seviye':
+                  return _buildSeviyeFilterPage(
+                    setModalState,
+                    scrollController,
+                    tempSelectedItems, // Use temp
+                    localSelectedOkul,
+                    localSelectedSinif,
+                    onUpdateCount: (c) =>
+                        setModalState(() => localStudentCount = c),
+                  );
+                case 'sinif':
+                  return _buildSinifFilterPage(
+                    setModalState,
+                    scrollController,
+                    tempSelectedItems, // Use temp
+                    localSelectedOkul,
+                    localSelectedSeviye,
+                    onUpdateCount: (c) =>
+                        setModalState(() => localStudentCount = c),
+                  );
+                default:
+                  return buildMain();
+              }
+            }
+
+            return Column(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -1091,33 +1186,40 @@ class _DokumantasyonBaskiIstekScreenState
                   ),
                   child: Row(
                     children: [
-                       if (_currentFilterPage.isNotEmpty)
-                          InkWell(
-                            onTap: () {
-                              // BACK pressed: Discard changes
-                              setModalState(() {
-                                _currentFilterPage = '';
-                                tempSelectedItems.clear(); 
-                              });
-                            },
-                            child: const Row(
-                              children: [
-                                Icon(Icons.arrow_back_ios, size: 20, color: AppColors.gradientStart),
-                                Text(
-                                  'Geri', 
-                                  style: TextStyle(fontSize: 16, color: AppColors.gradientStart)
+                      if (_currentFilterPage.isNotEmpty)
+                        InkWell(
+                          onTap: () {
+                            // BACK pressed: Discard changes
+                            setModalState(() {
+                              _currentFilterPage = '';
+                              tempSelectedItems.clear();
+                            });
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(
+                                Icons.arrow_back_ios,
+                                size: 20,
+                                color: AppColors.gradientStart,
+                              ),
+                              Text(
+                                'Geri',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.gradientStart,
                                 ),
-                              ],
-                            ),
-                          )
-                        else 
-                          const Text(
-                            'Filtrele',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
+                              ),
+                            ],
                           ),
+                        )
+                      else
+                        const Text(
+                          'Filtrele',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       const Spacer(),
                       // Only show 'Temizle' on main page
                       if (_currentFilterPage.isEmpty)
@@ -1133,6 +1235,8 @@ class _DokumantasyonBaskiIstekScreenState
                               localSelectedSeviye: localSelectedSeviye,
                               localSelectedSinif: localSelectedSinif,
                               rebuild: setModalState,
+                              onUpdateCount: (c) =>
+                                  setModalState(() => localStudentCount = c),
                             );
                           },
                           style: TextButton.styleFrom(
@@ -1157,7 +1261,7 @@ class _DokumantasyonBaskiIstekScreenState
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_currentFilterPage.isEmpty) {
-                             // Uygula
+                            // Uygula
                             setState(() {
                               _selectedOkulKodu
                                 ..clear()
@@ -1168,18 +1272,47 @@ class _DokumantasyonBaskiIstekScreenState
                               _selectedSinif
                                 ..clear()
                                 ..addAll(localSelectedSinif);
-                              
-                              // Update expected values based on count? 
-                              // Actually the doc print request uses _selectedSinif for logic elsewhere maybe?
-                              // But we need to make sure state is updated.
+
+                              _totalStudentCount = localStudentCount;
                             });
                             Navigator.pop(context);
                           } else {
-                            // But here "Tamam" acts like "Back" + "Apply Filter Logic".
-                            
-                            setModalState(() => _currentFilterPage = '');
+                            // "TAMAM" pressed: Commit temp -> local
+                            if (_currentFilterPage == 'okul') {
+                              localSelectedOkul.clear();
+                              localSelectedOkul.addAll(tempSelectedItems);
+                            } else if (_currentFilterPage == 'seviye') {
+                              localSelectedSeviye.clear();
+                              localSelectedSeviye.addAll(tempSelectedItems);
+                            } else if (_currentFilterPage == 'sinif') {
+                              localSelectedSinif.clear();
+                              localSelectedSinif.addAll(tempSelectedItems);
+                            }
+
+                            // Refresh downstream lists logic
+                            final updateSeviye = _currentFilterPage == 'okul';
+                            final updateSinif =
+                                _currentFilterPage == 'okul' ||
+                                _currentFilterPage == 'seviye';
+
+                            await _refreshClassFilterData(
+                              localSelectedOkul: localSelectedOkul,
+                              localSelectedSeviye: localSelectedSeviye,
+                              localSelectedSinif: localSelectedSinif,
+                              rebuild: setModalState,
+                              updateSeviyeList: updateSeviye,
+                              updateSinifList: updateSinif,
+                              onUpdateCount: (c) =>
+                                  setModalState(() => localStudentCount = c),
+                            );
+
+                            setModalState(() {
+                              _currentFilterPage = '';
+                              tempSelectedItems.clear(); // cleanup
+                            });
                           }
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF014B92),
                           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1204,6 +1337,12 @@ class _DokumantasyonBaskiIstekScreenState
         ),
       ),
     );
+    } catch (e) {
+      debugPrint('Error in class sheet: $e');
+      _hideBlockingLoadingDialog();
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   Future<OgrenciFilterResponse?> _fetchFilters(
@@ -1243,11 +1382,11 @@ class _DokumantasyonBaskiIstekScreenState
     required StateSetter rebuild,
     bool updateSeviyeList = false,
     bool updateSinifList = false,
+    Function(int)? onUpdateCount,
   }) async {
-    
     // 1. Update Seviye List (Depends ONLY on School)
     if (updateSeviyeList) {
-       final respSeviye = await _fetchFilters(
+      final respSeviye = await _fetchFilters(
         localSelectedOkul, // Selected Schools
         {}, // No Level Filter
         {}, // No Class Filter
@@ -1276,28 +1415,37 @@ class _DokumantasyonBaskiIstekScreenState
     }
 
     // 3. Always Calculate Student Count (Depends on School AND Level AND Class)
-  // Check if all filters are empty
-  final bool filtersEmpty = localSelectedOkul.isEmpty &&
-      localSelectedSeviye.isEmpty &&
-      localSelectedSinif.isEmpty;
+    // Check if all filters are empty
+    final bool filtersEmpty =
+        localSelectedOkul.isEmpty &&
+        localSelectedSeviye.isEmpty &&
+        localSelectedSinif.isEmpty;
 
-  if (filtersEmpty) {
-     rebuild(() {
-      _totalStudentCount = 0;
-    });
-  } else {
-    final respCount = await _fetchFilters(
-      localSelectedOkul,
-      localSelectedSeviye,
-      localSelectedSinif,
-    );
-       
-    if (respCount != null) {
+    if (filtersEmpty) {
       rebuild(() {
-        _totalStudentCount = respCount.ogrenci.length;
+        if (onUpdateCount != null) {
+          onUpdateCount(0);
+        } else {
+          _totalStudentCount = 0;
+        }
       });
+    } else {
+      final respCount = await _fetchFilters(
+        localSelectedOkul,
+        localSelectedSeviye,
+        localSelectedSinif,
+      );
+
+      if (respCount != null) {
+        rebuild(() {
+          if (onUpdateCount != null) {
+            onUpdateCount(respCount.ogrenci.length);
+          } else {
+            _totalStudentCount = respCount.ogrenci.length;
+          }
+        });
+      }
     }
-  }
   }
 
   Widget _buildFilterMainItem({
@@ -1341,15 +1489,15 @@ class _DokumantasyonBaskiIstekScreenState
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (subtitle != null) ...[
-                     const SizedBox(height: 2),
-                     Text(
+                    const SizedBox(height: 2),
+                    Text(
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
-                     ),
-                  ]
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1365,8 +1513,9 @@ class _DokumantasyonBaskiIstekScreenState
     ScrollController scrollController,
     Set<String> localSelectedOkul,
     Set<String> localSelectedSeviye,
-    Set<String> localSelectedSinif,
-  ) {
+    Set<String> localSelectedSinif, {
+    required ValueChanged<int> onUpdateCount,
+  }) {
     final okulSource = _initialOkulKoduList.isNotEmpty
         ? _initialOkulKoduList
         : _okulKoduList;
@@ -1418,11 +1567,12 @@ class _DokumantasyonBaskiIstekScreenState
                   localSelectedSinif.clear();
                 });
                 _refreshClassFilterData(
-                    localSelectedOkul: localSelectedOkul,
-                    localSelectedSeviye: localSelectedSeviye,
-                    localSelectedSinif: localSelectedSinif,
-                    rebuild: innerSetState,
-                  );
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
               onSelectAll: () {
                 innerSetState(() {
@@ -1432,12 +1582,13 @@ class _DokumantasyonBaskiIstekScreenState
                   localSelectedSeviye.clear();
                   localSelectedSinif.clear();
                 });
-                 _refreshClassFilterData(
-                    localSelectedOkul: localSelectedOkul,
-                    localSelectedSeviye: localSelectedSeviye,
-                    localSelectedSinif: localSelectedSinif,
-                    rebuild: innerSetState,
-                  );
+                _refreshClassFilterData(
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
             ),
             Expanded(
@@ -1458,6 +1609,14 @@ class _DokumantasyonBaskiIstekScreenState
                           localSelectedOkul.remove(item);
                         }
                       });
+
+                      _refreshClassFilterData(
+                        localSelectedOkul: localSelectedOkul,
+                        localSelectedSeviye: localSelectedSeviye,
+                        localSelectedSinif: localSelectedSinif,
+                        rebuild: innerSetState,
+                        onUpdateCount: onUpdateCount,
+                      );
                     },
                     title: Text(item),
                     activeColor: const Color(0xFF014B92),
@@ -1476,8 +1635,9 @@ class _DokumantasyonBaskiIstekScreenState
     ScrollController scrollController,
     Set<String> localSelectedSeviye,
     Set<String> localSelectedOkul,
-    Set<String> localSelectedSinif,
-  ) {
+    Set<String> localSelectedSinif, {
+    required ValueChanged<int> onUpdateCount,
+  }) {
     if (_seviyeList.isEmpty) {
       return const Center(child: Text('Seviye verisi bulunamadı'));
     }
@@ -1493,12 +1653,13 @@ class _DokumantasyonBaskiIstekScreenState
                   localSelectedSeviye.clear();
                   localSelectedSinif.clear();
                 });
-                 _refreshClassFilterData(
-                    localSelectedOkul: localSelectedOkul,
-                    localSelectedSeviye: localSelectedSeviye,
-                    localSelectedSinif: localSelectedSinif,
-                    rebuild: innerSetState,
-                  );
+                _refreshClassFilterData(
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
               onSelectAll: () {
                 innerSetState(() {
@@ -1507,12 +1668,13 @@ class _DokumantasyonBaskiIstekScreenState
                     ..addAll(_seviyeList);
                   localSelectedSinif.clear();
                 });
-                 _refreshClassFilterData(
-                    localSelectedOkul: localSelectedOkul,
-                    localSelectedSeviye: localSelectedSeviye,
-                    localSelectedSinif: localSelectedSinif,
-                    rebuild: innerSetState,
-                  );
+                _refreshClassFilterData(
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
             ),
             Expanded(
@@ -1533,6 +1695,14 @@ class _DokumantasyonBaskiIstekScreenState
                           localSelectedSeviye.remove(item);
                         }
                       });
+
+                      _refreshClassFilterData(
+                        localSelectedOkul: localSelectedOkul,
+                        localSelectedSeviye: localSelectedSeviye,
+                        localSelectedSinif: localSelectedSinif,
+                        rebuild: innerSetState,
+                        onUpdateCount: onUpdateCount,
+                      );
                     },
                     title: Text(item),
                     activeColor: const Color(0xFF014B92),
@@ -1551,15 +1721,16 @@ class _DokumantasyonBaskiIstekScreenState
     ScrollController scrollController,
     Set<String> localSelectedSinif,
     Set<String> localSelectedOkul,
-    Set<String> localSelectedSeviye,
-  ) {
+    Set<String> localSelectedSeviye, {
+    required ValueChanged<int> onUpdateCount,
+  }) {
     if (_sinifList.isEmpty) {
       return const Center(child: Text('Sınıf verisi bulunamadı'));
     }
 
     final searchController = TextEditingController();
     String searchQuery = '';
-    
+
     List<String> applyFilters() {
       if (searchQuery.isEmpty) return _sinifList;
       final q = searchQuery.toLowerCase();
@@ -1569,11 +1740,11 @@ class _DokumantasyonBaskiIstekScreenState
     return StatefulBuilder(
       builder: (context, innerSetState) {
         final filtered = applyFilters();
-        
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-             Padding(
+            Padding(
               padding: const EdgeInsets.all(12),
               child: TextField(
                 controller: searchController,
@@ -1598,6 +1769,13 @@ class _DokumantasyonBaskiIstekScreenState
                 innerSetState(() {
                   localSelectedSinif.clear();
                 });
+                _refreshClassFilterData(
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
               onSelectAll: () {
                 innerSetState(() {
@@ -1605,6 +1783,13 @@ class _DokumantasyonBaskiIstekScreenState
                     ..clear()
                     ..addAll(filtered);
                 });
+                _refreshClassFilterData(
+                  localSelectedOkul: localSelectedOkul,
+                  localSelectedSeviye: localSelectedSeviye,
+                  localSelectedSinif: localSelectedSinif,
+                  rebuild: innerSetState,
+                  onUpdateCount: onUpdateCount,
+                );
               },
             ),
             Expanded(
@@ -1625,6 +1810,14 @@ class _DokumantasyonBaskiIstekScreenState
                           localSelectedSinif.remove(item);
                         }
                       });
+
+                      _refreshClassFilterData(
+                        localSelectedOkul: localSelectedOkul,
+                        localSelectedSeviye: localSelectedSeviye,
+                        localSelectedSinif: localSelectedSinif,
+                        rebuild: innerSetState,
+                        onUpdateCount: onUpdateCount,
+                      );
                     },
                     title: Text(item),
                     activeColor: const Color(0xFF014B92),
@@ -1689,7 +1882,7 @@ class _DokumantasyonBaskiIstekScreenState
     if (_totalStudentCount > 0) {
       return '$_totalStudentCount öğrenci seçildi';
     }
-    
+
     if (_selectedSinif.isNotEmpty) {
       if (_selectedSinif.length <= 2) return _selectedSinif.join(', ');
       return '${_selectedSinif.length} sınıf seçildi';
@@ -1698,7 +1891,7 @@ class _DokumantasyonBaskiIstekScreenState
       if (_selectedSeviye.length <= 2) return _selectedSeviye.join(', ');
       return '${_selectedSeviye.length} seviye seçildi';
     }
-     if (_selectedOkulKodu.isNotEmpty) {
+    if (_selectedOkulKodu.isNotEmpty) {
       if (_selectedOkulKodu.length <= 2) return _selectedOkulKodu.join(', ');
       return '${_selectedOkulKodu.length} okul seçildi';
     }

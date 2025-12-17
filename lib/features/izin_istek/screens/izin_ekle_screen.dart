@@ -300,6 +300,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
   final FocusNode _esAdiFocusNode = FocusNode();
   final FocusNode _hastalikYazinizFocusNode = FocusNode();
   final FocusNode _diniGunAciklamaFocusNode = FocusNode();
+  bool _isActionInProgress = false;
 
   @override
   void dispose() {
@@ -431,7 +432,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     );
   }
 
-  static Widget _personelSecimCard(
+  Widget _personelSecimCard(
     BuildContext context,
     WidgetRef ref,
     IzinEkleFormState formState,
@@ -439,16 +440,22 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     return _buildCard(
       child: GestureDetector(
         onTap: () async {
-          final selectedPersonel = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const IzinEklePersonelSecimScreen(),
-            ),
-          );
-          if (selectedPersonel != null) {
-            ref
-                .read(izinEkleFormProvider.notifier)
-                .setSecilenPersonel(selectedPersonel);
+          if (_isActionInProgress) return;
+          setState(() => _isActionInProgress = true);
+          try {
+            final selectedPersonel = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const IzinEklePersonelSecimScreen(),
+              ),
+            );
+            if (selectedPersonel != null) {
+              ref
+                  .read(izinEkleFormProvider.notifier)
+                  .setSecilenPersonel(selectedPersonel);
+            }
+          } finally {
+            if (mounted) setState(() => _isActionInProgress = false);
           }
         },
         child: Container(
@@ -483,7 +490,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     );
   }
 
-  static Widget _izinTuruCard(
+  Widget _izinTuruCard(
     BuildContext context,
     WidgetRef ref,
     IzinEkleFormState formState,
@@ -491,16 +498,22 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     return _buildCard(
       child: GestureDetector(
         onTap: () async {
-          final selectedNeden = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const IzinTuruSecimScreen(),
-            ),
-          );
-          if (selectedNeden != null) {
-            ref
-                .read(izinEkleFormProvider.notifier)
-                .setSecilenNedeni(selectedNeden);
+          if (_isActionInProgress) return;
+          setState(() => _isActionInProgress = true);
+          try {
+            final selectedNeden = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const IzinTuruSecimScreen(),
+              ),
+            );
+            if (selectedNeden != null) {
+              ref
+                  .read(izinEkleFormProvider.notifier)
+                  .setSecilenNedeni(selectedNeden);
+            }
+          } finally {
+            if (mounted) setState(() => _isActionInProgress = false);
           }
         },
         child: Container(
@@ -1874,7 +1887,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     );
   }
 
-  static Widget _gonderButonu(
+  Widget _gonderButonu(
     BuildContext context,
     WidgetRef ref,
     IzinEkleFormState formState,
@@ -1941,7 +1954,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     }
   }
 
-  static void _izinEkle(
+  Future<void> _izinEkle(
     BuildContext context,
     WidgetRef ref,
     IzinEkleFormState formState,
@@ -1950,7 +1963,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     FocusNode esAdiFocusNode,
     FocusNode hastalikYazinizFocusNode,
     FocusNode diniGunAciklamaFocusNode,
-  ) {
+  ) async {
     final nedeniAdi = formState.secilenNedeni?.izinNedeni.toLowerCase() ?? '';
 
     if (formState.secilenSebebiId == null) {
@@ -2026,6 +2039,11 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       );
       return;
     }
+
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    try {
     final request = IzinIstekEkleReq(
       izinSebebiId: formState.secilenSebebiId!,
       izinBaslangicTarihi: formState.baslangicTarihi,
@@ -2047,6 +2065,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       ),
     );
     Navigator.pop(context);
+    } catch (e) {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   static void _requestFocusNextFrame(BuildContext context, FocusNode node) {

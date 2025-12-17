@@ -218,7 +218,9 @@ class _AracIstekYukEkleScreenState
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                        child:
+                            BrandedLoadingIndicator(size: 60, strokeWidth: 6));
                   }
 
                   if (snapshot.hasError) {

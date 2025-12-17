@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_nedeni.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/dini_izin_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/yillik_izin_screen.dart';
@@ -12,11 +13,19 @@ import 'package:esas_v1/features/izin_istek/screens/izin_turleri/kurum_gorevlend
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/mazeret_izin_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/vefat_izin_screen.dart';
 
-class IzinTuruSecimScreen extends ConsumerWidget {
+class IzinTuruSecimScreen extends ConsumerStatefulWidget {
   const IzinTuruSecimScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<IzinTuruSecimScreen> createState() =>
+      _IzinTuruSecimScreenState();
+}
+
+class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
+  bool _isActionInProgress = false;
+
+  @override
+  Widget build(BuildContext context) {
     final izinNedenlerAsync = ref.watch(allIzinNedenlerProvider);
 
     return PopScope(
@@ -37,14 +46,7 @@ class IzinTuruSecimScreen extends ConsumerWidget {
         ),
         body: izinNedenlerAsync.when(
           loading: () => const Center(
-            child: SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF014B92)),
-              ),
-            ),
+            child: BrandedLoadingIndicator(size: 80, strokeWidth: 8),
           ),
           error: (error, stack) => Center(
             child: Column(
@@ -112,53 +114,66 @@ class IzinTuruSecimScreen extends ConsumerWidget {
     );
   }
 
-  void _navigateToIzinScreen(BuildContext context, IzinNedeni neden) {
-    print(
-      '🔀 Navigating to izin screen: ID=${neden.izinSebebiId}, İzinAdı=${neden.izinAdi}',
-    );
-    Widget screen;
+  Future<void> _navigateToIzinScreen(
+    BuildContext context,
+    IzinNedeni neden,
+  ) async {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
 
-    // İzin türü ID'sine göre doğru sayfaya yönlendir
-    switch (neden.izinSebebiId) {
-      case 1: // Yıllık İzin
-        print('  → Yıllık İzin seçildi');
-        screen = const YillikIzinScreen();
-        break;
-      case 2: // Evlilik İzni
-        print('  → Evlilik İzni seçildi');
-        screen = const EvlilikIzinScreen();
-        break;
-      case 3: // Vefat İzni
-        print('  → Vefat İzni seçildi');
-        screen = const VefatIzinScreen();
-        break;
-      case 4: // Hastalık İzni
-        print('  → Hastalık İzni seçildi');
-        screen = const HastalikIzinScreen();
-        break;
-      case 5: // Mazeret İzni
-        print('  → Mazeret İzni seçildi');
-        screen = const MazeretIzinScreen();
-        break;
-      case 6: // Dini İzin
-        print('  → Dini İzin seçildi');
-        screen = const DiniIzinScreen();
-        break;
-      case 7: // Doğum İzni
-        print('  → Doğum İzni seçildi');
-        screen = const DogumIzinScreen();
-        break;
-      case 8: // Kurum Görevlendirmesi
-        print('  → Kurum Görevlendirmesi seçildi');
-        screen = const KurumGorevlendirmesiIzinScreen();
-        break;
-      default:
-        print(
-          '  ⚠️ Bilinmeyen ID: ${neden.izinSebebiId}, Dini İzin yükleniyor',
-        );
-        screen = const DiniIzinScreen();
+    try {
+      print(
+        '🔀 Navigating to izin screen: ID=${neden.izinSebebiId}, İzinAdı=${neden.izinAdi}',
+      );
+      Widget screen;
+
+      // İzin türü ID'sine göre doğru sayfaya yönlendir
+      switch (neden.izinSebebiId) {
+        case 1: // Yıllık İzin
+          print('  → Yıllık İzin seçildi');
+          screen = const YillikIzinScreen();
+          break;
+        case 2: // Evlilik İzni
+          print('  → Evlilik İzni seçildi');
+          screen = const EvlilikIzinScreen();
+          break;
+        case 3: // Vefat İzni
+          print('  → Vefat İzni seçildi');
+          screen = const VefatIzinScreen();
+          break;
+        case 4: // Hastalık İzni
+          print('  → Hastalık İzni seçildi');
+          screen = const HastalikIzinScreen();
+          break;
+        case 5: // Mazeret İzni
+          print('  → Mazeret İzni seçildi');
+          screen = const MazeretIzinScreen();
+          break;
+        case 6: // Dini İzin
+          print('  → Dini İzin seçildi');
+          screen = const DiniIzinScreen();
+          break;
+        case 7: // Doğum İzni
+          print('  → Doğum İzni seçildi');
+          screen = const DogumIzinScreen();
+          break;
+        case 8: // Kurum Görevlendirmesi
+          print('  → Kurum Görevlendirmesi seçildi');
+          screen = const KurumGorevlendirmesiIzinScreen();
+          break;
+        default:
+          print(
+            '  ⚠️ Bilinmeyen ID: ${neden.izinSebebiId}, Dini İzin yükleniyor',
+          );
+          screen = const DiniIzinScreen();
+      }
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => screen),
+      );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
     }
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
   }
 }

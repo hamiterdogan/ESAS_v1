@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 
 class PersonelSecimModal extends ConsumerWidget {
@@ -57,16 +58,7 @@ class PersonelSecimModal extends ConsumerWidget {
           Expanded(
             child: filteredPersonelAsync.when(
               loading: () => const Center(
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF014B92),
-                    ),
-                  ),
-                ),
+                child: BrandedLoadingIndicator(size: 60, strokeWidth: 6),
               ),
               error: (error, stack) => Center(
                 child: Column(

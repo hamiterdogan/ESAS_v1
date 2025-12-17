@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
 class AracTuruSecimScreen extends ConsumerWidget {
@@ -32,7 +33,9 @@ class AracTuruSecimScreen extends ConsumerWidget {
         ),
       ),
       body: aracTurleriAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(
+            child: BrandedLoadingIndicator(size: 80, strokeWidth: 8),
+          ),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
