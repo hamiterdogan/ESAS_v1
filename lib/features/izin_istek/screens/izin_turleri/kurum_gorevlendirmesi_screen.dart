@@ -23,6 +23,8 @@ class _KurumGorevlendirmesiIzinScreenState
   final _formKey = GlobalKey<FormState>();
   final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
+  final _aciklamaFocusNode = FocusNode();
+  final _adresFocusNode = FocusNode();
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   int _baslangicSaat = 8;
@@ -59,6 +61,8 @@ class _KurumGorevlendirmesiIzinScreenState
   void dispose() {
     _aciklamaController.dispose();
     _adresController.dispose();
+    _aciklamaFocusNode.dispose();
+    _adresFocusNode.dispose();
     super.dispose();
   }
 
@@ -67,6 +71,7 @@ class _KurumGorevlendirmesiIzinScreenState
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
@@ -106,7 +111,10 @@ class _KurumGorevlendirmesiIzinScreenState
                   },
                 ),
                 const SizedBox(height: 10),
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -249,6 +257,7 @@ class _KurumGorevlendirmesiIzinScreenState
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _adresFocusNode,
                   controller: _adresController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen izinde bulunacağı adres giriniz.',
@@ -426,6 +435,7 @@ class _KurumGorevlendirmesiIzinScreenState
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -438,6 +448,7 @@ class _KurumGorevlendirmesiIzinScreenState
           'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
+        _adresFocusNode.requestFocus();
         return;
       }
 

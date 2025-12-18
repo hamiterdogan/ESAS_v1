@@ -12,7 +12,7 @@ import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_liste_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_ekle_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
-import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_screen.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_turu_secim_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/a4_kagidi_istek_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_baski_istek_screen.dart';
@@ -87,7 +87,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/dokumantasyon_istek',
-      builder: (context, state) => const DokumantasyonIstekScreen(),
+      builder: (context, state) => const DokumantasyonTalepYonetimScreen(),
     ),
     GoRoute(
       path: '/dokumantasyon/turu_secim',

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
+import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokuman_tur_model.dart';
@@ -14,6 +15,9 @@ import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart'
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_istek_req.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
 
 class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
   const DokumantasyonBaskiIstekScreen({super.key});
@@ -72,6 +76,7 @@ class _DokumantasyonBaskiIstekScreenState
 
   // Lock mechanism for multi-tap prevention
   bool _isActionInProgress = false;
+  final FocusNode _dosyaIcerikFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -94,6 +99,7 @@ class _DokumantasyonBaskiIstekScreenState
     _dosyaIcerikController.dispose();
     _baskiAdediController.dispose();
     _sayfaSayisiController.dispose();
+    _dosyaIcerikFocusNode.dispose();
     super.dispose();
   }
 
@@ -110,14 +116,14 @@ class _DokumantasyonBaskiIstekScreenState
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.2), // Dim background slightly
+      barrierColor: Colors.black.withOpacity(0.6), // Dim background further
       builder: (dialogContext) {
         return Center(
           child: Container(
             width: 175,
             height: 175,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.transparent, // Show only the indicator
               borderRadius: BorderRadius.circular(32),
             ),
             alignment: Alignment.center,
@@ -400,23 +406,197 @@ class _DokumantasyonBaskiIstekScreenState
 
   void _submit() {
     if (_isActionInProgress) return;
+
+    // Validations
+    if (_selectedDokumanTuru == null) {
+      _showStatusBottomSheet('Lütfen doküman türünü seçiniz.', isError: true);
+      return;
+    }
+
+    // Açıklama validation (Binek araç ekranı ile aynı)
+    if (_aciklamaController.text.length < 30) {
+      _showStatusBottomSheet(
+        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+        isError: true,
+      );
+      return;
+    }
+
+    if (!_isKopyaElden) {
+      if (_selectedFiles.isEmpty) {
+        _showStatusBottomSheet(
+          'Lütfen en az bir dosya seçiniz.',
+          isError: true,
+        );
+        return;
+      }
+      if (_dosyaIcerikController.text.trim().isEmpty) {
+        _dosyaIcerikFocusNode.requestFocus();
+        _showStatusBottomSheet(
+          'Lütfen dosya içeriğini belirtiniz.',
+          isError: true,
+        );
+        return;
+      }
+    }
+
     setState(() => _isActionInProgress = true);
 
-    try {
-      // Implement submit logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dokümantasyon baskı isteği hazırlandı (placeholder)'),
+    // Calculate lists and totals
+    final visibleClasses = _accumulatedClasses
+        .where((e) => e.ogrenciSayisi > 0)
+        .toList();
+    final classesToUse = visibleClasses.isNotEmpty
+        ? visibleClasses
+        : _accumulatedClasses;
+
+    final totalStudents = classesToUse.fold<int>(
+      0,
+      (p, c) => p + c.ogrenciSayisi,
+    );
+
+    // Map OkullarSatir
+    final okullarSatir = classesToUse.map((e) {
+      String seviye = '';
+      if (e.sinif.length >= 2) {
+        seviye = e.sinif.substring(0, 2);
+      } else {
+        seviye = e.sinif;
+      }
+
+      return OkulSatirItem(okulKodu: e.okul, sinif: e.sinif, seviye: seviye);
+    }).toList();
+
+    // Prepare Request Object
+    final request = DokumantasyonBaskiIstekReq(
+      teslimTarihi: _teslimTarihi,
+      baskiAdedi: _baskiAdedi,
+      kagitTalebi: _baskiBoyutu,
+      dokumanTuru: _selectedDokumanTuru?.tur ?? '',
+      aciklama: _aciklamaController.text,
+      baskiTuru: _isRenkliBaski ? 'Renkli Baskı' : 'Siyah-Beyaz Baskı',
+      onluArkali: _isArkaliOnlu,
+      kopyaElden: _isKopyaElden,
+      formFile: _selectedFiles
+          .map((e) => e.path.split(Platform.pathSeparator).last)
+          .toList(),
+      dosyaAciklama: _dosyaIcerikController.text,
+      sayfaSayisi: _sayfaSayisi,
+      toplamSayfa: _baskiAdedi * _sayfaSayisi,
+      ogrenciSayisi: totalStudents,
+      okullarSatir: okullarSatir,
+    );
+
+    // Summary Items
+    final summaryItems = <GenericSummaryItem>[
+      GenericSummaryItem(
+        label: 'Teslim Tarihi',
+        value:
+            '${_teslimTarihi.day.toString().padLeft(2, '0')}.${_teslimTarihi.month.toString().padLeft(2, '0')}.${_teslimTarihi.year}',
+        multiLine: false,
+      ),
+      GenericSummaryItem(
+        label: 'Doküman Türü',
+        value: _selectedDokumanTuru?.tur ?? '-',
+        multiLine: false,
+      ),
+      GenericSummaryItem(
+        label: 'Baskı Özellikleri',
+        value: [
+          '$_baskiAdedi Adet, $_sayfaSayisi Sayfa (Toplam: ${_baskiAdedi * _sayfaSayisi})',
+          'Boyut: $_baskiBoyutu',
+          _isRenkliBaski ? 'Renkli Baskı' : 'Siyah-Beyaz Baskı',
+          _isArkaliOnlu ? 'Arkalı Önlü' : 'Tek Yön',
+        ].join('\n'),
+        multiLine: true,
+      ),
+      GenericSummaryItem(
+        label: 'Teslimat Şekli',
+        value: _isKopyaElden ? 'Kopya elden teslim edilecek' : 'Dosya yüklendi',
+        multiLine: false,
+      ),
+      GenericSummaryItem(
+        label: 'Açıklama',
+        value: _aciklamaController.text.isEmpty
+            ? '-'
+            : _aciklamaController.text,
+        multiLine: true,
+      ),
+    ];
+
+    if (!_isKopyaElden) {
+      if (_selectedFiles.isNotEmpty) {
+        summaryItems.add(
+          GenericSummaryItem(
+            label: 'Dosyalar',
+            value: _selectedFiles
+                .map((e) => e.path.split(Platform.pathSeparator).last)
+                .join('\n'),
+            multiLine: true,
+          ),
+        );
+      }
+
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Dosya İçeriği',
+          value: _dosyaIcerikController.text,
+          multiLine: true,
         ),
       );
-    } finally {
-      if (mounted) setState(() => _isActionInProgress = false);
     }
+
+    // Add selected classes summary
+    if (classesToUse.isNotEmpty) {
+      final classDetails = classesToUse
+          .map((e) => '${e.okul} - ${e.sinif} (${e.ogrenciSayisi} öğrenci)')
+          .join('\n');
+
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Seçilen Sınıflar',
+          value: 'Toplam $totalStudents Öğrenci\n$classDetails',
+          multiLine: true,
+        ),
+      );
+    }
+
+    setState(() => _isActionInProgress = false);
+
+    showGenericSummaryBottomSheet(
+      context: context,
+      requestData: request
+          .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
+      title: 'Dokümantasyon Baskı İstek',
+      summaryItems: summaryItems,
+      showRequestData: false,
+      onConfirm: () async {
+        final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+        final result = await repo.dokumantasyonBaskiIstekEkle(
+          request: request,
+          files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
+        );
+
+        if (result is Failure) {
+          throw Exception(result.message);
+        }
+      },
+      onSuccess: () {
+        ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+        _showStatusBottomSheet(
+          'Dokümantasyon baskı isteği başarıyla gönderildi',
+        );
+      },
+      onError: (error) {
+        _showStatusBottomSheet(error, isError: true);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         title: const Text(
           'Dokümantasyon Baskı İstek',
@@ -804,6 +984,7 @@ class _DokumantasyonBaskiIstekScreenState
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _dosyaIcerikFocusNode,
                   controller: _dosyaIcerikController,
                   decoration: InputDecoration(
                     hintText: 'Dosya içeriği hakkında bilgi veriniz',
@@ -1290,6 +1471,22 @@ class _DokumantasyonBaskiIstekScreenState
                           onPressed: () async {
                             if (_currentFilterPage.isEmpty) {
                               // Uygula
+                              if (localSelectedOkul.isEmpty &&
+                                  localSelectedSeviye.isEmpty &&
+                                  localSelectedSinif.isEmpty) {
+                                // No filters chosen; avoid selecting everyone
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Herhangi bir filtre seçilmedi, öğrenci eklenmedi.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+
                               // Fetch student counts for the current selection
                               final resp = await _fetchFilters(
                                 localSelectedOkul,
@@ -1489,68 +1686,71 @@ class _DokumantasyonBaskiIstekScreenState
                         ],
                       ),
                     ),
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final displayList = _accumulatedClasses
-                            .where((e) => e.ogrenciSayisi > 0)
-                            .toList();
+                    Expanded(
+                      child: Builder(
+                        builder: (context) {
+                          final displayList = _accumulatedClasses
+                              .where((e) => e.ogrenciSayisi > 0)
+                              .toList();
 
-                        if (displayList.isEmpty) {
-                          return const Center(
-                            child: Text('Görüntülenecek sınıf yok.'),
-                          );
-                        }
-
-                        return ListView.builder(
-                          controller: scrollController,
-                          itemCount: displayList.length,
-                          itemBuilder: (context, index) {
-                            final item = displayList[index];
-                            final label =
-                                '${item.okul} - ${item.sinif} (${item.ogrenciSayisi} öğrenci)';
-                            return Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.shade100,
-                                  ),
-                                ),
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  label,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Color(0xFF424242),
-                                  ),
-                                  onPressed: () {
-                                    setStartModalState(() {
-                                      _accumulatedClasses.remove(item);
-                                    });
-                                    // Also update main screen
-                                    setState(() {});
-
-                                    // If no visible items left, verify state
-                                     final remainingVisible = _accumulatedClasses.where((e) => e.ogrenciSayisi > 0);
-                                    if (remainingVisible.isEmpty) {
-                                      Navigator.pop(context);
-                                    }
-                                  },
-                                ),
-                              ),
+                          if (displayList.isEmpty) {
+                            return const Center(
+                              child: Text('Görüntülenecek sınıf yok.'),
                             );
-                          },
-                        );
-                      },
+                          }
+
+                          return ListView.builder(
+                            controller: scrollController,
+                            itemCount: displayList.length,
+                            itemBuilder: (context, index) {
+                              final item = displayList[index];
+                              final label =
+                                  '${item.okul} - ${item.sinif} (${item.ogrenciSayisi} öğrenci)';
+                              return Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Colors.grey.shade100,
+                                    ),
+                                  ),
+                                ),
+                                child: ListTile(
+                                  title: Text(
+                                    label,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Color(0xFF424242),
+                                    ),
+                                    onPressed: () {
+                                      setStartModalState(() {
+                                        _accumulatedClasses.remove(item);
+                                      });
+                                      // Also update main screen
+                                      setState(() {});
+
+                                      // If no visible items left, verify state
+                                      final remainingVisible =
+                                          _accumulatedClasses.where(
+                                            (e) => e.ogrenciSayisi > 0,
+                                          );
+                                      if (remainingVisible.isEmpty) {
+                                        Navigator.pop(context);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 66),
                       child: SizedBox(
@@ -2126,6 +2326,65 @@ class _DokumantasyonBaskiIstekScreenState
       return '${_selectedOkulKodu.length} okul seçildi';
     }
     return 'Sınıf Seçiniz';
+  }
+
+  void _showStatusBottomSheet(String message, {bool isError = false}) {
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext statusContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            color: Colors.white,
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isError ? Icons.error_outline : Icons.check_circle_outline,
+                size: 64,
+                color: isError ? Colors.red : Colors.green,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(statusContext);
+                  if (!isError) {
+                    context.go('/dokumantasyon_istek');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientEnd,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

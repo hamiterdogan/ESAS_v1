@@ -7,6 +7,7 @@ class AciklamaFieldWidget extends ConsumerStatefulWidget {
   final int minLines;
   final int maxLines;
   final int minCharacters;
+  final FocusNode? focusNode;
 
   const AciklamaFieldWidget({
     super.key,
@@ -15,6 +16,7 @@ class AciklamaFieldWidget extends ConsumerStatefulWidget {
     this.minLines = 4,
     this.maxLines = 10,
     this.minCharacters = 30,
+    this.focusNode,
   });
 
   @override
@@ -54,6 +56,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          focusNode: widget.focusNode,
           controller: widget.controller,
           decoration: InputDecoration(
             hintText: 'Lütfen detaylı bir açıklama giriniz.',

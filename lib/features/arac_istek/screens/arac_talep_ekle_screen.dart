@@ -85,6 +85,9 @@ class _AracTalepEkleScreenState
   // Lock mechanism for multi-tap prevention
   bool _isActionInProgress = false;
 
+  final FocusNode _customAracIstekNedeniFocusNode = FocusNode();
+  final FocusNode _aciklamaFocusNode = FocusNode();
+
   bool get _hasOgrenciBaseCache {
     return _initialOkulKoduList.isNotEmpty &&
         _initialSeviyeList.isNotEmpty &&
@@ -129,7 +132,10 @@ class _AracTalepEkleScreenState
     _aciklamaController.dispose();
     for (final entry in _entries) {
       entry.adresController.dispose();
+      entry.focusNode.dispose();
     }
+    _customAracIstekNedeniFocusNode.dispose();
+    _aciklamaFocusNode.dispose();
     super.dispose();
   }
 
@@ -284,6 +290,7 @@ class _AracTalepEkleScreenState
     }
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
@@ -402,6 +409,7 @@ class _AracTalepEkleScreenState
                                           setState(() {
                                             _entries[index].adresController
                                                 .dispose();
+                                            _entries[index].focusNode.dispose();
                                             _entries.removeAt(index);
                                           });
                                         },
@@ -418,6 +426,7 @@ class _AracTalepEkleScreenState
                                         bottom: 12,
                                       ),
                                       child: TextField(
+                                        focusNode: entry.focusNode,
                                         controller: entry.adresController,
                                         decoration: InputDecoration(
                                           hintText: 'Semt ve adres giriniz',
@@ -735,6 +744,7 @@ class _AracTalepEkleScreenState
                     child: SizedBox(
                       width: double.infinity,
                       child: TextField(
+                        focusNode: _customAracIstekNedeniFocusNode,
                         controller: _customAracIstekNedeniController,
                         onChanged: (value) {
                           setState(() {
@@ -769,7 +779,9 @@ class _AracTalepEkleScreenState
                   ),
 
                 const SizedBox(height: 24),
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                    controller: _aciklamaController,
+                    focusNode: _aciklamaFocusNode),
 
                 const SizedBox(height: 32),
                 Text(
@@ -989,6 +1001,7 @@ class _AracTalepEkleScreenState
           'Lütfen diğer istek nedenini giriniz',
           isError: true,
         );
+        _customAracIstekNedeniFocusNode.requestFocus();
         return;
       }
 
@@ -998,6 +1011,7 @@ class _AracTalepEkleScreenState
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -1015,6 +1029,7 @@ class _AracTalepEkleScreenState
             'Lütfen yer için semt/adres giriniz',
             isError: true,
           );
+          entry.focusNode.requestFocus();
           return;
         }
       }
@@ -4705,7 +4720,13 @@ class _AracTalepEkleScreenState
   void _addEntry(GidilecekYerItem yer) {
     final controller = TextEditingController();
     setState(() {
-      _entries.add(_YerEntry(yer: yer, adresController: controller));
+      _entries.add(
+        _YerEntry(
+          yer: yer,
+          adresController: controller,
+          focusNode: FocusNode(),
+        ),
+      );
     });
   }
 }
@@ -4713,6 +4734,11 @@ class _AracTalepEkleScreenState
 class _YerEntry {
   final GidilecekYerItem yer;
   final TextEditingController adresController;
+  final FocusNode focusNode;
 
-  _YerEntry({required this.yer, required this.adresController});
+  _YerEntry({
+    required this.yer,
+    required this.adresController,
+    required this.focusNode,
+  });
 }

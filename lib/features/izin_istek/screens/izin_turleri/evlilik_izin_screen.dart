@@ -22,6 +22,9 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
   final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
   final _esAdiController = TextEditingController();
+  final _aciklamaFocusNode = FocusNode();
+  final _adresFocusNode = FocusNode();
+  final _esAdiFocusNode = FocusNode();
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   DateTime? _evlilikTarihi;
@@ -56,6 +59,9 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     _aciklamaController.dispose();
     _adresController.dispose();
     _esAdiController.dispose();
+    _aciklamaFocusNode.dispose();
+    _adresFocusNode.dispose();
+    _esAdiFocusNode.dispose();
     super.dispose();
   }
 
@@ -64,6 +70,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'Evlilik İzni İstek',
@@ -105,7 +112,10 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 const SizedBox(height: 10),
 
                 // Açıklama
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
                 const SizedBox(height: 24),
 
                 // Başlangıç ve Bitiş Tarihi
@@ -206,6 +216,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _esAdiFocusNode,
                   controller: _esAdiController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen eşinizin adını giriniz.',
@@ -268,6 +279,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _adresFocusNode,
                   controller: _adresController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
@@ -436,6 +448,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -448,6 +461,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
           'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
+        _adresFocusNode.requestFocus();
         return;
       }
 
@@ -457,6 +471,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
           _esAdiHatali = true;
         });
         _showStatusBottomSheet('Lütfen eşinizin adını giriniz', isError: true);
+        _esAdiFocusNode.requestFocus();
         return;
       }
 

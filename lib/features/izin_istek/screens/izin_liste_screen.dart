@@ -49,6 +49,7 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
         }
       },
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'İzin Taleplerini Yönet',

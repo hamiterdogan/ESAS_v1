@@ -21,6 +21,7 @@ class _GidilecekYerSecimScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(title: const Text('Gidilecek Yer Seçimi')),
       body: const Center(
         child: Text(

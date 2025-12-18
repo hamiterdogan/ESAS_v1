@@ -91,10 +91,12 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFE8E3E3),
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: const _GradientAppBar(title: 'İzin İstek', onBackLabel: 'back'),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
         child: Form(
           key: _formKey,
           child: Column(
@@ -298,6 +300,7 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

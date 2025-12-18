@@ -15,6 +15,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
     return PopScope(
       canPop: true,
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'Personel Seçin',

@@ -42,6 +42,9 @@ abstract class AracTalepRepository {
 
   /// Araç istek formu için gidilecek yer dropdown'ı
   Future<Result<List<GidilecekYerItem>>> aracIstekGidilecekYerGetir();
+
+  /// Araç isteğini sil
+  Future<Result<void>> aracIstekSil({required int id});
 }
 
 class AracTalepRepositoryImpl implements AracTalepRepository {
@@ -370,6 +373,28 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
       );
     } catch (e) {
       return Failure('Yerler yüklenemedi: $e');
+    }
+  }
+
+  @override
+  Future<Result<void>> aracIstekSil({required int id}) async {
+    try {
+      final response = await _dio.post(
+        '/AracIstek/AracIstekSil',
+        queryParameters: {'id': id},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
     }
   }
 }

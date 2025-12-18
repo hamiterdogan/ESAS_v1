@@ -22,6 +22,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
   final _yakinlikDerecesiController = TextEditingController();
+  final _aciklamaFocusNode = FocusNode();
+  final _adresFocusNode = FocusNode();
+  final _yakinlikDerecesiFocusNode = FocusNode();
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   int _girileymeyenDersSaati = 0;
@@ -113,6 +116,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     _aciklamaController.dispose();
     _adresController.dispose();
     _yakinlikDerecesiController.dispose();
+    _aciklamaFocusNode.dispose();
+    _adresFocusNode.dispose();
+    _yakinlikDerecesiFocusNode.dispose();
     super.dispose();
   }
 
@@ -121,6 +127,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'Vefat İzni İstek',
@@ -151,7 +158,10 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   },
                 ),
                 const SizedBox(height: 10),
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
@@ -228,6 +238,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _yakinlikDerecesiFocusNode,
                   controller: _yakinlikDerecesiController,
                   decoration: InputDecoration(
                     hintText:
@@ -282,6 +293,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _adresFocusNode,
                   controller: _adresController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen izinde bulunacağı adres giriniz.',
@@ -443,6 +455,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -455,6 +468,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           'Lütfen vefat edenin yakınlık derecesini giriniz',
           isError: true,
         );
+        _yakinlikDerecesiFocusNode.requestFocus();
         return;
       }
 
@@ -467,6 +481,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
+        _adresFocusNode.requestFocus();
         return;
       }
 

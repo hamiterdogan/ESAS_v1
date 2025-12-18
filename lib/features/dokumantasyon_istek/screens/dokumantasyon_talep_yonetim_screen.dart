@@ -1,33 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
-import 'package:esas_v1/features/arac_istek/repositories/arac_talep_repository.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
 
-class AracTalepYonetimScreen extends ConsumerStatefulWidget {
-  const AracTalepYonetimScreen({super.key});
+class DokumantasyonTalepYonetimScreen extends ConsumerStatefulWidget {
+  const DokumantasyonTalepYonetimScreen({super.key});
 
   @override
-  ConsumerState<AracTalepYonetimScreen> createState() =>
-      _AracTalepYonetimScreenState();
+  ConsumerState<DokumantasyonTalepYonetimScreen> createState() =>
+      _DokumantasyonTalepYonetimScreenState();
 }
 
-class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
+class _DokumantasyonTalepYonetimScreenState
+    extends ConsumerState<DokumantasyonTalepYonetimScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  final GlobalKey<_AracTalepListesiState> _devamEdenKey = GlobalKey();
-  final GlobalKey<_AracTalepListesiState> _tamamlananKey = GlobalKey();
+  final GlobalKey<_DokumantasyonTalepListesiState> _devamEdenKey = GlobalKey();
+  final GlobalKey<_DokumantasyonTalepListesiState> _tamamlananKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Tab değişikliğinde AppBar'ı yeniden build et
     _tabController.addListener(() {
       setState(() {});
     });
@@ -52,7 +52,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
         backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
-            'Araç Taleplerini Yönet',
+            'Dokümantasyon Taleplerini Yönet',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: const Color(0xFF014B92),
@@ -63,23 +63,13 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
           ),
           elevation: 0,
           actions: _tabController.index == 0
-              ? [] // Devam Eden tabında filtre ikonunu gizle
+              ? []
               : [
-                  // Sıralama ikonları şimdilik gizli - ilerde tekrar etkinleştirilecek
-                  // Padding(
-                  //   padding: const EdgeInsets.only(right: 4),
-                  //   child: InkWell(...sort...)
-                  // ),
                   CommonAppBarActionButton(
                     label: 'Filtrele',
                     onTap: () {
-                      if (_tabController.index == 0) {
-                        _devamEdenKey.currentState
-                            ?.showFilterBottomSheetPublic();
-                      } else {
-                        _tamamlananKey.currentState
-                            ?.showFilterBottomSheetPublic();
-                      }
+                      _tamamlananKey.currentState
+                          ?.showFilterBottomSheetPublic();
                     },
                   ),
                 ],
@@ -105,12 +95,12 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
         body: TabBarView(
           controller: _tabController,
           children: [
-            _AracTalepListesi(key: _devamEdenKey, tip: 0),
-            _AracTalepListesi(key: _tamamlananKey, tip: 1),
+            _DokumantasyonTalepListesi(key: _devamEdenKey, tip: 0),
+            _DokumantasyonTalepListesi(key: _tamamlananKey, tip: 1),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.push('/arac/turu_secim'),
+          onPressed: () => context.push('/dokumantasyon/turu_secim'),
           backgroundColor: const Color(0xFF014B92),
           icon: Container(
             decoration: BoxDecoration(
@@ -121,7 +111,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni Araç Talebi',
+            'Yeni Dokümantasyon İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),
@@ -130,67 +120,25 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
   }
 }
 
-class _AracTalepListesi extends ConsumerStatefulWidget {
+class _DokumantasyonTalepListesi extends ConsumerStatefulWidget {
   final int tip; // 0: Devam Eden, 1: Tamamlanan
 
-  const _AracTalepListesi({super.key, required this.tip});
+  const _DokumantasyonTalepListesi({super.key, required this.tip});
 
   @override
-  ConsumerState<_AracTalepListesi> createState() => _AracTalepListesiState();
+  ConsumerState<_DokumantasyonTalepListesi> createState() =>
+      _DokumantasyonTalepListesiState();
 }
 
-class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
+class _DokumantasyonTalepListesiState
+    extends ConsumerState<_DokumantasyonTalepListesi> {
   bool _yenidenEskiye = true;
   Set<String> _selectedDurumlar = {};
   List<String> _availableDurumlar = [];
 
-  void showSiralamaBottomSheetPublic() {
-    _showSiralamaBottomSheet();
-  }
-
   void showFilterBottomSheetPublic() {
-    // Filtrelenecek alan yoksa hiçbir tepki verme
-    if (_availableDurumlar.isEmpty) {
-      return;
-    }
+    if (_availableDurumlar.isEmpty) return;
     _showFilterBottomSheet();
-  }
-
-  Future<void> _showSiralamaBottomSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.arrow_downward),
-                title: const Text('Yeniden eskiye'),
-                trailing: _yenidenEskiye
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : null,
-                onTap: () {
-                  setState(() => _yenidenEskiye = true);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.arrow_upward),
-                title: const Text('Eskiden yeniye'),
-                trailing: !_yenidenEskiye
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : null,
-                onTap: () {
-                  setState(() => _yenidenEskiye = false);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _showFilterBottomSheet() async {
@@ -290,12 +238,14 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     return Colors.blue;
   }
 
-  Future<void> _deleteAracTalebi(int id) async {
+  Future<void> _deleteDokumantasyonTalebi(int id) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Talebi Sil'),
-        content: const Text('Bu araç talebini silmek istediğinize emin misiniz?'),
+        content: const Text(
+          'Bu dokümantasyon talebini silmek istediğinize emin misiniz?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -312,14 +262,14 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     if (shouldDelete != true) return;
 
     try {
-      final repo = ref.read(aracTalepRepositoryProvider);
-      final result = await repo.aracIstekSil(id: id);
+      final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+      final result = await repo.dokumantasyonIstekSil(id: id);
 
       if (!mounted) return;
 
       if (result is Success) {
-        ref.invalidate(aracDevamEdenTaleplerProvider);
-        ref.invalidate(aracTamamlananTaleplerProvider);
+        ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+        ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -338,10 +288,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Hata: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -349,8 +296,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
   @override
   Widget build(BuildContext context) {
     final provider = widget.tip == 0
-        ? aracDevamEdenTaleplerProvider
-        : aracTamamlananTaleplerProvider;
+        ? dokumantasyonDevamEdenTaleplerProvider
+        : dokumantasyonTamamlananTaleplerProvider;
     final taleplerAsync = ref.watch(provider);
 
     return taleplerAsync.when(
@@ -387,8 +334,9 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
               final statusColor = _getStatusColor(talep.onayDurumu);
               final tarihStr = _formatDate(talep.olusturmaTarihi);
 
-              final isDeleteAvailable =
-                  talep.onayDurumu.toLowerCase().contains('onay bekliyor');
+              final isDeleteAvailable = talep.onayDurumu.toLowerCase().contains(
+                'onay bekliyor',
+              );
 
               return Slidable(
                 key: ValueKey(talep.onayKayitID),
@@ -397,7 +345,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         motion: const ScrollMotion(),
                         children: [
                           CustomSlidableAction(
-                            onPressed: (_) => _deleteAracTalebi(talep.onayKayitID),
+                            onPressed: (_) =>
+                                _deleteDokumantasyonTalebi(talep.onayKayitID),
                             backgroundColor: Colors.red,
                             child: Container(
                               decoration: const BoxDecoration(
@@ -407,11 +356,17 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                   bottomRight: Radius.circular(12),
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               child: const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.delete, size: 36, color: Colors.white),
+                                  Icon(
+                                    Icons.delete,
+                                    size: 36,
+                                    color: Colors.white,
+                                  ),
                                   SizedBox(height: 6),
                                   Text(
                                     'Talebi Sil',
@@ -440,7 +395,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         slidable?.close();
                         return;
                       }
-                      context.push('/arac/detay/${talep.onayKayitID}');
+                      // Detay ekranı eklenirse buradan yönlendirebiliriz.
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(
@@ -483,38 +438,11 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  // Araç Türü
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        'Araç Türü: ',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF014B92),
-                                        ),
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          talep.aracTuru?.isNotEmpty == true
-                                              ? talep.aracTuru!
-                                              : 'Bilinmiyor',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Flexible(
                                         child: Text(
@@ -535,8 +463,12 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           vertical: 5,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: statusColor.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -547,8 +479,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                                   : talep.onayDurumu.contains(
                                                       'Reddedildi',
                                                     )
-                                                      ? Icons.close
-                                                      : Icons.check_circle,
+                                                  ? Icons.close
+                                                  : Icons.check_circle,
                                               size: 18,
                                               color: statusColor,
                                             ),

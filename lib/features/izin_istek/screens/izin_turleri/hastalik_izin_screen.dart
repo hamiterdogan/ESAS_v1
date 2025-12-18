@@ -22,6 +22,8 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
   final _formKey = GlobalKey<FormState>();
   final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
+  final _aciklamaFocusNode = FocusNode();
+  final _adresFocusNode = FocusNode();
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   int _baslangicSaat = 8;
@@ -61,6 +63,8 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
   void dispose() {
     _aciklamaController.dispose();
     _adresController.dispose();
+    _aciklamaFocusNode.dispose();
+    _adresFocusNode.dispose();
     super.dispose();
   }
 
@@ -90,6 +94,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'Hastalık İzni İstek',
@@ -123,7 +128,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 const SizedBox(height: 10),
 
                 // Açıklama
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
                 const SizedBox(height: 24),
 
                 // 1 günlük izin toggle
@@ -304,6 +312,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _adresFocusNode,
                   controller: _adresController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
@@ -613,6 +622,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -625,6 +635,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
           'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
+        _adresFocusNode.requestFocus();
         return;
       }
 

@@ -21,6 +21,8 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
   final _formKey = GlobalKey<FormState>();
   final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
+  final _aciklamaFocusNode = FocusNode();
+  final _adresFocusNode = FocusNode();
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   int _girileymeyenDersSaati = 0;
@@ -55,6 +57,8 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
   void dispose() {
     _aciklamaController.dispose();
     _adresController.dispose();
+    _aciklamaFocusNode.dispose();
+    _adresFocusNode.dispose();
     super.dispose();
   }
 
@@ -63,6 +67,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
         appBar: AppBar(
           title: const Text(
             'Dini İzin İstek',
@@ -101,7 +106,10 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 const SizedBox(height: 10),
 
                 // Açıklama
-                AciklamaFieldWidget(controller: _aciklamaController),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
                 const SizedBox(height: 24),
 
                 // 1 günlük izin toggle
@@ -319,6 +327,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
+                  focusNode: _adresFocusNode,
                   controller: _adresController,
                   decoration: InputDecoration(
                     hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
@@ -471,6 +480,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
+        _aciklamaFocusNode.requestFocus();
         return;
       }
 
@@ -483,6 +493,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
+        _adresFocusNode.requestFocus();
         return;
       }
 

@@ -41,6 +41,8 @@ class _AracIstekYukEkleScreenState
   late TextEditingController _mesafeController;
   late TextEditingController _tasInacakYukController;
   late TextEditingController _aciklamaController;
+  final _tasInacakYukFocusNode = FocusNode();
+  final _aciklamaFocusNode = FocusNode();
   int _tahminiMesafe = 1;
   DateTime? _gidilecekTarih;
   int _gidisSaat = 8;
@@ -56,6 +58,8 @@ class _AracIstekYukEkleScreenState
     for (final entry in _entries) {
       entry.adresController.dispose();
     }
+    _tasInacakYukFocusNode.dispose();
+    _aciklamaFocusNode.dispose();
     super.dispose();
   }
 
@@ -287,6 +291,7 @@ class _AracIstekYukEkleScreenState
   Widget build(BuildContext context) {
     final aracTuru = _getAracTuruName();
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         title: Text(
           '$aracTuru Araç Talebi',
@@ -301,8 +306,10 @@ class _AracIstekYukEkleScreenState
         ),
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -681,22 +688,27 @@ class _AracIstekYukEkleScreenState
                 ),
               ),
               const SizedBox(height: 8),
-              TextField(
-                controller: _tasInacakYukController,
-                maxLines: 1,
-                decoration: InputDecoration(
-                  hintText: 'Taşınacak yükün detaylarını giriniz',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                TextField(
+                  focusNode: _tasInacakYukFocusNode,
+                  controller: _tasInacakYukController,
+                  maxLines: 1,
+                  decoration: InputDecoration(
+                    hintText: 'Taşınacak yükün detaylarını giriniz',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    prefixIcon: const Icon(Icons.local_shipping_outlined),
                   ),
-                  prefixIcon: const Icon(Icons.local_shipping_outlined),
                 ),
-              ),
               const SizedBox(height: 24),
 
-              AciklamaFieldWidget(controller: _aciklamaController),
+ 
+              AciklamaFieldWidget(
+                controller: _aciklamaController,
+                focusNode: _aciklamaFocusNode,
+              ),
               const SizedBox(height: 24),
 
               // Gönder Butonu
@@ -731,6 +743,7 @@ class _AracIstekYukEkleScreenState
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -747,6 +760,7 @@ class _AracIstekYukEkleScreenState
         'Lütfen taşınacak yük hakkında bilgi giriniz',
         isError: true,
       );
+      _tasInacakYukFocusNode.requestFocus();
       return;
     }
 
@@ -756,6 +770,7 @@ class _AracIstekYukEkleScreenState
         'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
         isError: true,
       );
+      _aciklamaFocusNode.requestFocus();
       return;
     }
 

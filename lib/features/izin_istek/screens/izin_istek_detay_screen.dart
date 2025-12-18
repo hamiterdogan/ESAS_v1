@@ -30,7 +30,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         title: Text(
           'İzin Talep Detayı (${widget.talepId})',

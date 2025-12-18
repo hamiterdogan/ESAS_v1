@@ -12,6 +12,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
     final aracTurleriAsync = ref.watch(aracTurleriProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFAFAFA),
       appBar: AppBar(
         title: const Text(
           'Yeni Araç Talebi',
