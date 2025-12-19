@@ -49,11 +49,18 @@ class _DokumantasyonTalepYonetimScreenState
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text(
-            'Dokümantasyon Taleplerini Yönet',
-            style: TextStyle(color: Colors.white),
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Dokümantasyon Taleplerini Yönet',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           backgroundColor: const Color(0xFF014B92),
           leading: IconButton(
@@ -395,7 +402,10 @@ class _DokumantasyonTalepListesiState
                         slidable?.close();
                         return;
                       }
-                      // Detay ekranı eklenirse buradan yönlendirebiliriz.
+                      context.push(
+                        '/dokumantasyon/detay/${talep.onayKayitID}',
+                        extra: talep.onayTipi,
+                      );
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(
@@ -403,6 +413,13 @@ class _DokumantasyonTalepListesiState
                         horizontal: 8,
                       ),
                       elevation: 2,
+                      color:
+                          Color.lerp(
+                            Theme.of(context).scaffoldBackgroundColor,
+                            Colors.white,
+                            0.65,
+                          ) ??
+                          Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -436,6 +453,18 @@ class _DokumantasyonTalepListesiState
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    (talep.dokumanTuru == null ||
+                                            talep.dokumanTuru!.isEmpty)
+                                        ? 'A4 Kağıdı İstek'
+                                        : 'Dokümantasyon Baskı İstek',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Row(

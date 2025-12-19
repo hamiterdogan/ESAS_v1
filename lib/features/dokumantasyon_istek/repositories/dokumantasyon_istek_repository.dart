@@ -4,6 +4,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_istek_req.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_detay_model.dart';
 import 'dart:io';
 
 abstract class DokumantasyonIstekRepository {
@@ -22,6 +23,10 @@ abstract class DokumantasyonIstekRepository {
 
   Future<Result<TalepYonetimResponse>> dokumantasyonTaleplerimiGetir({
     required int tip, // 0: Devam eden, 1: Tamamlanan
+  });
+
+  Future<Result<DokumantasyonIstekDetayResponse>> dokumantasyonIstekDetayGetir({
+    required int id,
   });
 
   Future<Result<void>> dokumantasyonIstekSil({required int id});
@@ -82,6 +87,30 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
 
       if (response.statusCode == 200) {
         return Success(TalepYonetimResponse.fromJson(response.data));
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<DokumantasyonIstekDetayResponse>> dokumantasyonIstekDetayGetir({
+    required int id,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/DokumantasyonIstek/DokumantasyonIstekDetay',
+        data: {'id': id},
+      );
+
+      if (response.statusCode == 200) {
+        return Success(DokumantasyonIstekDetayResponse.fromJson(response.data));
       }
 
       return Failure('Hata: ${response.statusCode}');

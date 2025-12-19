@@ -67,7 +67,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'Dini İzin İstek',
@@ -138,8 +138,14 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
@@ -171,8 +177,14 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
-                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                              labelStyle: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
                                   ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
@@ -775,4 +787,3 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     );
   }
 }
-

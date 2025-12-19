@@ -49,11 +49,18 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text(
-            'İzin Taleplerini Yönet',
-            style: TextStyle(color: Colors.white),
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'İzin Taleplerini Yönet',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           backgroundColor: const Color(0xFF014B92),
           leading: IconButton(
@@ -1011,9 +1018,14 @@ class _IzinTalepKarti extends StatelessWidget {
               if (isClosed) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (ctx) => IzinIstekDetayScreen(
-                      talepId: talep.onayKayitID,
-                      onayTipi: talep.onayTipi,
+                    builder: (ctx) => Scaffold(
+                      backgroundColor: Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor,
+                      body: IzinIstekDetayScreen(
+                        talepId: talep.onayKayitID,
+                        onayTipi: talep.onayTipi,
+                      ),
                     ),
                   ),
                 );
@@ -1024,6 +1036,13 @@ class _IzinTalepKarti extends StatelessWidget {
             child: Card(
               margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
               elevation: 2,
+              color:
+                  Color.lerp(
+                    Theme.of(context).scaffoldBackgroundColor,
+                    Colors.white,
+                    0.65,
+                  ) ??
+                  Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

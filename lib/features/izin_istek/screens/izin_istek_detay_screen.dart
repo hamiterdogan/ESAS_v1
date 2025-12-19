@@ -30,13 +30,17 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          'İzin Talep Detayı (${widget.talepId})',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'İzin Talep Detayı (${widget.talepId})',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         flexibleSpace: Container(

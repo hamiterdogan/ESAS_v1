@@ -70,7 +70,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'Evlilik İzni İstek',
@@ -125,11 +125,12 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                       child: DatePickerBottomSheetWidget(
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -157,11 +158,12 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                             ? _getNextSelectableDay(_baslangicTarihi!)
                             : null,
                         label: 'Bitiş Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -183,11 +185,12 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                       child: DatePickerBottomSheetWidget(
                         initialDate: _evlilikTarihi,
                         label: 'Evlilik Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -208,11 +211,11 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 Text(
                   'Eş Adı',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                    14) +
-                                1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -271,11 +274,11 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 Text(
                   'İzinde Bulunacağı Adres',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                    14) +
-                                1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

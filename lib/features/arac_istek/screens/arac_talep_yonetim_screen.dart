@@ -49,11 +49,18 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: const Text(
-            'Araç Taleplerini Yönet',
-            style: TextStyle(color: Colors.white),
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Araç Taleplerini Yönet',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           backgroundColor: const Color(0xFF014B92),
           leading: IconButton(
@@ -295,7 +302,9 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Talebi Sil'),
-        content: const Text('Bu araç talebini silmek istediğinize emin misiniz?'),
+        content: const Text(
+          'Bu araç talebini silmek istediğinize emin misiniz?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -338,10 +347,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Hata: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -387,8 +393,9 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
               final statusColor = _getStatusColor(talep.onayDurumu);
               final tarihStr = _formatDate(talep.olusturmaTarihi);
 
-              final isDeleteAvailable =
-                  talep.onayDurumu.toLowerCase().contains('onay bekliyor');
+              final isDeleteAvailable = talep.onayDurumu.toLowerCase().contains(
+                'onay bekliyor',
+              );
 
               return Slidable(
                 key: ValueKey(talep.onayKayitID),
@@ -397,7 +404,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         motion: const ScrollMotion(),
                         children: [
                           CustomSlidableAction(
-                            onPressed: (_) => _deleteAracTalebi(talep.onayKayitID),
+                            onPressed: (_) =>
+                                _deleteAracTalebi(talep.onayKayitID),
                             backgroundColor: Colors.red,
                             child: Container(
                               decoration: const BoxDecoration(
@@ -407,11 +415,17 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                   bottomRight: Radius.circular(12),
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
                               child: const Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.delete, size: 36, color: Colors.white),
+                                  Icon(
+                                    Icons.delete,
+                                    size: 36,
+                                    color: Colors.white,
+                                  ),
                                   SizedBox(height: 6),
                                   Text(
                                     'Talebi Sil',
@@ -448,6 +462,13 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         horizontal: 8,
                       ),
                       elevation: 2,
+                      color:
+                          Color.lerp(
+                            Theme.of(context).scaffoldBackgroundColor,
+                            Colors.white,
+                            0.65,
+                          ) ??
+                          Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -514,7 +535,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Flexible(
                                         child: Text(
@@ -535,8 +557,12 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           vertical: 5,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: statusColor.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -547,8 +573,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                                   : talep.onayDurumu.contains(
                                                       'Reddedildi',
                                                     )
-                                                      ? Icons.close
-                                                      : Icons.check_circle,
+                                                  ? Icons.close
+                                                  : Icons.check_circle,
                                               size: 18,
                                               color: statusColor,
                                             ),

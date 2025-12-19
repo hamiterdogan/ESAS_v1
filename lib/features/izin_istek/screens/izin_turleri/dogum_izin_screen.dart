@@ -65,7 +65,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'Doğum İzni İstek',
@@ -115,8 +115,14 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
@@ -139,8 +145,14 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                     const SizedBox(width: 24),
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _bitisTarihi,
                         minDate: _baslangicTarihi != null
@@ -162,8 +174,14 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _tahminiDogumTarihi,
                         label: 'Tahmini Doğum Tarihi',
@@ -195,8 +213,11 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 Text(
                   'İzinde Bulunacağı Adres',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

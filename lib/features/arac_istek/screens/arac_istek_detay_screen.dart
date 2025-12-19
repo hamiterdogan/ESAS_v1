@@ -30,13 +30,17 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     final personelAsync = ref.watch(personelBilgiProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
-          'Araç İstek Detayı (${widget.talepId})',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Araç İstek Detayı (${widget.talepId})',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         flexibleSpace: Container(

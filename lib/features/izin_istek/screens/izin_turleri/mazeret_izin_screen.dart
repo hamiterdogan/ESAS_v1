@@ -69,7 +69,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'Mazeret İzni İstek',
@@ -140,8 +140,14 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
@@ -173,8 +179,14 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
-                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                              labelStyle: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
                                   ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
@@ -195,8 +207,14 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialHour: _baslangicSaat,
                         initialMinute: _baslangicDakika,
@@ -221,7 +239,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                     Expanded(
                       child: TimePickerBottomSheetWidget(
                         key: ValueKey(
-                          'end-time-${_baslangicSaat}-${_baslangicDakika}-${_birGunlukIzin}-${_baslangicTarihi}-${_bitisTarihi}-${_bitisSaat}-${_bitisDakika}',
+                          'end-time-$_baslangicSaat-$_baslangicDakika-$_birGunlukIzin-$_baslangicTarihi-$_bitisTarihi-$_bitisSaat-$_bitisDakika',
                         ),
                         initialHour: _bitisSaat,
                         initialMinute: _bitisDakika,
@@ -234,8 +252,14 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                         allowAllMinutesAtMaxHour: true,
                         allowedMinutes: const [0, 30],
                         label: 'Bitiş Saati',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         onTimeChanged: (hour, minute) {
                           setState(() {
@@ -260,8 +284,11 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                 Text(
                   'İzinde Bulunacağı Adres',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -655,4 +682,3 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
-

@@ -71,7 +71,7 @@ class _KurumGorevlendirmesiIzinScreenState
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
@@ -143,8 +143,14 @@ class _KurumGorevlendirmesiIzinScreenState
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
@@ -170,8 +176,14 @@ class _KurumGorevlendirmesiIzinScreenState
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
-                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                              labelStyle: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
                                   ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
@@ -192,8 +204,14 @@ class _KurumGorevlendirmesiIzinScreenState
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialHour: _baslangicSaat,
                         initialMinute: _baslangicDakika,
@@ -226,8 +244,14 @@ class _KurumGorevlendirmesiIzinScreenState
                         allowAllMinutesAtMaxHour: true,
                         allowedMinutes: const [0, 30],
                         label: 'Bitiş Saati',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         onTimeChanged: (hour, minute) {
                           setState(() {
@@ -252,8 +276,11 @@ class _KurumGorevlendirmesiIzinScreenState
                 Text(
                   'İzinde Bulunacağı Adres',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -651,4 +678,3 @@ class _KurumGorevlendirmesiIzinScreenState
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
-

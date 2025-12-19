@@ -127,7 +127,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'Vefat İzni İstek',
@@ -185,8 +185,14 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
                             ),
                         initialDate: _baslangicTarihi,
                         label: 'Başlangıç Tarihi',
@@ -212,8 +218,14 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                       child: _birGunlukIzin
                           ? const SizedBox()
                           : DatePickerBottomSheetWidget(
-                              labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+                              labelStyle: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
                                   ),
                               initialDate: _bitisTarihi,
                               minDate: _baslangicTarihi != null
@@ -233,8 +245,11 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 Text(
                   'Vefat Edenin Yakınlık Derecesi',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -288,8 +303,11 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                 Text(
                   'İzinde Bulunacağı Adres',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize: (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-                      ),
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -662,4 +680,3 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
-

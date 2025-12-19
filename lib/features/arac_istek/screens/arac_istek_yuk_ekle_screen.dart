@@ -222,9 +222,7 @@ class _AracIstekYukEkleScreenState
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                        child:
-                            BrandedLoadingIndicator(size: 60, strokeWidth: 6));
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -291,7 +289,7 @@ class _AracIstekYukEkleScreenState
   Widget build(BuildContext context) {
     final aracTuru = _getAracTuruName();
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           '$aracTuru Araç Talebi',
@@ -310,280 +308,282 @@ class _AracIstekYukEkleScreenState
         onTap: () => FocusScope.of(context).unfocus(),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Gidilecek Yer Bölümü
-              Text(
-                'Gidilecek Yer',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 16),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width / 2,
-                  child: ElevatedButton.icon(
-                    onPressed: _openYerSecimiBottomSheet,
-                    icon: const Icon(
-                      Icons.add_location_alt_outlined,
-                      size: 27,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      'Yer Ekle',
-                      style: TextStyle(fontSize: 17, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Gidilecek Yer Bölümü
+                Text(
+                  'Gidilecek Yer',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              if (_entries.isEmpty)
-                const Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    'Henüz yer eklenmedi.',
-                    style: TextStyle(color: Colors.grey, fontSize: 15),
-                  ),
-                )
-              else
-                Container(
+                const SizedBox(height: 16),
+                DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _entries.length,
-                        itemBuilder: (context, index) {
-                          final entry = _entries[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        entry.yer.yerAdi,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black87,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width / 2,
+                    child: ElevatedButton.icon(
+                      onPressed: _openYerSecimiBottomSheet,
+                      icon: const Icon(
+                        Icons.add_location_alt_outlined,
+                        size: 27,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        'Yer Ekle',
+                        style: TextStyle(fontSize: 17, color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_entries.isEmpty)
+                  const Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Henüz yer eklenmedi.',
+                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                    ),
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: _entries.length,
+                          itemBuilder: (context, index) {
+                            final entry = _entries[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          entry.yer.yerAdi,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.black87,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        color: Color(0xFF707070),
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _entries[index].adresController
-                                              .dispose();
-                                          _entries.removeAt(index);
-                                        });
-                                      },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                      iconSize: 22,
-                                    ),
-                                  ],
-                                ),
-                                if (!entry.yer.yerAdi.contains('Eyüboğlu'))
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 8,
-                                      bottom: 12,
-                                    ),
-                                    child: TextField(
-                                      controller: entry.adresController,
-                                      decoration: InputDecoration(
-                                        hintText: 'Semt ve adres giriniz',
-                                        prefixIcon: const Icon(
-                                          Icons.location_on_outlined,
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Color(0xFF707070),
                                         ),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                        onPressed: () {
+                                          setState(() {
+                                            _entries[index].adresController
+                                                .dispose();
+                                            _entries.removeAt(index);
+                                          });
+                                        },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        iconSize: 22,
+                                      ),
+                                    ],
+                                  ),
+                                  if (!entry.yer.yerAdi.contains('Eyüboğlu'))
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 12,
+                                      ),
+                                      child: TextField(
+                                        controller: entry.adresController,
+                                        decoration: InputDecoration(
+                                          hintText: 'Semt ve adres giriniz',
+                                          prefixIcon: const Icon(
+                                            Icons.location_on_outlined,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                const Divider(height: 16, thickness: 0.8),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 24),
-
-              // Tahmini Mesafe
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tahmini Mesafe (km)',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: _tahminiMesafe > 1
-                            ? () => _updateMesafe(_tahminiMesafe - 1)
-                            : null,
-                        child: Container(
-                          width: 50,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              bottomLeft: Radius.circular(8),
-                            ),
-                            color: Colors.white,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: _tahminiMesafe > 1
-                                ? Colors.black
-                                : Colors.grey.shade300,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 64,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
-                          color: Colors.white,
-                        ),
-                        child: TextField(
-                          controller: _mesafeController,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(4),
-                          ],
-                          style: const TextStyle(
-                            fontSize: 17,
-                            color: Colors.black,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.only(bottom: 9),
-                          ),
-                          onChanged: (value) {
-                            if (value.isEmpty) return;
-                            final intValue = int.tryParse(value);
-                            if (intValue == null) return;
-                            if (intValue < 1) {
-                              _updateMesafe(1);
-                            } else if (intValue > 9999) {
-                              _updateMesafe(9999);
-                            } else {
-                              _updateMesafe(intValue);
-                            }
+                                  const Divider(height: 16, thickness: 0.8),
+                                ],
+                              ),
+                            );
                           },
                         ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 24),
+
+                // Tahmini Mesafe
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tahmini Mesafe (km)',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
                       ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _tahminiMesafe < 9999
-                            ? () => _updateMesafe(_tahminiMesafe + 1)
-                            : null,
-                        child: Container(
-                          width: 50,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: _tahminiMesafe > 1
+                              ? () => _updateMesafe(_tahminiMesafe - 1)
+                              : null,
+                          child: Container(
+                            width: 50,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(8),
+                                bottomLeft: Radius.circular(8),
+                              ),
+                              color: Colors.white,
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              color: _tahminiMesafe > 1
+                                  ? Colors.black
+                                  : Colors.grey.shade300,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 64,
                           height: 46,
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
-                            ),
                             color: Colors.white,
                           ),
-                          child: Icon(
-                            Icons.add,
-                            color: _tahminiMesafe < 9999
-                                ? Colors.black
-                                : Colors.grey.shade300,
-                            size: 24,
+                          child: TextField(
+                            controller: _mesafeController,
+                            textAlign: TextAlign.center,
+                            textAlignVertical: TextAlignVertical.center,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(4),
+                            ],
+                            style: const TextStyle(
+                              fontSize: 17,
+                              color: Colors.black,
+                            ),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.only(bottom: 9),
+                            ),
+                            onChanged: (value) {
+                              if (value.isEmpty) return;
+                              final intValue = int.tryParse(value);
+                              if (intValue == null) return;
+                              if (intValue < 1) {
+                                _updateMesafe(1);
+                              } else if (intValue > 9999) {
+                                _updateMesafe(9999);
+                              } else {
+                                _updateMesafe(intValue);
+                              }
+                            },
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      IconButton(
-                        onPressed: _showMesafeInfo,
-                        icon: const Icon(
-                          Icons.info_outline,
-                          color: Colors.grey,
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: _tahminiMesafe < 9999
+                              ? () => _updateMesafe(_tahminiMesafe + 1)
+                              : null,
+                          child: Container(
+                            width: 50,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(8),
+                                bottomRight: Radius.circular(8),
+                              ),
+                              color: Colors.white,
+                            ),
+                            child: Icon(
+                              Icons.add,
+                              color: _tahminiMesafe < 9999
+                                  ? Colors.black
+                                  : Colors.grey.shade300,
+                              size: 24,
+                            ),
+                          ),
                         ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                        const SizedBox(width: 12),
+                        IconButton(
+                          onPressed: _showMesafeInfo,
+                          icon: const Icon(
+                            Icons.info_outline,
+                            color: Colors.grey,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
                 Row(
                   children: [
                     Expanded(
                       child: DatePickerBottomSheetWidget(
                         label: 'Gidilecek Tarih',
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -606,11 +606,12 @@ class _AracIstekYukEkleScreenState
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontSize: (Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.fontSize ??
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
                                       14) +
                                   1,
                             ),
@@ -645,14 +646,12 @@ class _AracIstekYukEkleScreenState
                             key: ValueKey(
                               'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
                             ),
-                            labelStyle: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            labelStyle: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
-                                  fontSize: (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
                                           14) +
                                       1,
                                 ),
@@ -676,18 +675,19 @@ class _AracIstekYukEkleScreenState
                     ),
                   ],
                 ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Taşınacak Yük
-              Text(
-                'Taşınacak Yük',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
+                // Taşınacak Yük
+                Text(
+                  'Taşınacak Yük',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
                 TextField(
                   focusNode: _tasInacakYukFocusNode,
                   controller: _tasInacakYukController,
@@ -702,47 +702,46 @@ class _AracIstekYukEkleScreenState
                     prefixIcon: const Icon(Icons.local_shipping_outlined),
                   ),
                 ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
- 
-              AciklamaFieldWidget(
-                controller: _aciklamaController,
-                focusNode: _aciklamaFocusNode,
-              ),
-              const SizedBox(height: 24),
-
-              // Gönder Butonu
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(8),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
                 ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 24),
+
+                // Gönder Butonu
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        'Gönder',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );

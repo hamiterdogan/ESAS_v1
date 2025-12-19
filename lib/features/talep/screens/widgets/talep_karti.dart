@@ -4,6 +4,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
 
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
@@ -51,6 +52,13 @@ class TalepKarti extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
+      color:
+          Color.lerp(
+            Theme.of(context).scaffoldBackgroundColor,
+            Colors.white,
+            0.65,
+          ) ??
+          Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
@@ -74,6 +82,18 @@ class TalepKarti extends StatelessWidget {
               MaterialPageRoute(
                 builder: (ctx) =>
                     AracIstekDetayScreen(talepId: talep.onayKayitID),
+              ),
+            );
+          }
+          // Dokümantasyon İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('dok')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) => DokumantasyonIstekDetayScreen(
+                  talepId: talep.onayKayitID,
+                  onayTipi: talep.onayTipi,
+                ),
               ),
             );
           }

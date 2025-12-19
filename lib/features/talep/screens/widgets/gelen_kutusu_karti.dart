@@ -54,6 +54,13 @@ class GelenKutusuKarti extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
+      color:
+          Color.lerp(
+            Theme.of(context).scaffoldBackgroundColor,
+            Colors.white,
+            0.65,
+          ) ??
+          Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {

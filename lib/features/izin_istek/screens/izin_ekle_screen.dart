@@ -322,7 +322,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text(
@@ -2044,27 +2044,27 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     setState(() => _isActionInProgress = true);
 
     try {
-    final request = IzinIstekEkleReq(
-      izinSebebiId: formState.secilenSebebiId!,
-      izinBaslangicTarihi: formState.baslangicTarihi,
-      izinBitisTarihi: formState.bitisTarihi,
-      aciklama: formState.aciklama.trim(),
-      izindeBulunacagiAdres: formState.izindeBulunacagiAdres.trim(),
-      baskaPersonelId: formState.secilenPersonel?.personelId,
-    );
-    ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
+      final request = IzinIstekEkleReq(
+        izinSebebiId: formState.secilenSebebiId!,
+        izinBaslangicTarihi: formState.baslangicTarihi,
+        izinBitisTarihi: formState.bitisTarihi,
+        aciklama: formState.aciklama.trim(),
+        izindeBulunacagiAdres: formState.izindeBulunacagiAdres.trim(),
+        baskaPersonelId: formState.secilenPersonel?.personelId,
+      );
+      ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
 
-    // Provider'ları yenile
-    ref.refresh(devamEdenIsteklerimProvider);
-    ref.refresh(tamamlananIsteklerimProvider);
+      // Provider'ları yenile
+      ref.refresh(devamEdenIsteklerimProvider);
+      ref.refresh(tamamlananIsteklerimProvider);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('İzin isteği başarıyla oluşturuldu'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('İzin isteği başarıyla oluşturuldu'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context);
     } catch (e) {
       if (mounted) setState(() => _isActionInProgress = false);
     }

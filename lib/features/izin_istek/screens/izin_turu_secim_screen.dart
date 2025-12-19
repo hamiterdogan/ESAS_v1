@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_nedeni.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/dini_izin_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turleri/yillik_izin_screen.dart';
@@ -31,7 +30,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFFAFAFA),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text(
             'İzin Türü Seçin',
@@ -46,9 +45,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
           iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: izinNedenlerAsync.when(
-          loading: () => const Center(
-            child: BrandedLoadingIndicator(size: 80, strokeWidth: 8),
-          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

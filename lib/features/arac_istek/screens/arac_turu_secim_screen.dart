@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
 class AracTuruSecimScreen extends ConsumerWidget {
@@ -12,7 +11,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
     final aracTurleriAsync = ref.watch(aracTurleriProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Yeni Araç Talebi',
@@ -34,9 +33,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
         ),
       ),
       body: aracTurleriAsync.when(
-        loading: () => const Center(
-            child: BrandedLoadingIndicator(size: 80, strokeWidth: 8),
-          ),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),

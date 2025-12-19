@@ -20,8 +20,7 @@ class AracTalepEkleScreen extends ConsumerStatefulWidget {
       _AracTalepEkleScreenState();
 }
 
-class _AracTalepEkleScreenState
-    extends ConsumerState<AracTalepEkleScreen> {
+class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   static const List<int> _allowedMinutes = [
     0,
     5,
@@ -106,8 +105,8 @@ class _AracTalepEkleScreenState
             width: 175,
             height: 175,
             decoration: BoxDecoration(
+              shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(32),
             ),
             alignment: Alignment.center,
             child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
@@ -290,7 +289,7 @@ class _AracTalepEkleScreenState
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
@@ -780,8 +779,9 @@ class _AracTalepEkleScreenState
 
                 const SizedBox(height: 24),
                 AciklamaFieldWidget(
-                    controller: _aciklamaController,
-                    focusNode: _aciklamaFocusNode),
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
 
                 const SizedBox(height: 32),
                 Text(
@@ -890,10 +890,7 @@ class _AracTalepEkleScreenState
                           const SizedBox(
                             width: 20,
                             height: 20,
-                            child: BrandedLoadingIndicator(
-                              size: 20,
-                              strokeWidth: 2,
-                            ),
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         else
                           Icon(
@@ -1639,7 +1636,7 @@ class _AracTalepEkleScreenState
                 future: _fetchAracIstekNedenleri(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: BrandedLoadingIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
@@ -4584,7 +4581,7 @@ class _AracTalepEkleScreenState
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: BrandedLoadingIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {

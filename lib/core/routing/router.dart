@@ -16,6 +16,7 @@ import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_talep
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_turu_secim_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/a4_kagidi_istek_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_baski_istek_screen.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -88,6 +89,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/dokumantasyon_istek',
       builder: (context, state) => const DokumantasyonTalepYonetimScreen(),
+    ),
+    GoRoute(
+      path: '/dokumantasyon/detay/:id',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        final onayTipi = state.extra is String ? state.extra as String : null;
+        return DokumantasyonIstekDetayScreen(talepId: id, onayTipi: onayTipi);
+      },
     ),
     GoRoute(
       path: '/dokumantasyon/turu_secim',

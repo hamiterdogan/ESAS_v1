@@ -123,8 +123,10 @@ class _DokumantasyonBaskiIstekScreenState
             width: 175,
             height: 175,
             decoration: BoxDecoration(
-              color: Colors.transparent, // Show only the indicator
-              borderRadius: BorderRadius.circular(32),
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(
+                0.05,
+              ), // 5% circular backdrop under spinner
             ),
             alignment: Alignment.center,
             child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
@@ -300,9 +302,7 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingDokumanTurleri)
-                const Center(
-                  child: BrandedLoadingIndicator(size: 48, strokeWidth: 3),
-                )
+                const Center(child: CircularProgressIndicator())
               else if (_dokumanTurleri.isEmpty)
                 const Center(child: Text('Doküman türü bulunamadı'))
               else
@@ -364,9 +364,7 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingBaskiBoyutlari)
-                const Center(
-                  child: BrandedLoadingIndicator(size: 48, strokeWidth: 3),
-                )
+                const Center(child: CircularProgressIndicator())
               else if (_baskiBoyutlari.isEmpty)
                 const Center(child: Text('Baskı boyutu bulunamadı'))
               else
@@ -596,7 +594,7 @@ class _DokumantasyonBaskiIstekScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Dokümantasyon Baskı İstek',

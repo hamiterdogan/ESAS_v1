@@ -40,7 +40,11 @@ class MyApp extends ConsumerWidget {
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'ESAS - İzin İstek',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF2F4F7),
+      ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

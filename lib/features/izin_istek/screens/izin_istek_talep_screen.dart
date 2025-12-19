@@ -91,216 +91,219 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFFAFAFA),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const _GradientAppBar(title: 'İzin İstek', onBackLabel: 'back'),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _Card(
-                child: Column(
-                  children: [
-                    _SelectableRow(
-                      title: 'Başkası adına istekte bulunuyorum',
-                      onTap: () async {
-                        final selectedPersonel = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PersonelSecimScreen(),
-                          ),
-                        );
-
-                        if (selectedPersonel != null) {
-                          // Seçilen personel bilgisi ile işlem yapılabilir
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${selectedPersonel.ad} ${selectedPersonel.soyad} seçildi',
-                              ),
-                              backgroundColor: Colors.green,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _Card(
+                  child: Column(
+                    children: [
+                      _SelectableRow(
+                        title: 'Başkası adına istekte bulunuyorum',
+                        onTap: () async {
+                          final selectedPersonel = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PersonelSecimScreen(),
                             ),
                           );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    const _SelectableRow(title: 'İzin Türü'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Açıklama',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF333333),
+
+                          if (selectedPersonel != null) {
+                            // Seçilen personel bilgisi ile işlem yapılabilir
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${selectedPersonel.ad} ${selectedPersonel.soyad} seçildi',
+                                ),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _aciklamaController,
-                      maxLines: 4,
-                      decoration: _inputDecoration(
-                        'Açıklama (opsiyonel)',
-                        Icons.notes,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Padding(
-                          padding: EdgeInsets.only(top: 6.0, right: 8),
-                          child: Icon(
-                            Icons.circle,
-                            size: 6,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Lütfen detaylı bir açıklama giriniz.',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      const _SelectableRow(title: 'İzin Türü'),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _RedInfo(
-                      text:
-                          '1 günlük izin isteğinde bulunmak için “Başlangıç Tarihi” ve “Bitiş Tarihi” aynı gün seçiniz.',
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _DateField(
-                            label: 'Başlangıç Tarihi',
-                            value: _baslangicTarihi,
-                            onTap: () => _pickDate(isStart: true),
-                            hint: 'gg.aa.yyyy',
-                          ),
+                const SizedBox(height: 12),
+                _Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Açıklama',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF333333),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _DateField(
-                            label: 'Bitiş Tarihi',
-                            value: _bitisTarihi,
-                            onTap: () => _pickDate(isStart: false),
-                            hint: 'gg.aa.yyyy',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: _dersSaatiController,
-                      keyboardType: TextInputType.number,
-                      decoration: _inputDecoration(
-                        'Girilimeyen Toplam Ders Saati',
-                        Icons.access_time,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _adresController,
-                      decoration: _inputDecoration(
-                        'İzinde Bulunacağı Adres',
-                        Icons.home,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Text(
-                          'İzin Kullanma Yönergesine erişmek için ',
-                          style: TextStyle(fontSize: 13),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _aciklamaController,
+                        maxLines: 4,
+                        decoration: _inputDecoration(
+                          'Açıklama (opsiyonel)',
+                          Icons.notes,
                         ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: const Text(
-                            'tıklayınız',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF014B92),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Padding(
+                            padding: EdgeInsets.only(top: 6.0, right: 8),
+                            child: Icon(
+                              Icons.circle,
+                              size: 6,
+                              color: Colors.grey,
                             ),
                           ),
+                          Expanded(
+                            child: Text(
+                              'Lütfen detaylı bir açıklama giriniz.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _RedInfo(
+                        text:
+                            '1 günlük izin isteğinde bulunmak için “Başlangıç Tarihi” ve “Bitiş Tarihi” aynı gün seçiniz.',
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DateField(
+                              label: 'Başlangıç Tarihi',
+                              value: _baslangicTarihi,
+                              onTap: () => _pickDate(isStart: true),
+                              hint: 'gg.aa.yyyy',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _DateField(
+                              label: 'Bitiş Tarihi',
+                              value: _bitisTarihi,
+                              onTap: () => _pickDate(isStart: false),
+                              hint: 'gg.aa.yyyy',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _dersSaatiController,
+                        keyboardType: TextInputType.number,
+                        decoration: _inputDecoration(
+                          'Girilimeyen Toplam Ders Saati',
+                          Icons.access_time,
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Switch(
-                          value: _kvkkOnay,
-                          activeThumbColor: Colors.white,
-                          activeTrackColor: const Color(0xFF014B92),
-                          onChanged: (v) => setState(() => _kvkkOnay = v),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _adresController,
+                        decoration: _inputDecoration(
+                          'İzinde Bulunacağı Adres',
+                          Icons.home,
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Okudum, anladım, onaylıyorum.',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _Card(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'İzin Kullanma Yönergesine erişmek için ',
                             style: TextStyle(fontSize: 13),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          GestureDetector(
+                            onTap: () {},
+                            child: const Text(
+                              'tıklayınız',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF014B92),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Switch(
+                            value: _kvkkOnay,
+                            activeThumbColor: Colors.white,
+                            activeTrackColor: const Color(0xFF014B92),
+                            onChanged: (v) => setState(() => _kvkkOnay = v),
+                          ),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              'Okudum, anladım, onaylıyorum.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                height: 56,
-                child: _GradientButton(
-                  onPressed: _submit,
-                  enabled: _kvkkOnay,
-                  child: const Text(
-                    'Gönder',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 56,
+                  child: _GradientButton(
+                    onPressed: _submit,
+                    enabled: _kvkkOnay,
+                    child: const Text(
+                      'Gönder',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

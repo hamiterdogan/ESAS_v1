@@ -77,6 +77,7 @@ class Talep {
   final String? bekletKademe;
   final String? okundu;
   final String? aracTuru;
+  final String? dokumanTuru;
 
   Talep({
     required this.onayTipi,
@@ -99,6 +100,7 @@ class Talep {
     this.bekletKademe,
     this.okundu,
     this.aracTuru,
+    this.dokumanTuru,
   });
 
   // Yardımcı metod: num (int veya double) değeri int'e dönüştürür
@@ -132,6 +134,7 @@ class Talep {
       bekletKademe: json['bekletKademe']?.toString(),
       okundu: json['okundu']?.toString(),
       aracTuru: json['aracTuru']?.toString(),
+      dokumanTuru: json['dokumanTuru']?.toString(),
     );
   }
 
@@ -157,6 +160,7 @@ class Talep {
       'bekletKademe': bekletKademe,
       'okundu': okundu,
       'aracTuru': aracTuru,
+      'dokumanTuru': dokumanTuru,
     };
   }
 }
