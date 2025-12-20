@@ -8,6 +8,8 @@ class AciklamaFieldWidget extends ConsumerStatefulWidget {
   final int maxLines;
   final int minCharacters;
   final FocusNode? focusNode;
+  final String labelText;
+  final String hintText;
 
   const AciklamaFieldWidget({
     super.key,
@@ -17,6 +19,8 @@ class AciklamaFieldWidget extends ConsumerStatefulWidget {
     this.maxLines = 10,
     this.minCharacters = 30,
     this.focusNode,
+    this.labelText = 'Açıklama',
+    this.hintText = 'Lütfen detaylı bir açıklama giriniz.',
   });
 
   @override
@@ -48,7 +52,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Açıklama',
+          widget.labelText,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
@@ -59,7 +63,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           focusNode: widget.focusNode,
           controller: widget.controller,
           decoration: InputDecoration(
-            hintText: 'Lütfen detaylı bir açıklama giriniz.',
+            hintText: widget.hintText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(

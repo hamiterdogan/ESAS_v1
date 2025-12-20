@@ -7,6 +7,7 @@ class DersSaatiSpinnerWidget extends ConsumerStatefulWidget {
   final int initialValue;
   final int minValue;
   final int maxValue;
+  final String label;
 
   const DersSaatiSpinnerWidget({
     super.key,
@@ -14,6 +15,7 @@ class DersSaatiSpinnerWidget extends ConsumerStatefulWidget {
     this.initialValue = 0,
     this.minValue = 0,
     this.maxValue = 99,
+    this.label = 'Girilmeyen Toplam Ders Saati',
   });
 
   @override
@@ -55,7 +57,7 @@ class _DersSaatiSpinnerWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Girilmeyen Toplam Ders Saati',
+          widget.label,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
@@ -98,7 +100,7 @@ class _DersSaatiSpinnerWidgetState
               const SizedBox(width: 12),
               // Value Input
               Container(
-                width: 50,
+                width: 80,
                 height: 46,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey.shade300),

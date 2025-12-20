@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/features/talep/screens/home_screen.dart';
 import 'package:esas_v1/features/talep/screens/empty_talep_screen.dart';
+import 'package:esas_v1/features/satin_alma/screens/satin_alma_talep_screen.dart';
 import 'package:esas_v1/features/talep/models/talep_turu.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
@@ -124,8 +125,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/satin_alma',
-      builder: (context, state) =>
-          EmptyTalepScreen(talep: TalepTuru.fromEnum(TalepTuruEnum.satinAlma)),
+      builder: (context, state) => const SatinAlmaTalepScreen(),
     ),
     GoRoute(
       path: '/teknik_destek',
