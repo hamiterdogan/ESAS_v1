@@ -91,7 +91,7 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: const _GradientAppBar(title: 'İzin İstek', onBackLabel: 'back'),
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),

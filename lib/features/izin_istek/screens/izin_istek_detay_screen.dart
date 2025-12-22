@@ -30,7 +30,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,

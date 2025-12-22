@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_detay_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
@@ -30,7 +31,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     final personelAsync = ref.watch(personelBilgiProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
@@ -144,12 +145,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
   Widget _buildLoading() {
     return const Center(
       child: SizedBox(
-        width: 32,
-        height: 32,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF014B92)),
-        ),
+        width: 153,
+        height: 153,
+        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
       ),
     );
   }
@@ -552,9 +550,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
           child: Padding(
             padding: EdgeInsets.all(16),
             child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              width: 80,
+              height: 80,
+              child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
             ),
           ),
         ),
@@ -914,9 +912,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
           child: Padding(
             padding: EdgeInsets.all(16),
             child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              width: 80,
+              height: 80,
+              child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
             ),
           ),
         ),

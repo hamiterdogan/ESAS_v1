@@ -11,20 +11,23 @@ class AnaSayfaContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final talepTurleri = TalepTuru.getAll();
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: GridView.builder(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 4,
-          childAspectRatio: 1.25,
+    return Container(
+      color: const Color(0xFFEEF1F5),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 4,
+            childAspectRatio: 1.25,
+          ),
+          itemCount: talepTurleri.length,
+          itemBuilder: (context, index) {
+            final talep = talepTurleri[index];
+            return TalepTuruCard(talep: talep);
+          },
         ),
-        itemCount: talepTurleri.length,
-        itemBuilder: (context, index) {
-          final talep = talepTurleri[index];
-          return TalepTuruCard(talep: talep);
-        },
       ),
     );
   }

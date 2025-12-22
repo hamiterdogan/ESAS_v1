@@ -46,7 +46,7 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
     final personellerAsync = ref.watch(personellerProvider);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         elevation: 0,
         flexibleSpace: Container(

@@ -17,6 +17,11 @@ class TalepTuruCard extends ConsumerWidget {
         context.go(talep.routePath);
       },
       child: Card(
+        color: Color.lerp(
+          Theme.of(context).scaffoldBackgroundColor,
+          Colors.white,
+          0.65,
+        ) ?? Colors.white,
         elevation: 3,
         shadowColor: Colors.black.withValues(alpha: 0.15),
         shape: RoundedRectangleBorder(

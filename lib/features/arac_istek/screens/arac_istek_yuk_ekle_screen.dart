@@ -7,6 +7,7 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/arac_istek_ozet_bottom_sheet.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -71,6 +72,37 @@ class _AracIstekYukEkleScreenState
     _aciklamaController = TextEditingController();
     _gidilecekTarih = DateTime.now();
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
+  }
+
+  void _showBlockingLoadingDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (dialogContext) {
+        return Center(
+          child: Container(
+            width: 175,
+            height: 175,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.05),
+            ),
+            alignment: Alignment.center,
+            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          ),
+        );
+      },
+    );
+  }
+
+  void _hideBlockingLoadingDialog() {
+    if (!mounted) return;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
   }
 
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
@@ -222,7 +254,16 @@ class _AracIstekYukEkleScreenState
                 future: _fetchGidilecekYerler(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                      child: SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: BrandedLoadingIndicator(
+                          size: 80,
+                          strokeWidth: 6,
+                        ),
+                      ),
+                    );
                   }
 
                   if (snapshot.hasError) {
@@ -289,7 +330,7 @@ class _AracIstekYukEkleScreenState
   Widget build(BuildContext context) {
     final aracTuru = _getAracTuruName();
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: Text(
           '$aracTuru Araç Talebi',
@@ -801,10 +842,12 @@ class _AracIstekYukEkleScreenState
 
   Future<void> _sendAracIstek(AracIstekEkleReq req) async {
     try {
+      _showBlockingLoadingDialog();
       final repo = ref.read(aracTalepRepositoryProvider);
       final result = await repo.aracIstekEkle(req);
 
       if (mounted) {
+        _hideBlockingLoadingDialog();
         switch (result) {
           case Success():
             // onSuccess callback'i çalıştır (özet ekranında tanımlanmış)
@@ -816,6 +859,7 @@ class _AracIstekYukEkleScreenState
         }
       }
     } catch (e) {
+      _hideBlockingLoadingDialog();
       rethrow;
     }
   }

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_kategori_models.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
-import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
+import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
 
 class SatinAlmaUrunCard extends ConsumerStatefulWidget {
   const SatinAlmaUrunCard({super.key});
@@ -20,6 +21,9 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   SatinAlmaAnaKategori? _selectedAnaKategori;
   SatinAlmaAltKategori? _selectedAltKategori;
   SatinAlmaOlcuBirim? _selectedOlcuBirim;
+  ParaBirimi? _selectedParaBirimi;
+  double _dovizKuru = 1.0;
+  int _miktar = 0;
 
   final TextEditingController _urunAdiController = TextEditingController();
   final TextEditingController _miktarController = TextEditingController();
@@ -27,12 +31,15 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   final TextEditingController _aciklamaController = TextEditingController();
   final TextEditingController _fiyatAnaController = TextEditingController();
   final TextEditingController _fiyatKusuratController = TextEditingController();
-
-  int _miktar = 0;
+  final TextEditingController _toplamFiyatController = TextEditingController();
+  final TextEditingController _tlKurFiyatiController = TextEditingController();
+  final TextEditingController _toplamTlFiyatiController =
+      TextEditingController();
 
   bool _showingKategoriLoading = false;
   bool _showingAltKategoriLoading = false;
   bool _showingOlcuBirimLoading = false;
+  bool _showingParaBirimiLoading = false;
 
   bool validateForm() {
     if (_urunAdiController.text.isEmpty) {
@@ -50,6 +57,9 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _aciklamaController.dispose();
     _fiyatAnaController.dispose();
     _fiyatKusuratController.dispose();
+    _toplamFiyatController.dispose();
+    _tlKurFiyatiController.dispose();
+    _toplamTlFiyatiController.dispose();
     super.dispose();
   }
 
@@ -139,7 +149,7 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator()),
+      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
     );
   }
 
@@ -341,7 +351,7 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator()),
+      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
     );
   }
 
@@ -523,7 +533,7 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator()),
+      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
     );
   }
 
@@ -652,6 +662,266 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
+  void _showParaBirimiBottomSheet() {
+    final paraBirimlerAsync = ref.read(paraBirimlerProvider);
+
+    if (paraBirimlerAsync.hasValue) {
+      _openParaBirimiBottomSheet();
+      return;
+    }
+
+    _showingParaBirimiLoading = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
+      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
+    );
+  }
+
+  void _openParaBirimiBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final asyncParaBirimleri = ref.watch(paraBirimlerProvider);
+
+              return asyncParaBirimleri.when(
+                loading: () => const SizedBox(
+                  height: 240,
+                  child: Center(child: BrandedLoadingIndicator(size: 56)),
+                ),
+                error: (error, stack) => SizedBox(
+                  height: 240,
+                  child: Center(
+                    child: Text(
+                      'Para birimleri alınamadı',
+                      style: TextStyle(color: Colors.red.shade600),
+                    ),
+                  ),
+                ),
+                data: (paraBirimleri) {
+                  final sheetHeight = (120 + paraBirimleri.length * 56.0).clamp(
+                    220.0,
+                    MediaQuery.of(ctx).size.height * 0.65,
+                  );
+
+                  return SizedBox(
+                    height: sheetHeight,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          child: Text(
+                            'Para Birimi Seçiniz',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium?.fontSize ??
+                                          16) +
+                                      2,
+                                ),
+                          ),
+                        ),
+                        Expanded(
+                          child: paraBirimleri.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'Kayıt bulunamadı',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                )
+                              : ListView.separated(
+                                  itemCount: paraBirimleri.length,
+                                  separatorBuilder: (_, __) => Divider(
+                                    height: 1,
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    final item = paraBirimleri[index];
+                                    final isSelected =
+                                        _selectedParaBirimi?.id == item.id;
+                                    return ListTile(
+                                      dense: true,
+                                      title: Text(
+                                        '${item.birimAdi} (${item.kod})',
+                                        style: TextStyle(
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                          color: isSelected
+                                              ? AppColors.gradientStart
+                                              : Colors.black87,
+                                          fontSize:
+                                              (Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.fontSize ??
+                                                  16) +
+                                              2,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(
+                                              Icons.check,
+                                              color: AppColors.gradientStart,
+                                            )
+                                          : null,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedParaBirimi = item;
+                                        });
+
+                                        // Seçim değiştiğinde mevcut değerlerle hemen hesapla
+                                        _updateToplamFiyat();
+
+                                        // Güncel kuru alıp tekrar hesapla
+                                        _fetchDovizKuru(item.kod);
+                                        Navigator.pop(context);
+                                      },
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _fetchDovizKuru(String dovizKodu) async {
+    // TRY için kur sabit 1.0
+    if (dovizKodu == 'TRY') {
+      if (!mounted) return;
+      setState(() {
+        _dovizKuru = 1.0;
+      });
+      _updateTlKurFiyati();
+      return;
+    }
+
+    try {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      final kur = await repo.getDovizKuru(dovizKodu);
+      // API yanlış alan döndürürse kur=0 geliyor; bu durumda eski kuru koru.
+      if (kur.kur <= 0) {
+        // Hata durumunda 0 gösterme, önceki kuru koru
+        if (mounted) {
+          _updateTlKurFiyati();
+        }
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _dovizKuru = kur.kur;
+        });
+        _updateTlKurFiyati();
+      }
+    } catch (e) {
+      if (mounted) {
+        // Hata durumunda mevcut kuru bozma, sadece UI güncelle
+        _updateTlKurFiyati();
+      }
+    }
+  }
+
+  void _updateTlKurFiyati() {
+    try {
+      final numberFormat = NumberFormat('#,##0.000', 'tr_TR');
+      final kurFormatted = numberFormat.format(_dovizKuru);
+      if (mounted) {
+        _tlKurFiyatiController.text = '$kurFormatted TRY';
+      }
+    } catch (e) {
+      if (mounted) {
+        _tlKurFiyatiController.text = '0,00 TRY';
+      }
+    }
+    // TL toplam fiyatını da güncelle
+    _updateTlToplamFiyat();
+  }
+
+  void _updateToplamFiyat() {
+    try {
+      final fiyatAnaText = _fiyatAnaController.text
+          .replaceAll('.', '')
+          .replaceAll(',', '.');
+      final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
+      final fiyatKusurat = double.tryParse(_fiyatKusuratController.text) ?? 0;
+      final fiyat = fiyatAna + (fiyatKusurat / 100);
+      final paraBirimiKodu = _selectedParaBirimi?.kod ?? 'TRY';
+
+      // Kullanıcı birim fiyatı hangi para biriminde girdiyse, ekranda toplamı aynı para biriminde göster.
+      final toplam = _miktar * fiyat;
+      final numberFormat = NumberFormat('#,##0.00', 'tr_TR');
+      final toplamFormatted = numberFormat.format(toplam);
+
+      if (mounted) {
+        if (_miktar > 0 && fiyat > 0) {
+          _toplamFiyatController.text = '$toplamFormatted $paraBirimiKodu';
+        } else {
+          _toplamFiyatController.text = '0,00 $paraBirimiKodu';
+        }
+      }
+
+      // TL cinsinden toplam fiyat hesapla: miktar * birim fiyatı * TL kur
+      _updateTlToplamFiyat();
+    } catch (e) {
+      if (mounted) {
+        _toplamFiyatController.text = '0.00 TRY';
+      }
+    }
+  }
+
+  void _updateTlToplamFiyat() {
+    try {
+      final fiyatAnaText = _fiyatAnaController.text
+          .replaceAll('.', '')
+          .replaceAll(',', '.');
+      final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
+      final fiyatKusurat = double.tryParse(_fiyatKusuratController.text) ?? 0;
+      final fiyat = fiyatAna + (fiyatKusurat / 100);
+
+      // Toplam TL = miktar * birim fiyatı * TL kur
+      final toplam = _miktar * fiyat;
+      final toplamTl = toplam * _dovizKuru;
+
+      final numberFormat = NumberFormat('#,##0.00', 'tr_TR');
+      final toplamTlFormatted = numberFormat.format(toplamTl);
+
+      if (mounted) {
+        _toplamTlFiyatiController.text = '$toplamTlFormatted TL';
+      }
+    } catch (e) {
+      if (mounted) {
+        _toplamTlFiyatiController.text = '0,00 TL';
+      }
+    }
+  }
+
+  void _calculateToplamFiyat() {
+    _updateToplamFiyat();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Listen ana kategoriler yükleme
@@ -689,6 +959,33 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         }
         _showingOlcuBirimLoading = false;
         _openOlcuBirimBottomSheet();
+      }
+    });
+
+    // Listen para birimleri yükleme
+    ref.listen(paraBirimlerProvider, (previous, next) {
+      final paraBirimleri = next.value;
+      if (next.hasValue && paraBirimleri != null && paraBirimleri.isNotEmpty) {
+        // İlk para birimini otomatik seç (TRY)
+        if (_selectedParaBirimi == null) {
+          final tryBirimi = paraBirimleri.firstWhere(
+            (p) => p.kod == 'TRY',
+            orElse: () => paraBirimleri.first,
+          );
+          setState(() {
+            _selectedParaBirimi = tryBirimi;
+            _dovizKuru = 1.0; // TRY'nin kuru her zaman 1.0
+          });
+          _calculateToplamFiyat();
+          _updateTlKurFiyati();
+        }
+      }
+      if (_showingParaBirimiLoading && next.hasValue) {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+        _showingParaBirimiLoading = false;
+        _openParaBirimiBottomSheet();
       }
     });
 
@@ -849,6 +1146,7 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 setState(() {
                   _miktar = value;
                 });
+                _calculateToplamFiyat();
               },
             ),
 
@@ -883,19 +1181,20 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               ],
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 3),
 
             // Input'lar Row'u
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(
+                Flexible(
+                  flex: 3,
                   child: GestureDetector(
                     onTap: _showOlcuBirimBottomSheet,
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                        horizontal: 24,
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
@@ -925,7 +1224,8 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Expanded(
+                Flexible(
+                  flex: 4,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -934,7 +1234,9 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         child: TextField(
                           controller: _fiyatAnaController,
                           keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
                           inputFormatters: [ThousandsInputFormatter()],
+                          onChanged: (_) => _calculateToplamFiyat(),
                           decoration: InputDecoration(
                             hintText: '0',
                             filled: true,
@@ -958,8 +1260,8 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                               ),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 13,
+                              horizontal: 5,
+                              vertical: 3,
                             ),
                           ),
                         ),
@@ -983,10 +1285,12 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         child: TextField(
                           controller: _fiyatKusuratController,
                           keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(2),
                             FilteringTextInputFormatter.digitsOnly,
                           ],
+                          onChanged: (_) => _calculateToplamFiyat(),
                           decoration: InputDecoration(
                             hintText: '00',
                             filled: true,
@@ -1010,9 +1314,226 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                               ),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 13,
+                              horizontal: 3,
+                              vertical: 3,
                             ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Para Birimi ve TL Kur Fiyatı - Aynı satırda
+            Row(
+              children: [
+                // Para Birimi
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Para Birimi',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: _showParaBirimiBottomSheet,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _selectedParaBirimi != null
+                                      ? '${_selectedParaBirimi!.birimAdi} (${_selectedParaBirimi!.kod})'
+                                      : 'Para birimi seçiniz',
+                                  style: TextStyle(
+                                    color: _selectedParaBirimi == null
+                                        ? Colors.grey.shade600
+                                        : Colors.black,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // TL Kur Fiyatı
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'TL Kur Fiyatı',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _tlKurFiyatiController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          hintText: '0.00 TRY',
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Ürün Toplam Fiyatı ve Ürün Toplam TL Fiyatı - Aynı satırda
+            Row(
+              children: [
+                // Ürün Toplam Fiyatı
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ürün Toplam Fiyatı',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _toplamFiyatController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          hintText: '0.00',
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Ürün Toplam TL Fiyatı
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ürün Toplam TL Fiyatı',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _toplamTlFiyatiController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          hintText: '0.00',
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
                           ),
                         ),
                       ),

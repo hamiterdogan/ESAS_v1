@@ -22,6 +22,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final GlobalKey<GelenKutusuContentState> _gelenKutusuKey = GlobalKey();
 
   @override
+  void initState() {
+    super.initState();
+    // Keyboard'u otomatik olarak kapat
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Tab'a göre başlık belirleme
     String appBarTitle;

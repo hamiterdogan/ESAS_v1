@@ -127,7 +127,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFFEEF1F5),
         appBar: AppBar(
           title: const Text(
             'Vefat İzni İstek',

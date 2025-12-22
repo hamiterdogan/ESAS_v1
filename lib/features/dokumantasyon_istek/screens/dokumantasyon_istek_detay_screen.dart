@@ -36,7 +36,7 @@ class _DokumantasyonIstekDetayScreenState
     );
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,

@@ -289,7 +289,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(

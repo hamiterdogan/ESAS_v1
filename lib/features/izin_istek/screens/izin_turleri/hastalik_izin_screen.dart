@@ -94,7 +94,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFFEEF1F5),
         appBar: AppBar(
           title: const Text(
             'Hastalık İzni İstek',

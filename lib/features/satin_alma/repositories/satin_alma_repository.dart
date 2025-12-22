@@ -4,6 +4,8 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_kategori_models.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
+import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
+import 'package:esas_v1/features/satin_alma/models/doviz_kuru.dart';
 
 class SatinAlmaRepository {
   SatinAlmaRepository(this._dio);
@@ -66,6 +68,30 @@ class SatinAlmaRepository {
     }
     return const <SatinAlmaOlcuBirim>[];
   }
+
+  Future<List<ParaBirimi>> getParaBirimleri() async {
+    final response = await _dio.get('/Finans/ParaBirimleriniGetir');
+    final data = response.data;
+    if (data is List) {
+      return data
+          .map((e) => ParaBirimi.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+    return const <ParaBirimi>[];
+  }
+
+  Future<DovizKuru> getDovizKuru(String dovizKodu) async {
+    final response = await _dio.post(
+      '/Finans/DovizKuruGetir',
+      data: {
+        'dovizKodu': dovizKodu,
+        'DovizKodu': dovizKodu,
+        'dovizKuru': dovizKodu,
+        'DovizKuru': dovizKodu,
+      },
+    );
+    return DovizKuru.fromAny(response.data, fallbackDovizKodu: dovizKodu);
+  }
 }
 
 final satinAlmaRepositoryProvider = Provider<SatinAlmaRepository>((ref) {
@@ -87,12 +113,19 @@ final satinAlmaAnaKategorilerProvider =
 
 final satinAlmaAltKategorilerProvider = FutureProvider.autoDispose
     .family<List<SatinAlmaAltKategori>, int>((ref, anaKategoriId) async {
-  final repo = ref.read(satinAlmaRepositoryProvider);
-  return repo.getAltKategoriler(anaKategoriId);
-});
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      return repo.getAltKategoriler(anaKategoriId);
+    });
 
 final satinAlmaOlcuBirimleriProvider =
     FutureProvider.autoDispose<List<SatinAlmaOlcuBirim>>((ref) async {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      return repo.getOlcuBirimleri();
+    });
+
+final paraBirimlerProvider = FutureProvider.autoDispose<List<ParaBirimi>>((
+  ref,
+) async {
   final repo = ref.read(satinAlmaRepositoryProvider);
-  return repo.getOlcuBirimleri();
+  return repo.getParaBirimleri();
 });

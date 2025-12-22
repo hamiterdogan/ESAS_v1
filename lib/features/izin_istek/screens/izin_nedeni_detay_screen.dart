@@ -11,7 +11,7 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: Text(neden.izinAdi, style: const TextStyle(color: Colors.white)),
         elevation: 0,

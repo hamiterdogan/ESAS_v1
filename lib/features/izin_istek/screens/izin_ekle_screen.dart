@@ -322,7 +322,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFFEEF1F5),
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_urun_card.dart';
@@ -26,6 +27,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final TextEditingController _webSitesiController = TextEditingController();
   final TextEditingController _searchBinaController = TextEditingController();
   DateTime _teslimTarihi = DateTime.now();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,6 +38,42 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _webSitesiController.dispose();
     _searchBinaController.dispose();
     super.dispose();
+  }
+
+  void _showLoadingDialog() {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.2),
+      builder: (dialogContext) {
+        return Center(
+          child: Container(
+            width: 175,
+            height: 175,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.05),
+            ),
+            alignment: Alignment.center,
+            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          ),
+        );
+      },
+    );
+  }
+
+  void _hideLoadingDialog() {
+    if (!mounted) return;
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _toggleSelection(String binaKodu) {
@@ -92,12 +130,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     child: Text(
                       'Seçilen Okullar',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize:
-                                (Theme.of(context).textTheme.titleMedium?.fontSize ??
-                                    16) +
-                                1,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        fontSize:
+                            (Theme.of(
+                                  context,
+                                ).textTheme.titleMedium?.fontSize ??
+                                16) +
+                            1,
+                      ),
                     ),
                   ),
                   Flexible(
@@ -127,12 +167,16 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                     // Son okul siliniyorsa modalı hemen kapat
                                     if (currentSelectedBinalar.length == 1) {
                                       setState(() {
-                                        _selectedBinaKodlari.remove(bina.binaKodu);
+                                        _selectedBinaKodlari.remove(
+                                          bina.binaKodu,
+                                        );
                                       });
                                       Navigator.pop(context);
                                     } else {
                                       setState(() {
-                                        _selectedBinaKodlari.remove(bina.binaKodu);
+                                        _selectedBinaKodlari.remove(
+                                          bina.binaKodu,
+                                        );
                                       });
                                       setModalState(() {});
                                     }
@@ -158,7 +202,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         onPressed: () => Navigator.pop(context),
                         child: const Text(
                           'Kapat',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -290,7 +337,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                     onPressed: () {
                                       setState(
                                         () => _selectedBinaKodlari.addAll(
-                                          filteredBinalar.map((e) => e.binaKodu),
+                                          filteredBinalar.map(
+                                            (e) => e.binaKodu,
+                                          ),
                                         ),
                                       );
                                       setModalState(() {});
@@ -395,274 +444,297 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   Widget build(BuildContext context) {
     final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: const Text(
-            'Satın Alma Talebi',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-        backgroundColor: const Color(0xFF014B92),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.go('/'),
-        ),
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Satın Alma Talebinde Bulunulan Okullar',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFEEF1F5),
+        appBar: AppBar(
+          title: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: const Text(
+              'Satın Alma Talebi',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showBinaBottomSheet,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+            ),
+          ),
+          backgroundColor: const Color(0xFF014B92),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.go('/'),
+          ),
+          elevation: 0,
+        ),
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Satın Alma Talebinde Bulunulan Okullar',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: binalarAsync.when(
-                          data: (binalar) => Text(
-                            _buildSelectedText(binalar),
-                            style: TextStyle(
-                              color: _selectedBinaKodlari.isEmpty
-                                  ? Colors.grey.shade600
-                                  : Colors.black,
-                              fontSize: 16,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          loading: () => Row(
-                            children: const [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _showBinaBottomSheet,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: binalarAsync.when(
+                              data: (binalar) => Text(
+                                _buildSelectedText(binalar),
+                                style: TextStyle(
+                                  color: _selectedBinaKodlari.isEmpty
+                                      ? Colors.grey.shade600
+                                      : Colors.black,
+                                  fontSize: 16,
                                 ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
-                              SizedBox(width: 8),
-                              Text('Yükleniyor...'),
-                            ],
+                              loading: () => Row(
+                                children: const [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Yükleniyor...'),
+                                ],
+                              ),
+                              error: (err, stack) => Text(
+                                'Liste alınamadı',
+                                style: TextStyle(color: Colors.red.shade600),
+                              ),
+                            ),
                           ),
-                          error: (err, stack) => Text(
-                            'Liste alınamadı',
-                            style: TextStyle(color: Colors.red.shade600),
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedBinaKodlari.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: binalarAsync.when(
+                        data: (binalar) => TextButton.icon(
+                          onPressed: () => _showSelectedBinalarSheet(binalar),
+                          icon: const Icon(Icons.list),
+                          label: Text(
+                            'Seçilen Okullar (${_selectedBinaKodlari.length})',
+                          ),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.gradientStart,
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.centerLeft,
                           ),
                         ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
                       ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    ),
+                  const SizedBox(height: 16),
+                  // Alımın Amacı (Binek Araç "Açıklama" alanı formatıyla)
+                  AciklamaFieldWidget(
+                    controller: _alimAmaciController,
+                    focusNode: _alimAmaciFocusNode,
+                    labelText: 'Alımın Amacı',
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Satıcı Firma
+                  Text(
+                    'Satıcı Firma',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _saticiFirmaController,
+                    decoration: InputDecoration(
+                      hintText: 'Firma adını giriniz',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Satıcı Telefon
+                  Text(
+                    'Satıcı Telefon',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _saticiTelefonController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: 'Telefon numarası',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Web Sitesi
+                  Text(
+                    'Web Sitesi',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _webSitesiController,
+                    keyboardType: TextInputType.url,
+                    decoration: InputDecoration(
+                      hintText: 'https://',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Teslim edilecek tarih (Dokümantasyon Baskı İstek ile aynı widget)
+                  Text(
+                    'Son Teslim Tarihi',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          label: null,
+                          initialDate: _teslimTarihi,
+                          minDate: DateTime.now(),
+                          maxDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          onDateChanged: (date) {
+                            setState(() => _teslimTarihi = date);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      const Expanded(child: SizedBox()),
                     ],
                   ),
-                ),
-              ),
-              if (_selectedBinaKodlari.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 1),
-                  child: binalarAsync.when(
-                    data: (binalar) => TextButton.icon(
-                      onPressed: () => _showSelectedBinalarSheet(binalar),
-                      icon: const Icon(Icons.list),
-                      label: Text(
-                        'Seçilen Okullar (${_selectedBinaKodlari.length})',
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.gradientStart,
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.centerLeft,
-                      ),
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              // Alımın Amacı (Binek Araç "Açıklama" alanı formatıyla)
-              AciklamaFieldWidget(
-                controller: _alimAmaciController,
-                focusNode: _alimAmaciFocusNode,
-                labelText: 'Alımın Amacı',
-              ),
 
-              const SizedBox(height: 24),
-
-              // Satıcı Firma
-              Text(
-                'Satıcı Firma',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _saticiFirmaController,
-                decoration: InputDecoration(
-                  hintText: 'Firma adını giriniz',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(
-                      color: AppColors.gradientStart,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Satıcı Telefon
-              Text(
-                'Satıcı Telefon',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _saticiTelefonController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  hintText: 'Telefon numarası',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(
-                      color: AppColors.gradientStart,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Web Sitesi
-              Text(
-                'Web Sitesi',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _webSitesiController,
-                keyboardType: TextInputType.url,
-                decoration: InputDecoration(
-                  hintText: 'https://',
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(
-                      color: AppColors.gradientStart,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Teslim edilecek tarih (Dokümantasyon Baskı İstek ile aynı widget)
-              Text(
-                'Son Teslim Tarihi',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: DatePickerBottomSheetWidget(
-                      label: null,
-                      initialDate: _teslimTarihi,
-                      minDate: DateTime.now(),
-                      maxDate: DateTime.now().add(const Duration(days: 365)),
-                      onDateChanged: (date) {
-                        setState(() => _teslimTarihi = date);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  const Expanded(child: SizedBox()),
+                  const SizedBox(height: 24),
+                  const SatinAlmaUrunCard(),
+                  const SizedBox(height: 24),
+                  // TODO: Başka ürün ekle butonu vs.
                 ],
               ),
-
-              const SizedBox(height: 24),
-              const SatinAlmaUrunCard(),
-              const SizedBox(height: 24),
-              // TODO: Başka ürün ekle butonu vs.
-            ],
+            ),
           ),
         ),
       ),

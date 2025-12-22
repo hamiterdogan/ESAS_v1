@@ -10,7 +10,7 @@ class DokumantasyonTuruSecimScreen extends StatelessWidget {
     final turler = DokumantasyonTuru.getAll();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: const Text(
           'Yeni Dokümantasyon İstek',

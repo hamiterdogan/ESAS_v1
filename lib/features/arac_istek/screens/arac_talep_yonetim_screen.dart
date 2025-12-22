@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/arac_istek/repositories/arac_talep_repository.dart';
 import 'package:esas_v1/core/models/result.dart';
 
@@ -49,7 +50,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFFEEF1F5),
         appBar: AppBar(
           title: FittedBox(
             fit: BoxFit.scaleDown,
@@ -618,7 +619,13 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: SizedBox(
+          width: 153,
+          height: 153,
+          child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+        ),
+      ),
       error: (error, stack) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -71,7 +71,7 @@ class _KurumGorevlendirmesiIzinScreenState
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: const Color(0xFFEEF1F5),
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text(
