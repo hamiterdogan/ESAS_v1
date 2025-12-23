@@ -9,21 +9,24 @@ import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
 import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 
 class SatinAlmaUrunCard extends ConsumerStatefulWidget {
-  const SatinAlmaUrunCard({super.key});
+  final SatinAlmaUrunBilgisi? initialBilgi;
+
+  const SatinAlmaUrunCard({super.key, this.initialBilgi});
 
   @override
-  ConsumerState<SatinAlmaUrunCard> createState() => _SatinAlmaUrunCardState();
+  ConsumerState<SatinAlmaUrunCard> createState() => SatinAlmaUrunCardState();
 }
 
-class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
+class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   SatinAlmaAnaKategori? _selectedAnaKategori;
   SatinAlmaAltKategori? _selectedAltKategori;
   SatinAlmaOlcuBirim? _selectedOlcuBirim;
   ParaBirimi? _selectedParaBirimi;
   double _dovizKuru = 1.0;
-  int _miktar = 0;
+  int _miktar = 1;
 
   final TextEditingController _urunAdiController = TextEditingController();
   final TextEditingController _miktarController = TextEditingController();
@@ -41,7 +44,98 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   bool _showingOlcuBirimLoading = false;
   bool _showingParaBirimiLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialBilgi != null) {
+      final bilgi = widget.initialBilgi!;
+      if (bilgi.anaKategoriId != null) {
+        _selectedAnaKategori = SatinAlmaAnaKategori(
+          id: bilgi.anaKategoriId!,
+          kategori: bilgi.anaKategori ?? '',
+          aktif: true,
+        );
+      }
+      if (bilgi.altKategoriId != null) {
+        _selectedAltKategori = SatinAlmaAltKategori(
+          id: bilgi.altKategoriId!,
+          altKategori: bilgi.altKategori ?? '',
+          satinAlmaAnaKategoriId: bilgi.anaKategoriId ?? 0,
+          aktif: true,
+        );
+      }
+      if (bilgi.olcuBirimiId != null) {
+        _selectedOlcuBirim = SatinAlmaOlcuBirim(
+          id: bilgi.olcuBirimiId!,
+          birimAdi: bilgi.olcuBirimi ?? '',
+          kisaltma: bilgi.olcuBirimiKisaltma ?? '',
+        );
+      }
+      if (bilgi.paraBirimiId != null) {
+        _selectedParaBirimi = ParaBirimi(
+          id: bilgi.paraBirimiId!,
+          kod: bilgi.paraBirimiKod ?? '',
+          birimAdi: bilgi.paraBirimi ?? '',
+          sembol: '',
+        );
+      }
+
+      _urunAdiController.text = bilgi.urunDetay ?? '';
+      _miktar = bilgi.miktar ?? 0;
+      _fiyatAnaController.text = bilgi.fiyatAna ?? '';
+      _fiyatKusuratController.text = bilgi.fiyatKusurat ?? '';
+      _dovizKuru = bilgi.dovizKuru ?? 1.0;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateToplamFiyat();
+        _updateTlKurFiyati();
+      });
+    }
+  }
+
+  SatinAlmaUrunBilgisi? getData() {
+    if (!validateForm()) return null;
+
+    return SatinAlmaUrunBilgisi(
+      anaKategori: _selectedAnaKategori?.kategori,
+      anaKategoriId: _selectedAnaKategori?.id,
+      altKategori: _selectedAltKategori?.altKategori,
+      altKategoriId: _selectedAltKategori?.id,
+      urunDetay: _urunAdiController.text,
+      aciklama: _aciklamaController.text,
+      miktar: _miktar,
+      olcuBirimi: _selectedOlcuBirim?.birimAdi,
+      olcuBirimiId: _selectedOlcuBirim?.id,
+      olcuBirimiKisaltma: _selectedOlcuBirim?.kisaltma,
+      paraBirimi: _selectedParaBirimi?.birimAdi,
+      paraBirimiId: _selectedParaBirimi?.id,
+      paraBirimiKod: _selectedParaBirimi?.kod,
+      dovizKuru: _dovizKuru,
+      fiyatAna: _fiyatAnaController.text,
+      fiyatKusurat: _fiyatKusuratController.text,
+      toplamFiyat: _toplamFiyatController.text,
+      tlKurFiyati: _tlKurFiyatiController.text,
+      toplamTlFiyati: _toplamTlFiyatiController.text,
+    );
+  }
+
   bool validateForm() {
+    if (_selectedAnaKategori == null) {
+      _showErrorBottomSheet('Ürün kategorisi seçiniz');
+      return false;
+    }
+    if (_selectedAltKategori == null) {
+      _showErrorBottomSheet('Alt kategorisi seçiniz');
+      return false;
+    }
+    if (_selectedOlcuBirim == null) {
+      _showErrorBottomSheet('Birim seçiniz');
+      return false;
+    }
+    if (_fiyatAnaController.text.isEmpty) {
+      _showErrorBottomSheet('Birim fiyatı giriniz');
+      return false;
+    }
     if (_urunAdiController.text.isEmpty) {
       _showErrorBottomSheet('Ürün detay bilgisi giriniz');
       return false;
@@ -184,140 +278,18 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 data: (kategoriler) {
                   final allKategoriler = kategoriler;
+                  final TextEditingController searchController =
+                      TextEditingController();
 
-                  return StatefulBuilder(
-                    builder: (context, setModalState) {
-                      String searchQuery = '';
-                      // We need a local controller inside the modal or manage state differently.
-                      // Using a local variable for simplicity inside StatefulBuilder is common,
-                      // but for text field we need a controller or onChanged.
-                      // Let's use a local controller for the modal.
-                      final TextEditingController searchController =
-                          TextEditingController();
-
-                      return StatefulBuilder(
-                        builder: (context, setStateModal) {
-                          final filteredList = allKategoriler.where((k) {
-                            return k.kategori.toLowerCase().contains(
-                              searchController.text.toLowerCase(),
-                            );
-                          }).toList();
-
-                          return SizedBox(
-                            height: MediaQuery.of(ctx).size.height * 0.75,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                    16,
-                                    16,
-                                    16,
-                                    8,
-                                  ),
-                                  child: Text(
-                                    'Ürün Kategorisi Seçiniz',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize:
-                                              (Theme.of(context)
-                                                      .textTheme
-                                                      .titleMedium
-                                                      ?.fontSize ??
-                                                  16) +
-                                              1,
-                                        ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  child: TextField(
-                                    controller: searchController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Ara...',
-                                      prefixIcon: const Icon(Icons.search),
-                                      suffixIcon:
-                                          searchController.text.isNotEmpty
-                                          ? IconButton(
-                                              icon: const Icon(Icons.clear),
-                                              onPressed: () {
-                                                searchController.clear();
-                                                setStateModal(() {});
-                                              },
-                                            )
-                                          : null,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                        borderSide: BorderSide(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      contentPadding: const EdgeInsets.all(8),
-                                    ),
-                                    onChanged: (val) {
-                                      setStateModal(() {});
-                                    },
-                                  ),
-                                ),
-                                Expanded(
-                                  child: ListView.separated(
-                                    itemCount: filteredList.length,
-                                    separatorBuilder: (_, __) => Divider(
-                                      height: 1,
-                                      color:
-                                          Colors.grey.shade200, // Lighter grey
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      final item = filteredList[index];
-                                      final isSelected =
-                                          _selectedAnaKategori?.id == item.id;
-                                      return ListTile(
-                                        dense: true,
-                                        title: Text(
-                                          item.kategori,
-                                          style: TextStyle(
-                                            fontSize:
-                                                (Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.fontSize ??
-                                                16),
-                                            fontWeight: isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: isSelected
-                                                ? AppColors.gradientStart
-                                                : Colors.black87,
-                                          ),
-                                        ),
-                                        trailing: isSelected
-                                            ? const Icon(
-                                                Icons.check,
-                                                color: AppColors.gradientStart,
-                                              )
-                                            : null,
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedAnaKategori = item;
-                                            _selectedAltKategori = null;
-                                          });
-                                          Navigator.pop(context);
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
+                  return _AnaKategoriBottomSheetContent(
+                    kategoriler: allKategoriler,
+                    selectedKategori: _selectedAnaKategori,
+                    onKategoriSelected: (selected) {
+                      setState(() {
+                        _selectedAnaKategori = selected;
+                        _selectedAltKategori = null;
+                      });
+                      Navigator.pop(context);
                     },
                   );
                 },
@@ -385,130 +357,14 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   ),
                 ),
                 data: (altKategoriler) {
-                  final TextEditingController searchController =
-                      TextEditingController();
-
-                  return StatefulBuilder(
-                    builder: (context, setStateModal) {
-                      final filteredList = altKategoriler.where((k) {
-                        return k.altKategori.toLowerCase().contains(
-                          searchController.text.toLowerCase(),
-                        );
-                      }).toList();
-
-                      return SizedBox(
-                        height: MediaQuery.of(ctx).size.height * 0.75,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              child: Text(
-                                'Ürün Alt Kategorisi Seçiniz',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.fontSize ??
-                                              16) +
-                                          1,
-                                    ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              child: TextField(
-                                controller: searchController,
-                                decoration: InputDecoration(
-                                  hintText: 'Ara...',
-                                  prefixIcon: const Icon(Icons.search),
-                                  suffixIcon: searchController.text.isNotEmpty
-                                      ? IconButton(
-                                          icon: const Icon(Icons.clear),
-                                          onPressed: () {
-                                            searchController.clear();
-                                            setStateModal(() {});
-                                          },
-                                        )
-                                      : null,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  contentPadding: const EdgeInsets.all(8),
-                                ),
-                                onChanged: (val) {
-                                  setStateModal(() {});
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: filteredList.isEmpty
-                                  ? Center(
-                                      child: Text(
-                                        'Sonuç bulunamadı',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                    )
-                                  : ListView.separated(
-                                      itemCount: filteredList.length,
-                                      separatorBuilder: (_, __) => Divider(
-                                        height: 1,
-                                        color: Colors.grey.shade200,
-                                      ),
-                                      itemBuilder: (context, index) {
-                                        final item = filteredList[index];
-                                        final isSelected =
-                                            _selectedAltKategori?.id == item.id;
-                                        return ListTile(
-                                          dense: true,
-                                          title: Text(
-                                            item.altKategori,
-                                            style: TextStyle(
-                                              fontSize:
-                                                  (Theme.of(context)
-                                                      .textTheme
-                                                      .titleMedium
-                                                      ?.fontSize ??
-                                                  16),
-                                              fontWeight: isSelected
-                                                  ? FontWeight.bold
-                                                  : FontWeight.normal,
-                                              color: isSelected
-                                                  ? AppColors.gradientStart
-                                                  : Colors.black87,
-                                            ),
-                                          ),
-                                          trailing: isSelected
-                                              ? const Icon(
-                                                  Icons.check,
-                                                  color:
-                                                      AppColors.gradientStart,
-                                                )
-                                              : null,
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedAltKategori = item;
-                                            });
-                                            Navigator.pop(context);
-                                          },
-                                        );
-                                      },
-                                    ),
-                            ),
-                          ],
-                        ),
-                      );
+                  return _AltKategoriBottomSheetContent(
+                    altKategoriler: altKategoriler,
+                    selectedAltKategori: _selectedAltKategori,
+                    onAltKategoriSelected: (selected) {
+                      setState(() {
+                        _selectedAltKategori = selected;
+                      });
+                      Navigator.pop(context);
                     },
                   );
                 },
@@ -1006,12 +862,30 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Ürün Kategorisi
-            Text(
-              'Ürün Kategorisi',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontSize:
-                    (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                    1,
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Ürün Kategorisi',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),
@@ -1025,7 +899,11 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(
+                    color: _selectedAnaKategori == null
+                        ? Colors.red.shade300
+                        : Colors.grey.shade300,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1054,12 +932,30 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             // Ürün Alt Kategorisi
             if (_selectedAnaKategori != null &&
                 _selectedAnaKategori!.id != 0) ...[
-              Text(
-                'Ürün Alt Kategorisi',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Ürün Alt Kategorisi',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -1073,7 +969,11 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(
+                      color: _selectedAltKategori == null
+                          ? Colors.red.shade300
+                          : Colors.grey.shade300,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1140,6 +1040,7 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             // Miktar Spinner
             DersSaatiSpinnerWidget(
               label: 'Miktar',
+              minValue: 1,
               maxValue: 99999,
               initialValue: _miktar,
               onValueChanged: (value) {
@@ -1156,25 +1057,69 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'Birim',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Birim',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize:
+                                (Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall?.fontSize ??
+                                    14) +
+                                1,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    'Birim Fiyatı',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Birim Fiyatı',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize:
+                                (Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall?.fontSize ??
+                                    14) +
+                                1,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1199,7 +1144,11 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                          color: _selectedOlcuBirim == null
+                              ? Colors.red.shade300
+                              : Colors.grey.shade300,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -1244,13 +1193,17 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(
-                                color: Colors.grey.shade300,
+                                color: _fiyatAnaController.text.isEmpty
+                                    ? Colors.red.shade300
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(
-                                color: Colors.grey.shade300,
+                                color: _fiyatAnaController.text.isEmpty
+                                    ? Colors.red.shade300
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
@@ -1546,6 +1499,267 @@ class _SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             const SizedBox(height: 16),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AnaKategoriBottomSheetContent extends StatefulWidget {
+  final List<SatinAlmaAnaKategori> kategoriler;
+  final SatinAlmaAnaKategori? selectedKategori;
+  final Function(SatinAlmaAnaKategori) onKategoriSelected;
+
+  const _AnaKategoriBottomSheetContent({
+    required this.kategoriler,
+    required this.selectedKategori,
+    required this.onKategoriSelected,
+  });
+
+  @override
+  State<_AnaKategoriBottomSheetContent> createState() =>
+      _AnaKategoriBottomSheetContentState();
+}
+
+class _AnaKategoriBottomSheetContentState
+    extends State<_AnaKategoriBottomSheetContent> {
+  late TextEditingController searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredList = widget.kategoriler.where((k) {
+      return k.kategori.toLowerCase().contains(
+        searchController.text.toLowerCase(),
+      );
+    }).toList();
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.75,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Ürün Kategorisi Seçiniz',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize:
+                    (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) +
+                    1,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Ara...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          searchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                contentPadding: const EdgeInsets.all(8),
+              ),
+              onChanged: (val) {
+                setState(() {});
+              },
+            ),
+          ),
+          Expanded(
+            child: ListView.separated(
+              itemCount: filteredList.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 1, color: Colors.grey.shade200),
+              itemBuilder: (context, index) {
+                final item = filteredList[index];
+                final isSelected = widget.selectedKategori?.id == item.id;
+                return ListTile(
+                  dense: true,
+                  title: Text(
+                    item.kategori,
+                    style: TextStyle(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleMedium?.fontSize ??
+                          16),
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected
+                          ? AppColors.gradientStart
+                          : Colors.black87,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: AppColors.gradientStart)
+                      : null,
+                  onTap: () {
+                    widget.onKategoriSelected(item);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AltKategoriBottomSheetContent extends StatefulWidget {
+  final List<SatinAlmaAltKategori> altKategoriler;
+  final SatinAlmaAltKategori? selectedAltKategori;
+  final Function(SatinAlmaAltKategori) onAltKategoriSelected;
+
+  const _AltKategoriBottomSheetContent({
+    required this.altKategoriler,
+    required this.selectedAltKategori,
+    required this.onAltKategoriSelected,
+  });
+
+  @override
+  State<_AltKategoriBottomSheetContent> createState() =>
+      _AltKategoriBottomSheetContentState();
+}
+
+class _AltKategoriBottomSheetContentState
+    extends State<_AltKategoriBottomSheetContent> {
+  late TextEditingController searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredList = widget.altKategoriler.where((k) {
+      return k.altKategori.toLowerCase().contains(
+        searchController.text.toLowerCase(),
+      );
+    }).toList();
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.75,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Ürün Alt Kategorisi Seçiniz',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize:
+                    (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) +
+                    1,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Ara...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          searchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                contentPadding: const EdgeInsets.all(8),
+              ),
+              onChanged: (val) {
+                setState(() {});
+              },
+            ),
+          ),
+          Expanded(
+            child: filteredList.isEmpty
+                ? Center(
+                    child: Text(
+                      'Sonuç bulunamadı',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: filteredList.length,
+                    separatorBuilder: (_, __) =>
+                        Divider(height: 1, color: Colors.grey.shade200),
+                    itemBuilder: (context, index) {
+                      final item = filteredList[index];
+                      final isSelected =
+                          widget.selectedAltKategori?.id == item.id;
+                      return ListTile(
+                        dense: true,
+                        title: Text(
+                          item.altKategori,
+                          style: TextStyle(
+                            fontSize:
+                                (Theme.of(
+                                  context,
+                                ).textTheme.titleMedium?.fontSize ??
+                                16),
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isSelected
+                                ? AppColors.gradientStart
+                                : Colors.black87,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(
+                                Icons.check,
+                                color: AppColors.gradientStart,
+                              )
+                            : null,
+                        onTap: () {
+                          widget.onAltKategoriSelected(item);
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }

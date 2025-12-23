@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
-import 'package:esas_v1/features/satin_alma/widgets/satin_alma_urun_card.dart';
+import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -27,7 +28,89 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final TextEditingController _webSitesiController = TextEditingController();
   final TextEditingController _searchBinaController = TextEditingController();
   DateTime _teslimTarihi = DateTime.now();
-  bool _isLoading = false;
+  final List<SatinAlmaUrunBilgisi> _urunler = [];
+
+  void _deleteUrun(int index) {
+    showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ürünü Sil',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Bu ürünü silmek istediğinize emin misiniz?',
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Vazgeç',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Sil',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ).then((shouldDelete) {
+      if (shouldDelete == true) {
+        setState(() {
+          _urunler.removeAt(index);
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -38,42 +121,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _webSitesiController.dispose();
     _searchBinaController.dispose();
     super.dispose();
-  }
-
-  void _showLoadingDialog() {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-    });
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.2),
-      builder: (dialogContext) {
-        return Center(
-          child: Container(
-            width: 175,
-            height: 175,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.05),
-            ),
-            alignment: Alignment.center,
-            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        );
-      },
-    );
-  }
-
-  void _hideLoadingDialog() {
-    if (!mounted) return;
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
-    setState(() {
-      _isLoading = false;
-    });
   }
 
   void _toggleSelection(String binaKodu) {
@@ -102,10 +149,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   void _showSelectedBinalarSheet(List<SatinAlmaBina> allBinalar) {
-    final selectedBinalar = allBinalar
-        .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
-        .toList();
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -521,8 +564,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
-                              loading: () => Row(
-                                children: const [
+                              loading: () => const Row(
+                                children: [
                                   SizedBox(
                                     width: 16,
                                     height: 16,
@@ -536,7 +579,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                               ),
                               error: (err, stack) => Text(
                                 'Liste alınamadı',
-                                style: TextStyle(color: Colors.red.shade600),
+                                style: TextStyle(color: Colors.red),
                               ),
                             ),
                           ),
@@ -546,24 +589,21 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     ),
                   ),
                   if (_selectedBinaKodlari.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: binalarAsync.when(
-                        data: (binalar) => TextButton.icon(
-                          onPressed: () => _showSelectedBinalarSheet(binalar),
-                          icon: const Icon(Icons.list),
-                          label: Text(
-                            'Seçilen Okullar (${_selectedBinaKodlari.length})',
-                          ),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.gradientStart,
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.centerLeft,
-                          ),
+                    binalarAsync.when(
+                      data: (binalar) => TextButton.icon(
+                        onPressed: () => _showSelectedBinalarSheet(binalar),
+                        icon: const Icon(Icons.list),
+                        label: Text(
+                          'Seçilen Okullar (${_selectedBinaKodlari.length})',
                         ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, __) => const SizedBox.shrink(),
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.gradientStart,
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                        ),
                       ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
                   const SizedBox(height: 16),
                   // Alımın Amacı (Binek Araç "Açıklama" alanı formatıyla)
@@ -729,9 +769,398 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  const SatinAlmaUrunCard(),
+                  if (_urunler.isNotEmpty) ...[
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _urunler.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final urun = _urunler[index];
+                        return SizedBox(
+                          width: double.infinity,
+                          child: Slidable(
+                            key: ValueKey(index),
+                            endActionPane: ActionPane(
+                              motion: const ScrollMotion(),
+                              children: [
+                                CustomSlidableAction(
+                                  onPressed: (_) {
+                                    Navigator.push<SatinAlmaUrunBilgisi>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            SatinAlmaUrunEkleScreen(
+                                              initialBilgi: urun,
+                                            ),
+                                      ),
+                                    ).then((result) {
+                                      if (result != null) {
+                                        setState(() {
+                                          _urunler[index] = result;
+                                        });
+                                      }
+                                    });
+                                  },
+                                  backgroundColor: Colors.blue,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        bottomLeft: Radius.circular(12),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    child: const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          size: 36,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Düzenle',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                CustomSlidableAction(
+                                  onPressed: (_) => _deleteUrun(index),
+                                  backgroundColor: Colors.red,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(12),
+                                        bottomRight: Radius.circular(12),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    child: const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          size: 36,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Sil',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            child: Builder(
+                              builder: (builderContext) => GestureDetector(
+                                onTap: () {
+                                  final slidable = Slidable.of(builderContext);
+                                  final isClosed =
+                                      slidable?.actionPaneType.value ==
+                                      ActionPaneType.none;
+
+                                  if (!isClosed) {
+                                    slidable?.close();
+                                    return;
+                                  }
+                                },
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Card(
+                                    elevation: 2,
+                                    color:
+                                        Color.lerp(
+                                          Theme.of(
+                                            context,
+                                          ).scaffoldBackgroundColor,
+                                          Colors.white,
+                                          0.65,
+                                        ) ??
+                                        Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Builder(
+                                            builder: (context) {
+                                              final anaKategori =
+                                                  (urun.anaKategori ?? '')
+                                                      .trim();
+                                              final altKategori =
+                                                  (urun.altKategori ?? '')
+                                                      .trim();
+                                              final urunDetay =
+                                                  (urun.urunDetay ?? '').trim();
+
+                                              final miktar = urun.miktar ?? 0;
+                                              final birim =
+                                                  ((urun.olcuBirimiKisaltma ??
+                                                                  '')
+                                                              .trim()
+                                                              .isNotEmpty
+                                                          ? urun.olcuBirimiKisaltma
+                                                          : urun.olcuBirimi)
+                                                      ?.trim();
+
+                                              final paraKod =
+                                                  (urun.paraBirimiKod ?? '')
+                                                      .trim();
+                                              final displayParaKod =
+                                                  paraKod.toUpperCase() == 'TRY'
+                                                  ? 'TL'
+                                                  : paraKod;
+
+                                              final fiyatAna =
+                                                  (urun.fiyatAna ?? '').trim();
+                                              final fiyatKusurat =
+                                                  (urun.fiyatKusurat ?? '')
+                                                      .trim();
+                                              final birimFiyat =
+                                                  fiyatKusurat.isNotEmpty
+                                                  ? '$fiyatAna,$fiyatKusurat'
+                                                  : fiyatAna;
+
+                                              final toplamFiyat =
+                                                  (urun.toplamFiyat ?? '')
+                                                      .trim()
+                                                      .replaceAll(
+                                                        RegExp(
+                                                          r'\bTRY\b',
+                                                          caseSensitive: false,
+                                                        ),
+                                                        'TL',
+                                                      );
+                                              final tlKurFiyati =
+                                                  (urun.tlKurFiyati ?? '')
+                                                      .trim()
+                                                      .replaceAll(
+                                                        RegExp(
+                                                          r'\bTRY\b',
+                                                          caseSensitive: false,
+                                                        ),
+                                                        'TL',
+                                                      );
+                                              final toplamTlFiyat =
+                                                  (urun.toplamTlFiyati)
+                                                      .trim()
+                                                      .replaceAll(
+                                                        RegExp(
+                                                          r'\bTRY\b',
+                                                          caseSensitive: false,
+                                                        ),
+                                                        'TL',
+                                                      );
+
+                                              String line3 =
+                                                  '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
+                                              if (birimFiyat.isNotEmpty ||
+                                                  displayParaKod.isNotEmpty) {
+                                                final birimFiyatHasPara =
+                                                    birimFiyat
+                                                        .toUpperCase()
+                                                        .contains(
+                                                          displayParaKod
+                                                              .toUpperCase(),
+                                                        );
+                                                final birimFiyatWithPara =
+                                                    birimFiyat.isNotEmpty
+                                                    ? (displayParaKod
+                                                                  .isNotEmpty &&
+                                                              !birimFiyatHasPara
+                                                          ? '$birimFiyat $displayParaKod'
+                                                          : birimFiyat)
+                                                    : displayParaKod;
+                                                line3 =
+                                                    '$line3 * $birimFiyatWithPara'
+                                                        .trim();
+                                              }
+
+                                              final toplamFiyatHasPara =
+                                                  toplamFiyat
+                                                      .toUpperCase()
+                                                      .contains(
+                                                        displayParaKod
+                                                            .toUpperCase(),
+                                                      );
+                                              final line4Left =
+                                                  (toplamFiyat.isNotEmpty
+                                                          ? (displayParaKod
+                                                                        .isNotEmpty &&
+                                                                    !toplamFiyatHasPara
+                                                                ? '$toplamFiyat $displayParaKod'
+                                                                : toplamFiyat)
+                                                          : displayParaKod)
+                                                      .trim();
+                                              final line4 =
+                                                  '${line4Left.isNotEmpty ? line4Left : ''}${tlKurFiyati.isNotEmpty ? ' * $tlKurFiyati' : ''}${toplamTlFiyat.isNotEmpty ? ' = $toplamTlFiyat' : ''}'
+                                                      .trim();
+
+                                              return Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  RichText(
+                                                    text: TextSpan(
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.black,
+                                                      ),
+                                                      children: [
+                                                        TextSpan(
+                                                          text: anaKategori,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                        ),
+                                                        if (altKategori
+                                                            .isNotEmpty)
+                                                          TextSpan(
+                                                            text:
+                                                                ' - $altKategori',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              color: Colors
+                                                                  .grey
+                                                                  .shade800,
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  if (urunDetay.isNotEmpty) ...[
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      urunDetay,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade800,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    line3,
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                  if (line4.isNotEmpty) ...[
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      line4,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: AppColors
+                                                            .gradientStart,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final result =
+                            await Navigator.push<SatinAlmaUrunBilgisi>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SatinAlmaUrunEkleScreen(),
+                              ),
+                            );
+
+                        if (result != null) {
+                          setState(() {
+                            _urunler.add(result);
+                          });
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.add,
+                        color: AppColors.gradientStart,
+                        size: 28,
+                      ),
+                      label: const Text(
+                        'Ürün / Hizmet Ekle',
+                        style: TextStyle(
+                          color: AppColors.gradientStart,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        alignment: Alignment.centerLeft,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
-                  // TODO: Başka ürün ekle butonu vs.
                 ],
               ),
             ),
