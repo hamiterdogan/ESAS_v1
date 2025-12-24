@@ -8,6 +8,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/arac_istek_ozet_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -74,36 +75,7 @@ class _AracIstekYukEkleScreenState
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
   }
 
-  void _showBlockingLoadingDialog() {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6),
-      builder: (dialogContext) {
-        return Center(
-          child: Container(
-            width: 175,
-            height: 175,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
-            ),
-            alignment: Alignment.center,
-            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        );
-      },
-    );
-  }
 
-  void _hideBlockingLoadingDialog() {
-    if (!mounted) return;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-  }
 
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
     int targetHour = startHour + 1;
@@ -364,31 +336,34 @@ class _AracIstekYukEkleScreenState
                   ),
                 ),
                 const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width / 2,
-                    child: ElevatedButton.icon(
-                      onPressed: _openYerSecimiBottomSheet,
-                      icon: const Icon(
-                        Icons.add_location_alt_outlined,
-                        size: 27,
-                        color: Colors.white,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: _openYerSecimiBottomSheet,
+                    icon: const Icon(
+                      Icons.add_location_alt_outlined,
+                      color: AppColors.gradientStart,
+                      size: 28,
+                    ),
+                    label: const Text(
+                      'Yer Ekle',
+                      style: TextStyle(
+                        color: AppColors.gradientStart,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      label: const Text(
-                        'Yer Ekle',
-                        style: TextStyle(fontSize: 17, color: Colors.white),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 26,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey.shade300),
                       ),
+                      alignment: Alignment.centerLeft,
                     ),
                   ),
                 ),
@@ -842,12 +817,12 @@ class _AracIstekYukEkleScreenState
 
   Future<void> _sendAracIstek(AracIstekEkleReq req) async {
     try {
-      _showBlockingLoadingDialog();
+      BrandedLoadingDialog.show(context);
       final repo = ref.read(aracTalepRepositoryProvider);
       final result = await repo.aracIstekEkle(req);
 
       if (mounted) {
-        _hideBlockingLoadingDialog();
+        BrandedLoadingDialog.hide(context);
         switch (result) {
           case Success():
             // onSuccess callback'i çalıştır (özet ekranında tanımlanmış)
@@ -859,7 +834,7 @@ class _AracIstekYukEkleScreenState
         }
       }
     } catch (e) {
-      _hideBlockingLoadingDialog();
+      BrandedLoadingDialog.hide(context);
       rethrow;
     }
   }

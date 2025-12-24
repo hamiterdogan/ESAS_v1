@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
+import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
+import 'package:intl/intl.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -27,8 +33,183 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       TextEditingController();
   final TextEditingController _webSitesiController = TextEditingController();
   final TextEditingController _searchBinaController = TextEditingController();
+  final TextEditingController _genelToplamController = TextEditingController();
+  String? _odemeSekli;
+  bool _vadeli = false;
+  int _odemeVadesi = 1;
   DateTime _teslimTarihi = DateTime.now();
   final List<SatinAlmaUrunBilgisi> _urunler = [];
+  final List<PlatformFile> _selectedFiles = [];
+  final TextEditingController _fiyatTeklifIcerikController =
+      TextEditingController();
+
+  double _parseMoneyToDouble(String value) {
+    final cleaned = value
+        .toUpperCase()
+        .replaceAll('TL', '')
+        .replaceAll('TRY', '')
+        .replaceAll('₺', '')
+        .trim();
+    if (cleaned.isEmpty) return 0;
+
+    final normalized = cleaned
+        .replaceAll(RegExp(r'[^0-9.,-]'), '')
+        // Turkish format: 1.234,56
+        .replaceAll('.', '')
+        .replaceAll(',', '.');
+
+    return double.tryParse(normalized) ?? 0;
+  }
+
+  void _updateGenelToplam() {
+    final sum = _urunler.fold<double>(
+      0,
+      (prev, e) => prev + _parseMoneyToDouble(e.toplamTlFiyati),
+    );
+    final formatted = NumberFormat('#,##0.00', 'tr_TR').format(sum);
+    _genelToplamController.text = '$formatted TL';
+  }
+
+  Future<void> _pickFiles() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowedExtensions: [
+          'pdf',
+          'jpg',
+          'jpeg',
+          'png',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx',
+        ],
+        type: FileType.custom,
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        final existingNames = _selectedFiles.map((f) => f.name).toSet();
+        final newFiles = <PlatformFile>[];
+        final duplicateNames = <String>[];
+
+        for (final file in result.files) {
+          if (existingNames.contains(file.name)) {
+            duplicateNames.add(file.name);
+          } else {
+            newFiles.add(file);
+          }
+        }
+
+        setState(() {
+          _selectedFiles.addAll(newFiles);
+        });
+
+        if (duplicateNames.isNotEmpty && mounted) {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: 60,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Bu dosyayı daha önce eklediniz',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    duplicateNames.join(', '),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gradientStart,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Tamam',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
+      }
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateGenelToplam();
+    _updateExchangeRates();
+  }
+
+  Future<void> _updateExchangeRates() async {
+    try {
+      final dio = ref.read(dioProvider);
+      await dio.post('/Finans/MerkezBankasiDovizKurlariniGuncelle', data: {});
+    } catch (e) {
+      // Silently fail - no error messages
+      debugPrint('Exchange rate update failed: $e');
+    }
+  }
 
   void _deleteUrun(int index) {
     showModalBottomSheet<bool>(
@@ -107,6 +288,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       if (shouldDelete == true) {
         setState(() {
           _urunler.removeAt(index);
+          _updateGenelToplam();
         });
       }
     });
@@ -120,6 +302,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _saticiTelefonController.dispose();
     _webSitesiController.dispose();
     _searchBinaController.dispose();
+    _genelToplamController.dispose();
+    _fiyatTeklifIcerikController.dispose();
     super.dispose();
   }
 
@@ -278,7 +462,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               return asyncBinalar.when(
                 loading: () => const SizedBox(
                   height: 240,
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: BrandedLoadingIndicator(size: 64)),
                 ),
                 error: (error, stack) => SizedBox(
                   height: 240,
@@ -477,6 +661,78 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                 },
               );
             },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showOdemeSekliBottomSheet() {
+    final options = ['Nakit', 'Kredi Kartı', 'Havale/EFT'];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ödeme Şekli Seçiniz',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...List.generate(
+                  options.length,
+                  (index) => Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _odemeSekli = options[index]);
+                          Navigator.pop(context);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  options[index],
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              if (_odemeSekli == options[index])
+                                const Icon(
+                                  Icons.check,
+                                  color: AppColors.gradientStart,
+                                  size: 20,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (index < options.length - 1)
+                        Divider(
+                          color: Colors.grey.shade300,
+                          thickness: 1,
+                          height: 0,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -799,6 +1055,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                       if (result != null) {
                                         setState(() {
                                           _urunler[index] = result;
+                                          _updateGenelToplam();
                                         });
                                       }
                                     });
@@ -946,10 +1203,43 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                               final fiyatKusurat =
                                                   (urun.fiyatKusurat ?? '')
                                                       .trim();
-                                              final birimFiyat =
-                                                  fiyatKusurat.isNotEmpty
-                                                  ? '$fiyatAna,$fiyatKusurat'
-                                                  : fiyatAna;
+
+                                              // Birim fiyatı KDV dahil olarak hesapla
+                                              double birimFiyatDouble = 0.0;
+                                              try {
+                                                final fiyatAnaDouble =
+                                                    double.tryParse(
+                                                      fiyatAna
+                                                          .replaceAll('.', '')
+                                                          .replaceAll(',', '.'),
+                                                    ) ??
+                                                    0;
+                                                final fiyatKusuratDouble =
+                                                    double.tryParse(
+                                                      fiyatKusurat,
+                                                    ) ??
+                                                    0;
+                                                birimFiyatDouble =
+                                                    fiyatAnaDouble +
+                                                    (fiyatKusuratDouble / 100);
+
+                                                // KDV ekle
+                                                if (urun.kdvDahilDegil &&
+                                                    urun.kdvOrani > 0) {
+                                                  birimFiyatDouble +=
+                                                      birimFiyatDouble *
+                                                      (urun.kdvOrani / 100);
+                                                }
+                                              } catch (e) {
+                                                birimFiyatDouble = 0.0;
+                                              }
+
+                                              final numberFormat = NumberFormat(
+                                                '#,##0.00',
+                                                'tr_TR',
+                                              );
+                                              final birimFiyat = numberFormat
+                                                  .format(birimFiyatDouble);
 
                                               final toplamFiyat =
                                                   (urun.toplamFiyat ?? '')
@@ -1023,8 +1313,15 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                           : displayParaKod)
                                                       .trim();
                                               final line4 =
-                                                  '${line4Left.isNotEmpty ? line4Left : ''}${tlKurFiyati.isNotEmpty ? ' * $tlKurFiyati' : ''}${toplamTlFiyat.isNotEmpty ? ' = $toplamTlFiyat' : ''}'
-                                                      .trim();
+                                                  displayParaKod
+                                                          .toUpperCase()
+                                                          .contains('TRY') ||
+                                                      displayParaKod
+                                                          .toUpperCase()
+                                                          .contains('TL')
+                                                  ? toplamTlFiyat
+                                                  : '${line4Left.isNotEmpty ? line4Left : ''}${tlKurFiyati.isNotEmpty ? ' * $tlKurFiyati' : ''}${toplamTlFiyat.isNotEmpty ? ' = $toplamTlFiyat' : ''}'
+                                                        .trim();
 
                                               return Column(
                                                 crossAxisAlignment:
@@ -1130,6 +1427,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         if (result != null) {
                           setState(() {
                             _urunler.add(result);
+                            _updateGenelToplam();
                           });
                         }
                       },
@@ -1148,7 +1446,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       ),
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          vertical: 12,
+                          vertical: 8,
                           horizontal: 16,
                         ),
                         backgroundColor: Colors.white,
@@ -1160,7 +1458,333 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 16),
+                  Text(
+                    'Genel Toplam',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _genelToplamController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: '0,00 TL',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ödeme Şekli',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => _showOdemeSekliBottomSheet(),
+                              child: Container(
+                                width:
+                                    MediaQuery.of(context).size.width - 72 - 20,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _odemeSekli ?? 'Seçiniz',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _odemeSekli == null
+                                            ? Colors.grey.shade500
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Row(
+                        children: [
+                          Switch(
+                            value: _vadeli,
+                            activeColor: AppColors.gradientStart,
+                            inactiveTrackColor: Colors.white,
+                            onChanged: (v) {
+                              setState(() {
+                                _vadeli = v;
+                                if (!v) {
+                                  _odemeVadesi = 1;
+                                }
+                              });
+                            },
+                          ),
+                          const Text(
+                            'Vadeli',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  if (_vadeli) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        DersSaatiSpinnerWidget(
+                          label: 'Ödeme Vadesi',
+                          minValue: 1,
+                          maxValue: 999,
+                          initialValue: _odemeVadesi,
+                          onValueChanged: (value) {
+                            setState(() {
+                              _odemeVadesi = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: 20),
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Gün',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 24),
+                  // Fiyat Teklifi / Sözleşme Ekle
+                  Text(
+                    'Fiyat Teklifi / Sözleşme Ekle',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickFiles,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 24,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Dosya Seçmek İçin Dokunun',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedFiles.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _selectedFiles.length,
+                      itemBuilder: (context, index) {
+                        final file = _selectedFiles[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.insert_drive_file_outlined,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  file.name,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                onPressed: () => _removeFile(index),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  // Dosyaların İçeriğini Belirtiniz
+                  Text(
+                    'Dosyaların İçeriğini Belirtiniz',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _fiyatTeklifIcerikController,
+                    decoration: InputDecoration(
+                      hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                      contentPadding: const EdgeInsets.all(12),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 0.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 0.5,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade600,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 32),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // TODO: Implement submit logic
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Gönder',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

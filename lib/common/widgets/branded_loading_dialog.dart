@@ -1,0 +1,35 @@
+import 'package:flutter/material.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+
+class BrandedLoadingDialog {
+  static void show(BuildContext context) {
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: Center(
+            child: Container(
+              width: 175,
+              height: 175,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.05),
+              ),
+              alignment: Alignment.center,
+              child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static void hide(BuildContext context) {
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // Attempt to pop the dialog
+  }
+}

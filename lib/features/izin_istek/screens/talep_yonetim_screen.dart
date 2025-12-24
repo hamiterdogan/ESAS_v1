@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 
 class TalepYonetimScreen extends ConsumerStatefulWidget {
@@ -108,16 +109,7 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.gradientEnd,
-                ),
-              ),
-            ),
+            const BrandedLoadingIndicator(size: 48),
             const SizedBox(height: 16),
             Text(
               'Talepler Yükleniyor...',

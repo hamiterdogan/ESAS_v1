@@ -19,6 +19,8 @@ class SatinAlmaUrunBilgisi {
     this.toplamFiyat,
     this.tlKurFiyati,
     required this.toplamTlFiyati,
+    this.kdvDahilDegil = false,
+    this.kdvOrani = 0,
   });
 
   final String? anaKategori;
@@ -40,4 +42,6 @@ class SatinAlmaUrunBilgisi {
   final String? toplamFiyat;
   final String? tlKurFiyati;
   final String toplamTlFiyati;
+  final bool kdvDahilDegil;
+  final int kdvOrani;
 }

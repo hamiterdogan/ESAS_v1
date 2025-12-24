@@ -17,6 +17,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_istek_req.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
 
 class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
@@ -111,38 +112,7 @@ class _DokumantasyonBaskiIstekScreenState
       _initialSeviyeList.isNotEmpty &&
       _initialSinifList.isNotEmpty;
 
-  void _showBlockingLoadingDialog() {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6), // Dim background further
-      builder: (dialogContext) {
-        return Center(
-          child: Container(
-            width: 175,
-            height: 175,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(
-                0.05,
-              ), // 5% circular backdrop under spinner
-            ),
-            alignment: Alignment.center,
-            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        );
-      },
-    );
-  }
 
-  void _hideBlockingLoadingDialog() {
-    if (!mounted) return;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-  }
 
   Future<void> _fetchDokumanTurleri() async {
     setState(() {
@@ -234,9 +204,99 @@ class _DokumantasyonBaskiIstekScreenState
       );
 
       if (result != null) {
+        final existingNames = _selectedFiles
+            .map((f) => f.path.split('/').last)
+            .toSet();
+        final newFiles = <File>[];
+        final duplicateNames = <String>[];
+
+        for (final path in result.paths) {
+          final fileName = path!.split('/').last;
+          if (existingNames.contains(fileName)) {
+            duplicateNames.add(fileName);
+          } else {
+            newFiles.add(File(path));
+          }
+        }
+
         setState(() {
-          _selectedFiles.addAll(result.paths.map((path) => File(path!)));
+          _selectedFiles.addAll(newFiles);
         });
+
+        if (duplicateNames.isNotEmpty && mounted) {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: 60,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Bu dosyayı daha önce eklediniz',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    duplicateNames.join(', '),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gradientStart,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Tamam',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error picking files: $e');
@@ -302,7 +362,7 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingDokumanTurleri)
-                const Center(child: CircularProgressIndicator())
+                const Center(child: BrandedLoadingIndicator(size: 48))
               else if (_dokumanTurleri.isEmpty)
                 const Center(child: Text('Doküman türü bulunamadı'))
               else
@@ -364,7 +424,7 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingBaskiBoyutlari)
-                const Center(child: CircularProgressIndicator())
+                const Center(child: BrandedLoadingIndicator(size: 48))
               else if (_baskiBoyutlari.isEmpty)
                 const Center(child: Text('Baskı boyutu bulunamadı'))
               else
@@ -1214,7 +1274,7 @@ class _DokumantasyonBaskiIstekScreenState
     setState(() => _isActionInProgress = true);
 
     try {
-      _showBlockingLoadingDialog();
+      BrandedLoadingDialog.show(context);
       // UI'nin dialog'u çizmesi için bir frame ver.
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -1246,7 +1306,7 @@ class _DokumantasyonBaskiIstekScreenState
               _classSheetLoading = false;
               _classSheetError = message;
             });
-            _hideBlockingLoadingDialog();
+            BrandedLoadingDialog.hide(context);
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Veri yüklenemedi: $message')),
@@ -1254,7 +1314,7 @@ class _DokumantasyonBaskiIstekScreenState
             }
             return;
           case Loading():
-            _hideBlockingLoadingDialog();
+            BrandedLoadingDialog.hide(context);
             return;
         }
       }
@@ -1280,7 +1340,7 @@ class _DokumantasyonBaskiIstekScreenState
         onUpdateCount: (c) => localStudentCount = c,
       );
 
-      _hideBlockingLoadingDialog();
+      BrandedLoadingDialog.hide(context);
       _currentFilterPage = '';
 
       if (!mounted) return;
@@ -1594,7 +1654,7 @@ class _DokumantasyonBaskiIstekScreenState
       );
     } catch (e) {
       debugPrint('Error in class sheet: $e');
-      _hideBlockingLoadingDialog();
+      BrandedLoadingDialog.hide(context);
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
     }

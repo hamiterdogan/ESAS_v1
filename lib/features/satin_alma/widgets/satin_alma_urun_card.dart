@@ -27,6 +27,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   ParaBirimi? _selectedParaBirimi;
   double _dovizKuru = 1.0;
   int _miktar = 1;
+  bool _kdvDahilDegil = false;
+  int _kdvOrani = 0; // 0 means not selected or 0%
 
   final TextEditingController _urunAdiController = TextEditingController();
   final TextEditingController _miktarController = TextEditingController();
@@ -85,6 +87,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       _fiyatAnaController.text = bilgi.fiyatAna ?? '';
       _fiyatKusuratController.text = bilgi.fiyatKusurat ?? '';
       _dovizKuru = bilgi.dovizKuru ?? 1.0;
+      _kdvDahilDegil = bilgi.kdvDahilDegil;
+      _kdvOrani = bilgi.kdvOrani;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateToplamFiyat();
@@ -116,6 +120,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       toplamFiyat: _toplamFiyatController.text,
       tlKurFiyati: _tlKurFiyatiController.text,
       toplamTlFiyati: _toplamTlFiyatiController.text,
+      kdvDahilDegil: _kdvDahilDegil,
+      kdvOrani: _kdvOrani,
     );
   }
 
@@ -138,6 +144,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     }
     if (_urunAdiController.text.isEmpty) {
       _showErrorBottomSheet('Ürün detay bilgisi giriniz');
+      return false;
+    }
+    if (_kdvDahilDegil && _kdvOrani == 0) {
+      _showErrorBottomSheet('KDV Oranı Seçiniz');
       return false;
     }
     return true;
@@ -196,7 +206,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                            14) +
+                        3,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -664,6 +679,82 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
+  void _showKdvOraniBottomSheet() {
+    final kdvRates = [20, 10, 1];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Text(
+                  'KDV Oranı Seçiniz',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize:
+                        (Theme.of(context).textTheme.titleMedium?.fontSize ??
+                            16) +
+                        1,
+                  ),
+                ),
+              ),
+              ...kdvRates.map(
+                (rate) => Column(
+                  children: [
+                    ListTile(
+                      dense: true,
+                      title: Text(
+                        '%$rate',
+                        style: TextStyle(
+                          fontWeight: _kdvOrani == rate
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: _kdvOrani == rate
+                              ? AppColors.gradientStart
+                              : Colors.black87,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing: _kdvOrani == rate
+                          ? const Icon(
+                              Icons.check,
+                              color: AppColors.gradientStart,
+                            )
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _kdvOrani = rate;
+                        });
+                        _calculateToplamFiyat();
+                        Navigator.pop(context);
+                      },
+                    ),
+                    if (rate != kdvRates.last)
+                      Divider(
+                        height: 1,
+                        color: Colors.grey.shade200,
+                        indent: 16,
+                        endIndent: 16,
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _fetchDovizKuru(String dovizKodu) async {
     // TRY için kur sabit 1.0
     if (dovizKodu == 'TRY') {
@@ -716,38 +807,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _updateTlToplamFiyat();
   }
 
-  void _updateToplamFiyat() {
-    try {
-      final fiyatAnaText = _fiyatAnaController.text
-          .replaceAll('.', '')
-          .replaceAll(',', '.');
-      final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
-      final fiyatKusurat = double.tryParse(_fiyatKusuratController.text) ?? 0;
-      final fiyat = fiyatAna + (fiyatKusurat / 100);
-      final paraBirimiKodu = _selectedParaBirimi?.kod ?? 'TRY';
-
-      // Kullanıcı birim fiyatı hangi para biriminde girdiyse, ekranda toplamı aynı para biriminde göster.
-      final toplam = _miktar * fiyat;
-      final numberFormat = NumberFormat('#,##0.00', 'tr_TR');
-      final toplamFormatted = numberFormat.format(toplam);
-
-      if (mounted) {
-        if (_miktar > 0 && fiyat > 0) {
-          _toplamFiyatController.text = '$toplamFormatted $paraBirimiKodu';
-        } else {
-          _toplamFiyatController.text = '0,00 $paraBirimiKodu';
-        }
-      }
-
-      // TL cinsinden toplam fiyat hesapla: miktar * birim fiyatı * TL kur
-      _updateTlToplamFiyat();
-    } catch (e) {
-      if (mounted) {
-        _toplamFiyatController.text = '0.00 TRY';
-      }
-    }
-  }
-
   void _updateTlToplamFiyat() {
     try {
       final fiyatAnaText = _fiyatAnaController.text
@@ -755,10 +814,15 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           .replaceAll(',', '.');
       final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
       final fiyatKusurat = double.tryParse(_fiyatKusuratController.text) ?? 0;
-      final fiyat = fiyatAna + (fiyatKusurat / 100);
+      double birimFiyat = fiyatAna + (fiyatKusurat / 100);
 
-      // Toplam TL = miktar * birim fiyatı * TL kur
-      final toplam = _miktar * fiyat;
+      // KDV Ekleme mantığı
+      if (_kdvDahilDegil && _kdvOrani > 0) {
+        birimFiyat += birimFiyat * (_kdvOrani / 100);
+      }
+
+      // Toplam TL = miktar * efektif birim fiyatı * TL kur
+      final toplam = _miktar * birimFiyat;
       final toplamTl = toplam * _dovizKuru;
 
       final numberFormat = NumberFormat('#,##0.00', 'tr_TR');
@@ -770,6 +834,44 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     } catch (e) {
       if (mounted) {
         _toplamTlFiyatiController.text = '0,00 TL';
+      }
+    }
+  }
+
+  void _updateToplamFiyat() {
+    try {
+      final fiyatAnaText = _fiyatAnaController.text
+          .replaceAll('.', '')
+          .replaceAll(',', '.');
+      final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
+      final fiyatKusurat = double.tryParse(_fiyatKusuratController.text) ?? 0;
+      double birimFiyat = fiyatAna + (fiyatKusurat / 100);
+
+      // KDV Ekleme mantığı
+      if (_kdvDahilDegil && _kdvOrani > 0) {
+        birimFiyat += birimFiyat * (_kdvOrani / 100);
+      }
+
+      final paraBirimiKodu = _selectedParaBirimi?.kod ?? 'TRY';
+
+      // Kullanıcı birim fiyatı hangi para biriminde girdiyse, ekranda toplamı aynı para biriminde göster.
+      final toplam = _miktar * birimFiyat;
+      final numberFormat = NumberFormat('#,##0.00', 'tr_TR');
+      final toplamFormatted = numberFormat.format(toplam);
+
+      if (mounted) {
+        if (_miktar > 0 && birimFiyat > 0) {
+          _toplamFiyatController.text = '$toplamFormatted $paraBirimiKodu';
+        } else {
+          _toplamFiyatController.text = '0,00 $paraBirimiKodu';
+        }
+      }
+
+      // TL cinsinden toplam fiyat hesapla
+      _updateTlToplamFiyat();
+    } catch (e) {
+      if (mounted) {
+        _toplamFiyatController.text = '0.00 TRY';
       }
     }
   }
@@ -1053,130 +1155,111 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
             const SizedBox(height: 16),
 
-            // Başlıklar Row'u
-            Row(
-              children: [
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Birim',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize:
-                                (Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall?.fontSize ??
-                                    14) +
-                                1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+            // Birim (Full Width)
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Birim',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Birim Fiyatı',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize:
-                                (Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall?.fontSize ??
-                                    14) +
-                                1,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _showOlcuBirimBottomSheet,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
                 ),
-              ],
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: _selectedOlcuBirim == null
+                        ? Colors.red.shade300
+                        : Colors.grey.shade300,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _selectedOlcuBirim?.birimAdi ?? 'Birim seçiniz',
+                        style: TextStyle(
+                          color: _selectedOlcuBirim == null
+                              ? Colors.grey.shade600
+                              : Colors.black,
+                          fontSize: 16,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                  ],
+                ),
+              ),
             ),
 
-            const SizedBox(height: 3),
+            const SizedBox(height: 16),
 
-            // Input'lar Row'u
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Flexible(
-                  flex: 3,
-                  child: GestureDetector(
-                    onTap: _showOlcuBirimBottomSheet,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(
-                          color: _selectedOlcuBirim == null
-                              ? Colors.red.shade300
-                              : Colors.grey.shade300,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _selectedOlcuBirim?.birimAdi ?? 'Birim seçiniz',
-                              style: TextStyle(
-                                color: _selectedOlcuBirim == null
-                                    ? Colors.grey.shade600
-                                    : Colors.black,
-                                fontSize: 16,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                        ],
-                      ),
+            // Birim Fiyatı (Label)
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Birim Fiyatı',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Flexible(
-                  flex: 4,
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Birim Fiyatı ve KDV Toggle Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 3,
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         flex: 2,
@@ -1276,8 +1359,79 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                     ],
                   ),
                 ),
+                const SizedBox(width: 12),
+                // KDV Toggle (White background, Button left, label right)
+                Row(
+                  children: [
+                    Switch(
+                      value: _kdvDahilDegil,
+                      activeColor: AppColors.gradientStart,
+                      inactiveTrackColor: Colors.white,
+                      onChanged: (v) {
+                        setState(() {
+                          _kdvDahilDegil = v;
+                          if (!v) {
+                            _kdvOrani = 0; // Reset rate if unchecked
+                          }
+                        });
+                        _calculateToplamFiyat();
+                      },
+                    ),
+                    const Text(
+                      'KDV Ekle',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
+
+            // KDV Oranı Input (Conditional)
+            if (_kdvDahilDegil) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Eklenecek KDV Oranı',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _showKdvOraniBottomSheet,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _kdvOrani > 0 ? '%$_kdvOrani' : 'KDV Oranı Seçiniz',
+                        style: TextStyle(
+                          color: _kdvOrani > 0
+                              ? Colors.black
+                              : Colors.grey.shade600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 16),
 

@@ -6,6 +6,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -93,36 +94,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         _initialSinifList.isNotEmpty;
   }
 
-  void _showBlockingLoadingDialog() {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.2), // Dim background slightly
-      builder: (dialogContext) {
-        return Center(
-          child: Container(
-            width: 175,
-            height: 175,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.05),
-            ),
-            alignment: Alignment.center,
-            child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        );
-      },
-    );
-  }
 
-  void _hideBlockingLoadingDialog() {
-    if (!mounted) return;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-  }
 
   @override
   void dispose() {
@@ -328,31 +300,34 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width / 2,
-                    child: ElevatedButton.icon(
-                      onPressed: _openYerSecimiBottomSheet,
-                      icon: const Icon(
-                        Icons.add_location_alt_outlined,
-                        size: 27,
-                        color: Colors.white,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: _openYerSecimiBottomSheet,
+                    icon: const Icon(
+                      Icons.add_location_alt_outlined,
+                      color: AppColors.gradientStart,
+                      size: 28,
+                    ),
+                    label: const Text(
+                      'Yer Ekle',
+                      style: TextStyle(
+                        color: AppColors.gradientStart,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
-                      label: const Text(
-                        'Yer Ekle',
-                        style: TextStyle(fontSize: 17, color: Colors.white),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 26,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey.shade300),
                       ),
+                      alignment: Alignment.centerLeft,
                     ),
                   ),
                 ),
@@ -2174,7 +2149,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     if (_personelSheetLoading) return;
     setState(() => _isActionInProgress = true);
     try {
-      _showBlockingLoadingDialog();
+      BrandedLoadingDialog.show(context);
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
       setState(() {
@@ -2198,17 +2173,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
             _personelSheetLoading = false;
             _personelSheetError = message;
           });
-          _hideBlockingLoadingDialog();
+          BrandedLoadingDialog.hide(context);
           if (mounted) {
             _showStatusBottomSheet(message, isError: true);
           }
           return;
         case Loading():
-          _hideBlockingLoadingDialog();
+          BrandedLoadingDialog.hide(context);
           return;
       }
 
-      _hideBlockingLoadingDialog();
+      BrandedLoadingDialog.hide(context);
 
       final localSelectedGorevYeri = {..._selectedGorevYeriIds};
       final localSelectedGorev = {..._selectedGorevIds};
@@ -2429,7 +2404,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     setState(() => _isActionInProgress = true);
 
     try {
-      _showBlockingLoadingDialog();
+      BrandedLoadingDialog.show(context);
       // UI'nin dialog'u çizmesi için bir frame ver.
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
@@ -2461,13 +2436,13 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               _ogrenciSheetLoading = false;
               _ogrenciSheetError = message;
             });
-            _hideBlockingLoadingDialog();
+            BrandedLoadingDialog.hide(context);
             if (mounted) {
               _showStatusBottomSheet(message, isError: true);
             }
             return;
           case Loading():
-            _hideBlockingLoadingDialog();
+            BrandedLoadingDialog.hide(context);
             return;
         }
       }
@@ -2524,7 +2499,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         });
       }
 
-      _hideBlockingLoadingDialog();
+      BrandedLoadingDialog.hide(context);
       final localSelectedOgrenci = {..._selectedOgrenciIds};
 
       // Temp set for detail pages (Discard logic)

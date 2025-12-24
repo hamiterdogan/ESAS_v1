@@ -197,7 +197,7 @@ class _GidilecekYerSecimScreenState
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: TextButton(
+                        child: TextButton.icon(
                           onPressed: () {
                             setState(() {
                               _digerAddressControllers.add(
@@ -205,9 +205,30 @@ class _GidilecekYerSecimScreenState
                               );
                             });
                           },
-                          child: const Text(
+                          icon: const Icon(
+                            Icons.add_location_alt_outlined,
+                            color: AppColors.gradientStart,
+                            size: 28,
+                          ),
+                          label: const Text(
                             'Yer Ekle',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                              color: AppColors.gradientStart,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 26,
+                            ),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            alignment: Alignment.centerLeft,
                           ),
                         ),
                       ),
