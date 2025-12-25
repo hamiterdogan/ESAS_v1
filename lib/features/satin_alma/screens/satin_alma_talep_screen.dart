@@ -11,9 +11,13 @@ import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
+import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
 import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
+import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
@@ -34,7 +38,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final TextEditingController _webSitesiController = TextEditingController();
   final TextEditingController _searchBinaController = TextEditingController();
   final TextEditingController _genelToplamController = TextEditingController();
-  String? _odemeSekli;
+  String? _odemeSekli = 'Nakit';
   bool _vadeli = false;
   int _odemeVadesi = 1;
   DateTime _teslimTarihi = DateTime.now();
@@ -747,29 +751,46 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) {
-          context.go('/');
+          context.go('/satin_alma');
         }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFEEF1F5),
-        appBar: AppBar(
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: const Text(
-              'Satın Alma Talebi',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => context.go('/satin_alma'),
+                    constraints: const BoxConstraints(
+                      minHeight: 48,
+                      minWidth: 48,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      'Satın Alma Talebi',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          backgroundColor: const Color(0xFF014B92),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.go('/'),
-          ),
-          elevation: 0,
         ),
         body: GestureDetector(
           onTap: () {
@@ -851,6 +872,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         icon: const Icon(Icons.list),
                         label: Text(
                           'Seçilen Okullar (${_selectedBinaKodlari.length})',
+                          style: const TextStyle(fontSize: 15),
                         ),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.gradientStart,
@@ -925,8 +947,12 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   TextField(
                     controller: _saticiTelefonController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ()-]')),
+                      LengthLimitingTextInputFormatter(20),
+                    ],
                     decoration: InputDecoration(
-                      hintText: 'Telefon numarası',
+                      hintText: '+90 5xx xxx xx xx',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -967,7 +993,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     controller: _webSitesiController,
                     keyboardType: TextInputType.url,
                     decoration: InputDecoration(
-                      hintText: 'https://',
+                      hintText: 'https://site.com',
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -1757,20 +1783,18 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement submit logic
-                        },
+                        onPressed: _submitForm,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: const Text(
@@ -1791,6 +1815,345 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  List<SatinAlmaOzetItem> _buildSatinAlmaOzetItems(
+    List<SatinAlmaBina> allBinalar,
+    SatinAlmaEkleReq request,
+  ) {
+    final selectedBinaNames = allBinalar
+        .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
+        .map((b) => b.binaAdi)
+        .toList();
+    final binaText = selectedBinaNames.isEmpty
+        ? 'Belirtilmedi'
+        : selectedBinaNames.join('\n');
+
+    final teslimTarihiText = DateFormat(
+      'dd.MM.yyyy',
+    ).format(request.sonTeslimTarihi);
+    final odemeText = _odemeSekli ?? '-';
+    final vadeText = _vadeli ? 'Vadeli ($_odemeVadesi gün)' : 'Peşin';
+
+    final urunOzet = _urunler
+        .map((u) {
+          final kategori = [
+            u.anaKategori ?? '',
+            if (u.altKategori != null && u.altKategori!.isNotEmpty)
+              u.altKategori ?? '',
+          ].where((e) => e.isNotEmpty).join(' / ');
+
+          final miktarText = u.miktar != null
+              ? '${u.miktar} ${u.olcuBirimiKisaltma ?? u.olcuBirimi ?? ''}'
+                    .trim()
+              : '';
+
+          final pieces = [
+            if (kategori.isNotEmpty) kategori,
+            u.urunDetay ?? '',
+            if (miktarText.isNotEmpty) miktarText,
+            if (u.toplamTlFiyati.isNotEmpty) u.toplamTlFiyati,
+          ].where((e) => e.toString().trim().isNotEmpty).toList();
+
+          return pieces.join(' • ');
+        })
+        .join('\n');
+
+    final genelToplamText = _genelToplamController.text.isNotEmpty
+        ? _genelToplamController.text
+        : NumberFormat('#,##0.00', 'tr_TR').format(request.genelToplam);
+
+    final items = <SatinAlmaOzetItem>[
+      SatinAlmaOzetItem(label: 'Okullar', value: binaText),
+      SatinAlmaOzetItem(
+        label: 'Teslim Tarihi',
+        value: teslimTarihiText,
+        multiLine: false,
+      ),
+      SatinAlmaOzetItem(
+        label: 'Ödeme Şekli',
+        value: odemeText,
+        multiLine: false,
+      ),
+      SatinAlmaOzetItem(label: 'Vade', value: vadeText, multiLine: false),
+      SatinAlmaOzetItem(
+        label: 'Genel Toplam',
+        value: genelToplamText,
+        multiLine: false,
+      ),
+      SatinAlmaOzetItem(
+        label: 'Ürün Sayısı',
+        value: '${_urunler.length}',
+        multiLine: false,
+      ),
+      SatinAlmaOzetItem(label: 'Alım Amacı', value: request.aliminAmaci),
+      SatinAlmaOzetItem(
+        label: 'Ürünler',
+        value: urunOzet.isEmpty ? 'Belirtilmedi' : urunOzet,
+      ),
+    ];
+
+    if (_selectedFiles.isNotEmpty) {
+      items.insert(
+        6,
+        SatinAlmaOzetItem(
+          label: 'Dosya Sayısı',
+          value: '${_selectedFiles.length}',
+          multiLine: false,
+        ),
+      );
+    }
+
+    if (_saticiFirmaController.text.trim().isNotEmpty) {
+      items.add(
+        SatinAlmaOzetItem(
+          label: 'Satıcı Firma',
+          value: _saticiFirmaController.text.trim(),
+        ),
+      );
+    }
+
+    if (_saticiTelefonController.text.trim().isNotEmpty) {
+      items.add(
+        SatinAlmaOzetItem(
+          label: 'Satıcı Telefonu',
+          value: _saticiTelefonController.text.trim(),
+          multiLine: false,
+        ),
+      );
+    }
+
+    if (_webSitesiController.text.trim().isNotEmpty) {
+      items.add(
+        SatinAlmaOzetItem(
+          label: 'Web Sitesi',
+          value: _webSitesiController.text.trim(),
+        ),
+      );
+    }
+
+    if (request.dosyaAciklama.trim().isNotEmpty) {
+      items.add(
+        SatinAlmaOzetItem(
+          label: 'Dosya Açıklaması',
+          value: request.dosyaAciklama.trim(),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  String? _validatePhone(String? value) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) return null;
+    if (!RegExp(r'^[0-9+ ()-]+$').hasMatch(input)) {
+      return 'Lütfen geçerli bir telefon numarası giriniz (örn. +90 555 555 55 55).';
+    }
+    final digitsOnly = input.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digitsOnly.length < 10 || digitsOnly.length > 14) {
+      return 'Telefon numarası 10-14 haneli olmalıdır (örn. +90 555 555 55 55).';
+    }
+    return null;
+  }
+
+  String? _validateWebsite(String? value) {
+    final input = value?.trim() ?? '';
+    if (input.isEmpty) return null;
+
+    final uri = Uri.tryParse(input);
+    final hasValidScheme =
+        uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+
+    if (!hasValidScheme) {
+      return 'Lütfen geçerli bir web adresi giriniz (https://... ).';
+    }
+    return null;
+  }
+
+  Future<void> _submitForm() async {
+    if (_alimAmaciController.text.trim().isEmpty) {
+      _showStatusBottomSheet(
+        'Lütfen alımın amacını belirtiniz.',
+        isError: true,
+      );
+      return;
+    }
+
+    if (_urunler.isEmpty) {
+      _showStatusBottomSheet('Lütfen en az 1 ürün ekleyiniz.', isError: true);
+      return;
+    }
+
+    final phoneError = _validatePhone(_saticiTelefonController.text);
+    if (phoneError != null) {
+      _showStatusBottomSheet(phoneError, isError: true);
+      return;
+    }
+
+    final websiteError = _validateWebsite(_webSitesiController.text);
+    if (websiteError != null) {
+      _showStatusBottomSheet(websiteError, isError: true);
+      return;
+    }
+
+    try {
+      int odemeSekliId = 0;
+      final paymentMethodMap = {'Nakit': 1, 'Kredi Kartı': 2, 'Havale/EFT': 3};
+      if (_odemeSekli != null && paymentMethodMap.containsKey(_odemeSekli)) {
+        odemeSekliId = paymentMethodMap[_odemeSekli] ?? 0;
+      }
+
+      final binalar = await ref.read(satinAlmaBinalarProvider.future);
+      List<int> binaIds = [];
+      if (_selectedBinaKodlari.isNotEmpty) {
+        binaIds = binalar
+            .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
+            .map((b) => b.id)
+            .toList();
+      }
+
+      final urunSatirlar = _urunler.map((u) {
+        double birimFiyat = 0;
+        try {
+          final ana =
+              double.tryParse(
+                (u.fiyatAna ?? '0').replaceAll('.', '').replaceAll(',', '.'),
+              ) ??
+              0;
+          final kusurat = double.tryParse(u.fiyatKusurat ?? '0') ?? 0;
+          birimFiyat = ana + (kusurat / 100);
+        } catch (_) {}
+
+        return SatinAlmaUrunSatir(
+          satinAlmaAltKategoriId: u.altKategoriId,
+          digerUrun: '',
+          birimId: u.olcuBirimiId,
+          satinAlmaAnaKategoriId: u.anaKategoriId,
+          birimFiyati: birimFiyat,
+          urunDetay: u.urunDetay ?? '',
+          miktar: u.miktar ?? 1,
+          paraBirimi: u.paraBirimi,
+        );
+      }).toList();
+
+      final req = SatinAlmaEkleReq(
+        formFiles: _selectedFiles,
+        pesin: !_vadeli,
+        sonTeslimTarihi: _teslimTarihi,
+        aliminAmaci: _alimAmaciController.text,
+        odemeSekliId: odemeSekliId,
+        webSitesi: _webSitesiController.text,
+        saticiTel: _saticiTelefonController.text,
+        binaIds: binaIds,
+        odemeVadesiGun: _vadeli ? _odemeVadesi : 0,
+        urunSatirlar: urunSatirlar,
+        saticiFirma: _saticiFirmaController.text,
+        genelToplam: _parseMoneyToDouble(_genelToplamController.text),
+        dosyaAciklama: _fiyatTeklifIcerikController.text,
+      );
+
+      final ozetItems = _buildSatinAlmaOzetItems(binalar, req);
+
+      if (!mounted) return;
+
+      await showSatinAlmaOzetBottomSheet(
+        context: context,
+        request: req,
+        talepTipi: 'Satın Alma',
+        ozetItems: ozetItems,
+        onGonder: () async {
+          BrandedLoadingDialog.show(context);
+          try {
+            final repo = ref.read(satinAlmaRepositoryProvider);
+            final result = await repo.satinAlmaEkle(req);
+
+            if (!mounted) return;
+
+            switch (result) {
+              case Success():
+                return;
+              case Failure(message: final msg):
+                throw Exception(msg);
+              case Loading():
+                throw Exception('Talep gönderilemedi');
+            }
+          } finally {
+            if (mounted) {
+              BrandedLoadingDialog.hide(context);
+            }
+          }
+        },
+        onSuccess: () {
+          _showStatusBottomSheet('Talep başarıyla gönderildi.', isError: false);
+        },
+        onError: (error) {
+          _showStatusBottomSheet('Hata: $error', isError: true);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        _showStatusBottomSheet('Beklenmeyen hata: $e', isError: true);
+      }
+    }
+  }
+
+  void _showStatusBottomSheet(String message, {bool isError = false}) {
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext statusContext) {
+        return Container(
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            color: Colors.white,
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isError ? Icons.error_outline : Icons.check_circle_outline,
+                size: 64,
+                color: isError ? Colors.red : Colors.green,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(statusContext);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientEnd,
+                  minimumSize: const Size(double.infinity, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        );
+      },
     );
   }
 }

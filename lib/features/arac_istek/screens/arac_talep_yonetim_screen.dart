@@ -6,7 +6,6 @@ import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart'
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
-import 'package:esas_v1/features/arac_istek/repositories/arac_talep_repository.dart';
 import 'package:esas_v1/core/models/result.dart';
 
 class AracTalepYonetimScreen extends ConsumerStatefulWidget {
@@ -202,56 +201,70 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
   }
 
   Future<void> _showFilterBottomSheet() async {
+    final tempSelected = <String>{..._selectedDurumlar};
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: _availableDurumlar.isEmpty
-                ? const Text('Filtreleyebileceğiniz durum bulunamadı.')
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, modalSetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: _availableDurumlar.isEmpty
+                    ? const Text('Filtreleyebileceğiniz durum bulunamadı.')
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'Talep Durumu',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Talep Durumu',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  modalSetState(tempSelected.clear);
+                                  setState(() => _selectedDurumlar = {});
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Temizle'),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () {
-                              setState(() => _selectedDurumlar.clear());
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Temizle'),
+                          const SizedBox(height: 8),
+                          ..._availableDurumlar.map(
+                            (durum) => CheckboxListTile(
+                              value: tempSelected.contains(durum),
+                              activeColor: const Color(0xFF014B92),
+                              title: Text(durum.isEmpty ? 'Belirsiz' : durum),
+                              onChanged: (value) {
+                                modalSetState(() {
+                                  if (value == true) {
+                                    tempSelected.add(durum);
+                                  } else {
+                                    tempSelected.remove(durum);
+                                  }
+                                });
+
+                                setState(
+                                  () => _selectedDurumlar = {...tempSelected},
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      ..._availableDurumlar.map(
-                        (durum) => CheckboxListTile(
-                          value: _selectedDurumlar.contains(durum),
-                          title: Text(durum.isEmpty ? 'Belirsiz' : durum),
-                          onChanged: (value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedDurumlar.add(durum);
-                              } else {
-                                _selectedDurumlar.remove(durum);
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

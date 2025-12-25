@@ -112,8 +112,6 @@ class _DokumantasyonBaskiIstekScreenState
       _initialSeviyeList.isNotEmpty &&
       _initialSinifList.isNotEmpty;
 
-
-
   Future<void> _fetchDokumanTurleri() async {
     setState(() {
       _isLoadingDokumanTurleri = true;
@@ -1117,28 +1115,19 @@ class _DokumantasyonBaskiIstekScreenState
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Align(
+              TextButton.icon(
+                onPressed: _showSelectedClassesList,
+                icon: const Icon(Icons.list),
+                label: Text(
+                  _accumulatedClasses.isEmpty
+                      ? 'Seçilen Sınıflar'
+                      : 'Seçilen Sınıflar (${_accumulatedClasses.fold<int>(0, (p, c) => p + c.ogrenciSayisi)})',
+                  style: const TextStyle(fontSize: 15),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.gradientStart,
+                  padding: EdgeInsets.zero,
                   alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: _showSelectedClassesList,
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.only(left: 8),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      _accumulatedClasses.isEmpty
-                          ? 'Seçilen sınıflar'
-                          : 'Seçilen sınıflar (${_accumulatedClasses.fold<int>(0, (p, c) => p + c.ogrenciSayisi)} öğrenci)',
-                      style: const TextStyle(
-                        color: AppColors.gradientStart,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
                 ),
               ),
 

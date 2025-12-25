@@ -115,7 +115,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       paraBirimiId: _selectedParaBirimi?.id,
       paraBirimiKod: _selectedParaBirimi?.kod,
       dovizKuru: _dovizKuru,
-      fiyatAna: _fiyatAnaController.text,
+      fiyatAna: _fiyatAnaController.text.isEmpty
+          ? '0'
+          : _fiyatAnaController.text,
       fiyatKusurat: _fiyatKusuratController.text,
       toplamFiyat: _toplamFiyatController.text,
       tlKurFiyati: _tlKurFiyatiController.text,
@@ -136,10 +138,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     }
     if (_selectedOlcuBirim == null) {
       _showErrorBottomSheet('Birim seçiniz');
-      return false;
-    }
-    if (_fiyatAnaController.text.isEmpty) {
-      _showErrorBottomSheet('Birim fiyatı giriniz');
       return false;
     }
     if (_urunAdiController.text.isEmpty) {
@@ -964,30 +962,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Ürün Kategorisi
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Ürün Kategorisi',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            Text(
+              'Ürün Kategorisi',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize:
+                    (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                    1,
               ),
             ),
             const SizedBox(height: 8),
@@ -1001,11 +981,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(
-                    color: _selectedAnaKategori == null
-                        ? Colors.red.shade300
-                        : Colors.grey.shade300,
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1034,30 +1010,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             // Ürün Alt Kategorisi
             if (_selectedAnaKategori != null &&
                 _selectedAnaKategori!.id != 0) ...[
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Ürün Alt Kategorisi',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' *',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+              Text(
+                'Ürün Alt Kategorisi',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1156,30 +1114,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             const SizedBox(height: 16),
 
             // Birim (Full Width)
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Birim',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            Text(
+              'Birim',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize:
+                    (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                    1,
               ),
             ),
             const SizedBox(height: 8),
@@ -1193,11 +1133,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border.all(
-                    color: _selectedOlcuBirim == null
-                        ? Colors.red.shade300
-                        : Colors.grey.shade300,
-                  ),
+                  border: Border.all(color: Colors.grey.shade300),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1224,30 +1160,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             const SizedBox(height: 16),
 
             // Birim Fiyatı (Label)
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Birim Fiyatı',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                    ),
-                  ),
-                  TextSpan(
-                    text: ' *',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            Text(
+              'Birim Fiyatı',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize:
+                    (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                    1,
               ),
             ),
             const SizedBox(height: 8),

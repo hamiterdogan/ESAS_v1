@@ -30,6 +30,9 @@ class BrandedLoadingDialog {
 
   static void hide(BuildContext context) {
     if (!context.mounted) return;
-    Navigator.of(context, rootNavigator: true).pop(); // Attempt to pop the dialog
+    final navigator = Navigator.of(context, rootNavigator: true);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
   }
 }
