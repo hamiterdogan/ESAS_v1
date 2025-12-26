@@ -114,6 +114,7 @@ class _KurumGorevlendirmesiIzinScreenState
                 AciklamaFieldWidget(
                   controller: _aciklamaController,
                   focusNode: _aciklamaFocusNode,
+                  minCharacters: 30,
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -134,6 +135,7 @@ class _KurumGorevlendirmesiIzinScreenState
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                     ),
                     const Text('1 günlük izin'),
                   ],

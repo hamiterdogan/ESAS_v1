@@ -17,7 +17,7 @@ class AciklamaFieldWidget extends ConsumerStatefulWidget {
     this.validator,
     this.minLines = 4,
     this.maxLines = 10,
-    this.minCharacters = 30,
+    this.minCharacters = 15,
     this.focusNode,
     this.labelText = 'Açıklama',
     this.hintText = 'Lütfen detaylı bir açıklama giriniz.',

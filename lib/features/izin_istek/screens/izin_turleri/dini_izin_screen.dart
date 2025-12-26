@@ -109,6 +109,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 AciklamaFieldWidget(
                   controller: _aciklamaController,
                   focusNode: _aciklamaFocusNode,
+                  minCharacters: 30,
                 ),
                 const SizedBox(height: 24),
 
@@ -126,6 +127,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                     ),
                     const SizedBox(width: 10),
                     const Text('1 günlük izin', style: TextStyle(fontSize: 16)),

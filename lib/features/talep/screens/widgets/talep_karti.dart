@@ -5,6 +5,7 @@ import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
+import 'package:esas_v1/features/satin_alma/screens/satin_alma_detay_screen.dart';
 
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
@@ -94,6 +95,17 @@ class TalepKarti extends StatelessWidget {
                   talepId: talep.onayKayitID,
                   onayTipi: talep.onayTipi,
                 ),
+              ),
+            );
+          }
+          // Satın Alma İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('satın') ||
+              talep.onayTipi.toLowerCase().contains('satin')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    SatinAlmaDetayScreen(talepId: talep.onayKayitID),
               ),
             );
           }

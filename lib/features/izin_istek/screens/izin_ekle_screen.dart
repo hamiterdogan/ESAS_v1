@@ -367,6 +367,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       ),
                       Switch(
                         value: formState.isBaskasiAdinaBakinlari,
+                        inactiveTrackColor: Colors.white,
                         onChanged: (_) {
                           ref
                               .read(izinEkleFormProvider.notifier)
@@ -884,6 +885,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.doktorRaporuVar,
+                    inactiveTrackColor: Colors.white,
                     onChanged: (_) => ref
                         .read(izinEkleFormProvider.notifier)
                         .toggleDoktorRaporuVar(),
@@ -906,6 +908,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.hastalikDurumu == 'acil',
+                    inactiveTrackColor: Colors.white,
                     onChanged: (_) {
                       ref
                           .read(izinEkleFormProvider.notifier)
@@ -1227,6 +1230,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.gunlukIzinToggle,
+                    inactiveTrackColor: Colors.white,
                     onChanged: (_) {
                       ref
                           .read(izinEkleFormProvider.notifier)
@@ -1627,6 +1631,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       ),
                       Switch(
                         value: formState.diniGunOnay,
+                        inactiveTrackColor: Colors.white,
                         onChanged: (_) => ref
                             .read(izinEkleFormProvider.notifier)
                             .toggleDiniGunOnay(),

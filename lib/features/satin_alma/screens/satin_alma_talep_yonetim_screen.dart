@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
@@ -27,6 +29,8 @@ class _SatinAlmaTalepYonetimScreenState
   Map<int, String> _altKategoriAdlari = {};
   bool _anaKategoriYuklendi = false;
   final Set<int> _yuklenenAltAnaIds = {};
+  bool _devamEdenYuklendi = false;
+  bool _tamamlananYuklendi = false;
 
   @override
   void initState() {
@@ -55,11 +59,8 @@ class _SatinAlmaTalepYonetimScreenState
     ref.listen(satinAlmaDevamEdenTaleplerProvider, (prev, next) {
       next.whenData((_) {
         if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              BrandedLoadingDialog.hide(context);
-            }
-          });
+          setState(() => _devamEdenYuklendi = true);
+          _tryHideLoadingDialog();
         }
       });
     });
@@ -68,11 +69,8 @@ class _SatinAlmaTalepYonetimScreenState
     ref.listen(satinAlmaTamamlananTaleplerProvider, (prev, next) {
       next.whenData((_) {
         if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              BrandedLoadingDialog.hide(context);
-            }
-          });
+          setState(() => _tamamlananYuklendi = true);
+          _tryHideLoadingDialog();
         }
       });
     });
@@ -175,6 +173,53 @@ class _SatinAlmaTalepYonetimScreenState
     return Colors.blueGrey;
   }
 
+  Future<void> _deleteSatinAlmaTalebi(int id) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Talebi Sil'),
+        content: const Text(
+          'Bu satın alma talebini silmek istediğinize emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sil', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) return;
+
+    try {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      final result = await repo.deleteTalep(id: id);
+
+      if (!mounted) return;
+
+      if (result is Success) {
+        ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
+        ref.invalidate(satinAlmaTamamlananTaleplerProvider);
+
+        _showInfoBottomSheet(context, 'Talep başarıyla silindi');
+      } else if (result is Failure) {
+        _showInfoBottomSheet(
+          context,
+          'Silme başarısız: ${result.message}',
+          isError: true,
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showInfoBottomSheet(context, 'Hata: $e', isError: true);
+    }
+  }
+
   String _formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
@@ -182,6 +227,108 @@ class _SatinAlmaTalepYonetimScreenState
     } catch (_) {
       return dateStr;
     }
+  }
+
+  void _tryHideLoadingDialog() {
+    if (_devamEdenYuklendi && _tamamlananYuklendi && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          BrandedLoadingDialog.hide(context);
+        }
+      });
+    }
+  }
+
+  void _showInfoBottomSheet(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
+    // Modal bottom sheet bazen Slidable veya dialog kapandıktan hemen sonra
+    // çağrılınca çakışabiliyor; bir frame + microtask sonrasına erteliyoruz.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.microtask(() {});
+      if (!mounted) return;
+      showModalBottomSheet<void>(
+        context: context,
+        useSafeArea: true,
+        isScrollControlled: true,
+        useRootNavigator: true,
+        isDismissible: false,
+        enableDrag: false,
+        barrierColor: Colors.black54,
+        backgroundColor: Colors.transparent,
+        builder: (sheetContext) => Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(16),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red[100] : Colors.green[100],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_rounded : Icons.check_circle,
+                    size: 48,
+                    color: isError ? Colors.red[600] : Colors.green[600],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(sheetContext, rootNavigator: true).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isError
+                          ? Colors.redAccent
+                          : AppColors.gradientStart,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tamam',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   void _updateTamamlananDurumlar(List<SatinAlmaTalep> items) {
@@ -390,121 +537,179 @@ class _SatinAlmaTalepYonetimScreenState
                 altKategori,
               ].where((e) => e.isNotEmpty).join(' - ');
 
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+              final isDeleteAvailable =
+                  !tamamlanan &&
+                  talep.onayDurumu.toLowerCase().contains('onay bekliyor');
+
+              return Slidable(
+                key: ValueKey(talep.onayKayitID),
+                endActionPane: isDeleteAvailable
+                    ? ActionPane(
+                        motion: const ScrollMotion(),
                         children: [
-                          const Text(
-                            'Süreç No: ',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            '${talep.onayKayitID}',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF014B92),
+                          CustomSlidableAction(
+                            onPressed: (_) =>
+                                _deleteSatinAlmaTalebi(talep.onayKayitID),
+                            backgroundColor: Colors.red,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.delete,
+                                    size: 36,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'Talebi Sil',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
+                      )
+                    : null,
+                child: InkWell(
+                  onTap: () =>
+                      context.push('/satin_alma/detay/${talep.onayKayitID}'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 8,
+                    ),
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        talep.aciklama.isEmpty ? '(...)' : talep.aciklama,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        talep.saticiFirma.isEmpty ? '-' : talep.saticiFirma,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Süreç No: ',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                '${talep.onayKayitID}',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF014B92),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
                           Text(
-                            tarihStr,
+                            talep.aciklama.isEmpty ? '(...)' : talep.aciklama,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            talep.saticiFirma.isEmpty ? '-' : talep.saticiFirma,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  talep.onayDurumu.toLowerCase().contains(
-                                        'onay bekliyor',
-                                      )
-                                      ? Icons.access_time
-                                      : talep.onayDurumu.toLowerCase().contains(
-                                          'redd',
-                                        )
-                                      ? Icons.close
-                                      : Icons.check_circle,
-                                  size: 16,
-                                  color: statusColor,
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                tarihStr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
                                 ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    talep.onayDurumu.isEmpty
-                                        ? 'Durum Bilinmiyor'
-                                        : talep.onayDurumu,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      talep.onayDurumu.toLowerCase().contains(
+                                            'onay bekliyor',
+                                          )
+                                          ? Icons.access_time
+                                          : talep.onayDurumu
+                                                .toLowerCase()
+                                                .contains('redd')
+                                          ? Icons.close
+                                          : Icons.check_circle,
+                                      size: 16,
                                       color: statusColor,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12,
                                     ),
-                                  ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        talep.onayDurumu.isEmpty
+                                            ? 'Durum Bilinmiyor'
+                                            : talep.onayDurumu,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               );
@@ -512,7 +717,9 @@ class _SatinAlmaTalepYonetimScreenState
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      // BrandedLoadingDialog zaten global overlay olarak gösteriliyor;
+      // ek bir spinner göstermeyelim ki çift yüklenme efekti olmasın.
+      loading: () => const SizedBox.shrink(),
       error: (error, stack) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

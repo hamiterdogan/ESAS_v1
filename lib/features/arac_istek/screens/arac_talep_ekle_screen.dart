@@ -94,8 +94,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         _initialSinifList.isNotEmpty;
   }
 
-
-
   @override
   void dispose() {
     _mesafeController.dispose();
@@ -248,6 +246,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     );
   }
 
+  String _getFormattedTitle(String aracTuru) {
+    if (aracTuru == 'Yük') {
+      return 'Yük Aracı Talebi';
+    } else if (aracTuru == 'Minibüs') {
+      return 'Minübüs Talebi';
+    } else if (aracTuru == 'Otobüs') {
+      return 'Otobüs Talebi';
+    }
+    return '$aracTuru Araç Talebi';
+  }
+
   @override
   Widget build(BuildContext context) {
     final aracTuru = _getAracTuruName();
@@ -265,7 +274,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
-          '$aracTuru Araç Talebi',
+          _getFormattedTitle(aracTuru),
           style: const TextStyle(color: Colors.white),
         ),
         flexibleSpace: Container(
@@ -553,6 +562,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                       onChanged: (value) {
                         setState(() {
                           _isMEB = value;
@@ -977,10 +987,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         return;
       }
 
-      // Açıklama minimum 30 karakter kontrolü (izin istek ekranlarıyla aynı)
-      if (_aciklamaController.text.length < 30) {
+      // Açıklama minimum 15 karakter kontrolü
+      if (_aciklamaController.text.length < 15) {
         _showStatusBottomSheet(
-          'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
         _aciklamaFocusNode.requestFocus();

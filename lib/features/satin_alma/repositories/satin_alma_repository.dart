@@ -7,6 +7,7 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
 import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
 import 'package:esas_v1/features/satin_alma/models/doviz_kuru.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
@@ -45,18 +46,7 @@ class SatinAlmaRepository {
       }
 
       // UrunSatir (JSON String of List)
-      // The API expects UrunSatir to be a list of objects.
-      // In multipart, sending a JSON string for complex objects is common if the backend expects it so.
-      // Based on curl 'UrunSatir={...}', it might expect a single string if only one item,
-      // or simply the body is bound from JSON.
-      // However, usually with multipart, you can't mix JSON body + files easily without custom binding.
-      // We will try sending the list serialized as JSON string.
-      // If that fails, we might need index notation (UrunSatir[0].prop).
-      // But let's stick to the JSON string hypothesis first as it's cleaner to implement.
-      // Actually, if I look at the curl again: -F 'UrunSatir={...}'
-      // This implies the value of the field `UrunSatir` IS the JSON object string.
-      // If we have multiple, we probably send `UrunSatir` field multiple times, OR a JSON array string.
-      // Let's send a JSON Array String.
+      // Send as JSON array string for complex objects in multipart form data
       map['UrunSatir'] = jsonEncode(
         req.urunSatirlar.map((e) => e.toJson()).toList(),
       );
@@ -204,6 +194,30 @@ class SatinAlmaRepository {
     }
     return const <SatinAlmaTalep>[];
   }
+
+  Future<SatinAlmaDetayResponse> getDetay(int id) async {
+    final response = await _dio.post(
+      '/SatinAlma/SatinAlmaDetay',
+      data: {'id': id},
+    );
+
+    if (response.data is Map<String, dynamic>) {
+      return SatinAlmaDetayResponse.fromJson(
+        Map<String, dynamic>.from(response.data as Map),
+      );
+    }
+
+    throw Exception('Beklenmeyen cevap formatı');
+  }
+
+  Future<Result<void>> deleteTalep({required int id}) async {
+    try {
+      await _dio.post('/SatinAlma/SatinAlmaSil?id=$id', data: {});
+      return const Success(null);
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
 }
 
 final satinAlmaRepositoryProvider = Provider<SatinAlmaRepository>((ref) {
@@ -252,4 +266,10 @@ final satinAlmaTamamlananTaleplerProvider =
     FutureProvider.autoDispose<List<SatinAlmaTalep>>((ref) async {
       final repo = ref.read(satinAlmaRepositoryProvider);
       return repo.getTalepler(tip: 1);
+    });
+
+final satinAlmaDetayProvider = FutureProvider.autoDispose
+    .family<SatinAlmaDetayResponse, int>((ref, id) {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      return repo.getDetay(id);
     });

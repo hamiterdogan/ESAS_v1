@@ -49,7 +49,6 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
     // The previous implementation used size * 0.8.
     final logoSize = ((widget.size * 0.55).clamp(16, widget.size)).toDouble();
 
-
     return SizedBox(
       width: widget.size,
       height: widget.size,
@@ -66,7 +65,9 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
                       strokeWidth: widget.strokeWidth,
-                      startColor: AppColors.gradientStart.withValues(alpha: 0.9),
+                      startColor: AppColors.gradientStart.withValues(
+                        alpha: 0.9,
+                      ),
                       endColor: AppColors.gradientEnd.withValues(alpha: 0.9),
                       segmentCount: 8,
                     ),
@@ -80,7 +81,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
             width: logoSize,
             height: logoSize,
             child: ClipRRect(
-               borderRadius: BorderRadius.circular(logoSize / 5),
+              borderRadius: BorderRadius.circular(logoSize / 5),
               child: Image.asset(
                 widget.logoAssetPath,
                 fit: BoxFit.contain,
@@ -121,8 +122,8 @@ class _SegmentedRingPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.butt;
-    
+      ..strokeCap = StrokeCap.round;
+
     // Create a sweep gradient from startColor to endColor
     // This will create a smooth transition around the circle.
     paint.shader = SweepGradient(
@@ -133,28 +134,22 @@ class _SegmentedRingPainter extends CustomPainter {
     // 2 * pi for full circle
     const fullCircle = 2 * math.pi;
     final segmentAngle = fullCircle / segmentCount;
-    // Adjusted gap for butt cap (0.4 for wider gaps)
-    final gapAngle = 0.4 * segmentAngle; 
+    // Adjusted gap for round cap (0.96 for wider gaps)
+    final gapAngle = 0.96 * segmentAngle;
     final sweepAngle = segmentAngle - gapAngle;
 
     for (int i = 0; i < segmentCount; i++) {
       final startAngle = (i * segmentAngle);
-      
-      canvas.drawArc(
-        rect,
-        startAngle,
-        sweepAngle,
-        false,
-        paint,
-      );
+
+      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
     }
   }
 
   @override
   bool shouldRepaint(_SegmentedRingPainter oldDelegate) {
     return oldDelegate.strokeWidth != strokeWidth ||
-           oldDelegate.startColor != startColor ||
-           oldDelegate.endColor != endColor ||
-           oldDelegate.segmentCount != segmentCount;
+        oldDelegate.startColor != startColor ||
+        oldDelegate.endColor != endColor ||
+        oldDelegate.segmentCount != segmentCount;
   }
 }

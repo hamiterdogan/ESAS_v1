@@ -107,6 +107,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 AciklamaFieldWidget(
                   controller: _aciklamaController,
                   focusNode: _aciklamaFocusNode,
+                  minCharacters: 30,
                 ),
                 const SizedBox(height: 24),
 

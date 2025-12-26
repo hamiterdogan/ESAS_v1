@@ -270,6 +270,7 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
                             value: _kvkkOnay,
                             activeThumbColor: Colors.white,
                             activeTrackColor: const Color(0xFF014B92),
+                            inactiveTrackColor: Colors.white,
                             onChanged: (v) => setState(() => _kvkkOnay = v),
                           ),
                           const SizedBox(width: 8),

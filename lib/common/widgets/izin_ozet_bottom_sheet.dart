@@ -186,13 +186,111 @@ class _IzinOzetBottomSheetState extends ConsumerState<IzinOzetBottomSheet> {
         _buildInfoRow(
           item.label,
           item.value,
-          isLast: isLast,
+          isLast: false,
           multiLine: item.multiLine,
         ),
       );
     }
 
+    // API Request Data Section
+    rows.add(const SizedBox(height: 16));
+    rows.add(
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7FAFC),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'API Request Data',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2D3748),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFCBD5E0)),
+              ),
+              child: Text(
+                _formatJsonData(widget.request.toJson()),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  color: Color(0xFF2D3748),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     return rows;
+  }
+
+  String _formatJsonData(Map<String, dynamic> data) {
+    final buffer = StringBuffer();
+    _formatJsonValue(data, buffer, 0);
+    return buffer.toString();
+  }
+
+  void _formatJsonValue(dynamic value, StringBuffer buffer, int indent) {
+    final indentStr = '  ' * indent;
+    final nextIndentStr = '  ' * (indent + 1);
+
+    if (value is Map) {
+      if (value.isEmpty) {
+        buffer.write('{}');
+        return;
+      }
+      buffer.write('{\n');
+      final entries = value.entries.toList();
+      for (int i = 0; i < entries.length; i++) {
+        final entry = entries[i];
+        buffer.write('$nextIndentStr"${entry.key}": ');
+        _formatJsonValue(entry.value, buffer, indent + 1);
+        if (i < entries.length - 1) {
+          buffer.write(',');
+        }
+        buffer.write('\n');
+      }
+      buffer.write('$indentStr}');
+    } else if (value is List) {
+      if (value.isEmpty) {
+        buffer.write('[]');
+        return;
+      }
+      buffer.write('[\n');
+      for (int i = 0; i < value.length; i++) {
+        buffer.write('$nextIndentStr');
+        _formatJsonValue(value[i], buffer, indent + 1);
+        if (i < value.length - 1) {
+          buffer.write(',');
+        }
+        buffer.write('\n');
+      }
+      buffer.write('$indentStr]');
+    } else if (value is String) {
+      buffer.write('"$value"');
+    } else if (value is num || value is bool) {
+      buffer.write(value);
+    } else if (value == null) {
+      buffer.write('null');
+    } else {
+      buffer.write('"$value"');
+    }
   }
 
   Widget _buildInfoRow(

@@ -41,7 +41,7 @@ class SatinAlmaEkleReq {
       'saticiTel': saticiTel,
       'binaIds': binaIds,
       'odemeVadesiGun': odemeVadesiGun,
-      'urunSatirlar': urunSatirlar.map((u) => u.toJson()).toList(),
+      'urunSatir': urunSatirlar.map((u) => u.toJson()).toList(),
       'saticiFirma': saticiFirma,
       'genelToplam': genelToplam,
       'dosyaAciklama': dosyaAciklama,

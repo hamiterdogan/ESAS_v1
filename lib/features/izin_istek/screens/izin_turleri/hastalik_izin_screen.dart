@@ -71,7 +71,16 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: [
+        'pdf',
+        'jpg',
+        'jpeg',
+        'png',
+        'xls',
+        'xlsx',
+        'doc',
+        'docx',
+      ],
       withData: true,
     );
 
@@ -131,6 +140,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 AciklamaFieldWidget(
                   controller: _aciklamaController,
                   focusNode: _aciklamaFocusNode,
+                  minCharacters: 30,
                 ),
                 const SizedBox(height: 24),
 
@@ -153,6 +163,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                     ),
                     const Text('1 günlük izin'),
                   ],
@@ -303,6 +314,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                       onChanged: (value) {
                         setState(() {
                           _acil = value;
@@ -388,6 +400,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: Colors.white,
                       onChanged: (value) {
                         setState(() {
                           _doktorRaporuVar = value;
@@ -409,103 +422,97 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 // Doktor Raporu Dosya Yükleme
                 if (_doktorRaporuVar) ...[
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: _doktorRaporuFile != null
-                            ? Colors.green
-                            : Colors.grey[300]!,
-                        width: _doktorRaporuFile != null ? 2 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[50],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              _doktorRaporuFile != null
-                                  ? Icons.check_circle
-                                  : Icons.upload_file,
-                              color: _doktorRaporuFile != null
-                                  ? Colors.green
-                                  : Colors.grey,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Doktor Raporu',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _doktorRaporuFile != null
-                                        ? _doktorRaporuFile!.path
-                                              .split('/')
-                                              .last
-                                        : 'Dosya seçilmedi',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: _doktorRaporuFile != null
-                                          ? Colors.green
-                                          : Colors.grey,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _pickFile,
-                            icon: const Icon(
-                              Icons.attach_file,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              _doktorRaporuFile != null
-                                  ? 'Dosya Değiştir'
-                                  : 'Dosya Seç',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.gradientEnd,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        if (_doktorRaporuFile != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              'Desteklenen formatlar: PDF, JPG, PNG',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.green,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                      ],
+                  Text(
+                    'Doktor Raporu',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickFile,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 24,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Dosya Seçmek İçin Dokunun',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '(pdf, jpg, jpeg, png, xls, xlsx, doc, docx)',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_doktorRaporuFile != null) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 0),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.insert_drive_file_outlined,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _doktorRaporuFile!.path
+                                  .split('/')
+                                  .last
+                                  .split('\\')
+                                  .last,
+                              style: const TextStyle(fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _doktorRaporuFile = null;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
                 const SizedBox(height: 24),
 

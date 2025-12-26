@@ -63,6 +63,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
               },
               activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
               activeThumbColor: AppColors.gradientEnd,
+              inactiveTrackColor: Colors.white,
             ),
             const SizedBox(width: 10),
             const Expanded(
@@ -141,4 +142,3 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
     );
   }
 }
-

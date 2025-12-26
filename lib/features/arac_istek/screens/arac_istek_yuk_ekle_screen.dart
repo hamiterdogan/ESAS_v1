@@ -75,8 +75,6 @@ class _AracIstekYukEkleScreenState
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
   }
 
-
-
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
     int targetHour = startHour + 1;
     int targetMinute = startMinute;
@@ -200,6 +198,17 @@ class _AracIstekYukEkleScreenState
     );
   }
 
+  String _getFormattedTitle(String aracTuru) {
+    if (aracTuru == 'Yük') {
+      return 'Yük Aracı Talebi';
+    } else if (aracTuru == 'Minibüs') {
+      return 'Minübüs Talebi';
+    } else if (aracTuru == 'Otobüs') {
+      return 'Otobüs Talebi';
+    }
+    return '$aracTuru Araç Talebi';
+  }
+
   Future<void> _openYerSecimiBottomSheet() async {
     final selected = await showModalBottomSheet<GidilecekYerItem>(
       context: context,
@@ -305,7 +314,7 @@ class _AracIstekYukEkleScreenState
       backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
         title: Text(
-          '$aracTuru Araç Talebi',
+          _getFormattedTitle(aracTuru),
           style: const TextStyle(color: Colors.white),
         ),
         flexibleSpace: Container(

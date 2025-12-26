@@ -486,14 +486,6 @@ class _DokumantasyonBaskiIstekScreenState
         );
         return;
       }
-      if (_dosyaIcerikController.text.trim().isEmpty) {
-        _dosyaIcerikFocusNode.requestFocus();
-        _showStatusBottomSheet(
-          'Lütfen dosya içeriğini belirtiniz.',
-          isError: true,
-        );
-        return;
-      }
     }
 
     setState(() => _isActionInProgress = true);
@@ -625,7 +617,7 @@ class _DokumantasyonBaskiIstekScreenState
           .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
       title: 'Dokümantasyon Baskı İstek',
       summaryItems: summaryItems,
-      showRequestData: false,
+      showRequestData: true,
       onConfirm: () async {
         final repo = ref.read(dokumantasyonIstekRepositoryProvider);
         final result = await repo.dokumantasyonBaskiIstekEkle(
@@ -876,6 +868,7 @@ class _DokumantasyonBaskiIstekScreenState
                     value: _isRenkliBaski,
                     activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
                     activeThumbColor: AppColors.gradientEnd,
+                    inactiveTrackColor: Colors.white,
                     onChanged: (value) {
                       setState(() {
                         _isRenkliBaski = value;
@@ -895,6 +888,7 @@ class _DokumantasyonBaskiIstekScreenState
                     value: _isArkaliOnlu,
                     activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
                     activeThumbColor: AppColors.gradientEnd,
+                    inactiveTrackColor: Colors.white,
                     onChanged: (value) {
                       setState(() {
                         _isArkaliOnlu = value;
@@ -917,6 +911,7 @@ class _DokumantasyonBaskiIstekScreenState
                     value: _isKopyaElden,
                     activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
                     activeThumbColor: AppColors.gradientEnd,
+                    inactiveTrackColor: Colors.white,
                     onChanged: (value) {
                       setState(() {
                         _isKopyaElden = value;

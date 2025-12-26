@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_detay_model.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -291,12 +293,6 @@ class _DokumantasyonIstekDetayScreenState
       );
       items.add(
         MapEntry(
-          'Baskı Adedi',
-          detay.baskiAdedi != null ? detay.baskiAdedi.toString() : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
           'Kağıt Talebi',
           detay.kagitTalebi.isNotEmpty ? detay.kagitTalebi : '-',
         ),
@@ -312,6 +308,12 @@ class _DokumantasyonIstekDetayScreenState
         MapEntry(
           'Teslim Şekli',
           detay.kopyaElden ? 'Kopya elden teslim' : 'Dosya yüklendi',
+        ),
+      );
+      items.add(
+        MapEntry(
+          'Baskı Adedi',
+          detay.baskiAdedi != null ? detay.baskiAdedi.toString() : '-',
         ),
       );
       items.add(
@@ -344,11 +346,9 @@ class _DokumantasyonIstekDetayScreenState
       items.add(MapEntry('Dosya Açıklaması', detay.dosyaAciklama!));
     }
 
-    // Dosyalar (alt satıra yazılacak)
+    // Dosyalar (tıklanabilir hale getir)
     if (detay.dosyaAdlari.isNotEmpty) {
-      items.add(
-        MapEntry('Dosyalar', detay.dosyaAdlari.map((e) => '• $e').join('\n')),
-      );
+      items.add(MapEntry('Dosyalar', '')); // Placeholder
     }
 
     // Seçilen Sınıflar (alt satıra yazılacak)
@@ -376,7 +376,6 @@ class _DokumantasyonIstekDetayScreenState
     final multiLineFields = <String>{
       'Açıklama',
       'Dosya Açıklaması',
-      'Dosyalar',
       'Seçilen Sınıflar',
     };
 
@@ -385,14 +384,43 @@ class _DokumantasyonIstekDetayScreenState
       final isLast = i == items.length - 1;
       final multiLine = multiLineFields.contains(item.key);
 
-      rows.add(
-        _buildInfoRow(
-          item.key,
-          item.value,
-          isLast: isLast,
-          multiLine: multiLine,
-        ),
-      );
+      // Dosyalar kısmını özel olarak handle et
+      if (item.key == 'Dosyalar') {
+        // Dosya başlığını ekle
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Dosyalar:',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF4A5568),
+              ),
+            ),
+          ),
+        );
+        // Her dosya için tıklanabilir row ekle
+        for (int j = 0; j < detay.dosyaAdlari.length; j++) {
+          final fileName = detay.dosyaAdlari[j];
+          rows.add(
+            _buildClickableFileRow(
+              detay.dosyaAdlari.length > 1 ? 'Dosya ${j + 1}' : 'Dosya',
+              fileName,
+              isLast: j == detay.dosyaAdlari.length - 1 && isLast,
+            ),
+          );
+        }
+      } else {
+        rows.add(
+          _buildInfoRow(
+            item.key,
+            item.value,
+            isLast: isLast,
+            multiLine: multiLine,
+          ),
+        );
+      }
     }
 
     return rows;
@@ -888,6 +916,87 @@ class _DokumantasyonIstekDetayScreenState
     final time =
         '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
     return '$d $time';
+  }
+
+  Widget _buildClickableFileRow(
+    String label,
+    String fileName, {
+    bool isLast = false,
+  }) {
+    const String baseUrl =
+        'https://esas.eyuboglu.k12.tr/TestDosyalar/DokumantasyonIstek/';
+    final String fileUrl = '$baseUrl$fileName';
+
+    // Dosya uzantısını kontrol et
+    final extension = fileName.toLowerCase().split('.').last;
+    final isPdf = extension == 'pdf';
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Başlık
+          Text(
+            '$label:',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF4A5568),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Tıklanabilir dosya adı
+          GestureDetector(
+            onTap: () async {
+              if (isPdf) {
+                // PDF ise ortak PDF viewer'a yönlendir
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PdfViewerScreen(title: 'Dosya', pdfUrl: fileUrl),
+                  ),
+                );
+              } else {
+                // Diğer dosyalar için tarayıcıda aç
+                final uri = Uri.parse(fileUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              }
+            },
+            child: Row(
+              children: [
+                Icon(
+                  isPdf ? Icons.picture_as_pdf : Icons.image_outlined,
+                  size: 20,
+                  color: AppColors.gradientStart,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    fileName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.gradientStart,
+                      decoration: TextDecoration.underline,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!isLast) ...[
+            const SizedBox(height: 10),
+            Container(height: 1, color: const Color(0xFFE2E8F0)),
+          ],
+        ],
+      ),
+    );
   }
 
   Color _statusColor(String status) {

@@ -1903,6 +1903,16 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           multiLine: false,
         ),
       );
+      // Dosya adlarını özet ekranında göster
+      final dosyaAdlari = _selectedFiles.map((f) => f.name).join('\n');
+      items.insert(
+        7,
+        SatinAlmaOzetItem(
+          label: 'Yüklenen Dosyalar',
+          value: dosyaAdlari,
+          multiLine: true,
+        ),
+      );
     }
 
     if (_saticiFirmaController.text.trim().isNotEmpty) {
@@ -2088,7 +2098,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           }
         },
         onSuccess: () {
-          _showStatusBottomSheet('Talep başarıyla gönderildi.', isError: false);
+          // Liste ekranına dön ve verileri tazele
+          ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
+          ref.invalidate(satinAlmaTamamlananTaleplerProvider);
+          context.go('/satin_alma');
         },
         onError: (error) {
           _showStatusBottomSheet('Hata: $error', isError: true);

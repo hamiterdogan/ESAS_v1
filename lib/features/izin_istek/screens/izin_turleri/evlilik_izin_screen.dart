@@ -115,6 +115,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                 AciklamaFieldWidget(
                   controller: _aciklamaController,
                   focusNode: _aciklamaFocusNode,
+                  minCharacters: 30,
                 ),
                 const SizedBox(height: 24),
 
