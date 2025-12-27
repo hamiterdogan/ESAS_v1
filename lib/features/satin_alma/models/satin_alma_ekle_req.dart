@@ -8,7 +8,7 @@ class SatinAlmaEkleReq {
   final int odemeSekliId;
   final String webSitesi;
   final String saticiTel;
-  final List<int> binaIds;
+  final List<int> binaId;
   final int odemeVadesiGun;
   final List<SatinAlmaUrunSatir> urunSatirlar;
   final String saticiFirma;
@@ -23,7 +23,7 @@ class SatinAlmaEkleReq {
     required this.odemeSekliId,
     required this.webSitesi,
     required this.saticiTel,
-    required this.binaIds,
+    required this.binaId,
     required this.odemeVadesiGun,
     required this.urunSatirlar,
     required this.saticiFirma,
@@ -39,7 +39,7 @@ class SatinAlmaEkleReq {
       'odemeSekliId': odemeSekliId,
       'webSitesi': webSitesi,
       'saticiTel': saticiTel,
-      'binaIds': binaIds,
+      'binaId': binaId,
       'odemeVadesiGun': odemeVadesiGun,
       'urunSatir': urunSatirlar.map((u) => u.toJson()).toList(),
       'saticiFirma': saticiFirma,

@@ -469,10 +469,10 @@ class _DokumantasyonBaskiIstekScreenState
       return;
     }
 
-    // Açıklama validation (Binek araç ekranı ile aynı)
-    if (_aciklamaController.text.length < 30) {
+    // Açıklama validation
+    if (_aciklamaController.text.length < 15) {
       _showStatusBottomSheet(
-        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+        'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
         isError: true,
       );
       return;
@@ -858,7 +858,10 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 24),
 
-              AciklamaFieldWidget(controller: _aciklamaController),
+              AciklamaFieldWidget(
+                controller: _aciklamaController,
+                minCharacters: 15,
+              ),
               const SizedBox(height: 24),
 
               // Renkli Baskı Toggle

@@ -393,7 +393,8 @@ class _DatePickerBottomSheetWidgetState
             padding: const EdgeInsets.only(bottom: 4.0),
             child: Text(
               widget.label!,
-              style: widget.labelStyle ??
+              style:
+                  widget.labelStyle ??
                   const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -404,11 +405,11 @@ class _DatePickerBottomSheetWidgetState
         GestureDetector(
           onTap: _showDatePickerBottomSheet,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10.5),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13.5),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(7),
             ),
             child: Row(
               children: [
@@ -422,7 +423,7 @@ class _DatePickerBottomSheetWidgetState
                   child: Text(
                     _formatDate(),
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: Colors.black,
                     ),

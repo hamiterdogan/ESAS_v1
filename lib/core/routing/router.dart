@@ -20,6 +20,8 @@ import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_turu_
 import 'package:esas_v1/features/dokumantasyon_istek/screens/a4_kagidi_istek_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_baski_istek_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
+import 'package:esas_v1/features/egitim_istek/screens/egitim_talep_yonetim_screen.dart';
+import 'package:esas_v1/features/egitim_istek/screens/egitim_talep_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -115,9 +117,11 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/egitim_istek',
-      builder: (context, state) => EmptyTalepScreen(
-        talep: TalepTuru.fromEnum(TalepTuruEnum.egitimIstek),
-      ),
+      builder: (context, state) => const EgitimTalepYonetimScreen(),
+    ),
+    GoRoute(
+      path: '/egitim_istek/ekle',
+      builder: (context, state) => const EgitimTalepScreen(),
     ),
     GoRoute(
       path: '/sarf_malzeme_istek',

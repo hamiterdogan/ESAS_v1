@@ -35,11 +35,11 @@ class SatinAlmaRepository {
       };
 
       // BinaId (List mapping)
-      if (req.binaIds.isNotEmpty) {
-        if (req.binaIds.length == 1) {
-          map['BinaId'] = req.binaIds.first;
+      if (req.binaId.isNotEmpty) {
+        if (req.binaId.length == 1) {
+          map['BinaId'] = req.binaId.first;
         } else {
-          map['BinaId'] = req.binaIds;
+          map['BinaId'] = req.binaId;
         }
       } else {
         map['BinaId'] = 0;

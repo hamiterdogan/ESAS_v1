@@ -336,7 +336,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
             maxHeight: MediaQuery.of(context).size.height - 20,
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
               Container(
                 width: 40,
@@ -386,39 +386,41 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                 ),
               ),
               const Divider(height: 1),
-              SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    final offsetAnimation =
-                        Tween<Offset>(
-                          begin: const Offset(1.0, 0),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      final offsetAnimation =
+                          Tween<Offset>(
+                            begin: const Offset(1.0, 0),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                          );
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                    child: _currentFilterPage == null
+                        ? _buildFilterMainPage(setModalState)
+                        : _buildFilterDetailPage(
+                            _currentFilterPage!,
+                            setModalState,
+                            personelSearchController,
+                            personelSearchQuery,
+                            (value) {
+                              setModalState(() {
+                                personelSearchQuery = value;
+                              });
+                            },
                           ),
-                        );
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-                  child: _currentFilterPage == null
-                      ? _buildFilterMainPage(setModalState)
-                      : _buildFilterDetailPage(
-                          _currentFilterPage!,
-                          setModalState,
-                          personelSearchController,
-                          personelSearchQuery,
-                          (value) {
-                            setModalState(() {
-                              personelSearchQuery = value;
-                            });
-                          },
-                        ),
+                  ),
                 ),
               ),
               if (_currentFilterPage == null)

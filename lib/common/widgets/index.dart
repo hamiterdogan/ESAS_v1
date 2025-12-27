@@ -1,4 +1,5 @@
 export 'personel_secim_widget.dart';
+export 'personel_selector_widget.dart';
 export 'date_range_picker_widget.dart';
 export 'aciklama_field_widget.dart';
 export 'ders_saati_spinner_widget.dart';

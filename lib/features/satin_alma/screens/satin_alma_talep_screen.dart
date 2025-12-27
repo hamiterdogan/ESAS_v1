@@ -2058,7 +2058,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         odemeSekliId: odemeSekliId,
         webSitesi: _webSitesiController.text,
         saticiTel: _saticiTelefonController.text,
-        binaIds: binaIds,
+        binaId: binaIds,
         odemeVadesiGun: _vadeli ? _odemeVadesi : 0,
         urunSatirlar: urunSatirlar,
         saticiFirma: _saticiFirmaController.text,

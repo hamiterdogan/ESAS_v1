@@ -185,11 +185,14 @@ class _GenericSummaryBottomSheetState
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  _debugRequestJson,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF2D3748),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: Text(
+                                    _debugRequestJson,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF2D3748),
+                                    ),
                                   ),
                                 ),
                               ),

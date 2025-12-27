@@ -222,13 +222,16 @@ class _IzinOzetBottomSheetState extends ConsumerState<IzinOzetBottomSheet> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: const Color(0xFFCBD5E0)),
               ),
-              child: Text(
-                _formatJsonData(widget.request.toJson()),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                  color: Color(0xFF2D3748),
-                  height: 1.4,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Text(
+                  _formatJsonData(widget.request.toJson()),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'monospace',
+                    color: Color(0xFF2D3748),
+                    height: 1.4,
+                  ),
                 ),
               ),
             ),
