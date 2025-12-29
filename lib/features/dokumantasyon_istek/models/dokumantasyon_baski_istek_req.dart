@@ -9,13 +9,17 @@ class DokumantasyonBaskiIstekReq {
   final String baskiTuru; // Siyah-Beyaz Baskı veya Renkli Baskı
   final bool onluArkali;
   final bool kopyaElden;
-  final List<String>? formFile; // Yüklenen dosyaların isimleri (User spec: isimleri dizi olarak)
-  // Note: Actual files might need to be passed separately to the repository for FormData creation
+  final List<String>? formFile;
   final String dosyaAciklama;
   final int sayfaSayisi;
   final int toplamSayfa;
   final int ogrenciSayisi;
   final List<OkulSatirItem> okullarSatir;
+
+  // New fields for JSON payload
+  final String departman;
+  final int paket;
+  final bool a4Talebi;
 
   DokumantasyonBaskiIstekReq({
     required this.teslimTarihi,
@@ -32,24 +36,29 @@ class DokumantasyonBaskiIstekReq {
     required this.toplamSayfa,
     required this.ogrenciSayisi,
     required this.okullarSatir,
+    this.departman = '', // Default to empty based on sample
+    this.paket = 0, // Default to 0 based on sample
+    this.a4Talebi = true, // Defaulting to true, or infer from kagitTalebi if needed
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'TeslimTarihi': teslimTarihi.toIso8601String(),
-      'BaskiAdedi': baskiAdedi,
+      'teslimTarihi': teslimTarihi.toIso8601String(),
+      'baskiAdedi': baskiAdedi,
       'kagitTalebi': kagitTalebi,
-      'DokumanTuru': dokumanTuru,
-      'Aciklama': aciklama,
-      'BaskiTuru': baskiTuru,
-      'OnluArkali': onluArkali,
-      'KopyaElden': kopyaElden,
-      'FormFile': formFile,
-      'DosyaAciklama': dosyaAciklama,
-      'SayfaSayisi': sayfaSayisi,
-      'ToplamSayfa': toplamSayfa,
-      'OgrenciSayisi': ogrenciSayisi,
-      'OkullarSatir': okullarSatir.map((e) => e.toJson()).toList(),
+      'dokumanTuru': dokumanTuru,
+      'departman': departman,
+      'paket': paket,
+      'a4Talebi': a4Talebi,
+      'aciklama': aciklama,
+      'baskiTuru': baskiTuru,
+      'onluArkali': onluArkali,
+      'kopyaElden': kopyaElden,
+      'sayfaSayisi': sayfaSayisi,
+      'toplamSayfa': toplamSayfa,
+      'olusturmaTarihi': DateTime.now().toIso8601String(),
+      'okullarSatir': okullarSatir.map((e) => e.toJson()).toList(),
+      'ogrenciSayisi': ogrenciSayisi,
     };
   }
 }
@@ -58,11 +67,18 @@ class OkulSatirItem {
   final String okulKodu;
   final String sinif;
   final String seviye;
+  // Sample shows numara, adi, soyadi as well
+  final int numara;
+  final String adi;
+  final String soyadi;
 
   OkulSatirItem({
     required this.okulKodu,
     required this.sinif,
     required this.seviye,
+    this.numara = 0,
+    this.adi = '',
+    this.soyadi = '',
   });
 
   Map<String, dynamic> toJson() {
@@ -70,6 +86,9 @@ class OkulSatirItem {
       'okulKodu': okulKodu,
       'sinif': sinif,
       'seviye': seviye,
+      'numara': numara,
+      'adi': adi,
+      'soyadi': soyadi,
     };
   }
 }

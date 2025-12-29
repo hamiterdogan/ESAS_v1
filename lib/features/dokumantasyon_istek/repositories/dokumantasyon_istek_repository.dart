@@ -6,6 +6,7 @@ import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_istek_req.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_detay_model.dart';
 import 'dart:io';
+import 'package:http_parser/http_parser.dart';
 
 abstract class DokumantasyonIstekRepository {
   Future<Result<void>> dokumantasyonIstekEkle({
@@ -70,6 +71,7 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
+    } catch (e) {
       return Failure(e.toString());
     }
   }
@@ -151,90 +153,103 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
     List<File>? files,
   }) async {
     try {
-      final map = <String, dynamic>{
-        'TeslimTarihi': request.teslimTarihi.toIso8601String(),
-        'BaskiAdedi': request.baskiAdedi,
-        'kagitTalebi': request.kagitTalebi,
-        'DokumanTuru': request.dokumanTuru,
-        'Aciklama': request.aciklama,
-        'BaskiTuru': request.baskiTuru,
-        'OnluArkali': request.onluArkali,
-        'KopyaElden': request.kopyaElden,
-        'DosyaAciklama': request.dosyaAciklama,
-        'SayfaSayisi': request.sayfaSayisi,
-        'ToplamSayfa': request.toplamSayfa,
-        'OgrenciSayisi': request.ogrenciSayisi,
-      };
+      // Step 1: Create request via JSON payload
+      // Endpoint: /DokumantasyonIstek/DokumantasyonIstekEkle
+      final response = await _dio.post(
+        '/DokumantasyonIstek/DokumantasyonIstekEkle',
+        data: request.toJson(),
+        options: Options(contentType: 'application/json'),
+      );
 
-      // Handle OkullarSatir manually for FormData as Dio might not handle nested lists of objects automatically depending on version
-      // But typically we can add them with indexed keys or just try map first.
-      // User requested "OkullarSatir => ... şeklinde dizi olarak".
-      // Let's try adding them as indexed fields for standard ASP.NET model binding.
-      for (int i = 0; i < request.okullarSatir.length; i++) {
-        map['OkullarSatir[$i].okulKodu'] = request.okullarSatir[i].okulKodu;
-        map['OkullarSatir[$i].sinif'] = request.okullarSatir[i].sinif;
-        map['OkullarSatir[$i].seviye'] = request.okullarSatir[i].seviye;
+      if (response.statusCode != 200) {
+        return Failure('Hata: ${response.statusCode} - ${response.data}');
       }
 
-      // Handle FormFile
-      // User said: "FormFile => yüklenen dosyaların isimleri dizi olarak"
-      // This is ambiguous. If they mean just names:
-      if (request.formFile != null) {
-        // map['FormFile'] = request.formFile;
-        // But if files are uploaded, usually 'FormFile' is the key for the file content.
-        // If the backend expects filenames in 'FormFile' property (List<string>), we send it.
-        // If the backend expects actual files in 'FormFile' (List<IFormFile>), we send MultipartFiles.
+      final responseData = response.data;
+      if (responseData == null ||
+          (responseData is Map && responseData['basarili'] != true)) {
+        return Failure(responseData?['mesaj'] ?? 'İstek oluşturulamadı.');
+      }
 
-        // Given the requirement "yüklenen dosyaların isimleri dizi olarak", I will assume we send the NAMES as a list of strings
-        // AND maybe we send the actual files under the same key or a different one?
-        // Usually you can't have both.
-        // If I strictly follow: "FormFile => yüklenen dosyaların isimleri dizi olarak",
-        // it sounds like I should send the list of names.
-        // BUT, where do the actual file bytes go?
-        // If I am expected to upload files, they must be in the form data.
+      final int onayKayitId = responseData['onayKayitId'] ?? 0;
 
-        // Let's assume the user meant: "Send the actual files, as an array, under the key FormFile".
-        // And "isimleri dizi olarak" is just describing that it's a list.
-        // OR it's a specific requirement to send filenames.
+      // Step 2: Upload files if any (all files in a single request)
+      // Endpoint: /Dosya/DosyaYukle
+      if (files != null && files.isNotEmpty && onayKayitId > 0) {
+        final Map<String, dynamic> formDataMap = {
+          'OnayKayitId': onayKayitId,
+          'OnayTipi': 'Dokümantasyon İstek', // Türkçe karakter + boşluk
+          'DosyaAciklama': request.dosyaAciklama,
+        };
 
-        // To be safe and compliant with standard file uploads:
-        if (files != null && files.isNotEmpty) {
-          final fileList = <MultipartFile>[];
-          for (var file in files) {
-            final fileName = file.path.split(Platform.pathSeparator).last;
-            fileList.add(
-              await MultipartFile.fromFile(file.path, filename: fileName),
-            );
+        // Birden fazla dosya için FormFile array oluştur
+        final List<MultipartFile> multipartFiles = [];
+
+        for (final file in files) {
+          final fileName = file.path.split(Platform.pathSeparator).last;
+
+          // Dosya uzantısından MIME type belirle
+          String contentType = 'application/octet-stream';
+          final extension = fileName.toLowerCase().split('.').last;
+          switch (extension) {
+            case 'pdf':
+              contentType = 'application/pdf';
+              break;
+            case 'jpg':
+            case 'jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case 'png':
+              contentType = 'image/png';
+              break;
+            case 'doc':
+              contentType = 'application/msword';
+              break;
+            case 'docx':
+              contentType =
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+              break;
+            case 'xls':
+              contentType = 'application/vnd.ms-excel';
+              break;
+            case 'xlsx':
+              contentType =
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+              break;
           }
-          map['FormFile'] = fileList;
-        } else if (request.formFile != null) {
-          // If no actual files but we have names (e.g. from a previous state?), send names?
-          // Unlikely for a create request.
+
+          multipartFiles.add(
+            await MultipartFile.fromFile(
+              file.path,
+              filename: fileName,
+              contentType: MediaType.parse(contentType),
+            ),
+          );
+        }
+
+        // Tüm dosyaları FormFile anahtarıyla ekle (array olarak)
+        formDataMap['FormFile'] = multipartFiles;
+
+        final formData = FormData.fromMap(formDataMap);
+
+        final uploadResponse = await _dio.post(
+          '/Dosya/DosyaYukle',
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        );
+
+        if (uploadResponse.statusCode != 200) {
+          return Failure('Dosyalar yüklenirken hata oluştu.');
         }
       }
 
-      final formData = FormData.fromMap(map);
-
-      final response = await _dio.post(
-        '/DokumantasyonIstek/DokumantasyonIstekEkle', // Assuming same endpoint? Or maybe new one?
-        // The user didn't specify endpoint URL change, just payload.
-        // But the previous endpoint was /DokumantasyonIstekEkle.
-        // The payload is drastically different. It might be the same endpoint overloaded or a new one.
-        // I will stick to the same endpoint for now as no new one was provided.
-        // Wait, check current repo. It uses /DokumantasyonIstek/DokumantasyonIstekEkle
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-
-      if (response.statusCode == 200) {
-        return const Success(null);
-      }
-
-      return Failure('Hata: ${response.statusCode}');
+      return const Success(null);
     } on DioException catch (e) {
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
+    } catch (e) {
+      return Failure(e.toString());
     }
   }
 }
