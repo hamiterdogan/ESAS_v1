@@ -481,14 +481,30 @@ class _AracIstekYukEkleScreenState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Tahmini Mesafe (km)',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Tahmini Mesafe (km)',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _showMesafeInfo,
+                          child: const Icon(
+                            Icons.info_outline,
+                            color: AppColors.gradientStart,
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -581,16 +597,6 @@ class _AracIstekYukEkleScreenState
                               size: 24,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          onPressed: _showMesafeInfo,
-                          icon: const Icon(
-                            Icons.info_outline,
-                            color: Colors.grey,
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),

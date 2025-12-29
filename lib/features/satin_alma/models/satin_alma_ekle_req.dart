@@ -32,23 +32,33 @@ class SatinAlmaEkleReq {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'pesin': pesin,
+    final map = <String, dynamic>{
+      'binaId': binaId,
       'sonTeslimTarihi': sonTeslimTarihi.toIso8601String(),
       'aliminAmaci': aliminAmaci,
-      'odemeSekliId': odemeSekliId,
-      'webSitesi': webSitesi,
-      'saticiTel': saticiTel,
-      'binaId': binaId,
-      'odemeVadesiGun': odemeVadesiGun,
-      'urunSatir': urunSatirlar.map((u) => u.toJson()).toList(),
-      'saticiFirma': saticiFirma,
       'genelToplam': genelToplam,
-      'dosyaAciklama': dosyaAciklama,
-      'formFiles': formFiles
-          .map((file) => {'name': file.name, 'size': file.size})
-          .toList(),
+      'urunSatir': urunSatirlar.map((u) => u.toJson()).toList(),
+      'odemeSekliId': odemeSekliId,
+      'pesin': pesin,
+      'odemeVadesiGun': odemeVadesiGun,
     };
+
+    // Optional: Satıcı Firma
+    if (saticiFirma.isNotEmpty) {
+      map['saticiFirma'] = saticiFirma;
+    }
+
+    // Optional: Satıcı Tel
+    if (saticiTel.isNotEmpty) {
+      map['saticiTel'] = saticiTel;
+    }
+
+    // Optional: Web Sitesi
+    if (webSitesi.isNotEmpty) {
+      map['webSitesi'] = webSitesi;
+    }
+
+    return map;
   }
 }
 
@@ -77,16 +87,20 @@ class SatinAlmaUrunSatir {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'satinAlmaAltKategoriId': satinAlmaAltKategoriId ?? 0,
-      'digerUrun': digerUrun,
-      'birimId': birimId ?? 0,
+    final map = <String, dynamic>{
       'satinAlmaAnaKategoriId': satinAlmaAnaKategoriId ?? 0,
-      'birimFiyati': birimFiyati,
+      'satinAlmaAltKategoriId': satinAlmaAltKategoriId ?? 0,
       'urunDetay': urunDetay,
       'miktar': miktar,
-      'paraBirimi': paraBirimi,
-      'id': id,
+      'birimId': birimId ?? 0,
+      'birimFiyati': birimFiyati,
     };
+
+    // Optional: Para Birimi (Kod - BirimAdi değil)
+    if (paraBirimi != null && paraBirimi!.isNotEmpty) {
+      map['paraBirimi'] = paraBirimi;
+    }
+
+    return map;
   }
 }

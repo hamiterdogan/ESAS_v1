@@ -57,22 +57,46 @@ class _SatinAlmaTalepYonetimScreenState
   Widget build(BuildContext context) {
     // Dinle: Devam Eden talepler yüklendi mi?
     ref.listen(satinAlmaDevamEdenTaleplerProvider, (prev, next) {
-      next.whenData((_) {
-        if (mounted) {
-          setState(() => _devamEdenYuklendi = true);
-          _tryHideLoadingDialog();
-        }
-      });
+      next.when(
+        data: (_) {
+          if (mounted) {
+            setState(() => _devamEdenYuklendi = true);
+            _tryHideLoadingDialog();
+          }
+        },
+        loading: () {
+          // Loading durumunda henüz yüklenmedi
+        },
+        error: (error, stack) {
+          // Hata durumunda da yüklenmiş sayılır, dialog kapanmalı
+          if (mounted) {
+            setState(() => _devamEdenYuklendi = true);
+            _tryHideLoadingDialog();
+          }
+        },
+      );
     });
 
     // Dinle: Tamamlanan talepler yüklendi mi?
     ref.listen(satinAlmaTamamlananTaleplerProvider, (prev, next) {
-      next.whenData((_) {
-        if (mounted) {
-          setState(() => _tamamlananYuklendi = true);
-          _tryHideLoadingDialog();
-        }
-      });
+      next.when(
+        data: (_) {
+          if (mounted) {
+            setState(() => _tamamlananYuklendi = true);
+            _tryHideLoadingDialog();
+          }
+        },
+        loading: () {
+          // Loading durumunda henüz yüklenmedi
+        },
+        error: (error, stack) {
+          // Hata durumunda da yüklenmiş sayılır, dialog kapanmalı
+          if (mounted) {
+            setState(() => _tamamlananYuklendi = true);
+            _tryHideLoadingDialog();
+          }
+        },
+      );
     });
 
     return PopScope(

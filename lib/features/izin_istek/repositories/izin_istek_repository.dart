@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
@@ -153,81 +154,101 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
     try {
       print('🔍 İzin isteği ekleniyor...');
 
-      // FormData için Map oluştur (tüm alanlar FormData içinde gönderilecek)
-      final formDataMap = request.toFormDataMap();
-      print('📤 FormData Map: $formDataMap');
-
-      // FormData oluştur
-      final formData = FormData.fromMap(formDataMap);
-
-      // Dosya varsa FormData'ya ekle
-      if (file != null && await file.exists()) {
-        final fileName = file.path.split(Platform.pathSeparator).last;
-        final extension = fileName.split('.').last.toLowerCase();
-
-        // MIME type belirle
-        String mimeType;
-        switch (extension) {
-          case 'pdf':
-            mimeType = 'application/pdf';
-            break;
-          case 'png':
-            mimeType = 'image/png';
-            break;
-          case 'jpg':
-          case 'jpeg':
-            mimeType = 'image/jpeg';
-            break;
-          default:
-            mimeType = 'application/octet-stream';
-        }
-
-        print('📎 Dosya ekleniyor: $fileName (${mimeType})');
-
-        final multipartFile = await MultipartFile.fromFile(
-          file.path,
-          filename: fileName,
-          contentType: DioMediaType.parse(mimeType),
-        );
-
-        formData.files.add(MapEntry('FormFile', multipartFile));
-        print('✅ Dosya FormData\'ya eklendi');
-      }
+      // STEP 1: Create request via JSON payload
+      final jsonPayload = request.toJson();
+      print('📤 JSON Payload: $jsonPayload');
 
       final response = await _dio.post(
         '/IzinIstek/IzinIstekEkle',
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        data: jsonPayload,
+        options: Options(contentType: 'application/json'),
       );
       print('✅ Response status: ${response.statusCode}');
       print('✅ Response data: ${response.data}');
 
-      if (response.statusCode == 200) {
-        // Başarılı response kontrolü
-        if (response.data is Map<String, dynamic>) {
-          final data = response.data as Map<String, dynamic>;
-          if (data['basarili'] == true) {
-            return const Success(null);
-          } else {
-            return Failure(data['mesaj']?.toString() ?? 'İşlem başarısız');
-          }
-        }
-        return const Success(null);
+      if (response.statusCode != 200) {
+        return Failure('Hata: ${response.statusCode} - ${response.data}');
       }
 
-      // Hata mesajını response'dan almayı dene
-      String errorMessage = 'Hata: ${response.statusCode}';
-      if (response.data is Map<String, dynamic>) {
-        final data = response.data as Map<String, dynamic>;
-        if (data.containsKey('mesaj')) {
-          errorMessage = data['mesaj'].toString();
-        } else if (data.containsKey('message')) {
-          errorMessage = data['message'].toString();
-        } else if (data.containsKey('error')) {
-          errorMessage = data['error'].toString();
+      // Başarılı response kontrolü
+      final responseData = response.data;
+      if (responseData == null ||
+          (responseData is Map && responseData['basarili'] != true)) {
+        return Failure(responseData?['mesaj'] ?? 'İstek oluşturulamadı.');
+      }
+
+      final int onayKayitId = responseData['onayKayitId'] ?? 0;
+      print('✅ OnayKayitId alındı: $onayKayitId');
+
+      // STEP 2: Upload file if exists
+      if (file != null && await file.exists() && onayKayitId > 0) {
+        print('📎 Dosya yükleniyor...');
+
+        final fileName = file.path.split(Platform.pathSeparator).last;
+        final extension = fileName.split('.').last.toLowerCase();
+
+        // Dosya uzantısından MIME type belirle
+        String contentType = 'application/octet-stream';
+        switch (extension) {
+          case 'pdf':
+            contentType = 'application/pdf';
+            break;
+          case 'jpg':
+          case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+          case 'png':
+            contentType = 'image/png';
+            break;
+          case 'bmp':
+            contentType = 'image/bmp';
+            break;
+          case 'doc':
+            contentType = 'application/msword';
+            break;
+          case 'docx':
+            contentType =
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            break;
+          case 'xls':
+            contentType = 'application/vnd.ms-excel';
+            break;
+          case 'xlsx':
+            contentType =
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            break;
+        }
+
+        print('📎 Dosya: $fileName, MIME: $contentType');
+
+        final multipartFile = await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
+        );
+
+        final formData = FormData.fromMap({
+          'OnayKayitId': onayKayitId,
+          'OnayTipi': 'İzin İstek',
+          'FormFile': multipartFile,
+          'DosyaAciklama': '',
+        });
+
+        final uploadResponse = await _dio.post(
+          '/Dosya/DosyaYukle',
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        );
+
+        print('✅ Dosya yükleme response: ${uploadResponse.statusCode}');
+        print('✅ Dosya yükleme data: ${uploadResponse.data}');
+
+        if (uploadResponse.statusCode != 200) {
+          return Failure('Dosya yüklenemedi: ${uploadResponse.statusCode}');
         }
       }
-      return Failure(errorMessage);
+
+      return const Success(null);
     } on DioException catch (e) {
       print('❌ DioException: ${e.message}');
       print('❌ Response data: ${e.response?.data}');

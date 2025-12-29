@@ -525,8 +525,8 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                         'Araç Türü: ',
                                         style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFF014B92),
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
                                         ),
                                       ),
                                       Flexible(

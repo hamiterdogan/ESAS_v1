@@ -14,6 +14,14 @@ class PdfViewerScreen extends ConsumerStatefulWidget {
 }
 
 class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
+  String _getDisplayName(String title) {
+    final firstUnderscoreIndex = title.indexOf('_');
+    if (firstUnderscoreIndex == -1) {
+      return title;
+    }
+    return title.substring(firstUnderscoreIndex + 1);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -23,7 +31,10 @@ class _PdfViewerScreenState extends ConsumerState<PdfViewerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          _getDisplayName(widget.title),
+          style: const TextStyle(color: Colors.white),
+        ),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),

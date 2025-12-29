@@ -41,6 +41,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   final TextEditingController _toplamTlFiyatiController =
       TextEditingController();
 
+  final FocusNode _urunAdiFocusNode = FocusNode();
+
   bool _showingKategoriLoading = false;
   bool _showingAltKategoriLoading = false;
   bool _showingOlcuBirimLoading = false;
@@ -141,6 +143,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return false;
     }
     if (_urunAdiController.text.isEmpty) {
+      _urunAdiFocusNode.requestFocus();
       _showErrorBottomSheet('Ürün detay bilgisi giriniz');
       return false;
     }
@@ -162,6 +165,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _toplamFiyatController.dispose();
     _tlKurFiyatiController.dispose();
     _toplamTlFiyatiController.dispose();
+    _urunAdiFocusNode.dispose();
     super.dispose();
   }
 
@@ -1071,6 +1075,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             ),
             const SizedBox(height: 8),
             TextField(
+              focusNode: _urunAdiFocusNode,
               controller: _urunAdiController,
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',

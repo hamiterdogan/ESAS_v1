@@ -9,10 +9,8 @@ import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
 import 'package:esas_v1/features/satin_alma/models/doviz_kuru.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
-
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:http_parser/http_parser.dart';
-import 'dart:convert';
 
 class SatinAlmaRepository {
   SatinAlmaRepository(this._dio);
@@ -21,80 +19,93 @@ class SatinAlmaRepository {
 
   Future<Result<void>> satinAlmaEkle(SatinAlmaEkleReq req) async {
     try {
-      final map = <String, dynamic>{
-        'Pesin': req.pesin,
-        'SonTeslimTarihi': req.sonTeslimTarihi.toIso8601String(),
-        'AliminAmaci': req.aliminAmaci,
-        'OdemeSekliId': req.odemeSekliId,
-        'WebSitesi': req.webSitesi,
-        'SaticiTel': req.saticiTel,
-        'OdemeVadesiGun': req.odemeVadesiGun,
-        'SaticiFirma': req.saticiFirma,
-        'GenelToplam': req.genelToplam,
-        'DosyaAciklama': req.dosyaAciklama,
-      };
-
-      // BinaId (List mapping)
-      if (req.binaId.isNotEmpty) {
-        if (req.binaId.length == 1) {
-          map['BinaId'] = req.binaId.first;
-        } else {
-          map['BinaId'] = req.binaId;
-        }
-      } else {
-        map['BinaId'] = 0;
-      }
-
-      // UrunSatir (JSON String of List)
-      // Send as JSON array string for complex objects in multipart form data
-      map['UrunSatir'] = jsonEncode(
-        req.urunSatirlar.map((e) => e.toJson()).toList(),
+      // Step 1: Create satın alma request - send JSON
+      final response = await _dio.post(
+        '/SatinAlma/SatinAlmaEkle',
+        data: req.toJson(),
       );
 
-      final formData = FormData.fromMap(map);
+      // Check response
+      final responseData = response.data;
+      if (response.statusCode != 200 ||
+          (responseData is Map && responseData['basarili'] != true)) {
+        return Failure(responseData?['mesaj'] ?? 'İstek oluşturulamadı.');
+      }
 
-      // Add Files
-      for (final file in req.formFiles) {
-        if (file.path != null) {
-          final filename = file.name;
-          final validExtensions = [
-            'pdf',
-            'png',
-            'jpg',
-            'jpeg',
-            'doc',
-            'docx',
-            'xls',
-            'xlsx',
-          ];
-          final ext = filename.split('.').last.toLowerCase();
+      final int onayKayitId = responseData['onayKayitId'] ?? 0;
 
-          MediaType? contentType;
-          if (validExtensions.contains(ext)) {
-            if (ext == 'pdf')
-              contentType = MediaType('application', 'pdf');
-            else if (['png', 'jpg', 'jpeg'].contains(ext))
-              contentType = MediaType('image', ext == 'jpg' ? 'jpeg' : ext);
-            else if (['doc', 'docx'].contains(ext))
-              contentType = MediaType('application', 'msword'); // simplified
-            else if (['xls', 'xlsx'].contains(ext))
-              contentType = MediaType('application', 'vnd.ms-excel');
+      // Step 2: Upload files if any (all files in a single request)
+      // Endpoint: /Dosya/DosyaYukle
+      if (req.formFiles.isNotEmpty && onayKayitId > 0) {
+        final Map<String, dynamic> formDataMap = {
+          'OnayKayitId': onayKayitId,
+          'OnayTipi': 'Satın Alma',
+          'DosyaAciklama': req.dosyaAciklama,
+        };
+
+        // Birden fazla dosya için FormFile array oluştur
+        final List<MultipartFile> multipartFiles = [];
+
+        for (final file in req.formFiles) {
+          if (file.path == null) continue;
+
+          final fileName = file.name;
+
+          // Dosya uzantısından MIME type belirle
+          String contentType = 'application/octet-stream';
+          final extension = fileName.toLowerCase().split('.').last;
+          switch (extension) {
+            case 'pdf':
+              contentType = 'application/pdf';
+              break;
+            case 'jpg':
+            case 'jpeg':
+              contentType = 'image/jpeg';
+              break;
+            case 'png':
+              contentType = 'image/png';
+              break;
+            case 'doc':
+              contentType = 'application/msword';
+              break;
+            case 'docx':
+              contentType =
+                  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+              break;
+            case 'xls':
+              contentType = 'application/vnd.ms-excel';
+              break;
+            case 'xlsx':
+              contentType =
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+              break;
           }
 
-          formData.files.add(
-            MapEntry(
-              'FormFile',
-              await MultipartFile.fromFile(
-                file.path!,
-                filename: filename,
-                contentType: contentType,
-              ),
+          multipartFiles.add(
+            await MultipartFile.fromFile(
+              file.path!,
+              filename: fileName,
+              contentType: MediaType.parse(contentType),
             ),
           );
         }
+
+        // Tüm dosyaları FormFile anahtarıyla ekle (array olarak)
+        formDataMap['FormFile'] = multipartFiles;
+
+        final formData = FormData.fromMap(formDataMap);
+
+        final uploadResponse = await _dio.post(
+          '/Dosya/DosyaYukle',
+          data: formData,
+          options: Options(contentType: 'multipart/form-data'),
+        );
+
+        if (uploadResponse.statusCode != 200) {
+          return Failure('Dosyalar yüklenirken hata oluştu.');
+        }
       }
 
-      await _dio.post('/SatinAlma/SatinAlmaEkle', data: formData);
       return const Success(null);
     } catch (e) {
       return Failure(e.toString());

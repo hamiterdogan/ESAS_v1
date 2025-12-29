@@ -181,6 +181,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   }
 
   void _showMesafeInfo() {
+    FocusScope.of(context).unfocus();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -306,34 +307,37 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: _openYerSecimiBottomSheet,
-                    icon: const Icon(
-                      Icons.add_location_alt_outlined,
-                      color: AppColors.gradientStart,
-                      size: 28,
+                InkWell(
+                  onTap: _openYerSecimiBottomSheet,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 16,
                     ),
-                    label: const Text(
-                      'Yer Ekle',
-                      style: TextStyle(
-                        color: AppColors.gradientStart,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 26,
-                      ),
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.add_location_alt_outlined,
+                          color: AppColors.gradientStart,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Yer Ekle',
+                          style: TextStyle(
+                            color: AppColors.gradientStart,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -434,14 +438,30 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Tahmini Mesafe (km)',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Tahmini Mesafe (km)',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _showMesafeInfo,
+                          child: const Icon(
+                            Icons.info_outline,
+                            color: AppColors.gradientStart,
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -449,7 +469,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       children: [
                         GestureDetector(
                           onTap: _tahminiMesafe > 1
-                              ? () => _updateMesafe(_tahminiMesafe - 1)
+                              ? () {
+                                  FocusScope.of(context).unfocus();
+                                  _updateMesafe(_tahminiMesafe - 1);
+                                }
                               : null,
                           child: Container(
                             width: 50,
@@ -513,7 +536,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         const SizedBox(width: 12),
                         GestureDetector(
                           onTap: _tahminiMesafe < 9999
-                              ? () => _updateMesafe(_tahminiMesafe + 1)
+                              ? () {
+                                  FocusScope.of(context).unfocus();
+                                  _updateMesafe(_tahminiMesafe + 1);
+                                }
                               : null,
                           child: Container(
                             width: 50,
@@ -535,16 +561,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          onPressed: _showMesafeInfo,
-                          icon: const Icon(
-                            Icons.info_outline,
-                            color: Colors.grey,
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
                       ],
                     ),
                   ],
@@ -561,6 +577,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       activeThumbColor: AppColors.gradientEnd,
                       inactiveTrackColor: Colors.white,
                       onChanged: (value) {
+                        FocusScope.of(context).unfocus();
                         setState(() {
                           _isMEB = value;
                         });
@@ -1488,6 +1505,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     String query = '';
 
     if (_isActionInProgress) return;
+    FocusScope.of(context).unfocus();
     setState(() => _isActionInProgress = true);
 
     await showModalBottomSheet<void>(
@@ -1622,6 +1640,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                                 .clear();
                                           }
                                         });
+                                        FocusScope.of(context).unfocus();
                                         Navigator.pop(context);
                                       },
                                     );
@@ -1660,6 +1679,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   Future<void> _openSecilenOgrenciListesiBottomSheet() async {
     if (_isActionInProgress) return;
+    FocusScope.of(context).unfocus();
     setState(() => _isActionInProgress = true);
 
     await showModalBottomSheet<void>(
@@ -1718,6 +1738,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                             _selectedOgrenciIds.clear();
                                           });
                                           setState(() {});
+                                          FocusScope.of(context).unfocus();
                                           Navigator.pop(context);
                                         },
                                         child: const Text(
@@ -1792,6 +1813,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         });
                                         setState(() {});
                                         if (_selectedOgrenciIds.isEmpty) {
+                                          FocusScope.of(context).unfocus();
                                           Navigator.pop(context);
                                         }
                                       },
@@ -1814,6 +1836,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
+                                FocusScope.of(context).unfocus();
                                 Navigator.pop(context);
                               },
                               style: ElevatedButton.styleFrom(
@@ -1853,6 +1876,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   Future<void> _openOgrenciSecimBottomSheet() async {
     if (_isActionInProgress) return;
+    FocusScope.of(context).unfocus();
     setState(() => _isActionInProgress = true);
 
     try {
@@ -2230,6 +2254,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                   ..clear()
                                   ..addAll(localSelectedOgrenci);
                               });
+                              FocusScope.of(context).unfocus();
                               Navigator.pop(context);
                             } else {
                               // "TAMAM" pressed: Commit temp -> local
@@ -3583,6 +3608,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   }
 
   Future<void> _openYerSecimiBottomSheet() async {
+    FocusScope.of(context).unfocus();
     final selected = await showModalBottomSheet<GidilecekYerItem>(
       context: context,
       isScrollControlled: true,
@@ -3704,7 +3730,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                     final item = filtered[index];
                                     return ListTile(
                                       title: Text(item.yerAdi),
-                                      onTap: () => Navigator.pop(context, item),
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        Navigator.pop(context, item);
+                                      },
                                     );
                                   },
                                 ),
@@ -3724,6 +3753,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
     if (selected != null) {
       _addEntry(selected);
+      FocusScope.of(context).unfocus();
     }
   }
 

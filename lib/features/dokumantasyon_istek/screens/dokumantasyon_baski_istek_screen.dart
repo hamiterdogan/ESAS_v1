@@ -78,6 +78,7 @@ class _DokumantasyonBaskiIstekScreenState
   // Lock mechanism for multi-tap prevention
   bool _isActionInProgress = false;
   final FocusNode _dosyaIcerikFocusNode = FocusNode();
+  final FocusNode _aciklamaFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -101,6 +102,7 @@ class _DokumantasyonBaskiIstekScreenState
     _baskiAdediController.dispose();
     _sayfaSayisiController.dispose();
     _dosyaIcerikFocusNode.dispose();
+    _aciklamaFocusNode.dispose();
     super.dispose();
   }
 
@@ -182,6 +184,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _pickFiles() async {
+    FocusScope.of(context).unfocus();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -315,6 +318,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _updateBaskiAdedi(int value) {
+    FocusScope.of(context).unfocus();
     if (value < 1 || value > 9999) return;
     setState(() {
       _baskiAdedi = value;
@@ -326,6 +330,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _updateSayfaSayisi(int value) {
+    FocusScope.of(context).unfocus();
     if (value < 1 || value > 9999) return;
     setState(() {
       _sayfaSayisi = value;
@@ -337,6 +342,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _showDokumanTuruBottomSheet() {
+    FocusScope.of(context).unfocus();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -399,6 +405,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _showBaskiBoyutuBottomSheet() {
+    FocusScope.of(context).unfocus();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -471,6 +478,7 @@ class _DokumantasyonBaskiIstekScreenState
 
     // Açıklama validation
     if (_aciklamaController.text.length < 15) {
+      _aciklamaFocusNode.requestFocus();
       _showStatusBottomSheet(
         'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
         isError: true,
@@ -860,6 +868,7 @@ class _DokumantasyonBaskiIstekScreenState
 
               AciklamaFieldWidget(
                 controller: _aciklamaController,
+                focusNode: _aciklamaFocusNode,
                 minCharacters: 15,
               ),
               const SizedBox(height: 24),
@@ -873,6 +882,7 @@ class _DokumantasyonBaskiIstekScreenState
                     activeThumbColor: AppColors.gradientEnd,
                     inactiveTrackColor: Colors.white,
                     onChanged: (value) {
+                      FocusScope.of(context).unfocus();
                       setState(() {
                         _isRenkliBaski = value;
                       });
@@ -893,6 +903,7 @@ class _DokumantasyonBaskiIstekScreenState
                     activeThumbColor: AppColors.gradientEnd,
                     inactiveTrackColor: Colors.white,
                     onChanged: (value) {
+                      FocusScope.of(context).unfocus();
                       setState(() {
                         _isArkaliOnlu = value;
                       });
@@ -916,6 +927,7 @@ class _DokumantasyonBaskiIstekScreenState
                     activeThumbColor: AppColors.gradientEnd,
                     inactiveTrackColor: Colors.white,
                     onChanged: (value) {
+                      FocusScope.of(context).unfocus();
                       setState(() {
                         _isKopyaElden = value;
                       });
@@ -1257,6 +1269,7 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _openSinifSecimBottomSheet() async {
+    FocusScope.of(context).unfocus();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 

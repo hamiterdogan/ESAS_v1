@@ -34,6 +34,7 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
         Switch(
           value: _value,
           onChanged: (value) {
+            FocusScope.of(context).unfocus();
             setState(() {
               _value = value;
             });
@@ -45,7 +46,7 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(widget.label, style: const TextStyle(fontSize: 14)),
+          child: Text(widget.label, style: const TextStyle(fontSize: 15)),
         ),
       ],
     );

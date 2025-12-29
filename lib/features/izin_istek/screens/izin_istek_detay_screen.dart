@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay_model.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -976,16 +977,28 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
             onTap: () async {
               // Dosya uzantısını kontrol et
               final extension = fileName.split('.').last.toLowerCase();
+              final isImage =
+                  extension == 'png' ||
+                  extension == 'jpg' ||
+                  extension == 'jpeg' ||
+                  extension == 'bmp';
 
               if (extension == 'pdf') {
                 // PDF dosyası için uygulama içi görüntüleme
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PdfViewerScreen(
-                      title: 'Rapor Dosyası',
-                      pdfUrl: fileUrl,
-                    ),
+                    builder: (context) =>
+                        PdfViewerScreen(title: fileName, pdfUrl: fileUrl),
+                  ),
+                );
+              } else if (isImage) {
+                // Image dosyaları için image viewer'a yönlendir
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ImageViewerScreen(title: fileName, imageUrl: fileUrl),
                   ),
                 );
               } else {

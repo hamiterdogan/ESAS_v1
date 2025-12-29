@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -362,17 +363,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Ürün Bilgisi
+                  // Ürün Detayı
                   if (urun.urunDetay.isNotEmpty) ...[
-                    const Text(
-                      'Ürün Bilgisi',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Color(0xFF4A5568),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Text(
                       urun.urunDetay,
                       style: const TextStyle(
@@ -383,7 +375,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     const SizedBox(height: 10),
                   ],
 
-                  // Miktar x Birim Fiyat x Kur
+                  // Miktar x Birim Fiyat
                   RichText(
                     text: TextSpan(
                       style: const TextStyle(
@@ -398,11 +390,6 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                         const TextSpan(text: ' × '),
                         TextSpan(
                           text: '$birimFiyatStr ${urun.paraBirimi}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const TextSpan(text: ' × '),
-                        TextSpan(
-                          text: dovizKuruStr,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -587,13 +574,29 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           // Tıklanabilir dosya adı
           GestureDetector(
             onTap: () async {
+              final lowerFileName = fileName.toLowerCase();
+              final isImage =
+                  lowerFileName.endsWith('.png') ||
+                  lowerFileName.endsWith('.jpg') ||
+                  lowerFileName.endsWith('.jpeg') ||
+                  lowerFileName.endsWith('.bmp');
+
               if (isPdf) {
                 // PDF ise ortak PDF viewer'a yönlendir
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        PdfViewerScreen(title: 'Dosya', pdfUrl: fileUrl),
+                        PdfViewerScreen(title: fileName, pdfUrl: fileUrl),
+                  ),
+                );
+              } else if (isImage) {
+                // Image dosyaları için image viewer'a yönlendir
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ImageViewerScreen(title: fileName, imageUrl: fileUrl),
                   ),
                 );
               } else {

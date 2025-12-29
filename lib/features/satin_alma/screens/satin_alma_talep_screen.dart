@@ -75,6 +75,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   Future<void> _pickFiles() async {
+    FocusScope.of(context).unfocus();
     try {
       final result = await FilePicker.platform.pickFiles(
         allowedExtensions: [
@@ -216,6 +217,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   void _deleteUrun(int index) {
+    FocusScope.of(context).unfocus();
     showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.white,
@@ -451,6 +453,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   void _showBinaBottomSheet() {
+    FocusScope.of(context).unfocus();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -672,6 +675,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   void _showOdemeSekliBottomSheet() {
+    FocusScope.of(context).unfocus();
     final options = ['Nakit', 'Kredi Kartı', 'Havale/EFT'];
     showModalBottomSheet(
       context: context,
@@ -1593,6 +1597,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                             activeColor: AppColors.gradientStart,
                             inactiveTrackColor: Colors.white,
                             onChanged: (v) {
+                              FocusScope.of(context).unfocus();
                               setState(() {
                                 _vadeli = v;
                                 if (!v) {
@@ -2046,7 +2051,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           birimFiyati: birimFiyat,
           urunDetay: u.urunDetay ?? '',
           miktar: u.miktar ?? 1,
-          paraBirimi: u.paraBirimi,
+          paraBirimi: u.paraBirimiKod,
         );
       }).toList();
 

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_detay_model.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -949,13 +950,29 @@ class _DokumantasyonIstekDetayScreenState
           // Tıklanabilir dosya adı
           GestureDetector(
             onTap: () async {
+              final lowerFileName = fileName.toLowerCase();
+              final isImage =
+                  lowerFileName.endsWith('.png') ||
+                  lowerFileName.endsWith('.jpg') ||
+                  lowerFileName.endsWith('.jpeg') ||
+                  lowerFileName.endsWith('.bmp');
+
               if (isPdf) {
                 // PDF ise ortak PDF viewer'a yönlendir
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        PdfViewerScreen(title: 'Dosya', pdfUrl: fileUrl),
+                        PdfViewerScreen(title: fileName, pdfUrl: fileUrl),
+                  ),
+                );
+              } else if (isImage) {
+                // Image dosyaları için image viewer'a yönlendir
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ImageViewerScreen(title: fileName, imageUrl: fileUrl),
                   ),
                 );
               } else {

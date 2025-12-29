@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
@@ -28,6 +29,22 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   int _egitimSaat = 1;
   int _girileymeyenDersSaati = 0;
   bool _topluIstekte = false;
+  bool _online = false;
+  bool _ucretsiz = false;
+  String? _secilenEgitimAdi;
+  String? _secilenEgitimTuru;
+  String _adres = '';
+  String _egitimSirketiAdi = '';
+  String _egitimKonusu = '';
+  bool _egitimYeriYurtDisi = false;
+  String _egitimUlkeSehir = '';
+  String? _secilenSehir;
+  List<Map<String, dynamic>> _sehirler = [];
+  bool _sehirlerYuklendi = false;
+  List<String> _egitimAdlari = [];
+  bool _egitimAdlariYuklendi = false;
+  List<String> _egitimTurleri = [];
+  bool _egitimTurleriYuklendi = false;
 
   final Set<int> _selectedPersonelIds = {};
   List<PersonelItem> _personeller = [];
@@ -39,6 +56,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     super.initState();
     _baslangicTarihi = DateTime.now();
     _bitisTarihi = DateTime.now().add(const Duration(days: 7));
+    // Eğitim adlarını yükle
+    if (!_egitimAdlariYuklendi) {
+      _fetchEgitimAdlari();
+    }
+    // Eğitim türlerini yükle
+    if (!_egitimTurleriYuklendi) {
+      _fetchEgitimTurleri();
+    }
+    // Şehirleri yükle
+    if (!_sehirlerYuklendi) {
+      _fetchSehirler();
+    }
   }
 
   @override
@@ -84,6 +113,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
@@ -381,12 +411,894 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       },
                     ),
                   if (_topluIstekte) const SizedBox(height: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eğitimin Adı',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => _showEgitimAdiBottomSheet(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _secilenEgitimAdi ?? 'Eğitim adını seçiniz',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: _secilenEgitimAdi != null
+                                        ? Colors.black
+                                        : Colors.grey.shade600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey.shade600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Eğitim Türü Input
+                      Expanded(
+                        flex: 130,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Eğitim Türü',
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => _showEgitimTuruBottomSheet(),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        _secilenEgitimTuru ?? 'Türü seçiniz',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: _secilenEgitimTuru != null
+                                              ? Colors.black
+                                              : Colors.grey.shade600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      // Online Toggle
+                      Expanded(
+                        flex: 60,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 28.0),
+                          child: OnayToggleWidget(
+                            initialValue: _online,
+                            label: 'Online',
+                            onChanged: (value) {
+                              setState(() {
+                                _online = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eğitim Şirketinin Adı',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: _egitimSirketiAdi,
+                        onChanged: (value) {
+                          setState(() {
+                            _egitimSirketiAdi = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Eğitim şirketinin adını giriniz',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eğitimin Konusu',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: _egitimKonusu,
+                        onChanged: (value) {
+                          setState(() {
+                            _egitimKonusu = value;
+                          });
+                        },
+                        maxLines: 2,
+                        minLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'Eğitimin konusunu giriniz',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  OnayToggleWidget(
+                    initialValue: _egitimYeriYurtDisi,
+                    label: 'Eğitim yeri yurt dışında',
+                    onChanged: (value) {
+                      setState(() {
+                        _egitimYeriYurtDisi = value;
+                      });
+                    },
+                  ),
+                  if (_egitimYeriYurtDisi) ...[
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ülke / Şehir',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          initialValue: _egitimUlkeSehir,
+                          onChanged: (value) {
+                            setState(() {
+                              _egitimUlkeSehir = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Ülke / Şehir bilgisini giriniz',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Şehir',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () => _showSehirBottomSheet(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey[300]!),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _secilenSehir ?? 'Şehir seçiniz',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _secilenSehir != null
+                                          ? Colors.black
+                                          : Colors.grey.shade600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Adres',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TextFormField(
+                          initialValue: _adres,
+                          onChanged: (value) {
+                            setState(() {
+                              _adres = value;
+                            });
+                          },
+                          maxLines: 2,
+                          minLines: 2,
+                          decoration: InputDecoration(
+                            hintText: 'Adres bilgisini giriniz',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  OnayToggleWidget(
+                    initialValue: _ucretsiz,
+                    label: 'Ücretsiz',
+                    onChanged: (value) {
+                      setState(() {
+                        _ucretsiz = value;
+                      });
+                    },
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showEgitimAdiBottomSheet() {
+    FocusScope.of(context).unfocus();
+    String searchQuery = '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredList = _egitimAdlari.where((egitimAdi) {
+              return egitimAdi.toLowerCase().contains(
+                searchQuery.toLowerCase(),
+              );
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12, bottom: 8),
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Title
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Text(
+                      'Eğitim Adı Seçin',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Search field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Eğitim adı ara...',
+                        prefixIcon: const Icon(Icons.search, size: 20),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 20),
+                                onPressed: () {
+                                  setModalState(() => searchQuery = '');
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.gradientStart,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        isDense: true,
+                      ),
+                      onChanged: (value) {
+                        setModalState(() => searchQuery = value);
+                      },
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  // List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'Sonuç bulunamadı',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: filteredList.length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 1,
+                              color: Colors.grey.shade200,
+                              indent: 16,
+                              endIndent: 16,
+                            ),
+                            itemBuilder: (context, index) {
+                              final egitimAdi = filteredList[index];
+                              final isSelected = _secilenEgitimAdi == egitimAdi;
+
+                              return ListTile(
+                                title: Text(
+                                  egitimAdi,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? AppColors.gradientStart
+                                        : Colors.black,
+                                  ),
+                                ),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: AppColors.gradientStart,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    _secilenEgitimAdi = egitimAdi;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEgitimTuruBottomSheet() {
+    FocusScope.of(context).unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.45,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // Title
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  'Eğitim Türü Seçin',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Divider(height: 1),
+              // List
+              Expanded(
+                child: _egitimTurleri.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'Eğitim türü bulunamadı',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: _egitimTurleri.length,
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: Colors.grey.shade200,
+                          indent: 16,
+                          endIndent: 16,
+                        ),
+                        itemBuilder: (context, index) {
+                          final tur = _egitimTurleri[index];
+                          final isSelected = _secilenEgitimTuru == tur;
+
+                          return ListTile(
+                            title: Text(
+                              tur,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? AppColors.gradientStart
+                                    : Colors.black,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? const Icon(
+                                    Icons.check,
+                                    color: AppColors.gradientStart,
+                                  )
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                _secilenEgitimTuru = tur;
+                              });
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _fetchEgitimAdlari() async {
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/EgitimIstek/EgitimAdlariDoldur');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<String> egitimAdlari = [];
+
+        if (data is Map<String, dynamic> && data.containsKey('egitimAdi')) {
+          final adlar = data['egitimAdi'];
+          if (adlar is List) {
+            egitimAdlari = List<String>.from(adlar);
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _egitimAdlari = egitimAdlari;
+            _egitimAdlariYuklendi = true;
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ Eğitim adları yükleme hatası: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Eğitim adları yüklenemedi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _fetchEgitimTurleri() async {
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/EgitimIstek/EgitimTurleriDoldur');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<String> egitimTurleri = [];
+
+        if (data is Map<String, dynamic> && data.containsKey('egitimTurleri')) {
+          final turler = data['egitimTurleri'];
+          if (turler is List) {
+            egitimTurleri = List<String>.from(turler);
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _egitimTurleri = egitimTurleri;
+            _egitimTurleriYuklendi = true;
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ Eğitim türleri yükleme hatası: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Eğitim türleri yüklenemedi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _fetchSehirler() async {
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/TalepYonetimi/SehirleriGetir');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is List) {
+          if (mounted) {
+            setState(() {
+              _sehirler = List<Map<String, dynamic>>.from(data);
+              _sehirler.sort((a, b) {
+                final idA = a['id'] as int? ?? 0;
+                final idB = b['id'] as int? ?? 0;
+                return idA.compareTo(idB);
+              });
+              _sehirlerYuklendi = true;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Şehirler yükleme hatası: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Şehirler yüklenemedi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showSehirBottomSheet() {
+    FocusScope.of(context).unfocus();
+    String searchQuery = '';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredList = _sehirler.where((sehir) {
+              final sehirAdi = sehir['sehirAdi'] as String? ?? '';
+              return sehirAdi.toLowerCase().contains(searchQuery.toLowerCase());
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Title
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Text(
+                      'Şehir Seçiniz',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Search TextField
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      onChanged: (value) {
+                        setModalState(() {
+                          searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Ara...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(
+                            color: AppColors.gradientStart,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Şehir bulunamadı',
+                              style: TextStyle(color: Colors.grey.shade600),
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredList.length,
+                            separatorBuilder: (context, index) =>
+                                Divider(height: 1, color: Colors.grey.shade200),
+                            itemBuilder: (context, index) {
+                              final sehir = filteredList[index];
+                              final sehirAdi =
+                                  sehir['sehirAdi'] as String? ?? '';
+                              final isSelected = _secilenSehir == sehirAdi;
+
+                              return ListTile(
+                                title: Text(
+                                  sehirAdi,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? AppColors.gradientStart
+                                        : Colors.black,
+                                  ),
+                                ),
+                                trailing: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: AppColors.gradientStart,
+                                      )
+                                    : null,
+                                onTap: () {
+                                  setState(() {
+                                    _secilenSehir = sehirAdi;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

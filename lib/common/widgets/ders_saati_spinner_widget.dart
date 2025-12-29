@@ -74,6 +74,7 @@ class _DersSaatiSpinnerWidgetState
               GestureDetector(
                 onTap: _value > widget.minValue
                     ? () {
+                        FocusScope.of(context).unfocus();
                         _updateValue(_value - 1);
                       }
                     : null,
@@ -152,6 +153,7 @@ class _DersSaatiSpinnerWidgetState
               GestureDetector(
                 onTap: _value < widget.maxValue
                     ? () {
+                        FocusScope.of(context).unfocus();
                         _updateValue(_value + 1);
                       }
                     : null,
