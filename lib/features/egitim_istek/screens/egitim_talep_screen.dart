@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -12,6 +13,7 @@ import 'package:esas_v1/features/egitim_istek/screens/egitim_ucretleri_screen.da
 
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
+import 'package:esas_v1/features/egitim_istek/screens/egitim_sonrasi_paylasim_screen.dart';
 
 class EgitimTalepScreen extends ConsumerStatefulWidget {
   const EgitimTalepScreen({super.key});
@@ -47,11 +49,16 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   bool _egitimAdlariYuklendi = false;
   List<String> _egitimTurleri = [];
   bool _egitimTurleriYuklendi = false;
+  double _aldigiEgitimUcreti = 0;
+  bool _ucretYukleniyor = true;
 
   final Set<int> _selectedPersonelIds = {};
   List<PersonelItem> _personeller = [];
   List<GorevItem> _gorevler = [];
   List<GorevYeriItem> _gorevYerleri = [];
+  final List<PlatformFile> _selectedFiles = [];
+  final TextEditingController _egitimTeklifIcerikController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -70,6 +77,139 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     if (!_sehirlerYuklendi) {
       _fetchSehirler();
     }
+    // Alınan eğitim ücretini yükle
+    _fetchAlinanEgitimUcreti();
+  }
+
+  @override
+  void dispose() {
+    _egitimTeklifIcerikController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFiles() async {
+    FocusScope.of(context).unfocus();
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowedExtensions: [
+          'pdf',
+          'jpg',
+          'jpeg',
+          'png',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx',
+        ],
+        type: FileType.custom,
+        allowMultiple: true,
+      );
+
+      if (result != null) {
+        final existingNames = _selectedFiles.map((f) => f.name).toSet();
+        final newFiles = <PlatformFile>[];
+        final duplicateNames = <String>[];
+
+        for (final file in result.files) {
+          if (existingNames.contains(file.name)) {
+            duplicateNames.add(file.name);
+          } else {
+            newFiles.add(file);
+          }
+        }
+
+        setState(() {
+          _selectedFiles.addAll(newFiles);
+        });
+
+        if (duplicateNames.isNotEmpty && mounted) {
+          showModalBottomSheet(
+            context: context,
+            builder: (context) => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: 60,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Bu dosyayı daha önce eklediniz',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    duplicateNames.join(', '),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gradientStart,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Tamam',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
+      }
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
   }
 
   @override
@@ -624,9 +764,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           hintText: 'Eğitimin konusunu giriniz',
                           filled: true,
                           fillColor: Colors.white,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 14,
@@ -795,6 +944,65 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       });
                     },
                   ),
+                  const SizedBox(height: 12),
+                  if (!_ucretsiz)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 3, 16, 3),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outlined,
+                            color: AppColors.gradientStart,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      fontSize:
+                                          (Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.fontSize ??
+                                              14) +
+                                          1,
+                                      color: AppColors.gradientStart,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                children: [
+                                  const TextSpan(
+                                    text:
+                                        'Yıl içerisinde aldığınız eğitimlerin toplam tutarı ',
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        '${_aldigiEgitimUcreti.toStringAsFixed(2)} TL',
+                                    style: TextStyle(
+                                      fontSize:
+                                          (Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.fontSize ??
+                                              14) +
+                                          5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const TextSpan(text: '\'dir.'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (!_ucretsiz) ...[
                     const SizedBox(height: 16),
                     Column(
@@ -856,6 +1064,244 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eğitim Sonrası Kurum İçi Paylaşım',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const EgitimSonrasiPaylasimsScreen(),
+                          ),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Paylaşım detaylarını giriniz',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey.shade600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eğitim Teklif Dosya / Fotoğraf Yükle',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: _pickFiles,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.cloud_upload_outlined,
+                                size: 24,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Dosya Seçmek İçin Dokunun',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
+                                style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_selectedFiles.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _selectedFiles.length,
+                          itemBuilder: (context, index) {
+                            final file = _selectedFiles[index];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.insert_drive_file_outlined,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      file.name,
+                                      style: const TextStyle(fontSize: 14),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
+                                    onPressed: () => _removeFile(index),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dosyaların İçeriğini Belirtiniz',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _egitimTeklifIcerikController,
+                        decoration: InputDecoration(
+                          hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                          contentPadding: const EdgeInsets.all(12),
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: Colors.grey.shade600,
+                              width: 0.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: Colors.grey.shade600,
+                              width: 0.5,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: Colors.grey.shade600,
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // TODO: Implement form submission
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Gönder',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -1220,6 +1666,34 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _fetchAlinanEgitimUcreti() async {
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/EgitimIstek/AlinanEgitimUcretiGetir');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map<String, dynamic> &&
+            data.containsKey('aldigiEgitimUcreti')) {
+          if (mounted) {
+            setState(() {
+              _aldigiEgitimUcreti = (data['aldigiEgitimUcreti'] ?? 0)
+                  .toDouble();
+              _ucretYukleniyor = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Alınan eğitim ücreti yükleme hatası: $e');
+      if (mounted) {
+        setState(() {
+          _ucretYukleniyor = false;
+        });
       }
     }
   }

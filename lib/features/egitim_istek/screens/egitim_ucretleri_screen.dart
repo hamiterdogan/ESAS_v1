@@ -55,7 +55,170 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   OdemeTuru? _selectedOdemeTuru;
   bool _vadeli = false;
   int _odemeVadesi = 1;
-  bool _showingParaBirimiLoading = false;
+  bool _dontShowWarningAgain = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showAcademicYearWarningBottomSheet();
+    });
+  }
+
+  void _showAcademicYearWarningBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          width: double.infinity,
+          padding: const EdgeInsets.only(
+            top: 24,
+            left: 24,
+            right: 24,
+            bottom: 60,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Icon(
+                Icons.info_outlined,
+                color: AppColors.gradientStart,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Bulunduğunuz akademik yıl içerisinde toplamda on bin (10.000) TL\'yi geçen eğitim talepleri için, talebiniz onaylandıktan sonra insan kaynakları biriminde eğitim protokolü imzalamanız gerekmektedir.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize:
+                      (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14) +
+                      3,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: GestureDetector(
+                  onTap: () {
+                    setModalState(() {
+                      _dontShowWarningAgain = !_dontShowWarningAgain;
+                    });
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Transform.scale(
+                        scale: 0.65,
+                        alignment: Alignment.centerLeft,
+                        child: SizedBox(
+                          width: 56,
+                          height: 28,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: 56,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: _dontShowWarningAgain
+                                      ? AppColors.gradientStart
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              AnimatedAlign(
+                                duration: const Duration(milliseconds: 300),
+                                alignment: _dontShowWarningAgain
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        'Uyarıyı bir daha gösterme',
+                        textAlign: TextAlign.left,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tamam',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -111,7 +274,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Uyarı Mesajı
+              // KDV Uyarısı
               Container(
                 margin: const EdgeInsets.only(top: 8),
                 width: double.infinity,
@@ -157,7 +320,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                         fontSize:
                             (Theme.of(context).textTheme.titleSmall?.fontSize ??
                                 14) +
-                            1,
+                            2,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -595,182 +758,204 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'IBAN',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _ibanController,
-                            decoration: InputDecoration(
-                              hintText: 'TR',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 16,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: AppColors.gradientStart,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hesap Adı',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _hesapAdiController,
-                            decoration: InputDecoration(
-                              hintText: 'Hesap adını giriniz',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 16,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: AppColors.gradientStart,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Diğer Ek Bilgiler',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _digerEkBilgilerController,
-                            maxLines: 2,
-                            decoration: InputDecoration(
-                              hintText: 'Diğer ek bilgileri giriniz',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 16,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: AppColors.gradientStart,
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
+                    const SizedBox(height: 24),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'IBAN',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _ibanController,
+                          decoration: InputDecoration(
+                            hintText: 'TR',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 16,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.gradientStart,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hesap Adı',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _hesapAdiController,
+                          decoration: InputDecoration(
+                            hintText: 'Hesap adını giriniz',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 16,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.gradientStart,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Diğer Ek Bilgiler',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _digerEkBilgilerController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: 'Diğer ek bilgileri giriniz',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 16,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.gradientStart,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.gradientStart,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Tamam',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

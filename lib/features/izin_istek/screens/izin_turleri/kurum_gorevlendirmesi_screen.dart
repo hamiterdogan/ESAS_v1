@@ -137,7 +137,14 @@ class _KurumGorevlendirmesiIzinScreenState
                       activeThumbColor: AppColors.gradientEnd,
                       inactiveTrackColor: Colors.white,
                     ),
-                    const Text('1 günlük izin'),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: const Text('1 günlük izin'),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),

@@ -46,7 +46,11 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(widget.label, style: const TextStyle(fontSize: 15)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(widget.label, style: const TextStyle(fontSize: 15)),
+          ),
         ),
       ],
     );

@@ -321,8 +321,15 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         });
                       },
                     ),
-                    const Expanded(
-                      child: Text('Acil', style: TextStyle(fontSize: 14)),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: const Text(
+                          'Acil',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
                     ),
                   ],
                 ),

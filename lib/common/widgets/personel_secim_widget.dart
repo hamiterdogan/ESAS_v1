@@ -66,10 +66,14 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
               inactiveTrackColor: Colors.white,
             ),
             const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'Başkası adına istekte bulunuyorum',
-                style: TextStyle(fontSize: 13),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Başkası adına istekte bulunuyorum',
+                  style: TextStyle(fontSize: 13),
+                ),
               ),
             ),
           ],

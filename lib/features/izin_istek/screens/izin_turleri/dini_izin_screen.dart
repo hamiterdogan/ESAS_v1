@@ -130,7 +130,16 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                       inactiveTrackColor: Colors.white,
                     ),
                     const SizedBox(width: 10),
-                    const Text('1 günlük izin', style: TextStyle(fontSize: 16)),
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: const Text(
+                          '1 günlük izin',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
