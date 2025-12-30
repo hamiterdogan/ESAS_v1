@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_kategori_models.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
 import 'package:esas_v1/common/index.dart';
@@ -245,7 +246,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
-  void _showAnaKategoriBottomSheet() {
+  Future<void> _showAnaKategoriBottomSheet() async {
     final kategorilerAsync = ref.read(satinAlmaAnaKategorilerProvider);
 
     // Eğer data cache'de varsa direkt bottom sheet aç
@@ -254,14 +255,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
-    // Loading'de ise loading dialog göster
-    _showingKategoriLoading = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
-    );
+    BrandedLoadingDialog.show(context);
+    try {
+      await ref.read(satinAlmaAnaKategorilerProvider.future);
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openAnaKategoriBottomSheet();
+      }
+    } catch (e) {
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openAnaKategoriBottomSheet(); // Let the sheet show the error state
+      }
+    }
   }
 
   void _openAnaKategoriBottomSheet() {
@@ -318,7 +324,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
-  void _showAltKategoriBottomSheet() {
+  Future<void> _showAltKategoriBottomSheet() async {
     if (_selectedAnaKategori == null) return;
     if (_selectedAnaKategori!.id == 0) {
       return;
@@ -334,14 +340,21 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
-    // Loading'de ise loading dialog göster
-    _showingAltKategoriLoading = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
-    );
+    BrandedLoadingDialog.show(context);
+    try {
+      await ref.read(
+        satinAlmaAltKategorilerProvider(_selectedAnaKategori!.id).future,
+      );
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openAltKategoriBottomSheet();
+      }
+    } catch (e) {
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openAltKategoriBottomSheet();
+      }
+    }
   }
 
   void _openAltKategoriBottomSheet() {
@@ -393,7 +406,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
-  void _showOlcuBirimBottomSheet() {
+  Future<void> _showOlcuBirimBottomSheet() async {
     final olcuAsync = ref.read(satinAlmaOlcuBirimleriProvider);
 
     if (olcuAsync.hasValue) {
@@ -401,13 +414,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
-    _showingOlcuBirimLoading = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
-    );
+    BrandedLoadingDialog.show(context);
+    try {
+      await ref.read(satinAlmaOlcuBirimleriProvider.future);
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openOlcuBirimBottomSheet();
+      }
+    } catch (e) {
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openOlcuBirimBottomSheet();
+      }
+    }
   }
 
   void _openOlcuBirimBottomSheet() {
@@ -535,7 +554,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     );
   }
 
-  void _showParaBirimiBottomSheet() {
+  Future<void> _showParaBirimiBottomSheet() async {
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
@@ -543,13 +562,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
-    _showingParaBirimiLoading = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.3),
-      builder: (ctx) => Center(child: BrandedLoadingIndicator(size: 120)),
-    );
+    BrandedLoadingDialog.show(context);
+    try {
+      await ref.read(paraBirimlerProvider.future);
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openParaBirimiBottomSheet();
+      }
+    } catch (e) {
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+        _openParaBirimiBottomSheet();
+      }
+    }
   }
 
   void _openParaBirimiBottomSheet() {
@@ -884,45 +909,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen ana kategoriler yükleme
-    ref.listen(satinAlmaAnaKategorilerProvider, (previous, next) {
-      if (_showingKategoriLoading && next.hasValue) {
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context); // dialog kapat
-        }
-        _showingKategoriLoading = false;
-        _openAnaKategoriBottomSheet();
-      }
-    });
-
-    // Listen alt kategoriler yükleme
-    if (_selectedAnaKategori != null && _selectedAnaKategori!.id != 0) {
-      ref.listen(satinAlmaAltKategorilerProvider(_selectedAnaKategori!.id), (
-        previous,
-        next,
-      ) {
-        if (_showingAltKategoriLoading && next.hasValue) {
-          if (Navigator.canPop(context)) {
-            Navigator.pop(context); // dialog kapat
-          }
-          _showingAltKategoriLoading = false;
-          _openAltKategoriBottomSheet();
-        }
-      });
-    }
-
-    // Listen ölçü birimleri yükleme
-    ref.listen(satinAlmaOlcuBirimleriProvider, (previous, next) {
-      if (_showingOlcuBirimLoading && next.hasValue) {
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        _showingOlcuBirimLoading = false;
-        _openOlcuBirimBottomSheet();
-      }
-    });
-
-    // Listen para birimleri yükleme
+    // Listen para birimleri yükleme (Sadece auto-select için)
     ref.listen(paraBirimlerProvider, (previous, next) {
       final paraBirimleri = next.value;
       if (next.hasValue && paraBirimleri != null && paraBirimleri.isNotEmpty) {
@@ -939,13 +926,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           _calculateToplamFiyat();
           _updateTlKurFiyati();
         }
-      }
-      if (_showingParaBirimiLoading && next.hasValue) {
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        }
-        _showingParaBirimiLoading = false;
-        _openParaBirimiBottomSheet();
       }
     });
 

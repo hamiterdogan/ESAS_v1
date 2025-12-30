@@ -10,6 +10,7 @@ import 'package:esas_v1/features/satin_alma/models/doviz_kuru.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
+import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
 import 'package:http_parser/http_parser.dart';
 
 class SatinAlmaRepository {
@@ -180,6 +181,17 @@ class SatinAlmaRepository {
     return const <ParaBirimi>[];
   }
 
+  Future<List<OdemeTuru>> getOdemeTurleri() async {
+    final response = await _dio.get('/Finans/OdemeTurleriniGetir');
+    final data = response.data;
+    if (data is List) {
+      return data
+          .map((e) => OdemeTuru.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+    return const <OdemeTuru>[];
+  }
+
   Future<DovizKuru> getDovizKuru(String dovizKodu) async {
     final response = await _dio.post(
       '/Finans/DovizKuruGetir',
@@ -265,6 +277,13 @@ final paraBirimlerProvider = FutureProvider.autoDispose<List<ParaBirimi>>((
 ) async {
   final repo = ref.read(satinAlmaRepositoryProvider);
   return repo.getParaBirimleri();
+});
+
+final odemeTurleriProvider = FutureProvider.autoDispose<List<OdemeTuru>>((
+  ref,
+) async {
+  final repo = ref.read(satinAlmaRepositoryProvider);
+  return repo.getOdemeTurleri();
 });
 
 final satinAlmaDevamEdenTaleplerProvider =

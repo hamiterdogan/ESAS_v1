@@ -19,6 +19,8 @@ import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.
 import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
+import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -37,8 +39,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       TextEditingController();
   final TextEditingController _webSitesiController = TextEditingController();
   final TextEditingController _searchBinaController = TextEditingController();
+
   final TextEditingController _genelToplamController = TextEditingController();
-  String? _odemeSekli = 'Nakit';
+  OdemeTuru? _selectedOdemeTuru;
   bool _vadeli = false;
   int _odemeVadesi = 1;
   DateTime _teslimTarihi = DateTime.now();
@@ -674,78 +677,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     );
   }
 
-  void _showOdemeSekliBottomSheet() {
-    FocusScope.of(context).unfocus();
-    final options = ['Nakit', 'Kredi Kartı', 'Havale/EFT'];
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ödeme Şekli Seçiniz',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ...List.generate(
-                  options.length,
-                  (index) => Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() => _odemeSekli = options[index]);
-                          Navigator.pop(context);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  options[index],
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              if (_odemeSekli == options[index])
-                                const Icon(
-                                  Icons.check,
-                                  color: AppColors.gradientStart,
-                                  size: 20,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (index < options.length - 1)
-                        Divider(
-                          color: Colors.grey.shade300,
-                          thickness: 1,
-                          height: 0,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1533,60 +1465,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Ödeme Şekli',
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(
-                                    fontSize:
-                                        (Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall?.fontSize ??
-                                            14) +
-                                        1,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => _showOdemeSekliBottomSheet(),
-                              child: Container(
-                                width:
-                                    MediaQuery.of(context).size.width - 72 - 20,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      _odemeSekli ?? 'Seçiniz',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: _odemeSekli == null
-                                            ? Colors.grey.shade500
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.arrow_drop_down,
-                                      color: Colors.grey.shade500,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: OdemeSekliWidget(
+                          title: 'Ödeme Şekli',
+                          selectedOdemeTuru: _selectedOdemeTuru,
+                          onOdemeTuruSelected: (val) {
+                            setState(() {
+                              _selectedOdemeTuru = val;
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1838,7 +1724,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     final teslimTarihiText = DateFormat(
       'dd.MM.yyyy',
     ).format(request.sonTeslimTarihi);
-    final odemeText = _odemeSekli ?? '-';
+    final odemeText = _selectedOdemeTuru?.isim ?? '-';
     final vadeText = _vadeli ? 'Vadeli ($_odemeVadesi gün)' : 'Peşin';
 
     final urunOzet = _urunler
@@ -2016,11 +1902,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     }
 
     try {
-      int odemeSekliId = 0;
-      final paymentMethodMap = {'Nakit': 1, 'Kredi Kartı': 2, 'Havale/EFT': 3};
-      if (_odemeSekli != null && paymentMethodMap.containsKey(_odemeSekli)) {
-        odemeSekliId = paymentMethodMap[_odemeSekli] ?? 0;
-      }
+      int odemeSekliId = _selectedOdemeTuru?.id ?? 0;
 
       final binalar = await ref.read(satinAlmaBinalarProvider.future);
       List<int> binaIds = [];
