@@ -55,7 +55,7 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: const Text(
-              'İzin Taleplerini Yönet',
+              'İzin İsteklerini Yönet',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -138,7 +138,7 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni İzin Talebi',
+            'Yeni İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),

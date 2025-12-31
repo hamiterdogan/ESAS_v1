@@ -246,11 +246,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   String _getFormattedTitle(String aracTuru) {
     if (aracTuru == 'Yük') {
-      return 'Yük Aracı Talebi';
+      return 'Yük Aracı İsteği';
     } else if (aracTuru == 'Minibüs') {
-      return 'Minübüs Talebi';
+      return 'Minübüs İsteği';
     } else if (aracTuru == 'Otobüs') {
-      return 'Otobüs Talebi';
+      return 'Otobüs İsteği';
     }
     return '$aracTuru Araç Talebi';
   }

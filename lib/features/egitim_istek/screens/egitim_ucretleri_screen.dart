@@ -11,7 +11,9 @@ import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
 import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
 
 class EgitimUcretleriScreen extends ConsumerStatefulWidget {
-  const EgitimUcretleriScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? initialData;
+
+  const EgitimUcretleriScreen({Key? key, this.initialData}) : super(key: key);
 
   @override
   ConsumerState<EgitimUcretleriScreen> createState() =>
@@ -60,9 +62,93 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDefaultOdemeTuru();
+      _loadDefaultParaBirimleri();
       _showAcademicYearWarningBottomSheet();
     });
+  }
+
+  void _loadInitialData() {
+    if (widget.initialData != null) {
+      final data = widget.initialData!;
+      _egitimUcretiAnaController.text = data['egitimUcretiAna'] ?? '';
+      _egitimUcretiKusuratController.text = data['egitimUcretiKusurat'] ?? '';
+      _ulasimUcretiAnaController.text = data['ulasimUcretiAna'] ?? '';
+      _ulasimUcretiKusuratController.text = data['ulasimUcretiKusurat'] ?? '';
+      _konaklamaUcretiAnaController.text = data['konaklamaUcretiAna'] ?? '';
+      _konaklamaUcretiKusuratController.text =
+          data['konaklamaUcretiKusurat'] ?? '';
+      _yemekUcretiAnaController.text = data['yemekUcretiAna'] ?? '';
+      _yemekUcretiKusuratController.text = data['yemekUcretiKusurat'] ?? '';
+      _kisiBasiToplamAnaController.text = data['kisiBasiToplamAna'] ?? '';
+      _kisiBasiToplamKusuratController.text =
+          data['kisiBasiToplamKusurat'] ?? '';
+      _genelToplamAnaController.text = data['genelToplamAna'] ?? '';
+      _genelToplamKusuratController.text = data['genelToplamKusurat'] ?? '';
+      _ibanController.text = data['iban'] ?? '';
+      _hesapAdiController.text = data['hesapAdi'] ?? '';
+      _digerEkBilgilerController.text = data['digerEkBilgiler'] ?? '';
+      _selectedParaBirimi = data['selectedParaBirimi'];
+      _selectedUlasimParaBirimi = data['selectedUlasimParaBirimi'];
+      _selectedKonaklamaParaBirimi = data['selectedKonaklamaParaBirimi'];
+      _selectedYemekParaBirimi = data['selectedYemekParaBirimi'];
+      _selectedOdemeTuru = data['selectedOdemeTuru'];
+      _vadeli = data['vadeli'] ?? false;
+      _odemeVadesi = data['odemeVadesi'] ?? 1;
+    }
+  }
+
+  Future<void> _loadDefaultOdemeTuru() async {
+    try {
+      // API'den ödeme türlerini yükle
+      final odemeTurleri = await ref.read(odemeTurleriProvider.future);
+
+      // İlk seçeneği (Nakit) varsayılan olarak ayarla
+      if (odemeTurleri.isNotEmpty && _selectedOdemeTuru == null && mounted) {
+        setState(() {
+          _selectedOdemeTuru = odemeTurleri.first; // İlk seçenek (Nakit)
+        });
+      }
+    } catch (e) {
+      // Hata durumunda sessizce geç
+      debugPrint('Ödeme türleri yüklenemedi: $e');
+    }
+  }
+
+  Future<void> _loadDefaultParaBirimleri() async {
+    try {
+      // API'den para birimlerini yükle
+      final paraBirimleri = await ref.read(paraBirimlerProvider.future);
+
+      // "Türk Lirası" veya "TRY" olanı bul, bulamazsan ilkini al
+      ParaBirimi? turkLirasi;
+      if (paraBirimleri.isNotEmpty) {
+        turkLirasi = paraBirimleri.firstWhere(
+          (pb) =>
+              pb.birimAdi.toLowerCase().contains('türk') ||
+              pb.birimAdi.toLowerCase().contains('turk') ||
+              pb.kod.toUpperCase() == 'TRY' ||
+              pb.kod.toUpperCase() == 'TL',
+          orElse: () => paraBirimleri.first,
+        );
+      }
+
+      // Varsayılan para birimini sadece initialData yoksa ayarla
+      if (turkLirasi != null && mounted && widget.initialData == null) {
+        setState(() {
+          // Tüm para birimi alanlarını "Türk Lirası" olarak ayarla
+          _selectedParaBirimi = turkLirasi;
+          _selectedUlasimParaBirimi = turkLirasi;
+          _selectedKonaklamaParaBirimi = turkLirasi;
+          _selectedYemekParaBirimi = turkLirasi;
+        });
+      }
+    } catch (e) {
+      // Hata durumunda sessizce devam et
+      debugPrint('Ödeme türleri yüklenemedi: $e');
+    }
   }
 
   void _showAcademicYearWarningBottomSheet() {
@@ -935,23 +1021,70 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gradientStart,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final data = {
+                              'egitimUcretiAna':
+                                  _egitimUcretiAnaController.text,
+                              'egitimUcretiKusurat':
+                                  _egitimUcretiKusuratController.text,
+                              'ulasimUcretiAna':
+                                  _ulasimUcretiAnaController.text,
+                              'ulasimUcretiKusurat':
+                                  _ulasimUcretiKusuratController.text,
+                              'konaklamaUcretiAna':
+                                  _konaklamaUcretiAnaController.text,
+                              'konaklamaUcretiKusurat':
+                                  _konaklamaUcretiKusuratController.text,
+                              'yemekUcretiAna': _yemekUcretiAnaController.text,
+                              'yemekUcretiKusurat':
+                                  _yemekUcretiKusuratController.text,
+                              'kisiBasiToplamAna':
+                                  _kisiBasiToplamAnaController.text,
+                              'kisiBasiToplamKusurat':
+                                  _kisiBasiToplamKusuratController.text,
+                              'genelToplamAna': _genelToplamAnaController.text,
+                              'genelToplamKusurat':
+                                  _genelToplamKusuratController.text,
+                              'iban': _ibanController.text,
+                              'hesapAdi': _hesapAdiController.text,
+                              'digerEkBilgiler':
+                                  _digerEkBilgilerController.text,
+                              'selectedParaBirimi': _selectedParaBirimi,
+                              'selectedUlasimParaBirimi':
+                                  _selectedUlasimParaBirimi,
+                              'selectedKonaklamaParaBirimi':
+                                  _selectedKonaklamaParaBirimi,
+                              'selectedYemekParaBirimi':
+                                  _selectedYemekParaBirimi,
+                              'selectedOdemeTuru': _selectedOdemeTuru,
+                              'vadeli': _vadeli,
+                              'odemeVadesi': _odemeVadesi,
+                            };
+                            Navigator.pop(context, data);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Tamam',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),

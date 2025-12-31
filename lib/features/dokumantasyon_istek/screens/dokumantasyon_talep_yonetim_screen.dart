@@ -55,7 +55,7 @@ class _DokumantasyonTalepYonetimScreenState
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: const Text(
-              'Dokümantasyon Taleplerini Yönet',
+              'Dokümantasyon İsteklerini Yönet',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -118,7 +118,7 @@ class _DokumantasyonTalepYonetimScreenState
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni Dokümantasyon İstek',
+            'Yeni İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),

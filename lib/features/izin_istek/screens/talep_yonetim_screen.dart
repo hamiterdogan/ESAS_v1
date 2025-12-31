@@ -40,7 +40,7 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
       child: Scaffold(
         backgroundColor: const Color(0xFFEEF1F5),
         appBar: AppBar(
-          title: const Text('İzin Taleplerini Yönet'),
+          title: const Text('İzin İsteklerini Yönet'),
           centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 1,

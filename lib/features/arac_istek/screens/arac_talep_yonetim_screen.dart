@@ -55,7 +55,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: const Text(
-              'Araç Taleplerini Yönet',
+              'Araç İsteklerini Yönet',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -128,7 +128,7 @@ class _AracTalepYonetimScreenState extends ConsumerState<AracTalepYonetimScreen>
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni Araç Talebi',
+            'Yeni İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),

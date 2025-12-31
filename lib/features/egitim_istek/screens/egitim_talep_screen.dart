@@ -40,6 +40,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   String _adres = '';
   String _egitimSirketiAdi = '';
   String _egitimKonusu = '';
+  String _webSitesi = '';
   bool _egitimYeriYurtDisi = false;
   String _egitimUlkeSehir = '';
   String? _secilenSehir;
@@ -47,6 +48,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   bool _sehirlerYuklendi = false;
   List<String> _egitimAdlari = [];
   bool _egitimAdlariYuklendi = false;
+  Map<String, dynamic>? _egitimUcretleriData;
   List<String> _egitimTurleri = [];
   bool _egitimTurleriYuklendi = false;
   double _aldigiEgitimUcreti = 0;
@@ -58,6 +60,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   List<GorevYeriItem> _gorevYerleri = [];
   final List<PlatformFile> _selectedFiles = [];
   final TextEditingController _egitimTeklifIcerikController =
+      TextEditingController();
+  final TextEditingController _ozelEgitimAdiController =
       TextEditingController();
 
   @override
@@ -84,6 +88,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   @override
   void dispose() {
     _egitimTeklifIcerikController.dispose();
+    _ozelEgitimAdiController.dispose();
     super.dispose();
   }
 
@@ -604,6 +609,33 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           ),
                         ),
                       ),
+                      if (_secilenEgitimAdi == 'DİĞER') ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _ozelEgitimAdiController,
+                          decoration: InputDecoration(
+                            hintText: 'Eğitimin Adını Yazınız',
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -758,10 +790,57 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             _egitimKonusu = value;
                           });
                         },
-                        maxLines: 2,
-                        minLines: 2,
+                        maxLines: 3,
+                        minLines: 3,
                         decoration: InputDecoration(
                           hintText: 'Eğitimin konusunu giriniz',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Web Sitesi',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: _webSitesi,
+                        onChanged: (value) {
+                          setState(() {
+                            _webSitesi = value;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Web sitesi adresini giriniz',
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -1022,13 +1101,22 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const EgitimUcretleriScreen(),
-                            ),
-                          ),
+                          onTap: () async {
+                            final result =
+                                await Navigator.push<Map<String, dynamic>>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EgitimUcretleriScreen(
+                                      initialData: _egitimUcretleriData,
+                                    ),
+                                  ),
+                                );
+                            if (result != null) {
+                              setState(() {
+                                _egitimUcretleriData = result;
+                              });
+                            }
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -1450,6 +1538,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                 onTap: () {
                                   setState(() {
                                     _secilenEgitimAdi = egitimAdi;
+                                    // Seçim yapıldığında controller'ı temizle
+                                    _ozelEgitimAdiController.clear();
                                   });
                                   Navigator.pop(context);
                                 },
@@ -1582,7 +1672,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
 
         if (mounted) {
           setState(() {
-            _egitimAdlari = egitimAdlari;
+            _egitimAdlari = ['DİĞER', ...egitimAdlari];
             _egitimAdlariYuklendi = true;
           });
         }

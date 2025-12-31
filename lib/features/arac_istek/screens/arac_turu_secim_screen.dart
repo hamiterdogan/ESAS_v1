@@ -14,10 +14,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFEEF1F5),
       appBar: AppBar(
-        title: const Text(
-          'Yeni Araç Talebi',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Yeni İstek', style: TextStyle(color: Colors.white)),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),

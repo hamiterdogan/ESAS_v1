@@ -113,7 +113,7 @@ class _SatinAlmaTalepYonetimScreenState
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: const Text(
-              'Satın Alma Taleplerini Yönet',
+              'Satın Alma İsteklerini Yönet',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -182,7 +182,7 @@ class _SatinAlmaTalepYonetimScreenState
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni Satın Alma Talebi',
+            'Yeni İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),
@@ -323,26 +323,33 @@ class _SatinAlmaTalepYonetimScreenState
                   ),
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () =>
-                        Navigator.of(sheetContext, rootNavigator: true).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isError
-                          ? Colors.redAccent
-                          : AppColors.gradientStart,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: isError ? null : AppColors.primaryGradient,
+                    color: isError ? Colors.redAccent : null,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(sheetContext, rootNavigator: true).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Tamam',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      child: const Text(
+                        'Tamam',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),

@@ -61,53 +61,79 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   }
 
   void _showVefatIzniUyarisi() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(
+          top: 24,
+          left: 24,
+          right: 24,
+          bottom: 60,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
           ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: AppColors.gradientStart,
-                size: 28,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Bilgilendirme',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 24),
+            const Icon(
+              Icons.info_outlined,
+              color: AppColors.gradientStart,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Vefat izni 1. derece yakınlar için geçerlidir.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize:
+                    (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14) +
+                    3,
+                height: 1.5,
               ),
-            ],
-          ),
-          content: const Text(
-            'Vefat izni 1. derece yakınlar için geçerlidir.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientStart,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              child: const Text('Anladım'),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
