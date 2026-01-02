@@ -343,7 +343,7 @@ class _AracIstekOzetBottomSheetState
                     ),
                   ),
                   child: const Text(
-                    'İptal',
+                    'Düzenle',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),

@@ -385,7 +385,7 @@ class _IzinOzetBottomSheetState extends ConsumerState<IzinOzetBottomSheet> {
                     ),
                   ),
                   child: const Text(
-                    'İptal',
+                    'Düzenle',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
