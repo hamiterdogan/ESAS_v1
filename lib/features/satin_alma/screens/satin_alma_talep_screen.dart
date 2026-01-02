@@ -77,8 +77,21 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _genelToplamController.text = '$formatted TL';
   }
 
-  Future<void> _pickFiles() async {
+  void _lockAndUnfocusInputs() {
+    _alimAmaciFocusNode.canRequestFocus = false;
+    _alimAmaciFocusNode.unfocus();
     FocusScope.of(context).unfocus();
+  }
+
+  void _unlockInputsAfterSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _alimAmaciFocusNode.canRequestFocus = true;
+    });
+  }
+
+  Future<void> _pickFiles() async {
+    _lockAndUnfocusInputs();
     try {
       final result = await FilePicker.platform.pickFiles(
         allowedExtensions: [
@@ -113,7 +126,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         });
 
         if (duplicateNames.isNotEmpty && mounted) {
-          showModalBottomSheet(
+          await showModalBottomSheet(
             context: context,
             builder: (context) => Container(
               width: double.infinity,
@@ -192,6 +205,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               ),
             ),
           );
+          _unlockInputsAfterSheet();
         }
       }
     } catch (e) {
@@ -348,8 +362,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     return '${selectedNames.length} okul seçildi';
   }
 
-  void _showSelectedBinalarSheet(List<SatinAlmaBina> allBinalar) {
-    showModalBottomSheet(
+  void _showSelectedBinalarSheet(List<SatinAlmaBina> allBinalar) async {
+    _lockAndUnfocusInputs();
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -460,11 +475,12 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         );
       },
     );
+    _unlockInputsAfterSheet();
   }
 
-  void _showBinaBottomSheet() {
-    FocusScope.of(context).unfocus();
-    showModalBottomSheet(
+  Future<void> _showBinaBottomSheet() async {
+    _lockAndUnfocusInputs();
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -682,6 +698,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         );
       },
     );
+    _unlockInputsAfterSheet();
   }
 
   @override
@@ -1478,6 +1495,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                               _selectedOdemeTuru = val;
                             });
                           },
+                          onBeforeShowSheet: _lockAndUnfocusInputs,
+                          onAfterHideSheet: _unlockInputsAfterSheet,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1962,6 +1981,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
       if (!mounted) return;
 
+      _lockAndUnfocusInputs();
+
       await showSatinAlmaOzetBottomSheet(
         context: context,
         request: req,
@@ -1999,6 +2020,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           _showStatusBottomSheet('Hata: $error', isError: true);
         },
       );
+
+      _unlockInputsAfterSheet();
     } catch (e) {
       if (mounted) {
         _showStatusBottomSheet('Beklenmeyen hata: $e', isError: true);
@@ -2006,9 +2029,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     }
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
+  Future<void> _showStatusBottomSheet(
+    String message, {
+    bool isError = false,
+  }) async {
     if (!mounted) return;
-    showModalBottomSheet<void>(
+    _lockAndUnfocusInputs();
+    await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -2074,5 +2101,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         );
       },
     );
+    _unlockInputsAfterSheet();
   }
 }

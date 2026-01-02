@@ -31,7 +31,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   bool _kdvDahilDegil = false;
   int _kdvOrani = 0; // 0 means not selected or 0%
 
-  final TextEditingController _urunAdiController = TextEditingController();
+  late final FocusNode _urunDetayFocusNode;
+  late final TextEditingController _urunDetayController;
   final TextEditingController _miktarController = TextEditingController();
   final TextEditingController _fiyatController = TextEditingController();
   final TextEditingController _aciklamaController = TextEditingController();
@@ -42,8 +43,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   final TextEditingController _toplamTlFiyatiController =
       TextEditingController();
 
-  final FocusNode _urunAdiFocusNode = FocusNode();
-
   bool _showingKategoriLoading = false;
   bool _showingAltKategoriLoading = false;
   bool _showingOlcuBirimLoading = false;
@@ -52,6 +51,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   @override
   void initState() {
     super.initState();
+    _urunDetayFocusNode = FocusNode(canRequestFocus: true, skipTraversal: true);
+    _urunDetayController = TextEditingController(
+      text: widget.initialBilgi?.urunDetay ?? '',
+    );
     if (widget.initialBilgi != null) {
       final bilgi = widget.initialBilgi!;
       if (bilgi.anaKategoriId != null) {
@@ -85,7 +88,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       }
 
-      _urunAdiController.text = bilgi.urunDetay ?? '';
       _miktar = bilgi.miktar ?? 0;
       _fiyatAnaController.text = bilgi.fiyatAna ?? '';
       _fiyatKusuratController.text = bilgi.fiyatKusurat ?? '';
@@ -108,7 +110,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       anaKategoriId: _selectedAnaKategori?.id,
       altKategori: _selectedAltKategori?.altKategori,
       altKategoriId: _selectedAltKategori?.id,
-      urunDetay: _urunAdiController.text,
+      urunDetay: _urunDetayController.text,
       aciklama: _aciklamaController.text,
       miktar: _miktar,
       olcuBirimi: _selectedOlcuBirim?.birimAdi,
@@ -143,8 +145,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       _showErrorBottomSheet('Birim seçiniz');
       return false;
     }
-    if (_urunAdiController.text.isEmpty) {
-      _urunAdiFocusNode.requestFocus();
+    if (_urunDetayController.text.isEmpty) {
       _showErrorBottomSheet('Ürün detay bilgisi giriniz');
       return false;
     }
@@ -157,7 +158,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
   @override
   void dispose() {
-    _urunAdiController.dispose();
+    _urunDetayFocusNode.dispose();
+    _urunDetayController.dispose();
     _miktarController.dispose();
     _fiyatController.dispose();
     _aciklamaController.dispose();
@@ -166,7 +168,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _toplamFiyatController.dispose();
     _tlKurFiyatiController.dispose();
     _toplamTlFiyatiController.dispose();
-    _urunAdiFocusNode.dispose();
     super.dispose();
   }
 
@@ -247,11 +248,15 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   }
 
   Future<void> _showAnaKategoriBottomSheet() async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
     final kategorilerAsync = ref.read(satinAlmaAnaKategorilerProvider);
 
     // Eğer data cache'de varsa direkt bottom sheet aç
     if (kategorilerAsync.hasValue) {
-      _openAnaKategoriBottomSheet();
+      await _openAnaKategoriBottomSheet();
       return;
     }
 
@@ -260,18 +265,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       await ref.read(satinAlmaAnaKategorilerProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openAnaKategoriBottomSheet();
+        await _openAnaKategoriBottomSheet();
       }
     } catch (e) {
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openAnaKategoriBottomSheet(); // Let the sheet show the error state
+        await _openAnaKategoriBottomSheet(); // Let the sheet show the error state
       }
     }
+    _urunDetayFocusNode.canRequestFocus = true;
   }
 
-  void _openAnaKategoriBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openAnaKategoriBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -322,9 +328,18 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
   Future<void> _showAltKategoriBottomSheet() async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
     if (_selectedAnaKategori == null) return;
     if (_selectedAnaKategori!.id == 0) {
       return;
@@ -336,7 +351,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
     // Eğer data cache'de varsa direkt bottom sheet aç
     if (altKategorilerAsync.hasValue) {
-      _openAltKategoriBottomSheet();
+      await _openAltKategoriBottomSheet();
       return;
     }
 
@@ -347,18 +362,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       );
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openAltKategoriBottomSheet();
+        await _openAltKategoriBottomSheet();
       }
     } catch (e) {
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openAltKategoriBottomSheet();
+        await _openAltKategoriBottomSheet();
       }
     }
+    _urunDetayFocusNode.canRequestFocus = true;
   }
 
-  void _openAltKategoriBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openAltKategoriBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -404,13 +420,22 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
   Future<void> _showOlcuBirimBottomSheet() async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
     final olcuAsync = ref.read(satinAlmaOlcuBirimleriProvider);
 
     if (olcuAsync.hasValue) {
-      _openOlcuBirimBottomSheet();
+      await _openOlcuBirimBottomSheet();
       return;
     }
 
@@ -419,18 +444,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       await ref.read(satinAlmaOlcuBirimleriProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openOlcuBirimBottomSheet();
+        await _openOlcuBirimBottomSheet();
       }
     } catch (e) {
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openOlcuBirimBottomSheet();
+        await _openOlcuBirimBottomSheet();
       }
     }
+    _urunDetayFocusNode.canRequestFocus = true;
   }
 
-  void _openOlcuBirimBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openOlcuBirimBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -552,6 +578,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
   Future<void> _showParaBirimiBottomSheet() async {
@@ -1055,8 +1086,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             ),
             const SizedBox(height: 8),
             TextField(
-              focusNode: _urunAdiFocusNode,
-              controller: _urunAdiController,
+              focusNode: _urunDetayFocusNode,
+              controller: _urunDetayController,
+              autofocus: false,
+              readOnly: false,
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,

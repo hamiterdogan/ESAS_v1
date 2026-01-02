@@ -59,15 +59,43 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   int _odemeVadesi = 1;
   bool _dontShowWarningAgain = false;
 
+  // Döviz kurları
+  double _egitimKuru = 1.0;
+  double _ulasimKuru = 1.0;
+  double _konaklamaKuru = 1.0;
+  double _yemekKuru = 1.0;
+
   @override
   void initState() {
     super.initState();
     _loadInitialData();
+
+    // Fiyat değişikliklerini dinle ve otomatik hesapla
+    _egitimUcretiAnaController.addListener(_calculateTotals);
+    _egitimUcretiKusuratController.addListener(_calculateTotals);
+    _ulasimUcretiAnaController.addListener(_calculateTotals);
+    _ulasimUcretiKusuratController.addListener(_calculateTotals);
+    _konaklamaUcretiAnaController.addListener(_calculateTotals);
+    _konaklamaUcretiKusuratController.addListener(_calculateTotals);
+    _yemekUcretiAnaController.addListener(_calculateTotals);
+    _yemekUcretiKusuratController.addListener(_calculateTotals);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateExchangeRates();
       _loadDefaultOdemeTuru();
       _loadDefaultParaBirimleri();
       _showAcademicYearWarningBottomSheet();
     });
+  }
+
+  Future<void> _updateExchangeRates() async {
+    try {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      await repo.guncelleMerkezBankasiDovizKurlari();
+      debugPrint('Döviz kurları güncellendi');
+    } catch (e) {
+      debugPrint('Döviz kurları güncellenirken hata: $e');
+    }
   }
 
   void _loadInitialData() {
@@ -149,6 +177,86 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       // Hata durumunda sessizce devam et
       debugPrint('Ödeme türleri yüklenemedi: $e');
     }
+  }
+
+  Future<void> _fetchDovizKuru(
+    ParaBirimi? paraBirimi,
+    Function(double) onKurFetched,
+  ) async {
+    if (paraBirimi == null) return;
+
+    final kod = paraBirimi.kod.toUpperCase();
+    // TRY veya TL ise kur 1.0
+    if (kod == 'TRY' || kod == 'TL') {
+      onKurFetched(1.0);
+      return;
+    }
+
+    try {
+      final repo = ref.read(satinAlmaRepositoryProvider);
+      final dovizKuru = await repo.getDovizKuru(kod);
+      if (mounted) {
+        onKurFetched(dovizKuru.kur);
+        _calculateTotals();
+      }
+    } catch (e) {
+      debugPrint('Döviz kuru yüklenemedi: $e');
+      onKurFetched(1.0);
+    }
+  }
+
+  void _calculateTotals() {
+    double egitimTL = _calculateTLAmount(
+      _egitimUcretiAnaController.text,
+      _egitimUcretiKusuratController.text,
+      _egitimKuru,
+    );
+
+    double ulasimTL = _calculateTLAmount(
+      _ulasimUcretiAnaController.text,
+      _ulasimUcretiKusuratController.text,
+      _ulasimKuru,
+    );
+
+    double konaklamaTL = _calculateTLAmount(
+      _konaklamaUcretiAnaController.text,
+      _konaklamaUcretiKusuratController.text,
+      _konaklamaKuru,
+    );
+
+    double yemekTL = _calculateTLAmount(
+      _yemekUcretiAnaController.text,
+      _yemekUcretiKusuratController.text,
+      _yemekKuru,
+    );
+
+    // Kişi başı toplam
+    double kisiBasiToplam = egitimTL + ulasimTL + konaklamaTL + yemekTL;
+
+    // Kişi başı toplam alanlarını doldur
+    final kisiBasiAna = kisiBasiToplam.floor();
+    final kisiBasiKusurat = ((kisiBasiToplam - kisiBasiAna) * 100).round();
+
+    _kisiBasiToplamAnaController.text = kisiBasiAna.toString();
+    _kisiBasiToplamKusuratController.text = kisiBasiKusurat.toString().padLeft(
+      2,
+      '0',
+    );
+
+    // Genel toplam - burada personel sayısını ekleyeceğiz (şimdilik 1)
+    // Bu değer dışarıdan gelecek
+    _genelToplamAnaController.text = kisiBasiAna.toString();
+    _genelToplamKusuratController.text = kisiBasiKusurat.toString().padLeft(
+      2,
+      '0',
+    );
+  }
+
+  double _calculateTLAmount(String ana, String kusurat, double kur) {
+    final anaInt = int.tryParse(ana) ?? 0;
+    final kusuratInt = int.tryParse(kusurat) ?? 0;
+    final amount = anaInt + (kusuratInt / 100);
+    return amount * kur;
   }
 
   void _showAcademicYearWarningBottomSheet() {
@@ -756,6 +864,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                             mainController: _kisiBasiToplamAnaController,
                             decimalController: _kisiBasiToplamKusuratController,
                             inputsOffset: 4,
+                            readOnly: true,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -767,6 +876,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                             mainController: _genelToplamAnaController,
                             decimalController: _genelToplamKusuratController,
                             inputsOffset: 4,
+                            readOnly: true,
                           ),
                         ),
                       ],
@@ -1230,6 +1340,12 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         setState(() {
                                           _selectedParaBirimi = item;
                                         });
+                                        // Döviz kurunu çek ve hesapla
+                                        _fetchDovizKuru(item, (kur) {
+                                          setState(() {
+                                            _egitimKuru = kur;
+                                          });
+                                        });
                                         // Unfocus after selection as per global rule
                                         FocusScope.of(context).unfocus();
                                         Navigator.pop(context);
@@ -1380,6 +1496,12 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         setState(() {
                                           _selectedUlasimParaBirimi = item;
                                         });
+                                        // Döviz kurunu çek ve hesapla
+                                        _fetchDovizKuru(item, (kur) {
+                                          setState(() {
+                                            _ulasimKuru = kur;
+                                          });
+                                        });
                                         FocusScope.of(context).unfocus();
                                         Navigator.pop(context);
                                       },
@@ -1529,6 +1651,12 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         setState(() {
                                           _selectedKonaklamaParaBirimi = item;
                                         });
+                                        // Döviz kurunu çek ve hesapla
+                                        _fetchDovizKuru(item, (kur) {
+                                          setState(() {
+                                            _konaklamaKuru = kur;
+                                          });
+                                        });
                                         FocusScope.of(context).unfocus();
                                         Navigator.pop(context);
                                       },
@@ -1676,6 +1804,12 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                       onTap: () {
                                         setState(() {
                                           _selectedYemekParaBirimi = item;
+                                        });
+                                        // Döviz kurunu çek ve hesapla
+                                        _fetchDovizKuru(item, (kur) {
+                                          setState(() {
+                                            _yemekKuru = kur;
+                                          });
                                         });
                                         FocusScope.of(context).unfocus();
                                         Navigator.pop(context);

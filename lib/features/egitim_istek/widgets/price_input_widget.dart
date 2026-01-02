@@ -9,6 +9,7 @@ class PriceInputWidget extends StatelessWidget {
   final Function(String)? onMainChanged;
   final Function(String)? onDecimalChanged;
   final double inputsOffset;
+  final bool readOnly;
 
   const PriceInputWidget({
     Key? key,
@@ -18,6 +19,7 @@ class PriceInputWidget extends StatelessWidget {
     this.onMainChanged,
     this.onDecimalChanged,
     this.inputsOffset = 0,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -48,11 +50,12 @@ class PriceInputWidget extends StatelessWidget {
                   controller: mainController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
+                  readOnly: readOnly,
                   onChanged: onMainChanged,
                   decoration: InputDecoration(
                     hintText: '0',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -94,6 +97,7 @@ class PriceInputWidget extends StatelessWidget {
                   controller: decimalController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
+                  readOnly: readOnly,
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(2),
                     FilteringTextInputFormatter.digitsOnly,
@@ -102,7 +106,7 @@ class PriceInputWidget extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: '00',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: Colors.grey.shade300),

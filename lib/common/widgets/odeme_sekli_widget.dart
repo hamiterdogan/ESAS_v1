@@ -10,12 +10,16 @@ class OdemeSekliWidget extends ConsumerStatefulWidget {
   final OdemeTuru? selectedOdemeTuru;
   final Function(OdemeTuru) onOdemeTuruSelected;
   final String title;
+  final VoidCallback? onBeforeShowSheet;
+  final VoidCallback? onAfterHideSheet;
 
   const OdemeSekliWidget({
     Key? key,
     required this.selectedOdemeTuru,
     required this.onOdemeTuruSelected,
     this.title = 'Ödeme Şekli',
+    this.onBeforeShowSheet,
+    this.onAfterHideSheet,
   }) : super(key: key);
 
   @override
@@ -71,6 +75,8 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
 
   Future<void> _showOdemeSekliBottomSheet() async {
     FocusScope.of(context).unfocus();
+    widget.onBeforeShowSheet?.call();
+
     // Check if we already have data
     if (ref.read(odemeTurleriProvider).hasValue) {
       _openBottomSheet();
@@ -103,8 +109,8 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
     }
   }
 
-  void _openBottomSheet() {
-    showModalBottomSheet(
+  void _openBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -216,5 +222,9 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
         );
       },
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      widget.onAfterHideSheet?.call();
+    });
   }
 }

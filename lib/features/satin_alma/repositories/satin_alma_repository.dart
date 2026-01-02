@@ -205,6 +205,10 @@ class SatinAlmaRepository {
     return DovizKuru.fromAny(response.data, fallbackDovizKodu: dovizKodu);
   }
 
+  Future<void> guncelleMerkezBankasiDovizKurlari() async {
+    await _dio.post('/Finans/MerkezBankasiDovizKurlariniGuncelle');
+  }
+
   Future<List<SatinAlmaTalep>> getTalepler({required int tip}) async {
     final response = await _dio.post(
       '/SatinAlma/SatinAlmaTaleplerimiGetir',
