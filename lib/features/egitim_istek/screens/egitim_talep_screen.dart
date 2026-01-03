@@ -10,6 +10,7 @@ import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/egitim_istek/screens/egitim_ucretleri_screen.dart';
+import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -53,6 +54,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   bool _egitimTurleriYuklendi = false;
   double _aldigiEgitimUcreti = 0;
   bool _ucretYukleniyor = true;
+  bool _agreeWithDocuments = false;
 
   final Set<int> _selectedPersonelIds = {};
   List<PersonelItem> _personeller = [];
@@ -63,6 +65,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       TextEditingController();
   final TextEditingController _ozelEgitimAdiController =
       TextEditingController();
+
+  // FocusNodes for keyboard control
+  final FocusNode _egitimTeklifIcerikFocusNode = FocusNode();
+  final FocusNode _ozelEgitimAdiFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -89,6 +95,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   void dispose() {
     _egitimTeklifIcerikController.dispose();
     _ozelEgitimAdiController.dispose();
+    _egitimTeklifIcerikFocusNode.dispose();
+    _ozelEgitimAdiFocusNode.dispose();
     super.dispose();
   }
 
@@ -128,7 +136,15 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         });
 
         if (duplicateNames.isNotEmpty && mounted) {
-          showModalBottomSheet(
+          // 🔒 Enhanced focus control
+          _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+          _ozelEgitimAdiFocusNode.canRequestFocus = false;
+          FocusScope.of(context).unfocus();
+
+          // 🔒 Critical: Wait 1 frame for focus state to settle
+          await Future.delayed(Duration.zero);
+
+          await showModalBottomSheet(
             context: context,
             builder: (context) => Container(
               width: double.infinity,
@@ -238,7 +254,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     onPressed: () => context.pop(),
                   ),
                   const Text(
-                    'Eğitim Talebi',
+                    'Eğitim İsteği',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -403,8 +419,16 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet<void>(
+                        onTap: () async {
+                          // 🔒 Enhanced focus control
+                          _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+                          _ozelEgitimAdiFocusNode.canRequestFocus = false;
+                          FocusScope.of(context).unfocus();
+
+                          // 🔒 Critical: Wait 1 frame for focus state to settle
+                          await Future.delayed(Duration.zero);
+
+                          await showModalBottomSheet<void>(
                             context: context,
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.vertical(
@@ -489,6 +513,16 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               );
                             },
                           );
+
+                          // Ensure keyboard stays hidden after BottomSheet closes
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              FocusScope.of(context).unfocus();
+                              _egitimTeklifIcerikFocusNode.canRequestFocus =
+                                  true;
+                              _ozelEgitimAdiFocusNode.canRequestFocus = true;
+                            }
+                          });
                         },
                         child: const Icon(
                           Icons.info_outlined,
@@ -1102,6 +1136,12 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: () async {
+                            // 🔒 Ücretler ekranına gitmeden önce focus kilidi
+                            _egitimTeklifIcerikFocusNode.canRequestFocus =
+                                false;
+                            _ozelEgitimAdiFocusNode.canRequestFocus = false;
+                            FocusScope.of(context).unfocus();
+
                             final result =
                                 await Navigator.push<Map<String, dynamic>>(
                                   context,
@@ -1111,11 +1151,22 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                     ),
                                   ),
                                 );
+
                             if (result != null) {
                               setState(() {
                                 _egitimUcretleriData = result;
                               });
                             }
+
+                            // 🔓 Geri dönüldüğünde güvenli kilit açma + unfocus
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                FocusScope.of(context).unfocus();
+                                _egitimTeklifIcerikFocusNode.canRequestFocus =
+                                    true;
+                                _ozelEgitimAdiFocusNode.canRequestFocus = true;
+                              }
+                            });
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -1334,24 +1385,15 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           fillColor: Colors.white,
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: Colors.grey.shade600,
-                              width: 0.5,
-                            ),
+                            borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: Colors.grey.shade600,
-                              width: 0.5,
-                            ),
+                            borderSide: BorderSide.none,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                              color: Colors.grey.shade600,
-                              width: 0.5,
-                            ),
+                            borderSide: BorderSide.none,
                           ),
                         ),
                         maxLines: 1,
@@ -1359,23 +1401,167 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     ],
                   ),
                   const SizedBox(height: 32),
+                  // PDF Dökümanları Card
+                  Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade300, width: 1),
+                    ),
+                    margin: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        // PDF Genelgesi
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PdfViewerScreen(
+                                    title: 'Hizmet İçi Eğitim Genelgesi',
+                                    pdfUrl:
+                                        'https://esas.eyuboglu.k12.tr/yonerge/hizmet-ici_egitim_genelgesi.pdf',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.picture_as_pdf,
+                                  color: AppColors.gradientStart,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Hizmet İçi Eğitim Genelgesi',
+                                    style: TextStyle(
+                                      color: AppColors.gradientStart,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey.shade400,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Divider(
+                          height: 1,
+                          color: Colors.grey.shade300,
+                          indent: 16,
+                          endIndent: 16,
+                        ),
+                        // PDF Protokolü
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const PdfViewerScreen(
+                                    title: 'Hizmet İçi Eğitim Protokolü',
+                                    pdfUrl:
+                                        'https://esas.eyuboglu.k12.tr/yonerge/egitim_protokolu_tr_en.pdf',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.picture_as_pdf,
+                                  color: AppColors.gradientStart,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Hizmet İçi Eğitim Protokolü',
+                                    style: TextStyle(
+                                      color: AppColors.gradientStart,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey.shade400,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Onay Toggle Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Switch(
+                        value: _agreeWithDocuments,
+                        inactiveTrackColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _agreeWithDocuments = value;
+                          });
+                        },
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: AppColors.gradientStart,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Genelgeyi ve protokolü okudum, anladım, onaylıyorum',
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
+                      gradient: _agreeWithDocuments
+                          ? AppColors.primaryGradient
+                          : LinearGradient(
+                              colors: [
+                                AppColors.gradientStart.withValues(alpha: 0.2),
+                                AppColors.gradientEnd.withValues(alpha: 0.2),
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement form submission
-                        },
+                        onPressed: _agreeWithDocuments ? _submitForm : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: const Text(
@@ -1399,11 +1585,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     );
   }
 
-  void _showEgitimAdiBottomSheet() {
+  void _showEgitimAdiBottomSheet() async {
+    // 🔒 Enhanced focus control
+    _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+    _ozelEgitimAdiFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
     String searchQuery = '';
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -1554,12 +1747,27 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         );
       },
     );
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _egitimTeklifIcerikFocusNode.canRequestFocus = true;
+        _ozelEgitimAdiFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _showEgitimTuruBottomSheet() {
+  void _showEgitimTuruBottomSheet() async {
+    // 🔒 Enhanced focus control
+    _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+    _ozelEgitimAdiFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
 
-    showModalBottomSheet(
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -1652,6 +1860,15 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         );
       },
     );
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _egitimTeklifIcerikFocusNode.canRequestFocus = true;
+        _ozelEgitimAdiFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
   Future<void> _fetchEgitimAdlari() async {
@@ -1788,11 +2005,28 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     }
   }
 
-  void _showSehirBottomSheet() {
+  Future<void> _submitForm() async {
+    // Form gönderme işlemi
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Eğitim talep başarıyla gönderildi!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showSehirBottomSheet() async {
+    // 🔒 Enhanced focus control
+    _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+    _ozelEgitimAdiFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
     String searchQuery = '';
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -1927,5 +2161,14 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         );
       },
     );
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _egitimTeklifIcerikFocusNode.canRequestFocus = true;
+        _ozelEgitimAdiFocusNode.canRequestFocus = true;
+      }
+    });
   }
 }

@@ -51,6 +51,8 @@ class PriceInputWidget extends StatelessWidget {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   readOnly: readOnly,
+                  autofocus: false,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: onMainChanged,
                   decoration: InputDecoration(
                     hintText: '0',
@@ -98,6 +100,7 @@ class PriceInputWidget extends StatelessWidget {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   readOnly: readOnly,
+                  autofocus: false,
                   inputFormatters: [
                     LengthLimitingTextInputFormatter(2),
                     FilteringTextInputFormatter.digitsOnly,

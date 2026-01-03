@@ -10,6 +10,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:esas_v1/features/izin_istek/widgets/guideline_card_with_toggle.dart';
 
 class HastalikIzinScreen extends ConsumerStatefulWidget {
   const HastalikIzinScreen({super.key});
@@ -260,6 +261,8 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         allowedMinutes: const [0, 30],
                         label: 'Başlangıç Saati',
                         onTimeChanged: (hour, minute) {
+                          // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                          FocusScope.of(context).unfocus();
                           setState(() {
                             _baslangicSaat = hour;
                             _baslangicDakika = minute;
@@ -294,6 +297,8 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                   1,
                             ),
                         onTimeChanged: (hour, minute) {
+                          // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                          FocusScope.of(context).unfocus();
                           setState(() {
                             _bitisSaat = hour;
                             _bitisDakika = minute;
@@ -364,24 +369,15 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                     hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _adresHatali
-                            ? const Color(0xFFB57070)
-                            : Colors.grey,
-                        width: _adresHatali ? 2 : 1,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _adresHatali
-                            ? const Color(0xFFB57070)
-                            : AppColors.gradientEnd,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -523,71 +519,20 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 ],
                 const SizedBox(height: 24),
 
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[600]!, width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PdfViewerScreen(
-                                title: 'İzin Kullanma Yönergesi',
-                                pdfUrl:
-                                    'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
-                              ),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.description,
-                              color: Color(0xFF014B92),
-                              size: 28,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'İzin kullanma yönergesi',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Divider(color: Colors.grey[400], height: 1),
-                      const SizedBox(height: 6),
-                      OnayToggleWidget(
-                        initialValue: _onay,
-                        onChanged: (value) {
-                          setState(() {
-                            _onay = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                GuidelineCardWithToggle(
+                  pdfTitle: 'İzin Kullanma Yönergesi',
+                  pdfUrl:
+                      'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
+                  cardButtonText: 'İzin Kullanma Yönergesi',
+                  toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
+                  toggleValue: _onay,
+                  onToggleChanged: (value) {
+                    setState(() {
+                      _onay = value;
+                    });
+                  },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: _onay
@@ -830,8 +775,13 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     String message, {
     bool isError = false,
     bool shouldNavigate = true,
-  }) {
-    showModalBottomSheet<void>(
+  }) async {
+    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
+    _aciklamaFocusNode.unfocus();
+    _adresFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -899,5 +849,12 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
         );
       },
     );
+
+    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 }

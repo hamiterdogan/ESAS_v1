@@ -65,11 +65,16 @@ class _DurationPickerBottomSheetWidgetState
     return '${_selectedDay.toString().padLeft(2, '0')} Gün ${_selectedHour.toString().padLeft(2, '0')} Saat';
   }
 
-  void _showDurationPickerBottomSheet() {
+  Future<void> _showDurationPickerBottomSheet() async {
     int tempDay = _selectedDay;
     int tempHour = _selectedHour;
 
-    showModalBottomSheet(
+    final pageFocusScope = FocusScope.of(context);
+    pageFocusScope.canRequestFocus = false;
+    pageFocusScope.unfocus();
+    await Future.delayed(Duration.zero);
+
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -206,6 +211,13 @@ class _DurationPickerBottomSheetWidgetState
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final scope = FocusScope.of(context);
+      scope.unfocus();
+      scope.canRequestFocus = true;
+    });
   }
 
   Widget _buildSpinner({
@@ -242,7 +254,12 @@ class _DurationPickerBottomSheetWidgetState
             ),
           ),
         GestureDetector(
-          onTap: _showDurationPickerBottomSheet,
+          onTapDown: (_) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          onTap: () async {
+            await _showDurationPickerBottomSheet();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(

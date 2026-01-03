@@ -25,6 +25,7 @@ class _EgitimSonrasiPaylasimsScreenState
   int _bitisSaat = 17;
   int _bitisDakika = 30;
   final TextEditingController _egitimYeriController = TextEditingController();
+  final FocusNode _egitimYeriFocusNode = FocusNode();
   final Set<int> _selectedPersonelIds = {};
   List<PersonelItem> _personeller = [];
   List<GorevItem> _gorevler = [];
@@ -40,6 +41,7 @@ class _EgitimSonrasiPaylasimsScreenState
   @override
   void dispose() {
     _egitimYeriController.dispose();
+    _egitimYeriFocusNode.dispose();
     super.dispose();
   }
 
@@ -246,6 +248,7 @@ class _EgitimSonrasiPaylasimsScreenState
                             const SizedBox(height: 8),
                             TextField(
                               controller: _egitimYeriController,
+                              focusNode: _egitimYeriFocusNode,
                               decoration: InputDecoration(
                                 hintText: 'Eğitimin yapılacağı yeri giriniz',
                                 hintStyle: TextStyle(

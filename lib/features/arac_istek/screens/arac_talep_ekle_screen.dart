@@ -115,6 +115,22 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
   }
 
+  /// Klavye odağını kilitle ve tüm inputların odağını kapat
+  void _lockAndUnfocusInputs() {
+    _customAracIstekNedeniFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+  }
+
+  /// Klavye odağını aç (BottomSheet kapandıktan sonra)
+  void _unlockInputsAfterSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _customAracIstekNedeniFocusNode.canRequestFocus = true;
+      _aciklamaFocusNode.canRequestFocus = true;
+    });
+  }
+
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
     int targetHour = startHour + 1;
     int targetMinute = startMinute;
@@ -181,7 +197,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   }
 
   void _showMesafeInfo() {
-    FocusScope.of(context).unfocus();
+    _lockAndUnfocusInputs();
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -224,6 +240,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         ),
       ),
     ).whenComplete(() {
+      _unlockInputsAfterSheet();
       if (mounted) setState(() => _isActionInProgress = false);
     });
   }
@@ -1020,6 +1037,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   }
 
   void _showStatusBottomSheet(String message, {bool isError = false}) {
+    _lockAndUnfocusInputs();
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1092,7 +1110,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      _unlockInputsAfterSheet();
+    });
   }
 
   String _formatDateShort(DateTime date) {
@@ -1505,7 +1525,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     String query = '';
 
     if (_isActionInProgress) return;
-    FocusScope.of(context).unfocus();
+    _lockAndUnfocusInputs();
     setState(() => _isActionInProgress = true);
 
     await showModalBottomSheet<void>(
@@ -1659,6 +1679,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         );
       },
     ).whenComplete(() {
+      _unlockInputsAfterSheet();
       if (mounted) setState(() => _isActionInProgress = false);
     });
   }
@@ -1679,7 +1700,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   Future<void> _openSecilenOgrenciListesiBottomSheet() async {
     if (_isActionInProgress) return;
-    FocusScope.of(context).unfocus();
+    _lockAndUnfocusInputs();
     setState(() => _isActionInProgress = true);
 
     await showModalBottomSheet<void>(
@@ -1870,6 +1891,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         );
       },
     ).whenComplete(() {
+      _unlockInputsAfterSheet();
       if (mounted) setState(() => _isActionInProgress = false);
     });
   }
@@ -1987,6 +2009,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
       if (!mounted) return;
 
+      _lockAndUnfocusInputs();
       await showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -3608,7 +3631,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   }
 
   Future<void> _openYerSecimiBottomSheet() async {
-    FocusScope.of(context).unfocus();
+    _lockAndUnfocusInputs();
     final selected = await showModalBottomSheet<GidilecekYerItem>(
       context: context,
       isScrollControlled: true,

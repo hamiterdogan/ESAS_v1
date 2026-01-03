@@ -9,6 +9,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/features/izin_istek/widgets/guideline_card_with_toggle.dart';
 
 class VefatIzinScreen extends ConsumerStatefulWidget {
   const VefatIzinScreen({super.key});
@@ -60,8 +61,11 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     });
   }
 
-  void _showVefatIzniUyarisi() {
-    showModalBottomSheet(
+  void _showVefatIzniUyarisi() async {
+    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -135,6 +139,13 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
         ),
       ),
     );
+
+    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 
   @override
@@ -288,24 +299,15 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                         'Lütfen vefat edenin yakınlık derecesini giriniz.',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _yakinlikDerecesiHatali
-                            ? const Color(0xFFB57070)
-                            : Colors.grey,
-                        width: _yakinlikDerecesiHatali ? 2 : 1,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _yakinlikDerecesiHatali
-                            ? const Color(0xFFB57070)
-                            : AppColors.gradientEnd,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -345,24 +347,15 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                     hintText: 'Lütfen izinde bulunacağı adres giriniz.',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _adresHatali
-                            ? const Color(0xFFB57070)
-                            : Colors.grey,
-                        width: _adresHatali ? 2 : 1,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _adresHatali
-                            ? const Color(0xFFB57070)
-                            : AppColors.gradientEnd,
-                        width: 2,
-                      ),
+                      borderSide: BorderSide.none,
                     ),
                     filled: true,
                     fillColor: Colors.white,
@@ -378,71 +371,20 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[600]!, width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PdfViewerScreen(
-                                title: 'İzin Kullanma Yönergesi',
-                                pdfUrl:
-                                    'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
-                              ),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(
-                              Icons.description,
-                              color: Color(0xFF014B92),
-                              size: 28,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'İzin kullanma yönergesi',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Divider(color: Colors.grey[400], height: 1),
-                      const SizedBox(height: 6),
-                      OnayToggleWidget(
-                        initialValue: _onay,
-                        onChanged: (value) {
-                          setState(() {
-                            _onay = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                GuidelineCardWithToggle(
+                  pdfTitle: 'İzin Kullanma Yönergesi',
+                  pdfUrl:
+                      'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
+                  cardButtonText: 'İzin Kullanma Yönergesi',
+                  toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
+                  toggleValue: _onay,
+                  onToggleChanged: (value) {
+                    setState(() {
+                      _onay = value;
+                    });
+                  },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: _onay
@@ -633,8 +575,14 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     }
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
-    showModalBottomSheet<void>(
+  void _showStatusBottomSheet(String message, {bool isError = false}) async {
+    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
+    _aciklamaFocusNode.unfocus();
+    _adresFocusNode.unfocus();
+    _yakinlikDerecesiFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -702,6 +650,13 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
         );
       },
     );
+
+    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 
   String _formatDate(DateTime date) {

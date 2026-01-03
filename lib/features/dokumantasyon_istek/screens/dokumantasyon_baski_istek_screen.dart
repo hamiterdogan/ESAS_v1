@@ -225,7 +225,12 @@ class _DokumantasyonBaskiIstekScreenState
         });
 
         if (duplicateNames.isNotEmpty && mounted) {
-          showModalBottomSheet(
+          // Enhanced focus control
+          _dosyaIcerikFocusNode.canRequestFocus = false;
+          _aciklamaFocusNode.canRequestFocus = false;
+          FocusScope.of(context).unfocus();
+
+          await showModalBottomSheet(
             context: context,
             builder: (context) => Container(
               width: double.infinity,
@@ -304,6 +309,15 @@ class _DokumantasyonBaskiIstekScreenState
               ),
             ),
           );
+
+          // Ensure keyboard stays hidden after BottomSheet closes
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              FocusScope.of(context).unfocus();
+              _dosyaIcerikFocusNode.canRequestFocus = true;
+              _aciklamaFocusNode.canRequestFocus = true;
+            }
+          });
         }
       }
     } catch (e) {
@@ -348,12 +362,16 @@ class _DokumantasyonBaskiIstekScreenState
     });
   }
 
-  void _showDokumanTuruBottomSheet() {
+  void _showDokumanTuruBottomSheet() async {
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
+
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -409,14 +427,27 @@ class _DokumantasyonBaskiIstekScreenState
     ).whenComplete(() {
       if (mounted) setState(() => _isActionInProgress = false);
     });
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _dosyaIcerikFocusNode.canRequestFocus = true;
+        _aciklamaFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _showBaskiBoyutuBottomSheet() {
+  void _showBaskiBoyutuBottomSheet() async {
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
+
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -471,6 +502,15 @@ class _DokumantasyonBaskiIstekScreenState
       },
     ).whenComplete(() {
       if (mounted) setState(() => _isActionInProgress = false);
+    });
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _dosyaIcerikFocusNode.canRequestFocus = true;
+        _aciklamaFocusNode.canRequestFocus = true;
+      }
     });
   }
 
@@ -1276,7 +1316,11 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   Future<void> _openSinifSecimBottomSheet() async {
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
     FocusScope.of(context).unfocus();
+
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
@@ -1664,6 +1708,15 @@ class _DokumantasyonBaskiIstekScreenState
       BrandedLoadingDialog.hide(context);
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
+
+      // Ensure keyboard stays hidden after BottomSheet closes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          FocusScope.of(context).unfocus();
+          _dosyaIcerikFocusNode.canRequestFocus = true;
+          _aciklamaFocusNode.canRequestFocus = true;
+        }
+      });
     }
   }
 
@@ -1697,8 +1750,13 @@ class _DokumantasyonBaskiIstekScreenState
     }
   }
 
-  void _showSelectedClassesList() {
-    showModalBottomSheet<void>(
+  void _showSelectedClassesList() async {
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -1855,6 +1913,15 @@ class _DokumantasyonBaskiIstekScreenState
         );
       },
     );
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _dosyaIcerikFocusNode.canRequestFocus = true;
+        _aciklamaFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
   Future<void> _refreshClassFilterData({
@@ -2400,9 +2467,15 @@ class _DokumantasyonBaskiIstekScreenState
     return 'Sınıf Seçiniz';
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
+  void _showStatusBottomSheet(String message, {bool isError = false}) async {
     if (!mounted) return;
-    showModalBottomSheet<void>(
+
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -2472,6 +2545,15 @@ class _DokumantasyonBaskiIstekScreenState
         );
       },
     );
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _dosyaIcerikFocusNode.canRequestFocus = true;
+        _aciklamaFocusNode.canRequestFocus = true;
+      }
+    });
   }
 }
 

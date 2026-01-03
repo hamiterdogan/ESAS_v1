@@ -75,6 +75,20 @@ class _AracIstekYukEkleScreenState
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
   }
 
+  void _lockAndUnfocusInputs() {
+    _tasInacakYukFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+  }
+
+  void _unlockInputsAfterSheet() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _tasInacakYukFocusNode.canRequestFocus = true;
+      _aciklamaFocusNode.canRequestFocus = true;
+    });
+  }
+
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
     int targetHour = startHour + 1;
     int targetMinute = startMinute;
@@ -141,6 +155,7 @@ class _AracIstekYukEkleScreenState
   }
 
   void _showMesafeInfo() {
+    _lockAndUnfocusInputs();
     showModalBottomSheet<void>(
       context: context,
       builder: (context) => Container(
@@ -210,6 +225,7 @@ class _AracIstekYukEkleScreenState
   }
 
   Future<void> _openYerSecimiBottomSheet() async {
+    _lockAndUnfocusInputs();
     final selected = await showModalBottomSheet<GidilecekYerItem>(
       context: context,
       isScrollControlled: true,
@@ -302,6 +318,7 @@ class _AracIstekYukEkleScreenState
       },
     );
 
+    _unlockInputsAfterSheet();
     if (selected != null) {
       _addEntry(selected);
     }
@@ -808,6 +825,7 @@ class _AracIstekYukEkleScreenState
     final req = _buildAracIstekEkleReq();
     final ozetItems = _buildAracIstekOzetItems(req);
 
+    _lockAndUnfocusInputs();
     showAracIstekOzetBottomSheet(
       context: context,
       request: req,

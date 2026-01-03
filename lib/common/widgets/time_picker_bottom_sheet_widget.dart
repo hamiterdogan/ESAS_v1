@@ -85,11 +85,14 @@ class _TimePickerBottomSheetWidgetState
     return '${_selectedHour.toString().padLeft(2, '0')} : ${_selectedMinute.toString().padLeft(2, '0')}';
   }
 
-  void _showTimePickerBottomSheet() {
+  void _showTimePickerBottomSheet() async {
+    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
+    FocusScope.of(context).unfocus();
+
     int tempHour = _selectedHour;
     int tempMinute = _selectedMinute;
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -241,6 +244,13 @@ class _TimePickerBottomSheetWidgetState
         );
       },
     );
+
+    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 
   List<int> _getAvailableMinutes(int hour) {
@@ -287,7 +297,8 @@ class _TimePickerBottomSheetWidgetState
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               widget.label!,
-              style: widget.labelStyle ??
+              style:
+                  widget.labelStyle ??
                   const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

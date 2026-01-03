@@ -171,8 +171,15 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     super.dispose();
   }
 
-  void _showErrorBottomSheet(String message) {
-    showModalBottomSheet(
+  void _showErrorBottomSheet(String message) async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -245,12 +252,20 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
   Future<void> _showAnaKategoriBottomSheet() async {
     _urunDetayFocusNode.canRequestFocus = false;
     _urunDetayFocusNode.unfocus();
     FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
 
     final kategorilerAsync = ref.read(satinAlmaAnaKategorilerProvider);
 
@@ -339,6 +354,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _urunDetayFocusNode.canRequestFocus = false;
     _urunDetayFocusNode.unfocus();
     FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
 
     if (_selectedAnaKategori == null) return;
     if (_selectedAnaKategori!.id == 0) {
@@ -431,6 +449,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     _urunDetayFocusNode.canRequestFocus = false;
     _urunDetayFocusNode.unfocus();
     FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
 
     final olcuAsync = ref.read(satinAlmaOlcuBirimleriProvider);
 
@@ -586,6 +607,13 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   }
 
   Future<void> _showParaBirimiBottomSheet() async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
@@ -735,11 +763,23 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
-  void _showKdvOraniBottomSheet() {
+  void _showKdvOraniBottomSheet() async {
+    _urunDetayFocusNode.canRequestFocus = false;
+    _urunDetayFocusNode.unfocus();
+    FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
     final kdvRates = [20, 10, 1];
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -811,6 +851,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         );
       },
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+      _urunDetayFocusNode.canRequestFocus = true;
+    });
   }
 
   Future<void> _fetchDovizKuru(String dovizKodu) async {

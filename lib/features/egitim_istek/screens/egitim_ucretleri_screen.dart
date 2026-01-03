@@ -50,6 +50,11 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   final TextEditingController _digerEkBilgilerController =
       TextEditingController();
 
+  // 🔒 FocusNode'lar - Klavye flicker önleme için
+  final FocusNode _ibanFocusNode = FocusNode();
+  final FocusNode _hesapAdiFocusNode = FocusNode();
+  final FocusNode _digerEkBilgilerFocusNode = FocusNode();
+
   ParaBirimi? _selectedParaBirimi;
   ParaBirimi? _selectedUlasimParaBirimi;
   ParaBirimi? _selectedKonaklamaParaBirimi;
@@ -125,6 +130,12 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       _selectedOdemeTuru = data['selectedOdemeTuru'];
       _vadeli = data['vadeli'] ?? false;
       _odemeVadesi = data['odemeVadesi'] ?? 1;
+
+      // Döviz kurlarını da restore et
+      _egitimKuru = data['egitimKuru'] ?? 1.0;
+      _ulasimKuru = data['ulasimKuru'] ?? 1.0;
+      _konaklamaKuru = data['konaklamaKuru'] ?? 1.0;
+      _yemekKuru = data['yemekKuru'] ?? 1.0;
     }
   }
 
@@ -259,8 +270,25 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     return amount * kur;
   }
 
-  void _showAcademicYearWarningBottomSheet() {
-    showModalBottomSheet(
+  void _showAcademicYearWarningBottomSheet() async {
+    final pageFocusScope = FocusScope.of(context);
+
+    // 🔒 1. Input focus alamaz
+    _ibanFocusNode.canRequestFocus = false;
+    _hesapAdiFocusNode.canRequestFocus = false;
+    _digerEkBilgilerFocusNode.canRequestFocus = false;
+
+    // 🔒 1.b Sayfa genelinde focus kilidi (PriceInputWidget dahil)
+    pageFocusScope.canRequestFocus = false;
+
+    // 🔒 2. Focus'u tamamen temizle
+    pageFocusScope.unfocus();
+
+    // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
+    await Future.delayed(Duration.zero);
+
+    // 🔒 4. BottomSheet aç
+    await showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -431,6 +459,10 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     _ibanController.dispose();
     _hesapAdiController.dispose();
     _digerEkBilgilerController.dispose();
+    // 🔒 FocusNode'ları temizle
+    _ibanFocusNode.dispose();
+    _hesapAdiFocusNode.dispose();
+    _digerEkBilgilerFocusNode.dispose();
     super.dispose();
   }
 
@@ -463,758 +495,838 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // KDV Uyarısı
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 3, 16, 3),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(8),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // KDV Uyarısı
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(16, 3, 16, 3),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outlined,
+                        color: AppColors.gradientStart,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'KDV dahil fiyatları giriniz',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium?.fontSize ??
+                                        14) +
+                                    2,
+                                color: AppColors.gradientStart,
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outlined,
-                      color: AppColors.gradientStart,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'KDV dahil fiyatları giriniz',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Kişi Başı Ücretler',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontSize:
                               (Theme.of(
                                     context,
-                                  ).textTheme.bodyMedium?.fontSize ??
+                                  ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               2,
-                          color: AppColors.gradientStart,
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kişi Başı Ücretler',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            2,
+                      const SizedBox(height: 8),
+                      // Row for Fiyat (57%) and Para Birimi (43%)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: Fiyat Input
+                          Expanded(
+                            flex: 4,
+                            child: PriceInputWidget(
+                              title: 'Eğitimin Ücreti',
+                              mainController: _egitimUcretiAnaController,
+                              decimalController: _egitimUcretiKusuratController,
+                              inputsOffset: 4,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Right: Para Birimi (same design as Product Add)
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Para Birimi',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontSize:
+                                            (Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.fontSize ??
+                                                14) +
+                                            1,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                  },
+                                  onTap: _showParaBirimiBottomSheet,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _selectedParaBirimi != null
+                                                ? '${_selectedParaBirimi!.birimAdi} (${_selectedParaBirimi!.kod})'
+                                                : 'Seçiniz',
+                                            style: TextStyle(
+                                              color: _selectedParaBirimi != null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade600,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Row for Fiyat (57%) and Para Birimi (43%)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Fiyat Input
-                        Expanded(
-                          flex: 4,
-                          child: PriceInputWidget(
-                            title: 'Eğitimin Ücreti',
-                            mainController: _egitimUcretiAnaController,
-                            decimalController: _egitimUcretiKusuratController,
-                            inputsOffset: 4,
+                      const SizedBox(height: 24),
+                      // Row for Ulaşım Ücreti (57%) and Para Birimi (43%)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: Ulaşım Ücreti Input
+                          Expanded(
+                            flex: 4,
+                            child: PriceInputWidget(
+                              title: 'Ulaşım Ücreti',
+                              mainController: _ulasimUcretiAnaController,
+                              decimalController: _ulasimUcretiKusuratController,
+                              inputsOffset: 4,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right: Para Birimi (same design as Product Add)
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Para Birimi',
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.fontSize ??
-                                              14) +
-                                          1,
+                          const SizedBox(width: 16),
+                          // Right: Para Birimi for Ulaşım
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Para Birimi',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontSize:
+                                            (Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.fontSize ??
+                                                14) +
+                                            1,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                  },
+                                  onTap: _showUlasimParaBirimiBottomSheet,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 12,
                                     ),
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: _showParaBirimiBottomSheet,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _selectedParaBirimi != null
-                                              ? '${_selectedParaBirimi!.birimAdi} (${_selectedParaBirimi!.kod})'
-                                              : 'Seçiniz',
-                                          style: TextStyle(
-                                            color: _selectedParaBirimi != null
-                                                ? Colors.black87
-                                                : Colors.grey.shade600,
-                                            fontSize: 16,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _selectedUlasimParaBirimi != null
+                                                ? '${_selectedUlasimParaBirimi!.birimAdi} (${_selectedUlasimParaBirimi!.kod})'
+                                                : 'Seçiniz',
+                                            style: TextStyle(
+                                              color:
+                                                  _selectedUlasimParaBirimi !=
+                                                      null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade600,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.grey,
-                                      ),
-                                    ],
+                                        const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Row for Ulaşım Ücreti (57%) and Para Birimi (43%)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Ulaşım Ücreti Input
-                        Expanded(
-                          flex: 4,
-                          child: PriceInputWidget(
-                            title: 'Ulaşım Ücreti',
-                            mainController: _ulasimUcretiAnaController,
-                            decimalController: _ulasimUcretiKusuratController,
-                            inputsOffset: 4,
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Row for Konaklama Ücreti (57%) and Para Birimi (43%)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: Konaklama Ücreti Input
+                          Expanded(
+                            flex: 4,
+                            child: PriceInputWidget(
+                              title: 'Konaklama Ücreti',
+                              mainController: _konaklamaUcretiAnaController,
+                              decimalController:
+                                  _konaklamaUcretiKusuratController,
+                              inputsOffset: 4,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right: Para Birimi for Ulaşım
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Para Birimi',
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.fontSize ??
-                                              14) +
-                                          1,
+                          const SizedBox(width: 16),
+                          // Right: Para Birimi for Konaklama
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Para Birimi',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontSize:
+                                            (Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.fontSize ??
+                                                14) +
+                                            1,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                  },
+                                  onTap: _showKonaklamaParaBirimiBottomSheet,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 12,
                                     ),
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: _showUlasimParaBirimiBottomSheet,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _selectedUlasimParaBirimi != null
-                                              ? '${_selectedUlasimParaBirimi!.birimAdi} (${_selectedUlasimParaBirimi!.kod})'
-                                              : 'Seçiniz',
-                                          style: TextStyle(
-                                            color:
-                                                _selectedUlasimParaBirimi !=
-                                                    null
-                                                ? Colors.black87
-                                                : Colors.grey.shade600,
-                                            fontSize: 16,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _selectedKonaklamaParaBirimi != null
+                                                ? '${_selectedKonaklamaParaBirimi!.birimAdi} (${_selectedKonaklamaParaBirimi!.kod})'
+                                                : 'Seçiniz',
+                                            style: TextStyle(
+                                              color:
+                                                  _selectedKonaklamaParaBirimi !=
+                                                      null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade600,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.grey,
-                                      ),
-                                    ],
+                                        const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Row for Konaklama Ücreti (57%) and Para Birimi (43%)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Konaklama Ücreti Input
-                        Expanded(
-                          flex: 4,
-                          child: PriceInputWidget(
-                            title: 'Konaklama Ücreti',
-                            mainController: _konaklamaUcretiAnaController,
-                            decimalController:
-                                _konaklamaUcretiKusuratController,
-                            inputsOffset: 4,
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Row for Yemek Ücreti (57%) and Para Birimi (43%)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: Yemek Ücreti Input
+                          Expanded(
+                            flex: 4,
+                            child: PriceInputWidget(
+                              title: 'Yemek Ücreti',
+                              mainController: _yemekUcretiAnaController,
+                              decimalController: _yemekUcretiKusuratController,
+                              inputsOffset: 4,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right: Para Birimi for Konaklama
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Para Birimi',
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.fontSize ??
-                                              14) +
-                                          1,
+                          const SizedBox(width: 16),
+                          // Right: Para Birimi for Yemek
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Para Birimi',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontSize:
+                                            (Theme.of(context)
+                                                    .textTheme
+                                                    .titleSmall
+                                                    ?.fontSize ??
+                                                14) +
+                                            1,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                  },
+                                  onTap: _showYemekParaBirimiBottomSheet,
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 12,
                                     ),
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: _showKonaklamaParaBirimiBottomSheet,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _selectedKonaklamaParaBirimi != null
-                                              ? '${_selectedKonaklamaParaBirimi!.birimAdi} (${_selectedKonaklamaParaBirimi!.kod})'
-                                              : 'Seçiniz',
-                                          style: TextStyle(
-                                            color:
-                                                _selectedKonaklamaParaBirimi !=
-                                                    null
-                                                ? Colors.black87
-                                                : Colors.grey.shade600,
-                                            fontSize: 16,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _selectedYemekParaBirimi != null
+                                                ? '${_selectedYemekParaBirimi!.birimAdi} (${_selectedYemekParaBirimi!.kod})'
+                                                : 'Seçiniz',
+                                            style: TextStyle(
+                                              color:
+                                                  _selectedYemekParaBirimi !=
+                                                      null
+                                                  ? Colors.black87
+                                                  : Colors.grey.shade600,
+                                              fontSize: 16,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.grey,
-                                      ),
-                                    ],
+                                        const Icon(
+                                          Icons.arrow_drop_down,
+                                          color: Colors.grey,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Row for Yemek Ücreti (57%) and Para Birimi (43%)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Yemek Ücreti Input
-                        Expanded(
-                          flex: 4,
-                          child: PriceInputWidget(
-                            title: 'Yemek Ücreti',
-                            mainController: _yemekUcretiAnaController,
-                            decimalController: _yemekUcretiKusuratController,
-                            inputsOffset: 4,
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      // Row for Total Fields (50% each)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left: Kişi Başı Toplam TL Ücret
+                          Expanded(
+                            flex: 1,
+                            child: PriceInputWidget(
+                              title: 'Kişi Başı Toplam TL Ücret',
+                              mainController: _kisiBasiToplamAnaController,
+                              decimalController:
+                                  _kisiBasiToplamKusuratController,
+                              inputsOffset: 4,
+                              readOnly: true,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right: Para Birimi for Yemek
-                        Expanded(
-                          flex: 3,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Para Birimi',
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.fontSize ??
-                                              14) +
-                                          1,
-                                    ),
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: _showYemekParaBirimiBottomSheet,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: Colors.grey.shade300,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _selectedYemekParaBirimi != null
-                                              ? '${_selectedYemekParaBirimi!.birimAdi} (${_selectedYemekParaBirimi!.kod})'
-                                              : 'Seçiniz',
-                                          style: TextStyle(
-                                            color:
-                                                _selectedYemekParaBirimi != null
-                                                ? Colors.black87
-                                                : Colors.grey.shade600,
-                                            fontSize: 16,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.grey,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 16),
+                          // Right: Genel Toplam TL Ücret
+                          Expanded(
+                            flex: 1,
+                            child: PriceInputWidget(
+                              title: 'Genel Toplam TL Ücret',
+                              mainController: _genelToplamAnaController,
+                              decimalController: _genelToplamKusuratController,
+                              inputsOffset: 4,
+                              readOnly: true,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    // Row for Total Fields (50% each)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left: Kişi Başı Toplam TL Ücret
-                        Expanded(
-                          flex: 1,
-                          child: PriceInputWidget(
-                            title: 'Kişi Başı Toplam TL Ücret',
-                            mainController: _kisiBasiToplamAnaController,
-                            decimalController: _kisiBasiToplamKusuratController,
-                            inputsOffset: 4,
-                            readOnly: true,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        // Right: Genel Toplam TL Ücret
-                        Expanded(
-                          flex: 1,
-                          child: PriceInputWidget(
-                            title: 'Genel Toplam TL Ücret',
-                            mainController: _genelToplamAnaController,
-                            decimalController: _genelToplamKusuratController,
-                            inputsOffset: 4,
-                            readOnly: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: OdemeSekliWidget(
-                            title: 'Ödeme Şekli',
-                            selectedOdemeTuru: _selectedOdemeTuru,
-                            onOdemeTuruSelected: (val) {
-                              setState(() {
-                                _selectedOdemeTuru = val;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Row(
-                          children: [
-                            Switch(
-                              value: _vadeli,
-                              activeColor: AppColors.gradientStart,
-                              inactiveTrackColor: Colors.white,
-                              onChanged: (v) {
-                                FocusScope.of(context).unfocus();
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: OdemeSekliWidget(
+                              title: 'Ödeme Şekli',
+                              selectedOdemeTuru: _selectedOdemeTuru,
+                              onOdemeTuruSelected: (val) {
                                 setState(() {
-                                  _vadeli = v;
-                                  if (!v) {
-                                    _odemeVadesi = 1;
-                                  }
+                                  _selectedOdemeTuru = val;
                                 });
                               },
                             ),
-                            const Text(
-                              'Vadeli',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          const SizedBox(width: 12),
+                          Row(
+                            children: [
+                              Switch(
+                                value: _vadeli,
+                                activeColor: AppColors.gradientStart,
+                                inactiveTrackColor: Colors.white,
+                                onChanged: (v) {
+                                  FocusScope.of(context).unfocus();
+                                  setState(() {
+                                    _vadeli = v;
+                                    if (!v) {
+                                      _odemeVadesi = 1;
+                                    }
+                                  });
+                                },
+                              ),
+                              const Text(
+                                'Vadeli',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (_vadeli) ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            DersSaatiSpinnerWidget(
+                              label: 'Ödeme Vadesi',
+                              minValue: 1,
+                              maxValue: 999,
+                              initialValue: _odemeVadesi,
+                              onValueChanged: (value) {
+                                setState(() {
+                                  _odemeVadesi = value;
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 20),
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 12),
+                              child: Text(
+                                'Gün',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
-                    ),
-                    if (_vadeli) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.start,
+                      const SizedBox(height: 24),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          DersSaatiSpinnerWidget(
-                            label: 'Ödeme Vadesi',
-                            minValue: 1,
-                            maxValue: 999,
-                            initialValue: _odemeVadesi,
-                            onValueChanged: (value) {
-                              setState(() {
-                                _odemeVadesi = value;
-                              });
-                            },
+                          Text(
+                            'IBAN',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                ),
                           ),
-                          const SizedBox(width: 20),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              'Gün',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                          const SizedBox(height: 8),
+                          TextField(
+                            focusNode: _ibanFocusNode,
+                            controller: _ibanController,
+                            autofocus: false,
+                            decoration: InputDecoration(
+                              hintText: 'TR',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 16,
                               ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: AppColors.gradientStart,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hesap Adı',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            focusNode: _hesapAdiFocusNode,
+                            controller: _hesapAdiController,
+                            autofocus: false,
+                            decoration: InputDecoration(
+                              hintText: 'Hesap adını giriniz',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 16,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: AppColors.gradientStart,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Diğer Ek Bilgiler',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            focusNode: _digerEkBilgilerFocusNode,
+                            controller: _digerEkBilgilerController,
+                            maxLines: 2,
+                            autofocus: false,
+                            decoration: InputDecoration(
+                              hintText: 'Diğer ek bilgileri giriniz',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 16,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: AppColors.gradientStart,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final data = {
+                                'egitimUcretiAna':
+                                    _egitimUcretiAnaController.text,
+                                'egitimUcretiKusurat':
+                                    _egitimUcretiKusuratController.text,
+                                'ulasimUcretiAna':
+                                    _ulasimUcretiAnaController.text,
+                                'ulasimUcretiKusurat':
+                                    _ulasimUcretiKusuratController.text,
+                                'konaklamaUcretiAna':
+                                    _konaklamaUcretiAnaController.text,
+                                'konaklamaUcretiKusurat':
+                                    _konaklamaUcretiKusuratController.text,
+                                'yemekUcretiAna':
+                                    _yemekUcretiAnaController.text,
+                                'yemekUcretiKusurat':
+                                    _yemekUcretiKusuratController.text,
+                                'kisiBasiToplamAna':
+                                    _kisiBasiToplamAnaController.text,
+                                'kisiBasiToplamKusurat':
+                                    _kisiBasiToplamKusuratController.text,
+                                'genelToplamAna':
+                                    _genelToplamAnaController.text,
+                                'genelToplamKusurat':
+                                    _genelToplamKusuratController.text,
+                                'iban': _ibanController.text,
+                                'hesapAdi': _hesapAdiController.text,
+                                'digerEkBilgiler':
+                                    _digerEkBilgilerController.text,
+                                'selectedParaBirimi': _selectedParaBirimi,
+                                'selectedUlasimParaBirimi':
+                                    _selectedUlasimParaBirimi,
+                                'selectedKonaklamaParaBirimi':
+                                    _selectedKonaklamaParaBirimi,
+                                'selectedYemekParaBirimi':
+                                    _selectedYemekParaBirimi,
+                                'selectedOdemeTuru': _selectedOdemeTuru,
+                                'vadeli': _vadeli,
+                                'odemeVadesi': _odemeVadesi,
+                                // Döviz kurlarını da kaydet
+                                'egitimKuru': _egitimKuru,
+                                'ulasimKuru': _ulasimKuru,
+                                'konaklamaKuru': _konaklamaKuru,
+                                'yemekKuru': _yemekKuru,
+                              };
+                              Navigator.pop(context, data);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Tamam',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
-                    const SizedBox(height: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'IBAN',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _ibanController,
-                          decoration: InputDecoration(
-                            hintText: 'TR',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 16,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: AppColors.gradientStart,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hesap Adı',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _hesapAdiController,
-                          decoration: InputDecoration(
-                            hintText: 'Hesap adını giriniz',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 16,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: AppColors.gradientStart,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Diğer Ek Bilgiler',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _digerEkBilgilerController,
-                          maxLines: 2,
-                          decoration: InputDecoration(
-                            hintText: 'Diğer ek bilgileri giriniz',
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 16,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: AppColors.gradientStart,
-                                width: 1.5,
-                              ),
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final data = {
-                              'egitimUcretiAna':
-                                  _egitimUcretiAnaController.text,
-                              'egitimUcretiKusurat':
-                                  _egitimUcretiKusuratController.text,
-                              'ulasimUcretiAna':
-                                  _ulasimUcretiAnaController.text,
-                              'ulasimUcretiKusurat':
-                                  _ulasimUcretiKusuratController.text,
-                              'konaklamaUcretiAna':
-                                  _konaklamaUcretiAnaController.text,
-                              'konaklamaUcretiKusurat':
-                                  _konaklamaUcretiKusuratController.text,
-                              'yemekUcretiAna': _yemekUcretiAnaController.text,
-                              'yemekUcretiKusurat':
-                                  _yemekUcretiKusuratController.text,
-                              'kisiBasiToplamAna':
-                                  _kisiBasiToplamAnaController.text,
-                              'kisiBasiToplamKusurat':
-                                  _kisiBasiToplamKusuratController.text,
-                              'genelToplamAna': _genelToplamAnaController.text,
-                              'genelToplamKusurat':
-                                  _genelToplamKusuratController.text,
-                              'iban': _ibanController.text,
-                              'hesapAdi': _hesapAdiController.text,
-                              'digerEkBilgiler':
-                                  _digerEkBilgilerController.text,
-                              'selectedParaBirimi': _selectedParaBirimi,
-                              'selectedUlasimParaBirimi':
-                                  _selectedUlasimParaBirimi,
-                              'selectedKonaklamaParaBirimi':
-                                  _selectedKonaklamaParaBirimi,
-                              'selectedYemekParaBirimi':
-                                  _selectedYemekParaBirimi,
-                              'selectedOdemeTuru': _selectedOdemeTuru,
-                              'vadeli': _vadeli,
-                              'odemeVadesi': _odemeVadesi,
-                            };
-                            Navigator.pop(context, data);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Tamam',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final scope = FocusScope.of(context);
+        scope.unfocus();
+        scope.canRequestFocus = true;
+        _ibanFocusNode.canRequestFocus = true;
+        _hesapAdiFocusNode.canRequestFocus = true;
+        _digerEkBilgilerFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
   Future<void> _showParaBirimiBottomSheet() async {
-    FocusScope.of(context).unfocus();
+    final pageFocusScope = FocusScope.of(context);
+
+    // 🔒 1. Input focus alamaz
+    _ibanFocusNode.canRequestFocus = false;
+    _hesapAdiFocusNode.canRequestFocus = false;
+    _digerEkBilgilerFocusNode.canRequestFocus = false;
+
+    // 🔒 1.b Sayfa genelinde focus kilidi (PriceInputWidget dahil)
+    pageFocusScope.canRequestFocus = false;
+
+    // 🔒 2. Focus'u tamamen temizle
+    pageFocusScope.unfocus();
+
+    // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
+    await Future.delayed(Duration.zero);
+
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
-      _openParaBirimiBottomSheet();
+      // 🔒 4. BottomSheet aç
+      await _openParaBirimiBottomSheet();
+
+      // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final scope = FocusScope.of(context);
+          scope.unfocus();
+          scope.canRequestFocus = true;
+          _ibanFocusNode.canRequestFocus = true;
+          _hesapAdiFocusNode.canRequestFocus = true;
+          _digerEkBilgilerFocusNode.canRequestFocus = true;
+        }
+      });
       return;
     }
 
@@ -1223,7 +1335,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       await ref.read(paraBirimlerProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openParaBirimiBottomSheet();
+        // 🔒 4. BottomSheet aç
+        await _openParaBirimiBottomSheet();
       }
     } catch (e) {
       if (mounted) {
@@ -1233,10 +1346,22 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         );
       }
     }
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final scope = FocusScope.of(context);
+        scope.unfocus();
+        scope.canRequestFocus = true;
+        _ibanFocusNode.canRequestFocus = true;
+        _hesapAdiFocusNode.canRequestFocus = true;
+        _digerEkBilgilerFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _openParaBirimiBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openParaBirimiBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -1367,11 +1492,39 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   }
 
   Future<void> _showUlasimParaBirimiBottomSheet() async {
-    FocusScope.of(context).unfocus();
+    final pageFocusScope = FocusScope.of(context);
+
+    // 🔒 1. Input focus alamaz
+    _ibanFocusNode.canRequestFocus = false;
+    _hesapAdiFocusNode.canRequestFocus = false;
+    _digerEkBilgilerFocusNode.canRequestFocus = false;
+
+    // 🔒 1.b Sayfa genelinde focus kilidi (PriceInputWidget dahil)
+    pageFocusScope.canRequestFocus = false;
+
+    // 🔒 2. Focus'u tamamen temizle
+    pageFocusScope.unfocus();
+
+    // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
+    await Future.delayed(Duration.zero);
+
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
-      _openUlasimParaBirimiBottomSheet();
+      // 🔒 4. BottomSheet aç
+      await _openUlasimParaBirimiBottomSheet();
+
+      // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final scope = FocusScope.of(context);
+          scope.unfocus();
+          scope.canRequestFocus = true;
+          _ibanFocusNode.canRequestFocus = true;
+          _hesapAdiFocusNode.canRequestFocus = true;
+          _digerEkBilgilerFocusNode.canRequestFocus = true;
+        }
+      });
       return;
     }
 
@@ -1380,7 +1533,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       await ref.read(paraBirimlerProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openUlasimParaBirimiBottomSheet();
+        // 🔒 4. BottomSheet aç
+        await _openUlasimParaBirimiBottomSheet();
       }
     } catch (e) {
       if (mounted) {
@@ -1390,10 +1544,22 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         );
       }
     }
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final scope = FocusScope.of(context);
+        scope.unfocus();
+        scope.canRequestFocus = true;
+        _ibanFocusNode.canRequestFocus = true;
+        _hesapAdiFocusNode.canRequestFocus = true;
+        _digerEkBilgilerFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _openUlasimParaBirimiBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openUlasimParaBirimiBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -1522,11 +1688,39 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   }
 
   Future<void> _showKonaklamaParaBirimiBottomSheet() async {
-    FocusScope.of(context).unfocus();
+    final pageFocusScope = FocusScope.of(context);
+
+    // 🔒 1. Input focus alamaz
+    _ibanFocusNode.canRequestFocus = false;
+    _hesapAdiFocusNode.canRequestFocus = false;
+    _digerEkBilgilerFocusNode.canRequestFocus = false;
+
+    // 🔒 1.b Sayfa genelinde focus kilidi (PriceInputWidget dahil)
+    pageFocusScope.canRequestFocus = false;
+
+    // 🔒 2. Focus'u tamamen temizle
+    pageFocusScope.unfocus();
+
+    // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
+    await Future.delayed(Duration.zero);
+
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
-      _openKonaklamaParaBirimiBottomSheet();
+      // 🔒 4. BottomSheet aç
+      await _openKonaklamaParaBirimiBottomSheet();
+
+      // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final scope = FocusScope.of(context);
+          scope.unfocus();
+          scope.canRequestFocus = true;
+          _ibanFocusNode.canRequestFocus = true;
+          _hesapAdiFocusNode.canRequestFocus = true;
+          _digerEkBilgilerFocusNode.canRequestFocus = true;
+        }
+      });
       return;
     }
 
@@ -1535,7 +1729,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       await ref.read(paraBirimlerProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openKonaklamaParaBirimiBottomSheet();
+        // 🔒 4. BottomSheet aç
+        await _openKonaklamaParaBirimiBottomSheet();
       }
     } catch (e) {
       if (mounted) {
@@ -1545,10 +1740,22 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         );
       }
     }
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final scope = FocusScope.of(context);
+        scope.unfocus();
+        scope.canRequestFocus = true;
+        _ibanFocusNode.canRequestFocus = true;
+        _hesapAdiFocusNode.canRequestFocus = true;
+        _digerEkBilgilerFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _openKonaklamaParaBirimiBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openKonaklamaParaBirimiBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,
@@ -1677,11 +1884,39 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   }
 
   Future<void> _showYemekParaBirimiBottomSheet() async {
-    FocusScope.of(context).unfocus();
+    final pageFocusScope = FocusScope.of(context);
+
+    // 🔒 1. Input focus alamaz
+    _ibanFocusNode.canRequestFocus = false;
+    _hesapAdiFocusNode.canRequestFocus = false;
+    _digerEkBilgilerFocusNode.canRequestFocus = false;
+
+    // 🔒 1.b Sayfa genelinde focus kilidi (PriceInputWidget dahil)
+    pageFocusScope.canRequestFocus = false;
+
+    // 🔒 2. Focus'u tamamen temizle
+    pageFocusScope.unfocus();
+
+    // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
+    await Future.delayed(Duration.zero);
+
     final paraBirimlerAsync = ref.read(paraBirimlerProvider);
 
     if (paraBirimlerAsync.hasValue) {
-      _openYemekParaBirimiBottomSheet();
+      // 🔒 4. BottomSheet aç
+      await _openYemekParaBirimiBottomSheet();
+
+      // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final scope = FocusScope.of(context);
+          scope.unfocus();
+          scope.canRequestFocus = true;
+          _ibanFocusNode.canRequestFocus = true;
+          _hesapAdiFocusNode.canRequestFocus = true;
+          _digerEkBilgilerFocusNode.canRequestFocus = true;
+        }
+      });
       return;
     }
 
@@ -1690,7 +1925,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       await ref.read(paraBirimlerProvider.future);
       if (mounted) {
         BrandedLoadingDialog.hide(context);
-        _openYemekParaBirimiBottomSheet();
+        // 🔒 4. BottomSheet aç
+        await _openYemekParaBirimiBottomSheet();
       }
     } catch (e) {
       if (mounted) {
@@ -1700,10 +1936,22 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         );
       }
     }
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final scope = FocusScope.of(context);
+        scope.unfocus();
+        scope.canRequestFocus = true;
+        _ibanFocusNode.canRequestFocus = true;
+        _hesapAdiFocusNode.canRequestFocus = true;
+        _digerEkBilgilerFocusNode.canRequestFocus = true;
+      }
+    });
   }
 
-  void _openYemekParaBirimiBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _openYemekParaBirimiBottomSheet() async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       isScrollControlled: true,

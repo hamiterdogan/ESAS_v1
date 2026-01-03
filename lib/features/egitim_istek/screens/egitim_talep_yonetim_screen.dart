@@ -47,7 +47,7 @@ class _EgitimTalepYonetimScreenState
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: const Text(
-              'Eğitim Taleplerini Yönet',
+              'Eğitim İsteklerini Yönet',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -100,7 +100,7 @@ class _EgitimTalepYonetimScreenState
             child: const Icon(Icons.add, color: Colors.white, size: 24),
           ),
           label: const Text(
-            'Yeni Eğitim Talebi',
+            'Yeni İstek',
             style: TextStyle(color: Colors.white),
           ),
         ),

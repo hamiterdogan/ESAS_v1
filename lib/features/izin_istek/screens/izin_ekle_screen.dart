@@ -1038,6 +1038,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   ],
                                   disabledItems: ['12', '13'],
                                   onChanged: (value) {
+                                    // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                                    FocusScope.of(context).unfocus();
                                     ref
                                         .read(izinEkleFormProvider.notifier)
                                         .setHastalikBaslangicSaati(value);
@@ -1066,6 +1068,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                       '00',
                                   items: ['00', '30'],
                                   onChanged: (value) {
+                                    // 🔴 KRİTİK: Dakika değiştiğinde klavyeyi kapat
+                                    FocusScope.of(context).unfocus();
                                     ref
                                         .read(izinEkleFormProvider.notifier)
                                         .setHastalikBaslangicDakikasi(value);
@@ -1126,6 +1130,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   ],
                                   disabledItems: ['12', '13'],
                                   onChanged: (value) {
+                                    // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                                    FocusScope.of(context).unfocus();
                                     ref
                                         .read(izinEkleFormProvider.notifier)
                                         .setHastalikBitisSaati(value);
@@ -1153,6 +1159,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                       formState.hastalikBitisDakikasi ?? '00',
                                   items: ['00', '30'],
                                   onChanged: (value) {
+                                    // 🔴 KRİTİK: Dakika değiştiğinde klavyeyi kapat
+                                    FocusScope.of(context).unfocus();
                                     ref
                                         .read(izinEkleFormProvider.notifier)
                                         .setHastalikBitisDakikasi(value);
@@ -2127,68 +2135,74 @@ class _CustomTimePickerSpinnerState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.grey[50],
-      ),
-      child: Stack(
-        children: [
-          // Center highlight
-          Center(
-            child: Container(
-              height: 32,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey[300]!, width: 1),
-                  bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+    return GestureDetector(
+      onTapDown: (_) {
+        // 🔴 KRİTİK: Picker'a tıklandığında klavyeyi kapat
+        FocusScope.of(context).unfocus();
+      },
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey[50],
+        ),
+        child: Stack(
+          children: [
+            // Center highlight
+            Center(
+              child: Container(
+                height: 32,
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey[300]!, width: 1),
+                    bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                  ),
+                  color: Color(0xFF014B92).withValues(alpha: 0.05),
                 ),
-                color: Color(0xFF014B92).withValues(alpha: 0.05),
               ),
             ),
-          ),
-          // Cupertino Picker
-          CupertinoPicker(
-            scrollController: _scrollController,
-            itemExtent: 32,
-            onSelectedItemChanged: (int index) {
-              final selectedValue = widget.items[index];
-              // Disabled item se?ilirse, de?i?ikli?i kabul etme
-              if (widget.disabledItems.contains(selectedValue)) {
-                return;
-              }
-              setState(() {
-                _selectedIndex = index;
-              });
-              widget.onChanged(selectedValue);
-            },
-            children: widget.items.asMap().entries.map((entry) {
-              int index = entry.key;
-              String value = entry.value;
-              bool isSelected = index == _selectedIndex;
-              bool isDisabled = widget.disabledItems.contains(value);
+            // Cupertino Picker
+            CupertinoPicker(
+              scrollController: _scrollController,
+              itemExtent: 32,
+              onSelectedItemChanged: (int index) {
+                final selectedValue = widget.items[index];
+                // Disabled item se?ilirse, de?i?ikli?i kabul etme
+                if (widget.disabledItems.contains(selectedValue)) {
+                  return;
+                }
+                setState(() {
+                  _selectedIndex = index;
+                });
+                widget.onChanged(selectedValue);
+              },
+              children: widget.items.asMap().entries.map((entry) {
+                int index = entry.key;
+                String value = entry.value;
+                bool isSelected = index == _selectedIndex;
+                bool isDisabled = widget.disabledItems.contains(value);
 
-              return Center(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: isSelected ? 18 : 13,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isDisabled
-                        ? Colors.grey[300]
-                        : isSelected
-                        ? const Color(0xFF014B92)
-                        : Colors.grey[600],
+                return Center(
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: isSelected ? 18 : 13,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isDisabled
+                          ? Colors.grey[300]
+                          : isSelected
+                          ? const Color(0xFF014B92)
+                          : Colors.grey[600],
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

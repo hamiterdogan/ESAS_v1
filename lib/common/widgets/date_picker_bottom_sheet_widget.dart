@@ -173,7 +173,10 @@ class _DatePickerBottomSheetWidgetState
     return days.first;
   }
 
-  void _showDatePickerBottomSheet() {
+  void _showDatePickerBottomSheet() async {
+    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
+    FocusScope.of(context).unfocus();
+
     // Initialize with selected date or first available
     int tempYear = _selectedDate?.year ?? _minDate.year;
     int tempMonth = _selectedDate?.month ?? _minDate.month;
@@ -185,7 +188,7 @@ class _DatePickerBottomSheetWidgetState
       tempYear = years.first;
     }
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -381,6 +384,13 @@ class _DatePickerBottomSheetWidgetState
         );
       },
     );
+
+    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    });
   }
 
   @override
