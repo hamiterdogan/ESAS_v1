@@ -3,7 +3,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 
 class ValidationUyariWidget {
   /// Validation uyarısı bottom sheet'i gösterir
-  /// 
+  ///
   /// [context]: BuildContext
   /// [message]: Gösterilecek uyarı mesajı
   /// [onDismiss]: Modal kapandığında çağrılacak callback (opsiyonel)

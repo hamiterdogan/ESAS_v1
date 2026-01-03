@@ -2006,6 +2006,17 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   }
 
   Future<void> _submitForm() async {
+    // Eğitimin Adı seçimi zorunlu validasyonu
+    if (_secilenEgitimAdi == null) {
+      if (mounted) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen eğitimin adını seçiniz',
+        );
+      }
+      return;
+    }
+
     // DİĞER seçildiğinde eğitim adı zorunlu validasyonu
     if (_secilenEgitimAdi == 'DİĞER' && _ozelEgitimAdiController.text.isEmpty) {
       // Validation hatasını widget ile göster
