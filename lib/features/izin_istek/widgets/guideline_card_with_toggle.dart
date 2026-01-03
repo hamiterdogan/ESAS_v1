@@ -88,7 +88,7 @@ class GuidelineCardWithToggle extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 3),
         // Onay Toggle Button
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
