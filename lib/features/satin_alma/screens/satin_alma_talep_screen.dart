@@ -217,6 +217,108 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     }
   }
 
+  bool _hasFormData() {
+    // Temel form alanlarını kontrol et
+    if (_selectedBinaKodlari.isNotEmpty) return true;
+    if (_alimAmaciController.text.isNotEmpty) return true;
+    if (_saticiFirmaController.text.isNotEmpty) return true;
+    if (_saticiTelefonController.text.isNotEmpty) return true;
+    if (_webSitesiController.text.isNotEmpty) return true;
+    if (_selectedOdemeTuru != null) return true;
+    if (_urunler.isNotEmpty) return true;
+    if (_selectedFiles.isNotEmpty) return true;
+    if (_fiyatTeklifIcerikController.text.isNotEmpty) return true;
+
+    return false;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Uyarı',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Vazgeç',
+                            style: TextStyle(
+                              color: AppColors.gradientStart,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
+            );
+          },
+        ) ??
+        false;
+  }
+
   void _removeFile(int index) {
     setState(() {
       _selectedFiles.removeAt(index);
@@ -707,9 +809,20 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          context.go('/satin_alma');
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        // Form verisi varsa onay iste
+        if (_hasFormData()) {
+          final shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            context.go('/satin_alma');
+          }
+        } else {
+          // Form boşsa direkt çık
+          if (context.mounted) {
+            context.go('/satin_alma');
+          }
         }
       },
       child: Scaffold(
@@ -726,7 +839,16 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => context.go('/satin_alma'),
+                    onPressed: () async {
+                      if (_hasFormData()) {
+                        final shouldPop = await _showExitConfirmationDialog();
+                        if (shouldPop && context.mounted) {
+                          context.go('/satin_alma');
+                        }
+                      } else {
+                        context.go('/satin_alma');
+                      }
+                    },
                     constraints: const BoxConstraints(
                       minHeight: 48,
                       minWidth: 48,

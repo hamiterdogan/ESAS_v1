@@ -20,10 +20,13 @@ class PersonelRepositoryImpl extends BaseRepository
     try {
       AppLogger.api(
         'Fetching personel',
-        url: '/Personel/PersonelleriGetir',
+        url: '/Personel/PersonelleriGetir?aktif=true',
         method: 'GET',
       );
-      final response = await _dio.get('/Personel/PersonelleriGetir');
+      final response = await _dio.get(
+        '/Personel/PersonelleriGetir',
+        queryParameters: {'aktif': true},
+      );
       AppLogger.api('Response received', statusCode: response.statusCode);
 
       return handleResponse(response, (data) {

@@ -372,7 +372,10 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   Future<Result<List<Personel>>> getPersoneller(String query) async {
     try {
       print('🔍 Personeller getiriliyor: $query');
-      final response = await _dio.get('/Personel/PersonelleriGetir');
+      final response = await _dio.get(
+        '/Personel/PersonelleriGetir',
+        queryParameters: {'aktif': true},
+      );
       print('✅ Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {

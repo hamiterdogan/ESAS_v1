@@ -5,7 +5,6 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
-import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
@@ -66,302 +65,418 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     super.dispose();
   }
 
+  bool _hasFormData() {
+    if (_aciklamaController.text.isNotEmpty) return true;
+    if (_adresController.text.isNotEmpty) return true;
+    if (_esAdiController.text.isNotEmpty) return true;
+    if (_girileymeyenDersSaati > 0) return true;
+    if (_evlilikTarihi != null) return true;
+    if (_basaksiAdinaIstekte && _secilenPersonel != null) return true;
+    return false;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Uyarı',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Vazgeç',
+                            style: TextStyle(
+                              color: AppColors.gradientStart,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
+            );
+          },
+        ) ??
+        false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
-        appBar: AppBar(
-          title: const Text(
-            'Evlilik İzni İstek',
-            style: TextStyle(color: Colors.white),
-          ),
-          elevation: 0,
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        if (_hasFormData()) {
+          final shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            context.pop();
+          }
+        } else {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: const Color(0xFFEEF1F5),
+          appBar: AppBar(
+            title: const Text(
+              'Evlilik İzni İstek',
+              style: TextStyle(color: Colors.white),
             ),
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Başkası adına istekte bulunuyorum
-                PersonelSecimWidget(
-                  initialPersonel: _secilenPersonel,
-                  initialToggleState: _basaksiAdinaIstekte,
-                  onPersonelSelected: (personel) {
-                    setState(() {
-                      _secilenPersonel = personel;
-                    });
-                  },
-                  onToggleChanged: (value) {
-                    setState(() {
-                      _basaksiAdinaIstekte = value;
-                      if (!value) {
-                        _secilenPersonel = null;
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Başkası adına istekte bulunuyorum
+                  PersonelSecimWidget(
+                    initialPersonel: _secilenPersonel,
+                    initialToggleState: _basaksiAdinaIstekte,
+                    onPersonelSelected: (personel) {
+                      setState(() {
+                        _secilenPersonel = personel;
+                      });
+                    },
+                    onToggleChanged: (value) {
+                      setState(() {
+                        _basaksiAdinaIstekte = value;
+                        if (!value) {
+                          _secilenPersonel = null;
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
 
-                // Açıklama
-                AciklamaFieldWidget(
-                  controller: _aciklamaController,
-                  focusNode: _aciklamaFocusNode,
-                  minCharacters: 30,
-                ),
-                const SizedBox(height: 24),
+                  // Açıklama
+                  AciklamaFieldWidget(
+                    controller: _aciklamaController,
+                    focusNode: _aciklamaFocusNode,
+                    minCharacters: 30,
+                  ),
+                  const SizedBox(height: 24),
 
-                // Başlangıç ve Bitiş Tarihi
-                Row(
-                  children: [
-                    Expanded(
-                      child: DatePickerBottomSheetWidget(
-                        initialDate: _baslangicTarihi,
-                        label: 'Başlangıç Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        onDateChanged: (date) {
-                          setState(() {
-                            _baslangicTarihi = date;
-                            if (_bitisTarihi == null ||
-                                date.isAfter(_bitisTarihi!)) {
-                              var nextDay = date.add(const Duration(days: 1));
-                              if (nextDay.weekday == DateTime.sunday) {
-                                nextDay = nextDay.add(const Duration(days: 1));
+                  // Başlangıç ve Bitiş Tarihi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          initialDate: _baslangicTarihi,
+                          label: 'Başlangıç Tarihi',
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          onDateChanged: (date) {
+                            setState(() {
+                              _baslangicTarihi = date;
+                              if (_bitisTarihi == null ||
+                                  date.isAfter(_bitisTarihi!)) {
+                                var nextDay = date.add(const Duration(days: 1));
+                                if (nextDay.weekday == DateTime.sunday) {
+                                  nextDay = nextDay.add(
+                                    const Duration(days: 1),
+                                  );
+                                }
+                                _bitisTarihi = nextDay;
                               }
-                              _bitisTarihi = nextDay;
-                            }
-                            // Başlangıç tarihi bitişten küçükse bitiş sabit kalır
-                          });
-                        },
+                              // Başlangıç tarihi bitişten küçükse bitiş sabit kalır
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: DatePickerBottomSheetWidget(
-                        initialDate: _bitisTarihi,
-                        minDate: _baslangicTarihi != null
-                            ? _getNextSelectableDay(_baslangicTarihi!)
-                            : null,
-                        label: 'Bitiş Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        onDateChanged: (date) {
-                          setState(() {
-                            _bitisTarihi = date;
-                          });
-                        },
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          initialDate: _bitisTarihi,
+                          minDate: _baslangicTarihi != null
+                              ? _getNextSelectableDay(_baslangicTarihi!)
+                              : null,
+                          label: 'Bitiş Tarihi',
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          onDateChanged: (date) {
+                            setState(() {
+                              _bitisTarihi = date;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // Evlilik Tarihi
-                Row(
-                  children: [
-                    Expanded(
-                      child: DatePickerBottomSheetWidget(
-                        initialDate: _evlilikTarihi,
-                        label: 'Evlilik Tarihi',
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        onDateChanged: (date) {
-                          setState(() {
-                            _evlilikTarihi = date;
-                          });
-                        },
+                  // Evlilik Tarihi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          initialDate: _evlilikTarihi,
+                          label: 'Evlilik Tarihi',
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          onDateChanged: (date) {
+                            setState(() {
+                              _evlilikTarihi = date;
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    const Expanded(child: SizedBox()),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                      const SizedBox(width: 24),
+                      const Expanded(child: SizedBox()),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // Eş Adı
-                Text(
-                  'Eş Adı',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
+                  // Eş Adı
+                  Text(
+                    'Eş Adı',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  focusNode: _esAdiFocusNode,
-                  controller: _esAdiController,
-                  decoration: InputDecoration(
-                    hintText: 'Lütfen eşinizin adını giriniz.',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _esAdiHatali
-                            ? const Color(0xFFB57070)
-                            : Colors.grey,
-                        width: _esAdiHatali ? 2 : 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: _esAdiHatali
-                            ? const Color(0xFFB57070)
-                            : AppColors.gradientEnd,
-                        width: 2,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  minLines: 3,
-                  maxLines: 5,
-                  onChanged: (value) {
-                    if (_esAdiHatali && value.isNotEmpty) {
-                      setState(() {
-                        _esAdiHatali = false;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Girilmeyen Ders Saati Spinner
-                DersSaatiSpinnerWidget(
-                  initialValue: _girileymeyenDersSaati,
-                  onValueChanged: (value) {
-                    setState(() {
-                      _girileymeyenDersSaati = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // İzinde Bulunacağı Adres
-                Text(
-                  'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  focusNode: _adresFocusNode,
-                  controller: _adresController,
-                  decoration: InputDecoration(
-                    hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  minLines: 3,
-                  maxLines: 5,
-                  onChanged: (value) {
-                    if (_adresHatali && value.isNotEmpty) {
-                      setState(() {
-                        _adresHatali = false;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                GuidelineCardWithToggle(
-                  pdfTitle: 'İzin Kullanma Yönergesi',
-                  pdfUrl:
-                      'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
-                  cardButtonText: 'İzin Kullanma Yönergesi',
-                  toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
-                  toggleValue: _onay,
-                  onToggleChanged: (value) {
-                    setState(() {
-                      _onay = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: _onay
-                        ? AppColors.primaryGradient
-                        : LinearGradient(
-                            colors: [
-                              AppColors.gradientStart.withValues(alpha: 0.2),
-                              AppColors.gradientEnd.withValues(alpha: 0.2),
-                            ],
-                          ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _onay ? _submitForm : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    focusNode: _esAdiFocusNode,
+                    controller: _esAdiController,
+                    decoration: InputDecoration(
+                      hintText: 'Lütfen eşinizin adını giriniz.',
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: _esAdiHatali
+                              ? const Color(0xFFB57070)
+                              : Colors.grey,
+                          width: _esAdiHatali ? 2 : 1,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: _esAdiHatali
+                              ? const Color(0xFFB57070)
+                              : AppColors.gradientEnd,
+                          width: 2,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    minLines: 3,
+                    maxLines: 5,
+                    onChanged: (value) {
+                      if (_esAdiHatali && value.isNotEmpty) {
+                        setState(() {
+                          _esAdiHatali = false;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Girilmeyen Ders Saati Spinner
+                  DersSaatiSpinnerWidget(
+                    initialValue: _girileymeyenDersSaati,
+                    onValueChanged: (value) {
+                      setState(() {
+                        _girileymeyenDersSaati = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // İzinde Bulunacağı Adres
+                  Text(
+                    'İzinde Bulunacağı Adres',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    focusNode: _adresFocusNode,
+                    controller: _adresController,
+                    decoration: InputDecoration(
+                      hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    minLines: 3,
+                    maxLines: 5,
+                    onChanged: (value) {
+                      if (_adresHatali && value.isNotEmpty) {
+                        setState(() {
+                          _adresHatali = false;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  GuidelineCardWithToggle(
+                    pdfTitle: 'İzin Kullanma Yönergesi',
+                    pdfUrl:
+                        'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
+                    cardButtonText: 'İzin Kullanma Yönergesi',
+                    toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
+                    toggleValue: _onay,
+                    onToggleChanged: (value) {
+                      setState(() {
+                        _onay = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: _onay
+                          ? AppColors.primaryGradient
+                          : LinearGradient(
+                              colors: [
+                                AppColors.gradientStart.withValues(alpha: 0.2),
+                                AppColors.gradientEnd.withValues(alpha: 0.2),
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _onay ? _submitForm : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Gönder',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

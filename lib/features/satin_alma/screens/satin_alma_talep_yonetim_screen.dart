@@ -635,108 +635,125 @@ class _SatinAlmaTalepYonetimScreenState
                         horizontal: 16,
                         vertical: 12,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'Süreç No: ',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Text(
-                                '${talep.onayKayitID}',
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF014B92),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            talep.aciklama.isEmpty ? '(...)' : talep.aciklama,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            talep.saticiFirma.isEmpty ? '-' : talep.saticiFirma,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                tarihStr,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    Icon(
-                                      talep.onayDurumu.toLowerCase().contains(
-                                            'onay bekliyor',
-                                          )
-                                          ? Icons.access_time
-                                          : talep.onayDurumu
-                                                .toLowerCase()
-                                                .contains('redd')
-                                          ? Icons.close
-                                          : Icons.check_circle,
-                                      size: 16,
-                                      color: statusColor,
+                                    const Text(
+                                      'Süreç No: ',
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        talep.onayDurumu.isEmpty
-                                            ? 'Durum Bilinmiyor'
-                                            : talep.onayDurumu,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: statusColor,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 12,
-                                        ),
+                                    Text(
+                                      '${talep.onayKayitID}',
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF014B92),
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 6),
+                                Text(
+                                  talep.aciklama.isEmpty
+                                      ? '(...)'
+                                      : talep.aciklama,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  talep.saticiFirma.isEmpty
+                                      ? '-'
+                                      : talep.saticiFirma,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      tarihStr,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            talep.onayDurumu
+                                                    .toLowerCase()
+                                                    .contains('onay bekliyor')
+                                                ? Icons.access_time
+                                                : talep.onayDurumu
+                                                      .toLowerCase()
+                                                      .contains('redd')
+                                                ? Icons.close
+                                                : Icons.check_circle,
+                                            size: 16,
+                                            color: statusColor,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              talep.onayDurumu.isEmpty
+                                                  ? 'Durum Bilinmiyor'
+                                                  : talep.onayDurumu,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                color: statusColor,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 30,
+                            color: Colors.grey.shade500,
                           ),
                         ],
                       ),

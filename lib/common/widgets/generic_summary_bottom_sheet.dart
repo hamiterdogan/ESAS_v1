@@ -26,6 +26,8 @@ class GenericSummaryBottomSheet extends ConsumerStatefulWidget {
   final VoidCallback onSuccess;
   final void Function(String error) onError;
   final bool showRequestData;
+  final String confirmButtonLabel;
+  final String cancelButtonLabel;
 
   const GenericSummaryBottomSheet({
     super.key,
@@ -36,6 +38,8 @@ class GenericSummaryBottomSheet extends ConsumerStatefulWidget {
     required this.onSuccess,
     required this.onError,
     this.showRequestData = true,
+    this.confirmButtonLabel = 'Gönder',
+    this.cancelButtonLabel = 'İptal',
   });
 
   @override
@@ -347,9 +351,12 @@ class _GenericSummaryBottomSheetState
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'İptal',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  child: Text(
+                    widget.cancelButtonLabel,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -375,9 +382,9 @@ class _GenericSummaryBottomSheetState
                             ),
                           ),
                         )
-                      : const Text(
-                          'Gönder',
-                          style: TextStyle(
+                      : Text(
+                          widget.confirmButtonLabel,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -425,6 +432,8 @@ Future<void> showGenericSummaryBottomSheet({
   required VoidCallback onSuccess,
   required void Function(String error) onError,
   bool showRequestData = true,
+  String confirmButtonLabel = 'Gönder',
+  String cancelButtonLabel = 'İptal',
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -442,6 +451,8 @@ Future<void> showGenericSummaryBottomSheet({
         onSuccess: onSuccess,
         onError: onError,
         showRequestData: showRequestData,
+        confirmButtonLabel: confirmButtonLabel,
+        cancelButtonLabel: cancelButtonLabel,
       );
     },
   );

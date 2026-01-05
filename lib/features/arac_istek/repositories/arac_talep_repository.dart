@@ -266,7 +266,10 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
   Future<Result<PersonelSecimData>> personelSecimVerisiGetir() async {
     try {
       final results = await Future.wait([
-        _dio.get('/Personel/PersonelleriGetir'),
+        _dio.get(
+          '/Personel/PersonelleriGetir',
+          queryParameters: {'aktif': true},
+        ),
         _dio.get('/TalepYonetimi/GorevDoldur'),
         _dio.get('/TalepYonetimi/GorevYeriDoldur'),
       ]);

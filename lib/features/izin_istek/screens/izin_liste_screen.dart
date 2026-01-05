@@ -1132,10 +1132,10 @@ class _IzinTalepKarti extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
-                      color: Colors.grey,
-                      size: 24,
+                      size: 30,
+                      color: Colors.grey.shade500,
                     ),
                   ],
                 ),

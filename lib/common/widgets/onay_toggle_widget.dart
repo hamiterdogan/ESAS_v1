@@ -44,12 +44,12 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
           activeThumbColor: AppColors.gradientEnd,
           inactiveTrackColor: Colors.white,
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 5),
         Expanded(
           child: FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(widget.label, style: const TextStyle(fontSize: 15)),
+            child: Text(widget.label, style: const TextStyle(fontSize: 16)),
           ),
         ),
       ],

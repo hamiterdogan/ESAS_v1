@@ -9,7 +9,16 @@ import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
 class EgitimSonrasiPaylasimsScreen extends ConsumerStatefulWidget {
-  const EgitimSonrasiPaylasimsScreen({super.key});
+  final Map<String, dynamic>? initialData;
+  final bool shouldFocusInput;
+  final String? initialValidationErrorType;
+
+  const EgitimSonrasiPaylasimsScreen({
+    super.key,
+    this.initialData,
+    this.shouldFocusInput = false,
+    this.initialValidationErrorType,
+  });
 
   @override
   ConsumerState<EgitimSonrasiPaylasimsScreen> createState() =>
@@ -27,6 +36,8 @@ class _EgitimSonrasiPaylasimsScreenState
   final TextEditingController _egitimYeriController = TextEditingController();
   final FocusNode _egitimYeriFocusNode = FocusNode();
   final Set<int> _selectedPersonelIds = {};
+  final Set<int> _selectedGorevYeriIds = {};
+  final Set<int> _selectedGorevIds = {};
   List<PersonelItem> _personeller = [];
   List<GorevItem> _gorevler = [];
   List<GorevYeriItem> _gorevYerleri = [];
@@ -36,6 +47,59 @@ class _EgitimSonrasiPaylasimsScreenState
     super.initState();
     _baslangicTarihi = DateTime.now();
     _bitisTarihi = DateTime.now().add(const Duration(days: 7));
+    _loadInitialData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future(() async {
+        if (!mounted) return;
+
+        if (widget.initialValidationErrorType != null) {
+          await _showValidationError(
+            errorType: widget.initialValidationErrorType!,
+          );
+        }
+
+        // Eğer shouldFocusInput true ise inputa focus ayarla
+        if (widget.shouldFocusInput && mounted) {
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (mounted) {
+            FocusScope.of(context).requestFocus(_egitimYeriFocusNode);
+          }
+        }
+      });
+    });
+  }
+
+  void _loadInitialData() {
+    if (widget.initialData != null) {
+      final data = widget.initialData!;
+      if (data['baslangicTarihi'] != null) {
+        _baslangicTarihi = data['baslangicTarihi'] as DateTime;
+      }
+      if (data['bitisTarihi'] != null) {
+        _bitisTarihi = data['bitisTarihi'] as DateTime;
+      }
+      _baslangicSaat = data['baslangicSaat'] ?? 8;
+      _baslangicDakika = data['baslangicDakika'] ?? 0;
+      _bitisSaat = data['bitisSaat'] ?? 17;
+      _bitisDakika = data['bitisDakika'] ?? 30;
+      _egitimYeriController.text = data['egitimYeri'] ?? '';
+      if (data['selectedPersonelIds'] != null) {
+        final ids = data['selectedPersonelIds'] as List<int>;
+        _selectedPersonelIds.clear();
+        _selectedPersonelIds.addAll(ids);
+      }
+      if (data['selectedGorevYeriIds'] != null) {
+        final gorevYeriIds = data['selectedGorevYeriIds'] as List<int>;
+        _selectedGorevYeriIds.clear();
+        _selectedGorevYeriIds.addAll(gorevYeriIds);
+      }
+      if (data['selectedGorevIds'] != null) {
+        final gorevIds = data['selectedGorevIds'] as List<int>;
+        _selectedGorevIds.clear();
+        _selectedGorevIds.addAll(gorevIds);
+      }
+    }
   }
 
   @override
@@ -45,10 +109,130 @@ class _EgitimSonrasiPaylasimsScreenState
     super.dispose();
   }
 
+  bool _validateForm() {
+    // Eğitimin yapılacağı yer kontrol et
+    if (_egitimYeriController.text.trim().isEmpty) {
+      return false;
+    }
+    return true;
+  }
+
+  bool _validatePersonelSelection() {
+    // En az 1 personel seçilmiş olması kontrol et
+    if (_selectedPersonelIds.isEmpty) {
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _showValidationError({String errorType = 'location'}) async {
+    String errorMessage = '';
+
+    if (errorType == 'location') {
+      errorMessage = 'Lütfen eğitimin yapılacağı yeri belirtiniz';
+    } else if (errorType == 'personel') {
+      errorMessage =
+          'Lütfen eğitimi paylaşacağınız kişiler veya departmanı belirtiniz';
+    }
+
+    // 🔒 1. FocusNode'u disabled et
+    _egitimYeriFocusNode.canRequestFocus = false;
+
+    // 🔒 2. Tüm focus'u temizle
+    FocusScope.of(context).unfocus();
+
+    // 🔒 3. 1 frame bekle
+    await Future.delayed(Duration.zero);
+
+    // 🔒 4. BottomSheet aç
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Uyarı',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                errorMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tamam',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 60),
+            ],
+          ),
+        );
+      },
+    );
+
+    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver ve ekstra unfocus
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _egitimYeriFocusNode.canRequestFocus = true;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          // Back button basıldığında verileri kaydet ve geri gönder
+          final data = {
+            'baslangicTarihi': _baslangicTarihi,
+            'bitisTarihi': _bitisTarihi,
+            'baslangicSaat': _baslangicSaat,
+            'baslangicDakika': _baslangicDakika,
+            'bitisSaat': _bitisSaat,
+            'bitisDakika': _bitisDakika,
+            'egitimYeri': _egitimYeriController.text,
+            'selectedPersonelIds': _selectedPersonelIds.toList(),
+            'selectedGorevYeriIds': _selectedGorevYeriIds.toList(),
+            'selectedGorevIds': _selectedGorevIds.toList(),
+          };
+        }
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFFEEF1F5),
         appBar: PreferredSize(
@@ -63,7 +247,21 @@ class _EgitimSonrasiPaylasimsScreenState
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => context.pop(),
+                    onPressed: () {
+                      final data = {
+                        'baslangicTarihi': _baslangicTarihi,
+                        'bitisTarihi': _bitisTarihi,
+                        'baslangicSaat': _baslangicSaat,
+                        'baslangicDakika': _baslangicDakika,
+                        'bitisSaat': _bitisSaat,
+                        'bitisDakika': _bitisDakika,
+                        'egitimYeri': _egitimYeriController.text,
+                        'selectedPersonelIds': _selectedPersonelIds.toList(),
+                        'selectedGorevYeriIds': _selectedGorevYeriIds.toList(),
+                        'selectedGorevIds': _selectedGorevIds.toList(),
+                      };
+                      Navigator.pop(context, data);
+                    },
                   ),
                   const Text(
                     'Eğitim Sonrası Kurum İçi Paylaşım',
@@ -299,6 +497,8 @@ class _EgitimSonrasiPaylasimsScreenState
                         const SizedBox(height: 12),
                         PersonelSelectorWidget(
                           initialSelection: _selectedPersonelIds,
+                          initialSelectedGorevYeriIds: _selectedGorevYeriIds,
+                          initialSelectedGorevIds: _selectedGorevIds,
                           fetchFunction: () => ref
                               .read(aracTalepRepositoryProvider)
                               .personelSecimVerisiGetir(),
@@ -306,6 +506,14 @@ class _EgitimSonrasiPaylasimsScreenState
                             setState(() {
                               _selectedPersonelIds.clear();
                               _selectedPersonelIds.addAll(ids);
+                            });
+                          },
+                          onFilterChanged: (gorevYeriIds, gorevIds) {
+                            setState(() {
+                              _selectedGorevYeriIds.clear();
+                              _selectedGorevYeriIds.addAll(gorevYeriIds);
+                              _selectedGorevIds.clear();
+                              _selectedGorevIds.addAll(gorevIds);
                             });
                           },
                           onDataLoaded: (data) {
@@ -325,8 +533,32 @@ class _EgitimSonrasiPaylasimsScreenState
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
+                      onPressed: () async {
+                        // Form validasyonlarını kontrol et
+                        if (!_validateForm()) {
+                          await _showValidationError(errorType: 'location');
+                          return;
+                        }
+
+                        if (!_validatePersonelSelection()) {
+                          await _showValidationError(errorType: 'personel');
+                          return;
+                        }
+
+                        final data = {
+                          'baslangicTarihi': _baslangicTarihi,
+                          'bitisTarihi': _bitisTarihi,
+                          'baslangicSaat': _baslangicSaat,
+                          'baslangicDakika': _baslangicDakika,
+                          'bitisSaat': _bitisSaat,
+                          'bitisDakika': _bitisDakika,
+                          'egitimYeri': _egitimYeriController.text,
+                          'selectedPersonelIds': _selectedPersonelIds.toList(),
+                          'selectedGorevYeriIds': _selectedGorevYeriIds
+                              .toList(),
+                          'selectedGorevIds': _selectedGorevIds.toList(),
+                        };
+                        Navigator.pop(context, data);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.gradientStart,

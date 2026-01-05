@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
-import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
@@ -69,6 +68,102 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     super.dispose();
   }
 
+  bool _hasFormData() {
+    if (_aciklamaController.text.isNotEmpty) return true;
+    if (_adresController.text.isNotEmpty) return true;
+    if (_girileymeyenDersSaati > 0) return true;
+    if (_doktorRaporuFile != null) return true;
+    if (_basaksiAdinaIstekte && _secilenPersonel != null) return true;
+    return false;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return await showModalBottomSheet<bool>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Uyarı',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Vazgeç',
+                            style: TextStyle(
+                              color: AppColors.gradientStart,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
+            );
+          },
+        ) ??
+        false;
+  }
+
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -101,332 +196,283 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
-        appBar: AppBar(
-          title: const Text(
-            'Hastalık İzni İstek',
-            style: TextStyle(color: Colors.white),
-          ),
-          elevation: 0,
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          return;
+        }
+
+        if (_hasFormData()) {
+          final bool shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            Navigator.pop(context);
+          }
+        } else {
+          if (context.mounted) {
+            Navigator.pop(context);
+          }
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: const Color(0xFFEEF1F5),
+          appBar: AppBar(
+            title: const Text(
+              'Hastalık İzni İstek',
+              style: TextStyle(color: Colors.white),
             ),
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Başkası adına istekte bulunuyorum
-                PersonelSecimWidget(
-                  initialPersonel: _secilenPersonel,
-                  initialToggleState: _basaksiAdinaIstekte,
-                  onPersonelSelected: (personel) {
-                    setState(() {
-                      _secilenPersonel = personel;
-                    });
-                  },
-                ),
-                const SizedBox(height: 10),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Başkası adına istekte bulunuyorum
+                  PersonelSecimWidget(
+                    initialPersonel: _secilenPersonel,
+                    initialToggleState: _basaksiAdinaIstekte,
+                    onPersonelSelected: (personel) {
+                      setState(() {
+                        _secilenPersonel = personel;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
 
-                // Açıklama
-                AciklamaFieldWidget(
-                  controller: _aciklamaController,
-                  focusNode: _aciklamaFocusNode,
-                  minCharacters: 30,
-                ),
-                const SizedBox(height: 24),
+                  // Açıklama
+                  AciklamaFieldWidget(
+                    controller: _aciklamaController,
+                    focusNode: _aciklamaFocusNode,
+                    minCharacters: 30,
+                  ),
+                  const SizedBox(height: 24),
 
-                // 1 günlük izin toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _birGunlukIzin,
-                      onChanged: (value) {
-                        setState(() {
-                          _birGunlukIzin = value;
-                          // 1 günlük izin aktif edildiğinde bitiş saati 17:30 olsun
-                          if (value) {
-                            _bitisSaat = 17;
-                            _bitisDakika = 30;
-                          }
-                        });
-                      },
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: Colors.white,
-                    ),
-                    const Text('1 günlük izin'),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Başlangıç ve Bitiş Tarihi
-                Row(
-                  children: [
-                    Expanded(
-                      child: DatePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        initialDate: _baslangicTarihi,
-                        label: 'Başlangıç Tarihi',
-                        onDateChanged: (date) {
+                  // 1 günlük izin toggle
+                  Row(
+                    children: [
+                      Switch(
+                        value: _birGunlukIzin,
+                        onChanged: (value) {
                           setState(() {
-                            _baslangicTarihi = date;
-                            if (_birGunlukIzin) {
-                              _bitisTarihi = date;
-                            } else {
-                              // Başlangıç > mevcut bitiş ise bitişi bir sonraki güne taşı
-                              if (_bitisTarihi == null ||
-                                  date.isAfter(_bitisTarihi!)) {
-                                var nextDay = date.add(const Duration(days: 1));
-                                if (nextDay.weekday == DateTime.sunday) {
-                                  nextDay = nextDay.add(
-                                    const Duration(days: 1),
-                                  );
-                                }
-                                _bitisTarihi = nextDay;
-                              }
-                              // Başlangıç tarihi bitişten küçükse bitiş sabit kalır
+                            _birGunlukIzin = value;
+                            // 1 günlük izin aktif edildiğinde bitiş saati 17:30 olsun
+                            if (value) {
+                              _bitisSaat = 17;
+                              _bitisDakika = 30;
                             }
                           });
                         },
+                        activeTrackColor: AppColors.gradientStart.withValues(
+                          alpha: 0.5,
+                        ),
+                        activeThumbColor: AppColors.gradientEnd,
+                        inactiveTrackColor: Colors.white,
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: _birGunlukIzin
-                          ? const SizedBox()
-                          : DatePickerBottomSheetWidget(
-                              labelStyle: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(
-                                    fontSize:
-                                        (Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall?.fontSize ??
-                                            14) +
-                                        1,
-                                  ),
-                              initialDate: _bitisTarihi,
-                              minDate: _baslangicTarihi != null
-                                  ? _getNextSelectableDay(_baslangicTarihi!)
-                                  : null,
-                              label: 'Bitiş Tarihi',
-                              onDateChanged: (date) {
-                                setState(() {
-                                  _bitisTarihi = date;
-                                });
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                      const Text('1 günlük izin'),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // Başlangıç ve Bitiş Saati (Yan Yana)
-                Row(
-                  children: [
-                    Expanded(
-                      child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        initialHour: _baslangicSaat,
-                        initialMinute: _baslangicDakika,
-                        minHour: 8,
-                        maxHour: 17,
-                        allowedMinutes: const [0, 30],
-                        label: 'Başlangıç Saati',
-                        onTimeChanged: (hour, minute) {
-                          // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
-                          FocusScope.of(context).unfocus();
+                  // Başlangıç ve Bitiş Tarihi
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          initialDate: _baslangicTarihi,
+                          label: 'Başlangıç Tarihi',
+                          onDateChanged: (date) {
+                            setState(() {
+                              _baslangicTarihi = date;
+                              if (_birGunlukIzin) {
+                                _bitisTarihi = date;
+                              } else {
+                                // Başlangıç > mevcut bitiş ise bitişi bir sonraki güne taşı
+                                if (_bitisTarihi == null ||
+                                    date.isAfter(_bitisTarihi!)) {
+                                  var nextDay = date.add(
+                                    const Duration(days: 1),
+                                  );
+                                  if (nextDay.weekday == DateTime.sunday) {
+                                    nextDay = nextDay.add(
+                                      const Duration(days: 1),
+                                    );
+                                  }
+                                  _bitisTarihi = nextDay;
+                                }
+                                // Başlangıç tarihi bitişten küçükse bitiş sabit kalır
+                              }
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: _birGunlukIzin
+                            ? const SizedBox()
+                            : DatePickerBottomSheetWidget(
+                                labelStyle: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontSize:
+                                          (Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall
+                                                  ?.fontSize ??
+                                              14) +
+                                          1,
+                                    ),
+                                initialDate: _bitisTarihi,
+                                minDate: _baslangicTarihi != null
+                                    ? _getNextSelectableDay(_baslangicTarihi!)
+                                    : null,
+                                label: 'Bitiş Tarihi',
+                                onDateChanged: (date) {
+                                  setState(() {
+                                    _bitisTarihi = date;
+                                  });
+                                },
+                              ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Başlangıç ve Bitiş Saati (Yan Yana)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TimePickerBottomSheetWidget(
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          initialHour: _baslangicSaat,
+                          initialMinute: _baslangicDakika,
+                          minHour: 8,
+                          maxHour: 17,
+                          allowedMinutes: const [0, 30],
+                          label: 'Başlangıç Saati',
+                          onTimeChanged: (hour, minute) {
+                            // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                            FocusScope.of(context).unfocus();
+                            setState(() {
+                              _baslangicSaat = hour;
+                              _baslangicDakika = minute;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: TimePickerBottomSheetWidget(
+                          key: ValueKey(
+                            'end-time-${_baslangicSaat}-${_baslangicDakika}-${_birGunlukIzin}-${_baslangicTarihi}-${_bitisTarihi}-${_bitisSaat}-${_bitisDakika}',
+                          ),
+                          initialHour: _bitisSaat,
+                          initialMinute: _bitisDakika,
+                          minHour:
+                              (_birGunlukIzin ||
+                                  _baslangicTarihi == _bitisTarihi)
+                              ? _baslangicSaat
+                              : 8,
+                          minMinute: 0,
+                          maxHour: 17,
+                          allowAllMinutesAtMaxHour: true,
+                          allowedMinutes: const [0, 30],
+                          label: 'Bitiş Saati',
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          onTimeChanged: (hour, minute) {
+                            // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                            FocusScope.of(context).unfocus();
+                            setState(() {
+                              _bitisSaat = hour;
+                              _bitisDakika = minute;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Acil Toggle
+                  Row(
+                    children: [
+                      Switch(
+                        value: _acil,
+                        activeTrackColor: AppColors.gradientStart.withValues(
+                          alpha: 0.5,
+                        ),
+                        activeThumbColor: AppColors.gradientEnd,
+                        inactiveTrackColor: Colors.white,
+                        onChanged: (value) {
                           setState(() {
-                            _baslangicSaat = hour;
-                            _baslangicDakika = minute;
+                            _acil = value;
                           });
                         },
                       ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: TimePickerBottomSheetWidget(
-                        key: ValueKey(
-                          'end-time-${_baslangicSaat}-${_baslangicDakika}-${_birGunlukIzin}-${_baslangicTarihi}-${_bitisTarihi}-${_bitisSaat}-${_bitisDakika}',
-                        ),
-                        initialHour: _bitisSaat,
-                        initialMinute: _bitisDakika,
-                        minHour:
-                            (_birGunlukIzin || _baslangicTarihi == _bitisTarihi)
-                            ? _baslangicSaat
-                            : 8,
-                        minMinute: 0,
-                        maxHour: 17,
-                        allowAllMinutesAtMaxHour: true,
-                        allowedMinutes: const [0, 30],
-                        label: 'Bitiş Saati',
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        onTimeChanged: (hour, minute) {
-                          // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            _bitisSaat = hour;
-                            _bitisDakika = minute;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Acil Toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _acil,
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: Colors.white,
-                      onChanged: (value) {
-                        setState(() {
-                          _acil = value;
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: const Text(
-                          'Acil',
-                          style: TextStyle(fontSize: 14),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: const Text(
+                            'Acil',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Girilmeyen Ders Saati Spinner
-                DersSaatiSpinnerWidget(
-                  initialValue: _girileymeyenDersSaati,
-                  onValueChanged: (value) {
-                    setState(() {
-                      _girileymeyenDersSaati = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // İzinde Bulunacağı Adres
-                Text(
-                  'İzinde Bulunacağı Adres',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  focusNode: _adresFocusNode,
-                  controller: _adresController,
-                  decoration: InputDecoration(
-                    hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                  minLines: 3,
-                  maxLines: 5,
-                  onChanged: (value) {
-                    if (_adresHatali && value.isNotEmpty) {
+                  const SizedBox(height: 24),
+
+                  // Girilmeyen Ders Saati Spinner
+                  DersSaatiSpinnerWidget(
+                    initialValue: _girileymeyenDersSaati,
+                    onValueChanged: (value) {
                       setState(() {
-                        _adresHatali = false;
+                        _girileymeyenDersSaati = value;
                       });
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
+                    },
+                  ),
+                  const SizedBox(height: 24),
 
-                // Doktor Raporu Var Toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _doktorRaporuVar,
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: Colors.white,
-                      onChanged: (value) {
-                        setState(() {
-                          _doktorRaporuVar = value;
-                          if (!value) {
-                            _doktorRaporuFile = null;
-                          }
-                        });
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Doktor Raporu Var',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Doktor Raporu Dosya Yükleme
-                if (_doktorRaporuVar) ...[
-                  const SizedBox(height: 16),
+                  // İzinde Bulunacağı Adres
                   Text(
-                    'Doktor Raporu',
+                    'İzinde Bulunacağı Adres',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontSize:
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
@@ -435,137 +481,211 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickFile,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
+                  TextFormField(
+                    focusNode: _adresFocusNode,
+                    controller: _adresController,
+                    decoration: InputDecoration(
+                      hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
+                        borderSide: BorderSide.none,
                       ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 24,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Dosya Seçmek İçin Dokunun',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            '(pdf, jpg, jpeg, png, xls, xlsx, doc, docx)',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
+                    minLines: 3,
+                    maxLines: 5,
+                    onChanged: (value) {
+                      if (_adresHatali && value.isNotEmpty) {
+                        setState(() {
+                          _adresHatali = false;
+                        });
+                      }
+                    },
                   ),
-                  if (_doktorRaporuFile != null) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 0),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.insert_drive_file_outlined,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _doktorRaporuFile!.path
-                                  .split('/')
-                                  .last
-                                  .split('\\')
-                                  .last,
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _doktorRaporuFile = null;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                GuidelineCardWithToggle(
-                  pdfTitle: 'İzin Kullanma Yönergesi',
-                  pdfUrl:
-                      'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
-                  cardButtonText: 'İzin Kullanma Yönergesi',
-                  toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
-                  toggleValue: _onay,
-                  onToggleChanged: (value) {
-                    setState(() {
-                      _onay = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: _onay
-                        ? AppColors.primaryGradient
-                        : LinearGradient(
-                            colors: [
-                              AppColors.gradientStart.withValues(alpha: 0.2),
-                              AppColors.gradientEnd.withValues(alpha: 0.2),
-                            ],
-                          ),
-                    borderRadius: BorderRadius.circular(8),
+                  // Doktor Raporu Var Toggle
+                  Row(
+                    children: [
+                      Switch(
+                        value: _doktorRaporuVar,
+                        activeTrackColor: AppColors.gradientStart.withValues(
+                          alpha: 0.5,
+                        ),
+                        activeThumbColor: AppColors.gradientEnd,
+                        inactiveTrackColor: Colors.white,
+                        onChanged: (value) {
+                          setState(() {
+                            _doktorRaporuVar = value;
+                            if (!value) {
+                              _doktorRaporuFile = null;
+                            }
+                          });
+                        },
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Doktor Raporu Var',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: ElevatedButton(
-                    onPressed: _onay ? _submitForm : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+
+                  // Doktor Raporu Dosya Yükleme
+                  if (_doktorRaporuVar) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Doktor Raporu',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
                       ),
                     ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _pickFile,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.cloud_upload_outlined,
+                              size: 24,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Dosya Seçmek İçin Dokunun',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              '(pdf, jpg, jpeg, png, xls, xlsx, doc, docx)',
+                              style: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (_doktorRaporuFile != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 0),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.insert_drive_file_outlined,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _doktorRaporuFile!.path
+                                    .split('/')
+                                    .last
+                                    .split('\\')
+                                    .last,
+                                style: const TextStyle(fontSize: 14),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _doktorRaporuFile = null;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                  const SizedBox(height: 24),
+
+                  GuidelineCardWithToggle(
+                    pdfTitle: 'İzin Kullanma Yönergesi',
+                    pdfUrl:
+                        'https://esas.eyuboglu.k12.tr/yonerge/izin_kullanma_esaslari_yonergesi.pdf',
+                    cardButtonText: 'İzin Kullanma Yönergesi',
+                    toggleText: 'Yönergeyi okudum, anladım, onaylıyorum',
+                    toggleValue: _onay,
+                    onToggleChanged: (value) {
+                      setState(() {
+                        _onay = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: _onay
+                          ? AppColors.primaryGradient
+                          : LinearGradient(
+                              colors: [
+                                AppColors.gradientStart.withValues(alpha: 0.2),
+                                AppColors.gradientEnd.withValues(alpha: 0.2),
+                              ],
+                            ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ElevatedButton(
+                      onPressed: _onay ? _submitForm : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Gönder',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

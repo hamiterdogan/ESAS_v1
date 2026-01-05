@@ -9,7 +9,10 @@ class PersonelSelectorWidget extends ConsumerStatefulWidget {
   final Future<Result<PersonelSecimData>> Function() fetchFunction;
   final Function(Set<int>) onSelectionChanged;
   final Function(PersonelSecimData)? onDataLoaded;
+  final Function(Set<int> gorevYeriIds, Set<int> gorevIds)? onFilterChanged;
   final Set<int> initialSelection;
+  final Set<int> initialSelectedGorevYeriIds;
+  final Set<int> initialSelectedGorevIds;
   final String? overrideTitle;
 
   const PersonelSelectorWidget({
@@ -17,7 +20,10 @@ class PersonelSelectorWidget extends ConsumerStatefulWidget {
     required this.fetchFunction,
     required this.onSelectionChanged,
     this.onDataLoaded,
+    this.onFilterChanged,
     this.initialSelection = const {},
+    this.initialSelectedGorevYeriIds = const {},
+    this.initialSelectedGorevIds = const {},
     this.overrideTitle,
   });
 
@@ -50,6 +56,8 @@ class _PersonelSelectorWidgetState
   void initState() {
     super.initState();
     _selectedPersonelIds.addAll(widget.initialSelection);
+    _selectedGorevYeriIds.addAll(widget.initialSelectedGorevYeriIds);
+    _selectedGorevIds.addAll(widget.initialSelectedGorevIds);
   }
 
   @override
@@ -58,6 +66,15 @@ class _PersonelSelectorWidgetState
     if (widget.initialSelection != oldWidget.initialSelection) {
       _selectedPersonelIds.clear();
       _selectedPersonelIds.addAll(widget.initialSelection);
+    }
+    if (widget.initialSelectedGorevYeriIds !=
+        oldWidget.initialSelectedGorevYeriIds) {
+      _selectedGorevYeriIds.clear();
+      _selectedGorevYeriIds.addAll(widget.initialSelectedGorevYeriIds);
+    }
+    if (widget.initialSelectedGorevIds != oldWidget.initialSelectedGorevIds) {
+      _selectedGorevIds.clear();
+      _selectedGorevIds.addAll(widget.initialSelectedGorevIds);
     }
   }
 
@@ -116,13 +133,24 @@ class _PersonelSelectorWidgetState
                   padding: EdgeInsets.zero,
                   alignment: Alignment.centerLeft,
                 ),
-                child: Text(
-                  widget.overrideTitle ?? 'Seçilen personelleri listele',
-                  style: const TextStyle(
-                    color: AppColors.gradientStart,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.list,
+                      color: AppColors.gradientStart,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      widget.overrideTitle ?? 'Seçilen personelleri listele',
+                      style: const TextStyle(
+                        color: AppColors.gradientStart,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -513,28 +541,34 @@ class _PersonelSelectorWidgetState
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          if (_currentFilterPage.isEmpty) {
-                            // Apply changes
-                            setState(() {
-                              _selectedGorevYeriIds.clear();
-                              _selectedGorevYeriIds.addAll(
-                                localSelectedGorevYeri,
-                              );
-
-                              _selectedGorevIds.clear();
-                              _selectedGorevIds.addAll(localSelectedGorev);
-
-                              _selectedPersonelIds.clear();
-                              _selectedPersonelIds.addAll(
-                                localSelectedPersonel,
-                              );
-                            });
-                            widget.onSelectionChanged(_selectedPersonelIds);
-                            Navigator.pop(context);
-                          } else {
-                            // Back to main filter page
+                          // Detay sayfadayken (Görev Yeri/Görev/Personel): sheet kapanmasın,
+                          // sadece ana "Filtrele" ekranına dönsün.
+                          if (_currentFilterPage.isNotEmpty) {
                             setModalState(() => _currentFilterPage = '');
+                            return;
                           }
+
+                          // Ana sayfadayken: seçimleri uygula ve sheet'i kapat.
+                          setState(() {
+                            _selectedGorevYeriIds
+                              ..clear()
+                              ..addAll(localSelectedGorevYeri);
+
+                            _selectedGorevIds
+                              ..clear()
+                              ..addAll(localSelectedGorev);
+
+                            _selectedPersonelIds
+                              ..clear()
+                              ..addAll(localSelectedPersonel);
+                          });
+
+                          widget.onSelectionChanged(_selectedPersonelIds);
+                          widget.onFilterChanged?.call(
+                            _selectedGorevYeriIds,
+                            _selectedGorevIds,
+                          );
+                          Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF014B92),
@@ -544,7 +578,7 @@ class _PersonelSelectorWidgetState
                           ),
                         ),
                         child: Text(
-                          _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
+                          _currentFilterPage.isEmpty ? 'Uygula' : 'Uygula',
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,

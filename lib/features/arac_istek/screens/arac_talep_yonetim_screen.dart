@@ -305,10 +305,10 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
   }
 
   Color _getStatusColor(String status) {
-    if (status.contains('Onay')) return Colors.orange;
-    if (status.contains('Reddedildi')) return Colors.red;
-    if (status.contains('Onaylandı')) return Colors.green;
-    return Colors.blue;
+    if (status.toLowerCase().contains('redd')) return Colors.red;
+    if (status.toLowerCase().contains('onay bekliyor')) return Colors.orange;
+    if (status.toLowerCase().contains('onay')) return Colors.green;
+    return Colors.blueGrey;
   }
 
   Future<void> _deleteAracTalebi(int id) async {
@@ -571,9 +571,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           vertical: 5,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor.withValues(
-                                            alpha: 0.1,
-                                          ),
+                                          color: statusColor.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
@@ -582,14 +580,16 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Icon(
-                                              talep.onayDurumu.contains('Onay')
+                                              talep.onayDurumu
+                                                      .toLowerCase()
+                                                      .contains('onay bekliyor')
                                                   ? Icons.access_time
-                                                  : talep.onayDurumu.contains(
-                                                      'Reddedildi',
-                                                    )
+                                                  : talep.onayDurumu
+                                                        .toLowerCase()
+                                                        .contains('redd')
                                                   ? Icons.close
                                                   : Icons.check_circle,
-                                              size: 18,
+                                              size: 16,
                                               color: statusColor,
                                             ),
                                             const SizedBox(width: 4),
@@ -603,7 +603,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                                 style: TextStyle(
                                                   color: statusColor,
                                                   fontWeight: FontWeight.w600,
-                                                  fontSize: 13,
+                                                  fontSize: 12,
                                                 ),
                                               ),
                                             ),
@@ -615,11 +615,11 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                             Icon(
                               Icons.chevron_right,
-                              color: Colors.grey[400],
-                              size: 20,
+                              size: 30,
+                              color: Colors.grey.shade500,
                             ),
                           ],
                         ),
