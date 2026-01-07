@@ -64,6 +64,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           controller: widget.controller,
           decoration: InputDecoration(
             hintText: widget.hintText,
+            hintStyle: TextStyle(color: Colors.grey.shade400),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(

@@ -573,14 +573,14 @@ class _SatinAlmaTalepYonetimScreenState
                   talep.onayDurumu.toLowerCase().contains('onay bekliyor');
 
               return Slidable(
-                key: ValueKey(talep.onayKayitID),
+                key: ValueKey(talep.onayKayitId),
                 endActionPane: isDeleteAvailable
                     ? ActionPane(
                         motion: const ScrollMotion(),
                         children: [
                           CustomSlidableAction(
                             onPressed: (_) =>
-                                _deleteSatinAlmaTalebi(talep.onayKayitID),
+                                _deleteSatinAlmaTalebi(talep.onayKayitId),
                             backgroundColor: Colors.red,
                             child: Container(
                               decoration: const BoxDecoration(
@@ -619,7 +619,7 @@ class _SatinAlmaTalepYonetimScreenState
                     : null,
                 child: InkWell(
                   onTap: () =>
-                      context.push('/satin_alma/detay/${talep.onayKayitID}'),
+                      context.push('/satin_alma/detay/${talep.onayKayitId}'),
                   borderRadius: BorderRadius.circular(12),
                   child: Card(
                     margin: const EdgeInsets.symmetric(
@@ -652,7 +652,7 @@ class _SatinAlmaTalepYonetimScreenState
                                       ),
                                     ),
                                     Text(
-                                      '${talep.onayKayitID}',
+                                      '${talep.onayKayitId}',
                                       style: const TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.bold,

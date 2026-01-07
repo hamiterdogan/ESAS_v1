@@ -24,6 +24,7 @@ class SatinAlmaOzetBottomSheet extends ConsumerStatefulWidget {
   final Future<void> Function() onGonder;
   final VoidCallback onSuccess;
   final void Function(String error) onError;
+  final Map<String, dynamic>? customJsonSnapshot;
 
   const SatinAlmaOzetBottomSheet({
     super.key,
@@ -33,6 +34,7 @@ class SatinAlmaOzetBottomSheet extends ConsumerStatefulWidget {
     required this.onGonder,
     required this.onSuccess,
     required this.onError,
+    this.customJsonSnapshot,
   });
 
   @override
@@ -220,7 +222,9 @@ class _SatinAlmaOzetBottomSheetState
                 border: Border.all(color: const Color(0xFFCBD5E0)),
               ),
               child: Text(
-                _formatJsonData(widget.request.toJson()),
+                _formatJsonData(
+                  widget.customJsonSnapshot ?? widget.request.toJson(),
+                ),
                 style: const TextStyle(
                   fontSize: 12,
                   fontFamily: 'monospace',
@@ -454,6 +458,7 @@ Future<void> showSatinAlmaOzetBottomSheet({
   required Future<void> Function() onGonder,
   required VoidCallback onSuccess,
   required void Function(String error) onError,
+  Map<String, dynamic>? customJsonSnapshot,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -470,6 +475,7 @@ Future<void> showSatinAlmaOzetBottomSheet({
         onGonder: onGonder,
         onSuccess: onSuccess,
         onError: onError,
+        customJsonSnapshot: customJsonSnapshot,
       );
     },
   );

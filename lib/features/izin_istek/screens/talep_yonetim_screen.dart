@@ -215,7 +215,7 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Kayıt ID: ${talep.onayKayitID}',
+              'Kayıt ID: ${talep.onayKayitId}',
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             ),
           ],
@@ -353,7 +353,7 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
                           _buildDetayItem('Talep Türü', talep.onayTipi),
                           _buildDetayItem(
                             'Kayıt ID',
-                            talep.onayKayitID.toString(),
+                            talep.onayKayitId.toString(),
                           ),
                           _buildDetayItem(
                             'Oluşturma Tarihi',

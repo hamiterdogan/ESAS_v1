@@ -346,14 +346,14 @@ class _DokumantasyonTalepListesiState
               );
 
               return Slidable(
-                key: ValueKey(talep.onayKayitID),
+                key: ValueKey(talep.onayKayitId),
                 endActionPane: isDeleteAvailable
                     ? ActionPane(
                         motion: const ScrollMotion(),
                         children: [
                           CustomSlidableAction(
                             onPressed: (_) =>
-                                _deleteDokumantasyonTalebi(talep.onayKayitID),
+                                _deleteDokumantasyonTalebi(talep.onayKayitId),
                             backgroundColor: Colors.red,
                             child: Container(
                               decoration: const BoxDecoration(
@@ -403,7 +403,7 @@ class _DokumantasyonTalepListesiState
                         return;
                       }
                       context.push(
-                        '/dokumantasyon/detay/${talep.onayKayitID}',
+                        '/dokumantasyon/detay/${talep.onayKayitId}',
                         extra: talep.onayTipi,
                       );
                     },
@@ -445,7 +445,7 @@ class _DokumantasyonTalepListesiState
                                         ),
                                       ),
                                       Text(
-                                        '${talep.onayKayitID}',
+                                        '${talep.onayKayitId}',
                                         style: const TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.bold,

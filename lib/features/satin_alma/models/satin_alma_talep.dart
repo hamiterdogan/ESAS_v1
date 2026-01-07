@@ -15,7 +15,7 @@ class SatinAlmaTalepListResponse {
 
 class SatinAlmaTalep {
   final String onayTipi;
-  final int onayKayitID;
+  final int onayKayitId;
   final String olusturmaTarihi;
   final String islemTarihi;
   final String onayDurumu;
@@ -30,7 +30,7 @@ class SatinAlmaTalep {
 
   const SatinAlmaTalep({
     required this.onayTipi,
-    required this.onayKayitID,
+    required this.onayKayitId,
     required this.olusturmaTarihi,
     required this.islemTarihi,
     required this.onayDurumu,
@@ -47,7 +47,7 @@ class SatinAlmaTalep {
   factory SatinAlmaTalep.fromJson(Map<String, dynamic> json) {
     return SatinAlmaTalep(
       onayTipi: json['onayTipi']?.toString() ?? '',
-      onayKayitID: _parseInt(json['onayKayitID']),
+      onayKayitId: _parseInt(json['onayKayitId'] ?? json['onayKayitId']),
       olusturmaTarihi: json['olusturmaTarihi']?.toString() ?? '',
       islemTarihi: json['islemTarihi']?.toString() ?? '',
       onayDurumu: json['onayDurumu']?.toString() ?? '',

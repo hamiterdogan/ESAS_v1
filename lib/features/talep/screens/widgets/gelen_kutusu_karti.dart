@@ -70,7 +70,7 @@ class GelenKutusuKarti extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (ctx) => IzinIstekDetayScreen(
-                  talepId: talep.onayKayitID,
+                  talepId: talep.onayKayitId,
                   onayTipi: talep.onayTipi,
                 ),
               ),
@@ -99,7 +99,7 @@ class GelenKutusuKarti extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${talep.onayKayitID}',
+                          '${talep.onayKayitId}',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

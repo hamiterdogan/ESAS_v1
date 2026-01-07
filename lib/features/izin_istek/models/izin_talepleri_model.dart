@@ -17,7 +17,7 @@ class IzinTalepleriResponse {
 
 class IzinTalep {
   final String onayTipi;
-  final int onayKayitID;
+  final int onayKayitId;
   final String olusturmaTarihi;
   final String islemTarihi;
   final String onayDurumu;
@@ -27,7 +27,7 @@ class IzinTalep {
 
   IzinTalep({
     required this.onayTipi,
-    required this.onayKayitID,
+    required this.onayKayitId,
     required this.olusturmaTarihi,
     required this.islemTarihi,
     required this.onayDurumu,
@@ -39,7 +39,8 @@ class IzinTalep {
   factory IzinTalep.fromJson(Map<String, dynamic> json) {
     return IzinTalep(
       onayTipi: json['onayTipi'] as String? ?? 'İzin İstek',
-      onayKayitID: json['onayKayitID'] as int? ?? 0,
+      onayKayitId:
+          json['onayKayitId'] as int? ?? json['onayKayitId'] as int? ?? 0,
       olusturmaTarihi: json['olusturmaTarihi'] as String? ?? '',
       islemTarihi: json['islemTarihi'] as String? ?? '',
       onayDurumu: json['onayDurumu'] as String? ?? '',
@@ -52,7 +53,7 @@ class IzinTalep {
   Map<String, dynamic> toJson() {
     return {
       'onayTipi': onayTipi,
-      'onayKayitID': onayKayitID,
+      'onayKayitId': onayKayitId,
       'olusturmaTarihi': olusturmaTarihi,
       'islemTarihi': islemTarihi,
       'onayDurumu': onayDurumu,

@@ -412,14 +412,14 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
               );
 
               return Slidable(
-                key: ValueKey(talep.onayKayitID),
+                key: ValueKey(talep.onayKayitId),
                 endActionPane: isDeleteAvailable
                     ? ActionPane(
                         motion: const ScrollMotion(),
                         children: [
                           CustomSlidableAction(
                             onPressed: (_) =>
-                                _deleteAracTalebi(talep.onayKayitID),
+                                _deleteAracTalebi(talep.onayKayitId),
                             backgroundColor: Colors.red,
                             child: Container(
                               decoration: const BoxDecoration(
@@ -468,7 +468,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                         slidable?.close();
                         return;
                       }
-                      context.push('/arac/detay/${talep.onayKayitID}');
+                      context.push('/arac/detay/${talep.onayKayitId}');
                     },
                     child: Card(
                       margin: const EdgeInsets.symmetric(
@@ -508,7 +508,7 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                         ),
                                       ),
                                       Text(
-                                        '${talep.onayKayitID}',
+                                        '${talep.onayKayitId}',
                                         style: const TextStyle(
                                           fontSize: 17,
                                           fontWeight: FontWeight.bold,
@@ -571,7 +571,9 @@ class _AracTalepListesiState extends ConsumerState<_AracTalepListesi> {
                                           vertical: 5,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor.withOpacity(0.1),
+                                          color: statusColor.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),

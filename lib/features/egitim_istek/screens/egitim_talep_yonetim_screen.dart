@@ -288,14 +288,14 @@ class _EgitimTalepYonetimScreenState
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Slidable(
-                  key: ValueKey(talep.onayKayitID),
+                  key: ValueKey(talep.onayKayitId),
                   endActionPane: isDeleteAvailable
                       ? ActionPane(
                           motion: const ScrollMotion(),
                           children: [
                             CustomSlidableAction(
                               onPressed: (_) =>
-                                  _deleteEgitimTalebi(talep.onayKayitID),
+                                  _deleteEgitimTalebi(talep.onayKayitId),
                               backgroundColor: Colors.red,
                               child: Container(
                                 decoration: const BoxDecoration(
@@ -351,7 +351,7 @@ class _EgitimTalepYonetimScreenState
                           }
 
                           context.push(
-                            '/egitim_istek/detay/${talep.onayKayitID}',
+                            '/egitim_istek/detay/${talep.onayKayitId}',
                           );
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -386,7 +386,7 @@ class _EgitimTalepYonetimScreenState
                                             ),
                                           ),
                                           Text(
-                                            '${talep.onayKayitID}',
+                                            '${talep.onayKayitId}',
                                             style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.bold,

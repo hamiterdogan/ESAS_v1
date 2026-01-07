@@ -34,6 +34,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final Set<String> _selectedBinaKodlari = <String>{};
   final TextEditingController _alimAmaciController = TextEditingController();
   final FocusNode _alimAmaciFocusNode = FocusNode();
+  final GlobalKey _alimAmaciKey = GlobalKey();
   final TextEditingController _saticiFirmaController = TextEditingController();
   final TextEditingController _saticiTelefonController =
       TextEditingController();
@@ -88,6 +89,17 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       FocusScope.of(context).unfocus();
       _alimAmaciFocusNode.canRequestFocus = true;
     });
+  }
+
+  Future<void> _scrollToWidget(GlobalKey key) async {
+    final keyContext = key.currentContext;
+    if (keyContext == null) return;
+
+    await Scrollable.ensureVisible(
+      keyContext,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _pickFiles() async {
@@ -330,6 +342,20 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     super.initState();
     _updateGenelToplam();
     _updateExchangeRates();
+    _initializeDefaultPaymentMethod();
+  }
+
+  Future<void> _initializeDefaultPaymentMethod() async {
+    try {
+      final odemeTurleri = await ref.read(odemeTurleriProvider.future);
+      if (odemeTurleri.isNotEmpty) {
+        setState(() {
+          _selectedOdemeTuru = odemeTurleri.first;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to initialize default payment method: $e');
+    }
   }
 
   Future<void> _updateExchangeRates() async {
@@ -475,104 +501,107 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       ),
       builder: (ctx) {
         return SafeArea(
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              final currentSelectedBinalar = allBinalar
-                  .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
-                  .toList();
+          child: SizedBox(
+            height: MediaQuery.of(ctx).size.height * (2 / 3),
+            child: StatefulBuilder(
+              builder: (context, setModalState) {
+                final currentSelectedBinalar = allBinalar
+                    .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
+                    .toList();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    child: Text(
-                      'Seçilen Okullar',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize:
-                            (Theme.of(
-                                  context,
-                                ).textTheme.titleMedium?.fontSize ??
-                                16) +
-                            1,
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    child: currentSelectedBinalar.isEmpty
-                        ? Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text(
-                                'Seçili okul bulunmamaktadır',
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      child: Text(
+                        'Seçilen Okullar',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium?.fontSize ??
+                                      16) +
+                                  1,
                             ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: currentSelectedBinalar.length,
-                            itemBuilder: (context, index) {
-                              final bina = currentSelectedBinalar[index];
-                              return ListTile(
-                                title: Text(bina.binaAdi),
-                                trailing: IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                  onPressed: () {
-                                    // Son okul siliniyorsa modalı hemen kapat
-                                    if (currentSelectedBinalar.length == 1) {
-                                      setState(() {
-                                        _selectedBinaKodlari.remove(
-                                          bina.binaKodu,
-                                        );
-                                      });
-                                      Navigator.pop(context);
-                                    } else {
-                                      setState(() {
-                                        _selectedBinaKodlari.remove(
-                                          bina.binaKodu,
-                                        );
-                                      });
-                                      setModalState(() {});
-                                    }
-                                  },
+                      ),
+                    ),
+                    Flexible(
+                      child: currentSelectedBinalar.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(
+                                  'Seçili okul bulunmamaktadır',
+                                  style: TextStyle(color: Colors.grey.shade600),
                                 ),
-                              );
-                            },
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: currentSelectedBinalar.length,
+                              itemBuilder: (context, index) {
+                                final bina = currentSelectedBinalar[index];
+                                return ListTile(
+                                  title: Text(bina.binaAdi),
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                    onPressed: () {
+                                      // Son okul siliniyorsa modalı hemen kapat
+                                      if (currentSelectedBinalar.length == 1) {
+                                        setState(() {
+                                          _selectedBinaKodlari.remove(
+                                            bina.binaKodu,
+                                          );
+                                        });
+                                        Navigator.pop(context);
+                                      } else {
+                                        setState(() {
+                                          _selectedBinaKodlari.remove(
+                                            bina.binaKodu,
+                                          );
+                                        });
+                                        setModalState(() {});
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.gradientStart,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.gradientStart,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          'Kapat',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Kapat',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -965,10 +994,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     ),
                   const SizedBox(height: 16),
                   // Alımın Amacı (Binek Araç "Açıklama" alanı formatıyla)
-                  AciklamaFieldWidget(
-                    controller: _alimAmaciController,
-                    focusNode: _alimAmaciFocusNode,
-                    labelText: 'Alımın Amacı',
+                  KeyedSubtree(
+                    key: _alimAmaciKey,
+                    child: AciklamaFieldWidget(
+                      controller: _alimAmaciController,
+                      focusNode: _alimAmaciFocusNode,
+                      labelText: 'Alımın Amacı',
+                    ),
                   ),
 
                   const SizedBox(height: 24),
@@ -988,6 +1020,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     controller: _saticiFirmaController,
                     decoration: InputDecoration(
                       hintText: 'Firma adını giriniz',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -1032,7 +1065,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       LengthLimitingTextInputFormatter(20),
                     ],
                     decoration: InputDecoration(
-                      hintText: '+90 5xx xxx xx xx',
+                      hintText: '+90 5__ ___ __ __',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -1073,7 +1107,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     controller: _webSitesiController,
                     keyboardType: TextInputType.url,
                     decoration: InputDecoration(
-                      hintText: 'https://site.com',
+                      hintText: 'http://',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
@@ -1789,30 +1824,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     controller: _fiyatTeklifIcerikController,
                     decoration: InputDecoration(
                       hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
                       contentPadding: const EdgeInsets.all(12),
                       filled: true,
                       fillColor: Colors.white,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 0.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 0.5,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.grey.shade600,
-                          width: 0.5,
-                        ),
-                      ),
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      border: InputBorder.none,
                     ),
                     maxLines: 1,
                   ),
@@ -2013,25 +2031,108 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     final hasValidScheme =
         uri != null &&
         (uri.scheme == 'http' || uri.scheme == 'https') &&
-        uri.host.isNotEmpty;
+        uri.host.isNotEmpty &&
+        uri.host.contains('.');
 
     if (!hasValidScheme) {
-      return 'Lütfen geçerli bir web adresi giriniz (https://... ).';
+      return 'web sitesi adresini kontrol ediniz';
     }
     return null;
   }
 
   Future<void> _submitForm() async {
     if (_alimAmaciController.text.trim().isEmpty) {
-      _showStatusBottomSheet(
+      FocusScope.of(context).unfocus();
+      await Future.delayed(Duration.zero);
+      await _scrollToWidget(_alimAmaciKey);
+      await _showStatusBottomSheet(
         'Lütfen alımın amacını belirtiniz.',
         isError: true,
       );
+
+      if (mounted) {
+        _alimAmaciFocusNode.canRequestFocus = true;
+        FocusScope.of(context).requestFocus(_alimAmaciFocusNode);
+      }
       return;
     }
 
     if (_urunler.isEmpty) {
-      _showStatusBottomSheet('Lütfen en az 1 ürün ekleyiniz.', isError: true);
+      FocusScope.of(context).unfocus();
+      // Show warning bottom sheet first
+      await showModalBottomSheet<void>(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (BuildContext statusContext) {
+          return Container(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              color: Colors.white,
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  size: 64,
+                  color: Colors.orange.shade700,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Lütfen en az 1 ürün ekleyiniz.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(statusContext);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gradientStart,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tamam',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      // After warning is dismissed, navigate to Ürün Ekle
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        final result = await Navigator.push<SatinAlmaUrunBilgisi>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SatinAlmaUrunEkleScreen(),
+          ),
+        );
+
+        if (result != null) {
+          setState(() {
+            _urunler.add(result);
+            _updateGenelToplam();
+          });
+        }
+      }
       return;
     }
 

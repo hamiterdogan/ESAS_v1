@@ -69,7 +69,7 @@ class TalepKarti extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (ctx) => IzinIstekDetayScreen(
-                  talepId: talep.onayKayitID,
+                  talepId: talep.onayKayitId,
                   onayTipi: talep.onayTipi,
                 ),
               ),
@@ -82,7 +82,7 @@ class TalepKarti extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
-                    AracIstekDetayScreen(talepId: talep.onayKayitID),
+                    AracIstekDetayScreen(talepId: talep.onayKayitId),
               ),
             );
           }
@@ -92,7 +92,7 @@ class TalepKarti extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (ctx) => DokumantasyonIstekDetayScreen(
-                  talepId: talep.onayKayitID,
+                  talepId: talep.onayKayitId,
                   onayTipi: talep.onayTipi,
                 ),
               ),
@@ -105,7 +105,7 @@ class TalepKarti extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
-                    SatinAlmaDetayScreen(talepId: talep.onayKayitID),
+                    SatinAlmaDetayScreen(talepId: talep.onayKayitId),
               ),
             );
           }
@@ -132,7 +132,7 @@ class TalepKarti extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${talep.onayKayitID}',
+                          '${talep.onayKayitId}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

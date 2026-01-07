@@ -126,7 +126,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
         final data = IzinTalepleriResponse.fromJson(response.data);
         print('✅ Başarılı! ${data.talepler.length} talep bulundu');
         data.talepler.forEach((t) {
-          print('  ✓ ${t.onayKayitID}: ${t.izinTuru} - ${t.onayDurumu}');
+          print('  ✓ ${t.onayKayitId}: ${t.izinTuru} - ${t.onayDurumu}');
         });
         return Success(data);
       }
@@ -315,7 +315,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
 
       final response = await dio.post(
         '/TalepYonetimi/OnayDurumuGetir',
-        data: {'onayTipi': normalizedOnayTipi, 'onayKayitID': talepId},
+        data: {'onayTipi': normalizedOnayTipi, 'onayKayitId': talepId},
         options: Options(contentType: 'application/json'),
       );
 

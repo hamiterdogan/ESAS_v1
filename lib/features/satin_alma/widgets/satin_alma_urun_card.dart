@@ -1257,17 +1257,13 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(
-                                color: _fiyatAnaController.text.isEmpty
-                                    ? Colors.red.shade300
-                                    : Colors.grey.shade300,
+                                color: Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(
-                                color: _fiyatAnaController.text.isEmpty
-                                    ? Colors.red.shade300
-                                    : Colors.grey.shade300,
+                                color: Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(

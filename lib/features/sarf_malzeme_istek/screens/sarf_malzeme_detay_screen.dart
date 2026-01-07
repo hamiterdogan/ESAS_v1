@@ -1,40 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
-import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
-import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_detay_model.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 
-class SatinAlmaDetayScreen extends ConsumerStatefulWidget {
+class SarfMalzemeDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
 
-  const SatinAlmaDetayScreen({super.key, required this.talepId});
+  const SarfMalzemeDetayScreen({super.key, required this.talepId});
 
   @override
-  ConsumerState<SatinAlmaDetayScreen> createState() =>
-      _SatinAlmaDetayScreenState();
+  ConsumerState<SarfMalzemeDetayScreen> createState() =>
+      _SarfMalzemeDetayScreenState();
 }
 
-class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
+class _SarfMalzemeDetayScreenState
+    extends ConsumerState<SarfMalzemeDetayScreen> {
   bool _personelBilgileriExpanded = true;
-  bool _satinAlmaDetaylariExpanded = true;
+  bool _sarfMalzemeDetaylariExpanded = true;
   bool _urunBilgileriExpanded = true;
   bool _onaySureciExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
   @override
   Widget build(BuildContext context) {
-    // Note: The logic for satinAlmaDetayProvider was established in previous steps.
-    final detayAsync = ref.watch(satinAlmaDetayProvider(widget.talepId));
+    final detayAsync = ref.watch(sarfMalzemeDetayProvider(widget.talepId));
     final personelAsync = ref.watch(personelBilgiProvider);
+    final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFEEF1F5),
@@ -43,7 +45,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            'Satın Alma İstek Detayı (${widget.talepId})',
+            'Sarf Malzeme İstek Detayı (${widget.talepId})',
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,
@@ -61,7 +63,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         elevation: 0,
       ),
       body: detayAsync.when(
-        data: (detay) => _buildContent(context, detay, personelAsync),
+        data: (detay) =>
+            _buildContent(context, detay, personelAsync, binalarAsync),
         loading: () => _buildLoading(),
         error: (error, stack) => _buildError(context, error),
       ),
@@ -70,8 +73,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
   Widget _buildContent(
     BuildContext context,
-    SatinAlmaDetayResponse detay,
+    SarfMalzemeDetayResponse detay,
     AsyncValue<PersonelBilgiResponse> personelAsync,
+    AsyncValue<List<SatinAlmaBina>> binalarAsync,
   ) {
     final adSoyad = detay.adSoyad.isNotEmpty
         ? detay.adSoyad
@@ -121,17 +125,18 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             ),
             const SizedBox(height: 16),
             _buildAccordion(
-              icon: Icons.shopping_cart_outlined,
-              title: 'Satınalma İstek Detayları',
-              isExpanded: _satinAlmaDetaylariExpanded,
+              icon: Icons.shopping_cart_outlined, // Same icon as SatinAlma
+              title: 'Sarf Malzeme İstek Detayları',
+              isExpanded: _sarfMalzemeDetaylariExpanded,
               onTap: () {
                 setState(() {
-                  _satinAlmaDetaylariExpanded = !_satinAlmaDetaylariExpanded;
+                  _sarfMalzemeDetaylariExpanded =
+                      !_sarfMalzemeDetaylariExpanded;
                 });
               },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildSatinAlmaDetayRows(detay),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _buildSarfMalzemeDetayRows(detay, binalarAsync),
               ),
             ),
             const SizedBox(height: 16),
@@ -178,7 +183,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                ref.invalidate(satinAlmaDetayProvider(widget.talepId));
+                ref.invalidate(sarfMalzemeDetayProvider(widget.talepId));
                 ref.invalidate(personelBilgiProvider);
               },
               style: ElevatedButton.styleFrom(
@@ -193,45 +198,44 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     );
   }
 
-  List<Widget> _buildSatinAlmaDetayRows(SatinAlmaDetayResponse detay) {
+  List<Widget> _buildSarfMalzemeDetayRows(
+    SarfMalzemeDetayResponse detay,
+    AsyncValue<List<SatinAlmaBina>> binalarAsync,
+  ) {
     final rows = <Widget>[];
     final items = <MapEntry<String, String>>[];
 
-    items.add(MapEntry('Alımın Amacı', detay.aliminAmaci));
-    items.add(MapEntry('Satıcı Firma', detay.saticiFirma));
-    if (detay.saticiTel != null && detay.saticiTel!.isNotEmpty) {
-      items.add(MapEntry('Satıcı Telefon', detay.saticiTel!));
-    }
-    if (detay.webSitesi != null && detay.webSitesi!.isNotEmpty) {
-      items.add(MapEntry('Web Sitesi', detay.webSitesi!));
-    }
+    // Bina Mapping
+    String binalarStr = '-';
+    if (binalarAsync.hasValue) {
+      final binalar = binalarAsync.value!;
+      final selectedNames = <String>[];
 
-    // Date Formatting
-    String teslimTarihiStr = detay.sonTeslimTarihi;
-    try {
-      final date = DateTime.tryParse(detay.sonTeslimTarihi);
-      if (date != null) {
-        teslimTarihiStr = DateFormat('dd.MM.yyyy').format(date);
+      for (final id in detay.binaId) {
+        try {
+          final bina = binalar.firstWhere(
+            (b) => b.id == id,
+            orElse: () => SatinAlmaBina(id: id, binaAdi: '', binaKodu: ''),
+          );
+          if (bina.binaAdi.isNotEmpty) {
+            selectedNames.add(bina.binaAdi);
+          } else {
+            selectedNames.add(id.toString());
+          }
+        } catch (_) {
+          selectedNames.add(id.toString());
+        }
       }
-    } catch (_) {}
-    items.add(MapEntry('Son Teslim Tarihi', teslimTarihiStr));
 
-    // Odeme Sekli - assuming 1: Nakit, 2: Kredi Kartı, 3: Havale/EFT based on previous knowledge or mocked map
-    final odemeSekliMap = {1: 'Nakit', 2: 'Kredi Kartı', 3: 'Havale/EFT'};
-    final odemeSekliStr = odemeSekliMap[detay.odemeSekliId] ?? 'Bilinmiyor';
-    items.add(MapEntry('Ödeme Şekli', odemeSekliStr));
-
-    if (!detay.pesin) {
-      items.add(MapEntry('Ödeme Vadesi', '${detay.odemeVadesiGun} Gün'));
+      if (selectedNames.isNotEmpty) {
+        binalarStr = selectedNames.join(', ');
+      }
     } else {
-      items.add(MapEntry('Ödeme Vadesi', 'Peşin'));
+      binalarStr = 'Yükleniyor...';
     }
 
-    final genelToplamStr = NumberFormat(
-      '#,##0.00',
-      'tr_TR',
-    ).format(detay.genelToplam);
-    items.add(MapEntry('Genel Toplam', '$genelToplamStr TL'));
+    items.add(MapEntry('İstekte Bulunulan Okullar', binalarStr));
+    items.add(MapEntry('Alımın Amacı', detay.talebinAmaci));
 
     if (detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty) {
       items.add(MapEntry('Dosya Açıklama', detay.dosyaAciklama!));
@@ -239,16 +243,22 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
-      final isLast = i == items.length - 1;
+      final isLast =
+          i == items.length - 1 &&
+          (detay.dosyaAdi == null || detay.dosyaAdi!.isEmpty);
 
-      final multiLineFields = ['Alımın Amacı', 'Web Sitesi', 'Dosya Açıklama'];
+      final multiLineFields = [
+        'Alımın Amacı',
+        'Dosya Açıklama',
+        'İstekte Bulunulan Okullar',
+      ];
       final multiLine = multiLineFields.contains(item.key);
 
       rows.add(
         _buildInfoRow(
           item.key,
           item.value,
-          isLast: isLast && (detay.dosyaAdi == null || detay.dosyaAdi!.isEmpty),
+          isLast: isLast,
           multiLine: multiLine,
         ),
       );
@@ -281,7 +291,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     return rows;
   }
 
-  Widget _buildUrunBilgileriAccordion(SatinAlmaDetayResponse detay) {
+  Widget _buildUrunBilgileriAccordion(SarfMalzemeDetayResponse detay) {
     if (detay.urunlerSatir.isEmpty) {
       return _buildAccordion(
         icon: Icons.inventory_2_outlined,
@@ -318,33 +328,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           final urun = entry.value;
           final isLast = index == detay.urunlerSatir.length - 1;
 
-          final birimFiyatStr = NumberFormat(
-            '#,##0.00',
-            'tr_TR',
-          ).format(urun.birimFiyati);
-
-          final dovizKuruStr = NumberFormat(
-            '#,##0.00',
-            'tr_TR',
-          ).format(urun.dovizKuru);
-
-          final toplamFiyat = urun.miktar * urun.birimFiyati;
-          final toplamFiyatStr = NumberFormat(
-            '#,##0.00',
-            'tr_TR',
-          ).format(toplamFiyat);
-
-          final toplamTLFiyat = toplamFiyat * urun.dovizKuru;
-          final toplamTLFiyatStr = NumberFormat(
-            '#,##0.00',
-            'tr_TR',
-          ).format(toplamTLFiyat);
+          // Since we don't have unit name, just show quantity
+          final miktarStr = '${urun.miktar.toInt()} Adet';
 
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: Colors.grey[50], // Very light background
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.grey[300]!),
               ),
@@ -354,7 +345,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                 children: [
                   // Kategori bilgisi
                   Text(
-                    '${urun.satinAlmaAnaKategori} - ${urun.satinAlmaAltKategori}',
+                    '${urun.satinAlmaAnaKategori} - ${urun.satinAlmaAltKategori ?? ""}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -375,52 +366,13 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     const SizedBox(height: 10),
                   ],
 
-                  // Miktar x Birim Fiyat
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF2D3748),
-                      ),
-                      children: [
-                        TextSpan(
-                          text: '${urun.miktar.toInt()} Adet',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const TextSpan(text: ' × '),
-                        TextSpan(
-                          text: '$birimFiyatStr ${urun.paraBirimi}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Toplam Fiyat = Toplam TL Fiyat
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3748),
-                      ),
-                      children: [
-                        TextSpan(text: '$toplamFiyatStr ${urun.paraBirimi}'),
-                        const TextSpan(
-                          text: ' × ',
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        TextSpan(text: dovizKuruStr),
-                        const TextSpan(
-                          text: ' = ',
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        TextSpan(
-                          text: '$toplamTLFiyatStr TL',
-                          style: const TextStyle(color: Color(0xFF014B92)),
-                        ),
-                      ],
+                  // Miktar
+                  Text(
+                    'Miktar: $miktarStr',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D3748),
                     ),
                   ),
                 ],
@@ -445,13 +397,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
             leading: Icon(icon, color: const Color(0xFF014B92)),
@@ -549,7 +502,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     bool isLast = false,
   }) {
     const String baseUrl =
-        'https://esas.eyuboglu.k12.tr/TestDosyalar/satinalma/';
+        'https://esas.eyuboglu.k12.tr/TestDosyalar/SarfMalzemeIstek/';
     final String fileUrl = '$baseUrl$fileName';
 
     // Dosya ismini gösterirken ilk "_" karakterine kadar olan kısmı at
@@ -646,7 +599,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   }
 
   Widget _buildOnaySureciAccordion() {
-    const onayTipi = 'Satın Alma'; // Using explicit approval type for Purchase
+    const onayTipi =
+        'Satın Alma'; // Using 'Satın Alma' as confirmed by repository logic
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
     );
@@ -809,330 +763,112 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   Text(
                     personelAdi,
                     style: const TextStyle(
-                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    gorevYeri,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF4A5568),
+                      fontSize: 15,
                     ),
                   ),
                   Text(
-                    gorevi,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF718096),
-                    ),
+                    '$gorevi - $gorevYeri',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
                   ),
                 ],
               ),
             ),
           ],
         ),
-        if (!isLast) ...[
-          const SizedBox(height: 12),
-          Divider(height: 1, color: Colors.grey[300]),
-          const SizedBox(height: 12),
-        ],
+        if (!isLast) const Divider(height: 24),
       ],
     );
   }
 
   List<Widget> _buildOnaySureciContent(OnayDurumuResponse onayDurumu) {
-    // Reusing the exact logic from AracIstek...
-    // (Copying generic parts for brevity - implementation mirroring AracIstekDetay logic)
-    final List<Widget> widgets = [];
-    widgets.add(
-      _buildTalepEdenCard(
-        personelAdi: onayDurumu.talepEdenPerAdi,
-        gorevYeri: onayDurumu.talepEdenPerGorevYeri,
-        gorevi: onayDurumu.talepEdenPerGorev,
-        tarih: onayDurumu.talepEdenTarih,
-        isLast: onayDurumu.onayVerecekler.isEmpty,
-      ),
-    );
+    if (onayDurumu.onayVerecekler.isEmpty) {
+      return [
+        const Text(
+          'Onay süreci bilgisi bulunmamaktadır.',
+          style: TextStyle(color: Colors.black87),
+        ),
+      ];
+    }
 
-    for (int i = 0; i < onayDurumu.onayVerecekler.length; i++) {
-      final personel = onayDurumu.onayVerecekler[i];
-      IconData icon;
-      Color iconColor;
+    return onayDurumu.onayVerecekler.asMap().entries.map((entry) {
+      final index = entry.key;
+      final personel = entry.value;
+      final isLast = index == onayDurumu.onayVerecekler.length - 1;
 
-      if (personel.onay == true) {
-        icon = Icons.check_circle;
-        iconColor = Colors.green;
-      } else if (personel.onay == false) {
-        icon = Icons.cancel;
-        iconColor = Colors.red;
-      } else if (personel.geriGonderildi) {
-        icon = Icons.replay;
-        iconColor = Colors.orange;
+      // Determine colors based on approval status
+      Color statusColor;
+      if (personel.onayDurumu == 'Onaylandı') {
+        statusColor = Colors.green;
+      } else if (personel.onayDurumu == 'Reddedildi') {
+        statusColor = Colors.red;
       } else {
-        icon = Icons.hourglass_empty;
-        iconColor = Colors.orange;
+        statusColor = Colors.orange;
       }
 
-      widgets.add(
-        _buildOnaySureciCard(
-          personelAdi: personel.personelAdi,
-          gorevYeri: personel.gorevYeri,
-          gorevi: personel.gorevi,
-          tarih: personel.islemTarihi,
-          durum: personel.onayDurumu,
-          aciklama: personel.aciklama,
-          icon: icon,
-          iconColor: iconColor,
-          isFirst: false,
-          isLast: i == onayDurumu.onayVerecekler.length - 1,
-        ),
-      );
-    }
-    return widgets;
-  }
-
-  Widget _buildTalepEdenCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    DateTime? tarih,
-    required bool isLast,
-  }) {
-    // (Standard Card Implementation)
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.gradientStart.withOpacity(0.1),
-                shape: BoxShape.circle,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  personel.onayDurumu == 'Onaylandı'
+                      ? Icons.check_circle
+                      : personel.onayDurumu == 'Reddedildi'
+                      ? Icons.cancel
+                      : Icons.hourglass_top,
+                  color: statusColor,
+                  size: 22,
+                ),
               ),
-              child: Icon(
-                Icons.person_add_alt_1,
-                color: AppColors.gradientStart,
-                size: 22,
-              ),
-            ),
-            if (!isLast)
-              Container(width: 2, height: 70, color: Colors.grey[300]),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  personelAdi,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gradientStart.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.add_task,
-                        size: 18,
-                        color: AppColors.gradientStart,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Talep Oluşturuldu',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.gradientStart,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  gorevYeri,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF4A5568),
-                  ),
-                ),
-                Text(
-                  gorevi,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF718096),
-                  ),
-                ),
-                if (tarih != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 18,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Color(0xFF718096),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOnaySureciCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    DateTime? tarih,
-    required String durum,
-    String? aciklama,
-    required IconData icon,
-    required Color iconColor,
-    required bool isFirst,
-    required bool isLast,
-  }) {
-    // (Standard Card Implementation)
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            if (!isLast)
-              Container(width: 2, height: 80, color: Colors.grey[300]),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      personelAdi,
+                      personel.personelAdi,
                       style: const TextStyle(
-                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        fontSize: 15,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        '($durum)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: iconColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                    if (personel.gorevi.isNotEmpty)
+                      Text(
+                        '${personel.gorevi} - ${personel.gorevYeri}',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      personel.onayDurumu,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
+                    if (personel.islemTarihi != null)
+                      Text(
+                        DateFormat(
+                          'dd.MM.yyyy HH:mm',
+                        ).format(personel.islemTarihi!),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  gorevYeri,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF4A5568),
-                  ),
-                ),
-                Text(
-                  gorevi,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF718096),
-                  ),
-                ),
-                if (aciklama != null && aciklama.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Text(
-                      aciklama,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0xFF4A5568),
-                      ),
-                    ),
-                  ),
-                ],
-                if (tarih != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF718096),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
-    );
+          if (!isLast) const Divider(height: 24),
+        ],
+      );
+    }).toList();
   }
 }

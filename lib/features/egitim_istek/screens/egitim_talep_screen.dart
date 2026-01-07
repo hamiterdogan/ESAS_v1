@@ -82,6 +82,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   // FocusNodes for validation fields
   final FocusNode _egitimSirketiAdiFocusNode = FocusNode();
   final FocusNode _egitimKonusuFocusNode = FocusNode();
+  final FocusNode _webSitesiFocusNode = FocusNode();
   final FocusNode _ulkeSehirFocusNode = FocusNode();
   final FocusNode _adresFocusNode = FocusNode();
 
@@ -93,6 +94,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   final GlobalKey _egitimTuruKey = GlobalKey();
   final GlobalKey _egitimSirketiAdiKey = GlobalKey();
   final GlobalKey _egitimKonusuKey = GlobalKey();
+  final GlobalKey _webSitesiKey = GlobalKey();
   final GlobalKey _adresKey = GlobalKey();
   final GlobalKey _egitimUcretiKey = GlobalKey();
   final GlobalKey _sehirKey = GlobalKey();
@@ -129,6 +131,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     _ozelEgitimAdiFocusNode.dispose();
     _egitimSirketiAdiFocusNode.dispose();
     _egitimKonusuFocusNode.dispose();
+    _webSitesiFocusNode.dispose();
     _ulkeSehirFocusNode.dispose();
     _adresFocusNode.dispose();
     _scrollController.dispose();
@@ -1057,14 +1060,40 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
+                        key: _webSitesiKey,
+                        focusNode: _webSitesiFocusNode,
                         initialValue: _webSitesi,
                         onChanged: (value) {
                           setState(() {
                             _webSitesi = value;
                           });
                         },
+                        validator: (value) {
+                          final trimmedValue = value?.trim() ?? '';
+
+                          // Boş bırakıldıysa OK (zorunlu değil)
+                          if (trimmedValue.isEmpty) {
+                            return null;
+                          }
+
+                          // Dolu ise format kontrol et (geçersizse uyarı ver)
+                          final uri = Uri.tryParse(trimmedValue);
+                          final hasValidProtocol =
+                              uri != null &&
+                              (uri.scheme == 'http' || uri.scheme == 'https');
+                          final hasValidHost =
+                              uri != null &&
+                              uri.host.isNotEmpty &&
+                              uri.host.contains('.');
+
+                          if (!hasValidProtocol || !hasValidHost) {
+                            return 'web sitesi adresini kontrol ediniz';
+                          }
+
+                          return null;
+                        },
                         decoration: InputDecoration(
-                          hintText: 'Web sitesi adresini giriniz',
+                          hintText: 'http://',
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                           filled: true,
                           fillColor: Colors.white,
@@ -2412,6 +2441,41 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       }
       return;
     }
+
+    // 4️⃣.1 Web sitesi opsiyonel ama girildiyse format doğru olmalı
+    final webSitesiTrimmed = _webSitesi.trim();
+    if (webSitesiTrimmed.isNotEmpty) {
+      final uri = Uri.tryParse(webSitesiTrimmed);
+      final hasValidProtocol =
+          uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+      final hasValidHost =
+          uri != null && uri.host.isNotEmpty && uri.host.contains('.');
+
+      if (!hasValidProtocol || !hasValidHost) {
+        // Hata durumunda: uyarı + web sitesi inputuna focus
+        FocusScope.of(context).unfocus();
+        await Future.delayed(Duration.zero);
+        await _scrollAndFocusToWidget(_webSitesiKey, null);
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'web sitesi adresini kontrol ediniz',
+          );
+        }
+
+        if (mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              FocusScope.of(context).requestFocus(_webSitesiFocusNode);
+            }
+          });
+        }
+        return;
+      }
+    }
+
+    // Web sitesi geçerliyse (veya boşsa): hiçbir input focus olmasın, klavye kapansın
+    FocusScope.of(context).unfocus();
 
     // 5️⃣ Şehir / Ülke-Şehir zorunlu validasyonu
     // - Online: şehir zorunlu

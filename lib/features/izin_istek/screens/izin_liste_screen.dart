@@ -861,7 +861,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
               final talep = filteredTalepler[index];
               return _IzinTalepKarti(
                 talep: talep,
-                onDelete: () => _deleteIzinTalebi(talep.onayKayitID),
+                onDelete: () => _deleteIzinTalebi(talep.onayKayitId),
               );
             },
           ),
@@ -970,7 +970,7 @@ class _IzinTalepKarti extends StatelessWidget {
     final isDeleteAvailable = statusText.toLowerCase() == 'onay bekliyor';
 
     return Slidable(
-      key: ValueKey(talep.onayKayitID),
+      key: ValueKey(talep.onayKayitId),
       endActionPane: isDeleteAvailable
           ? ActionPane(
               motion: const ScrollMotion(),
@@ -1023,7 +1023,7 @@ class _IzinTalepKarti extends StatelessWidget {
                         context,
                       ).scaffoldBackgroundColor,
                       body: IzinIstekDetayScreen(
-                        talepId: talep.onayKayitID,
+                        talepId: talep.onayKayitId,
                         onayTipi: talep.onayTipi,
                       ),
                     ),
@@ -1068,7 +1068,7 @@ class _IzinTalepKarti extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '${talep.onayKayitID}',
+                                '${talep.onayKayitId}',
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.bold,

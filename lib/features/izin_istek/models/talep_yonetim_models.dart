@@ -58,7 +58,7 @@ class TalepYonetimResponse {
 // Single talep model
 class Talep {
   final String onayTipi;
-  final int onayKayitID;
+  final int onayKayitId;
   final String olusturmaTarihi;
   final String islemTarihi;
   final String onayDurumu;
@@ -81,7 +81,7 @@ class Talep {
 
   Talep({
     required this.onayTipi,
-    required this.onayKayitID,
+    required this.onayKayitId,
     required this.olusturmaTarihi,
     required this.islemTarihi,
     required this.onayDurumu,
@@ -115,7 +115,7 @@ class Talep {
   factory Talep.fromJson(Map<String, dynamic> json) {
     return Talep(
       onayTipi: json['onayTipi']?.toString() ?? '',
-      onayKayitID: _parseIntSafe(json['onayKayitID']),
+      onayKayitId: _parseIntSafe(json['onayKayitId'] ?? json['onayKayitId']),
       olusturmaTarihi: json['olusturmaTarihi']?.toString() ?? '',
       islemTarihi: json['islemTarihi']?.toString() ?? '',
       onayDurumu: json['onayDurumu']?.toString() ?? '',
@@ -141,7 +141,7 @@ class Talep {
   Map<String, dynamic> toJson() {
     return {
       'onayTipi': onayTipi,
-      'onayKayitID': onayKayitID,
+      'onayKayitId': onayKayitId,
       'olusturmaTarihi': olusturmaTarihi,
       'islemTarihi': islemTarihi,
       'onayDurumu': onayDurumu,
