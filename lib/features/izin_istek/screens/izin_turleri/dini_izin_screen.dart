@@ -248,7 +248,10 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                           alignment: Alignment.centerLeft,
                           child: const Text(
                             '1 günlük izin',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.inputLabelColor,
+                            ),
                           ),
                         ),
                       ),
@@ -269,6 +272,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -313,6 +317,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -343,6 +348,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -465,6 +471,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -882,3 +889,4 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     });
   }
 }
+

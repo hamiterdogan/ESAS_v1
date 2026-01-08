@@ -6,6 +6,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_ekle_req.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_talep.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_detay_model.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_turu.dart';
 import 'package:http_parser/http_parser.dart';
 
 class SarfMalzemeRepository {
@@ -30,6 +31,7 @@ class SarfMalzemeRepository {
       temizlik: <SarfMalzemeAnaKategori>[],
       kirtasiye: <SarfMalzemeAnaKategori>[],
       promosyon: <SarfMalzemeAnaKategori>[],
+      yiyecek: <SarfMalzemeAnaKategori>[],
     );
   }
 
@@ -46,6 +48,28 @@ class SarfMalzemeRepository {
   Future<List<SarfMalzemeAnaKategori>> getPromosyonKategorileri() async {
     final response = await getAnaKategoriler();
     return response.promosyon;
+  }
+
+  Future<List<SarfMalzemeAnaKategori>> getYiyecekKategorileri() async {
+    final response = await getAnaKategoriler();
+    return response.yiyecek;
+  }
+
+  Future<List<SarfMalzemeTuru>> getSarfMalzemeTurleri() async {
+    try {
+      final response = await _dio.get('/SarfMalzeme/SarfMalzemeTuru');
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((item) => SarfMalzemeTuru.fromJson(item as String))
+            .toList();
+      }
+
+      return [];
+    } catch (e) {
+      return [];
+    }
   }
 
   Future<List<SarfMalzemeAltKategori>> getAltKategoriler(
@@ -227,6 +251,45 @@ class SarfMalzemeRepository {
       return const Success(null);
     } catch (e) {
       return Failure(e.toString());
+    }
+  }
+
+  Future<List<String>> getDonemler() async {
+    try {
+      final response = await _dio.get('/YiyecekIstek/DonemDoldur');
+
+      if (response.statusCode != 200) {
+        return [];
+      }
+
+      final data = response.data;
+
+      if (data is List) {
+        return data.map((e) => e.toString()).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<String>> getEtkinlikAdlari() async {
+    try {
+      final response = await _dio.get('/YiyecekIstek/EtkinlikAdlariDoldur');
+
+      if (response.statusCode != 200) {
+        return [];
+      }
+
+      final data = response.data;
+      if (data is Map && data['etkinlikAdlari'] is List) {
+        return (data['etkinlikAdlari'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
     }
   }
 }

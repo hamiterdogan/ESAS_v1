@@ -35,6 +35,7 @@ class PriceInputWidget extends StatelessWidget {
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
               fontSize:
                   (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+              color: AppColors.inputLabelColor,
             ),
           ),
         ),

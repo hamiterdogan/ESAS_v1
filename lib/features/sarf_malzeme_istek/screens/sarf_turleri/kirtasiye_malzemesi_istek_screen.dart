@@ -669,7 +669,11 @@ class _KirtasiyeMalzemesiIstekScreenState
               children: [
                 const Text(
                   'Ürünü Sil',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.inputLabelColor,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -796,6 +800,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                   ?.fontSize ??
                                               16) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                               ),
                             ),
@@ -989,6 +994,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                                 ).textTheme.titleMedium?.fontSize ??
                                 16) +
                             1,
+                        color: AppColors.inputLabelColor,
                       ),
                     ),
                   ),
@@ -1102,6 +1108,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: AppColors.inputLabelColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1466,6 +1473,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: AppColors.inputLabelColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1558,6 +1566,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: AppColors.inputLabelColor,
                   ),
                 ),
                 const SizedBox(height: 8),

@@ -39,6 +39,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+            color: AppColors.inputLabelColor,
           ),
         ),
         const SizedBox(height: 8),

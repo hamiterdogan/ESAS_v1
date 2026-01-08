@@ -61,6 +61,7 @@ class _DersSaatiSpinnerWidgetState
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+            color: const Color(0xFF01396B),
           ),
           maxLines: 1,
           overflow: TextOverflow.visible,

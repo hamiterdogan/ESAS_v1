@@ -252,7 +252,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
-                          child: const Text('1 günlük izin'),
+                          child: const Text(
+                            '1 günlük izin',
+                            style: TextStyle(color: AppColors.inputLabelColor),
+                          ),
                         ),
                       ),
                     ],
@@ -270,6 +273,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -314,6 +318,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -342,6 +347,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialHour: _baslangicSaat,
                           initialMinute: _baslangicDakika,
@@ -383,6 +389,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onTimeChanged: (hour, minute) {
                             setState(() {
@@ -411,6 +418,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -786,3 +794,4 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
+

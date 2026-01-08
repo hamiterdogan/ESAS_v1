@@ -236,6 +236,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -268,6 +269,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _bitisTarihi,
                           minDate: _baslangicTarihi != null
@@ -297,6 +299,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _tahminiDogumTarihi,
                           label: 'Tahmini Doğum Tarihi',
@@ -332,6 +335,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -646,3 +650,4 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
     });
   }
 }
+

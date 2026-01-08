@@ -56,6 +56,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
+            color: const Color(0xFF01396B),
           ),
         ),
         const SizedBox(height: 8),

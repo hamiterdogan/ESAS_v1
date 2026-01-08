@@ -29,6 +29,12 @@ final sarfMalzemePromosyonKategorilerProvider =
       return repo.getPromosyonKategorileri();
     });
 
+final sarfMalzemeYiyecekKategorilerProvider =
+    FutureProvider.autoDispose<List<SarfMalzemeAnaKategori>>((ref) async {
+      final repo = ref.read(sarfMalzemeRepositoryProvider);
+      return repo.getYiyecekKategorileri();
+    });
+
 final sarfMalzemeAltKategorilerProvider = FutureProvider.family
     .autoDispose<List<SarfMalzemeAltKategori>, int>((ref, anaKategoriId) async {
       final repo = ref.read(sarfMalzemeRepositoryProvider);
@@ -37,12 +43,8 @@ final sarfMalzemeAltKategorilerProvider = FutureProvider.family
 
 final allSarfMalzemeTurleriProvider =
     FutureProvider.autoDispose<List<SarfMalzemeTuru>>((ref) async {
-      // Return the three main sarf malzeme categories/types
-      return [
-        const SarfMalzemeTuru(ad: 'Temizlik Malzemeleri'),
-        const SarfMalzemeTuru(ad: 'Kırtasiye Malzemeleri'),
-        const SarfMalzemeTuru(ad: 'Promosyon Malzemeleri'),
-      ];
+      final repo = ref.read(sarfMalzemeRepositoryProvider);
+      return repo.getSarfMalzemeTurleri();
     });
 
 final sarfMalzemeDevamEdenTaleplerProvider =
@@ -61,6 +63,18 @@ final sarfMalzemeTamamlananTaleplerProvider =
 
 final sarfMalzemeDetayProvider = FutureProvider.family
     .autoDispose<SarfMalzemeDetayResponse, int>((ref, id) async {
+      final repo = ref.read(sarfMalzemeRepositoryProvider);
+      return repo.getSarfMalzemeDetay(id);
+    });
+
+final donemlerProvider = FutureProvider.autoDispose<List<String>>((ref) async {
   final repo = ref.read(sarfMalzemeRepositoryProvider);
-  return repo.getSarfMalzemeDetay(id);
+  return repo.getDonemler();
+});
+
+final etkinlikAdlariProvider = FutureProvider.autoDispose<List<String>>((
+  ref,
+) async {
+  final repo = ref.read(sarfMalzemeRepositoryProvider);
+  return repo.getEtkinlikAdlari();
 });

@@ -462,6 +462,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -494,6 +495,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -584,6 +586,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -788,6 +791,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -878,6 +882,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -955,6 +960,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1005,6 +1011,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1056,6 +1063,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1148,6 +1156,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -1191,6 +1200,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -1247,6 +1257,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1364,6 +1375,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -1451,6 +1463,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1529,6 +1542,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1628,6 +1642,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1787,7 +1802,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         child: Text(
                           'Genelgeyi ve protokolü okudum, anladım, onaylıyorum',
                           style: TextStyle(
-                            color: Colors.grey.shade800,
+                            color: AppColors.inputLabelColor,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

@@ -1028,6 +1028,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.inputLabelColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -1076,6 +1077,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: AppColors.inputLabelColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1127,6 +1129,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.inputLabelColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -1183,6 +1186,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.inputLabelColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -1229,6 +1233,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.inputLabelColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -1359,6 +1364,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        color: AppColors.inputLabelColor,
                       ),
                     ),
                   ],
@@ -1375,6 +1381,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: AppColors.inputLabelColor,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1429,6 +1436,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1488,6 +1496,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1543,6 +1552,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1591,6 +1601,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1895,3 +1906,4 @@ class _AltKategoriBottomSheetContentState
     );
   }
 }
+

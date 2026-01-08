@@ -329,7 +329,10 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                         activeThumbColor: AppColors.gradientEnd,
                         inactiveTrackColor: Colors.white,
                       ),
-                      const Text('1 günlük izin'),
+                      const Text(
+                        '1 günlük izin',
+                        style: TextStyle(color: AppColors.inputLabelColor),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -345,6 +348,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -383,6 +387,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -406,6 +411,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -455,6 +461,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -782,3 +789,4 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
+

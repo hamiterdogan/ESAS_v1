@@ -255,7 +255,10 @@ class _KurumGorevlendirmesiIzinScreenState
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
-                          child: const Text('1 günlük izin'),
+                          child: const Text(
+                            '1 günlük izin',
+                            style: TextStyle(color: AppColors.inputLabelColor),
+                          ),
                         ),
                       ),
                     ],
@@ -273,6 +276,7 @@ class _KurumGorevlendirmesiIzinScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -311,6 +315,7 @@ class _KurumGorevlendirmesiIzinScreenState
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -339,6 +344,7 @@ class _KurumGorevlendirmesiIzinScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialHour: _baslangicSaat,
                           initialMinute: _baslangicDakika,
@@ -380,6 +386,7 @@ class _KurumGorevlendirmesiIzinScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onTimeChanged: (hour, minute) {
                             setState(() {
@@ -408,6 +415,7 @@ class _KurumGorevlendirmesiIzinScreenState
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -759,3 +767,4 @@ class _KurumGorevlendirmesiIzinScreenState
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
+

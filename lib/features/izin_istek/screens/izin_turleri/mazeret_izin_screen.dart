@@ -252,7 +252,10 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.centerLeft,
-                          child: const Text('1 günlük izin'),
+                          child: const Text(
+                            '1 günlük izin',
+                            style: TextStyle(color: AppColors.inputLabelColor),
+                          ),
                         ),
                       ),
                     ],
@@ -270,6 +273,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -314,6 +318,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -342,6 +347,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialHour: _baslangicSaat,
                           initialMinute: _baslangicDakika,
@@ -388,6 +394,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onTimeChanged: (hour, minute) {
                             setState(() {
@@ -416,6 +423,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -763,3 +771,4 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
+

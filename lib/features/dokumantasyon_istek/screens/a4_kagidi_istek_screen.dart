@@ -233,6 +233,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: const Color(0xFF01396B),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -277,6 +278,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: const Color(0xFF01396B),
                   ),
                 ),
                 const SizedBox(height: 8),

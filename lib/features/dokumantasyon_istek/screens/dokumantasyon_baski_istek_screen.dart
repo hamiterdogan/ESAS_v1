@@ -730,6 +730,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: const Color(0xFF01396B),
                 ),
               ),
               const SizedBox(height: 4),
@@ -765,6 +766,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: const Color(0xFF01396B),
                 ),
               ),
               const SizedBox(height: 8),
@@ -817,6 +819,7 @@ class _DokumantasyonBaskiIstekScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: const Color(0xFF01396B),
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -843,6 +846,7 @@ class _DokumantasyonBaskiIstekScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: const Color(0xFF01396B),
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -863,7 +867,7 @@ class _DokumantasyonBaskiIstekScreenState
                   'Toplam Sayfa: ${_baskiAdedi * _sayfaSayisi}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: const Color(0xFF01396B),
                     fontSize:
                         (Theme.of(context).textTheme.bodyMedium?.fontSize ??
                             14) +
@@ -880,6 +884,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: const Color(0xFF01396B),
                 ),
               ),
               const SizedBox(height: 8),
@@ -936,7 +941,10 @@ class _DokumantasyonBaskiIstekScreenState
                     },
                   ),
                   const Expanded(
-                    child: Text('Renkli Baskı', style: TextStyle(fontSize: 14)),
+                    child: Text(
+                      'Renkli Baskı',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
+                    ),
                   ),
                 ],
               ),
@@ -959,7 +967,7 @@ class _DokumantasyonBaskiIstekScreenState
                   const Expanded(
                     child: Text(
                       'Arkalı Önlü Baskı',
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
                     ),
                   ),
                 ],
@@ -983,7 +991,7 @@ class _DokumantasyonBaskiIstekScreenState
                   const Expanded(
                     child: Text(
                       'Çoğaltılacak kopya elden teslim edilecektir',
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
                     ),
                   ),
                 ],
@@ -999,6 +1007,7 @@ class _DokumantasyonBaskiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: const Color(0xFF01396B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1093,6 +1102,7 @@ class _DokumantasyonBaskiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
+                    color: const Color(0xFF01396B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1137,6 +1147,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
+                  color: const Color(0xFF01396B),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1792,6 +1803,7 @@ class _DokumantasyonBaskiIstekScreenState
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
+                              color: Color(0xFF01396B),
                             ),
                           ),
                           TextButton(
@@ -2043,7 +2055,7 @@ class _DokumantasyonBaskiIstekScreenState
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Color(0xFF01396B),
                     ),
                   ),
                   const SizedBox(height: 4),

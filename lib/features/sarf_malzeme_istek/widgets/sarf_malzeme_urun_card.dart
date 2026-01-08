@@ -239,8 +239,11 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
                widget.talepTuru.toLowerCase().contains('kirtasiye')) {
       kategorilerAsync = ref.read(sarfMalzemeKirtasiyeKategorilerProvider);
-    } else { // Promosyon
+    } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
       kategorilerAsync = ref.read(sarfMalzemePromosyonKategorilerProvider);
+    } else {
+      // Default to Yiyecek if others don't match, or check explicitly
+      kategorilerAsync = ref.read(sarfMalzemeYiyecekKategorilerProvider);
     }
 
     if (kategorilerAsync.hasValue) {
@@ -255,8 +258,10 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
         } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
                 widget.talepTuru.toLowerCase().contains('kirtasiye')) {
             await ref.read(sarfMalzemeKirtasiyeKategorilerProvider.future);
-        } else {
+        } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
              await ref.read(sarfMalzemePromosyonKategorilerProvider.future);
+        } else {
+             await ref.read(sarfMalzemeYiyecekKategorilerProvider.future);
         }
 
       if (mounted) {
@@ -290,8 +295,10 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                  } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
                             widget.talepTuru.toLowerCase().contains('kirtasiye')) {
                     asyncKategoriler = ref.watch(sarfMalzemeKirtasiyeKategorilerProvider);
-                 } else {
+                 } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
                     asyncKategoriler = ref.watch(sarfMalzemePromosyonKategorilerProvider);
+                 } else {
+                    asyncKategoriler = ref.watch(sarfMalzemeYiyecekKategorilerProvider);
                  }
               
               return asyncKategoriler.when(
@@ -627,8 +634,12 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       ref.listen(sarfMalzemeKirtasiyeKategorilerProvider, (previous, next) {
         _handleAutoSelect(next);
       });
-    } else {
+    } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
       ref.listen(sarfMalzemePromosyonKategorilerProvider, (previous, next) {
+        _handleAutoSelect(next);
+      });
+    } else {
+      ref.listen(sarfMalzemeYiyecekKategorilerProvider, (previous, next) {
         _handleAutoSelect(next);
       });
     }

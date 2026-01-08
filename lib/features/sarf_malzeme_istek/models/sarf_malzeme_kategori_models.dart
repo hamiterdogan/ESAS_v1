@@ -22,11 +22,13 @@ class SarfMalzemeAnaKategoriResponse {
   final List<SarfMalzemeAnaKategori> temizlik;
   final List<SarfMalzemeAnaKategori> kirtasiye;
   final List<SarfMalzemeAnaKategori> promosyon;
+  final List<SarfMalzemeAnaKategori> yiyecek;
 
   const SarfMalzemeAnaKategoriResponse({
     required this.temizlik,
     required this.kirtasiye,
     required this.promosyon,
+    required this.yiyecek,
   });
 
   factory SarfMalzemeAnaKategoriResponse.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class SarfMalzemeAnaKategoriResponse {
       temizlik: parseList(json['temizlik']),
       kirtasiye: parseList(json['kirtasiye']),
       promosyon: parseList(json['promosyon']),
+      yiyecek: parseList(json['yiyecek']),
     );
   }
 }

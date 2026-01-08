@@ -72,7 +72,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
                 alignment: Alignment.centerLeft,
                 child: const Text(
                   'Başkası adına istekte bulunuyorum',
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
                 ),
               ),
             ),

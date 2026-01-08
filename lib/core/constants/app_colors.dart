@@ -5,6 +5,9 @@ class AppColors {
   static const Color gradientStart = Color(0xFF014B92);
   static const Color gradientEnd = Color(0xFF01325B);
 
+  // Label & Title Colors
+  static const Color inputLabelColor = Color(0xFF01396B);
+
   // Gradient
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [gradientStart, gradientEnd],

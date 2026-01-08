@@ -26,6 +26,7 @@ import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_turu_secim_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_talep_yonetim_screen.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_istek_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknoloji_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep_yonetim_screen.dart';
 
@@ -190,9 +191,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/yiyecek_icecek_istek/ekle',
-      builder: (context, state) => EmptyTalepScreen(
-        talep: TalepTuru.fromEnum(TalepTuruEnum.yiyecekIcecekIstek),
-      ),
+      builder: (context, state) => const YiyecekIcecekIstekScreen(),
     ),
   ],
 );

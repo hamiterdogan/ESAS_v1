@@ -279,7 +279,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         activeThumbColor: AppColors.gradientEnd,
                         inactiveTrackColor: Colors.white,
                       ),
-                      const Text('1 günlük izin'),
+                      const Text(
+                        '1 günlük izin',
+                        style: TextStyle(color: AppColors.inputLabelColor),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -297,6 +300,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialDate: _baslangicTarihi,
                           label: 'Başlangıç Tarihi',
@@ -341,6 +345,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialDate: _bitisTarihi,
                                 minDate: _baslangicTarihi != null
@@ -371,6 +376,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           initialHour: _baslangicSaat,
                           initialMinute: _baslangicDakika,
@@ -414,6 +420,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onTimeChanged: (hour, minute) {
                             // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
@@ -451,7 +458,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           alignment: Alignment.centerLeft,
                           child: const Text(
                             'Acil',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.inputLabelColor,
+                            ),
                           ),
                         ),
                       ),
@@ -478,6 +488,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -535,7 +546,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       const Expanded(
                         child: Text(
                           'Doktor Raporu Var',
-                          style: TextStyle(fontSize: 14),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.inputLabelColor,
+                          ),
                         ),
                       ),
                     ],
@@ -978,3 +992,4 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     });
   }
 }
+

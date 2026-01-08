@@ -247,6 +247,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onDateChanged: (date) {
                             setState(() {
@@ -282,6 +283,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onDateChanged: (date) {
                             setState(() {
@@ -309,6 +311,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                           onDateChanged: (date) {
                             setState(() {
@@ -331,6 +334,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -394,6 +398,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.inputLabelColor,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -728,3 +733,4 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     });
   }
 }
+

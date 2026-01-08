@@ -812,6 +812,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     2,
+                                color: AppColors.inputLabelColor,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -850,6 +851,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -940,6 +942,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -1031,6 +1034,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -1123,6 +1127,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -1247,6 +1252,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
+                                    color: AppColors.inputLabelColor,
                                   ),
                                 ),
                               ],
@@ -1298,6 +1304,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -1358,6 +1365,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -1418,6 +1426,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -2362,3 +2371,4 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     );
   }
 }
+

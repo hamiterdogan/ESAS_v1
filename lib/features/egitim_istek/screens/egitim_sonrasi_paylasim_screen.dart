@@ -309,6 +309,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -344,6 +345,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                                       ?.fontSize ??
                                                   14) +
                                               1,
+                                          color: AppColors.inputLabelColor,
                                         ),
                                   ),
                                   const SizedBox(height: 8),
@@ -379,6 +381,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialHour: _baslangicSaat,
                                 initialMinute: _baslangicDakika,
@@ -408,6 +411,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                                   ?.fontSize ??
                                               14) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                                 initialHour: _bitisSaat,
                                 initialMinute: _bitisDakika,
@@ -441,6 +445,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.inputLabelColor,
                                   ),
                             ),
                             const SizedBox(height: 8),
@@ -492,6 +497,7 @@ class _EgitimSonrasiPaylasimsScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.inputLabelColor,
                               ),
                         ),
                         const SizedBox(height: 12),
@@ -586,3 +592,4 @@ class _EgitimSonrasiPaylasimsScreenState
     );
   }
 }
+

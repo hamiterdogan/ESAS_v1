@@ -105,7 +105,7 @@ class GuidelineCardWithToggle extends StatelessWidget {
               child: Text(
                 toggleText,
                 style: TextStyle(
-                  color: Colors.grey.shade800,
+                  color: AppColors.inputLabelColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -117,3 +117,4 @@ class GuidelineCardWithToggle extends StatelessWidget {
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// A date picker widget that displays selected date as text
 /// and opens a bottom sheet with separate day, month, year spinners.
@@ -408,7 +409,7 @@ class _DatePickerBottomSheetWidgetState
                   const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF666666),
+                    color: AppColors.inputLabelColor,
                   ),
             ),
           ),
@@ -419,7 +420,7 @@ class _DatePickerBottomSheetWidgetState
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(7),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
