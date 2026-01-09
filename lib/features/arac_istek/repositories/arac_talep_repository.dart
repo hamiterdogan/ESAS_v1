@@ -382,7 +382,7 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
   @override
   Future<Result<void>> aracIstekSil({required int id}) async {
     try {
-      final response = await _dio.post(
+      final response = await _dio.delete(
         '/AracIstek/AracIstekSil',
         queryParameters: {'id': id},
       );

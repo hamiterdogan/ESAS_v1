@@ -348,8 +348,8 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   Future<Result<void>> izinIstekSil(int id) async {
     try {
       print('🔍 İzin isteği siliniyor: $id');
-      final response = await _dio.post(
-        '/TalepYonetimi/IzinIstek/IzinIstekSil',
+      final response = await _dio.delete(
+        '/IzinIstek/IzinIstekSil',
         data: {'id': id},
       );
       print('✅ Response status: ${response.statusCode}');

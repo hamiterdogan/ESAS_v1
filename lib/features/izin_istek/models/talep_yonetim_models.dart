@@ -115,7 +115,7 @@ class Talep {
   factory Talep.fromJson(Map<String, dynamic> json) {
     return Talep(
       onayTipi: json['onayTipi']?.toString() ?? '',
-      onayKayitId: _parseIntSafe(json['onayKayitId'] ?? json['onayKayitId']),
+      onayKayitId: _parseIntSafe(json['onayKayitId'] ?? json['OnayKayitId']),
       olusturmaTarihi: json['olusturmaTarihi']?.toString() ?? '',
       islemTarihi: json['islemTarihi']?.toString() ?? '',
       onayDurumu: json['onayDurumu']?.toString() ?? '',

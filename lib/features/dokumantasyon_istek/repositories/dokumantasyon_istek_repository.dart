@@ -128,7 +128,7 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
   @override
   Future<Result<void>> dokumantasyonIstekSil({required int id}) async {
     try {
-      final response = await _dio.post(
+      final response = await _dio.delete(
         '/DokumantasyonIstek/DokumantasyonIstekSil',
         queryParameters: {'id': id},
       );

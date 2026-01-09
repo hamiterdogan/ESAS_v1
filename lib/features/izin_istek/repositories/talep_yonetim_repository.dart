@@ -170,7 +170,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<void>> izinIstekSil({required int id}) async {
     try {
-      final response = await dio.post(
+      final response = await dio.delete(
         '/IzinIstek/IzinIstekSil',
         data: {'id': id},
       );
