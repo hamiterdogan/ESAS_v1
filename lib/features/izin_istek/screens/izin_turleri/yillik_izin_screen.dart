@@ -511,7 +511,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_baslangicTarihi == null) {
-        _showStatusBottomSheet(message1: 'Başlangıç tarihi seçiniz', isError: true);
+        _showStatusBottomSheet('Başlangıç tarihi seçiniz', isError: true);
         return;
       }
 
@@ -526,7 +526,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         bitisDakikaValue = 30;
       } else {
         if (_bitisTarihi == null) {
-          _showStatusBottomSheet(message1: 'Bitiş tarihi seçiniz', isError: true);
+          _showStatusBottomSheet('Bitiş tarihi seçiniz', isError: true);
           return;
         }
         bitisTarih = _bitisTarihi!;
@@ -537,7 +537,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       // Açıklama minimum 30 karakter kontrolü
       if (_aciklamaController.text.length < 30) {
         _showStatusBottomSheet(
-          message1: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
         _aciklamaFocusNode.requestFocus();
@@ -550,7 +550,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           _adresHatali = true;
         });
         _showStatusBottomSheet(
-          message1: 'Lütfen izin süresince bulunacağınız adresi giriniz',
+          'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
         _adresFocusNode.requestFocus();
@@ -560,7 +560,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       // Başlangıç tarihi bitiş tarihinden sonra olamaz
       if (_baslangicTarihi!.isAfter(bitisTarih)) {
         _showStatusBottomSheet(
-          message1: 'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
+          'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
           isError: true,
         );
         return;
@@ -571,7 +571,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           _baslangicSaat == _bitisSaat &&
           _baslangicDakika == _bitisDakika) {
         _showStatusBottomSheet(
-          message1: 'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
+          'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
           isError: true,
         );
         return;
@@ -658,32 +658,30 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               if (result is Failure) {
                 throw Exception(result.message);
               }
+              // Yıllık izin için uyarı popup'ı kaldırıldı, mesaj başarı ekranına eklendi
             },
             onSuccess: () {
+              const infoMessage =
+                  'Yıllık izin talebiniz onaylandıktan sonra lütfen izin formunu ıslak imzalı ve onaylanmış olarak İnsan Kaynakları departmanına iletiniz.';
               _showStatusBottomSheet(
-                message1: 'Yıllık izin talebi başarıyla gönderildi!',
-                message2: 'Yıllık izin talebiniz onaylandıktan sonra lütfen izin formunu ıslak imzalı ve onaylanmış olarak İnsan Kaynakları departmanına iletiniz.',
+                'Yıllık izin talebi başarıyla gönderildi!\n\n$infoMessage',
                 isError: false,
               );
             },
             onError: (error) {
-              _showStatusBottomSheet(message1: 'Hata: $error', isError: true);
+              _showStatusBottomSheet('Hata: $error', isError: true);
             },
           );
         }
       } catch (e) {
         if (mounted) {
-          _showStatusBottomSheet(message1: 'Hata oluştu: $e', isError: true);
+          _showStatusBottomSheet('Hata oluştu: $e', isError: true);
         }
       }
     }
   }
 
-  void _showStatusBottomSheet(
-    String message1, {
-    String? message2,
-    bool isError = false,
-  }) async {
+  void _showStatusBottomSheet(String message, {bool isError = false}) async {
     // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
     _aciklamaFocusNode.unfocus();
     _adresFocusNode.unfocus();
@@ -711,25 +709,13 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                message1,
+                message,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              if (message2 != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  message2,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {

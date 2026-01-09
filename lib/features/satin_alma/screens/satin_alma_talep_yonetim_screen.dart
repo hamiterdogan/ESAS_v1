@@ -528,7 +528,16 @@ class _SatinAlmaTalepYonetimScreenState
             : items;
 
         if (filtered.isEmpty) {
-          return const Center(child: Text('Talep bulunamadı'));
+          return RefreshIndicator(
+            onRefresh: () => onRefresh().then((_) {}),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: const SizedBox.shrink(),
+              ),
+            ),
+          );
         }
 
         final sorted = [...filtered]

@@ -239,7 +239,10 @@ class SatinAlmaRepository {
 
   Future<Result<void>> deleteTalep({required int id}) async {
     try {
-      await _dio.post('/SatinAlma/SatinAlmaSil?id=$id', data: {});
+      await _dio.delete(
+        '/SatinAlma/SatinAlmaSil',
+        queryParameters: {'id': id},
+      );
       return const Success(null);
     } catch (e) {
       return Failure(e.toString());

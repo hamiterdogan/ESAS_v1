@@ -240,7 +240,10 @@ class SarfMalzemeRepository {
 
   Future<Result<void>> sarfMalzemeSil({required int id}) async {
     try {
-      final response = await _dio.post('/SarfMalzeme/SarfMalzemeSil?id=$id');
+      final response = await _dio.delete(
+        '/SarfMalzeme/SarfMalzemeSil',
+        queryParameters: {'id': id},
+      );
 
       final responseData = response.data;
       if (response.statusCode != 200 ||

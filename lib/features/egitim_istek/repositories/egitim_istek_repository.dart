@@ -201,10 +201,9 @@ class EgitimIstekRepository {
 
   Future<Result<void>> egitimIstekSil({required int id}) async {
     try {
-      final response = await _dio.post(
+      final response = await _dio.delete(
         '/EgitimIstek/EgitimIstekSil',
         queryParameters: {'id': id},
-        data: '',
       );
 
       if (response.statusCode == 200) {
