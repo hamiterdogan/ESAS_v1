@@ -511,7 +511,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_baslangicTarihi == null) {
-        _showStatusBottomSheet('Başlangıç tarihi seçiniz', isError: true);
+        _showStatusBottomSheet(message1: 'Başlangıç tarihi seçiniz', isError: true);
         return;
       }
 
@@ -526,7 +526,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         bitisDakikaValue = 30;
       } else {
         if (_bitisTarihi == null) {
-          _showStatusBottomSheet('Bitiş tarihi seçiniz', isError: true);
+          _showStatusBottomSheet(message1: 'Bitiş tarihi seçiniz', isError: true);
           return;
         }
         bitisTarih = _bitisTarihi!;
@@ -537,7 +537,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       // Açıklama minimum 30 karakter kontrolü
       if (_aciklamaController.text.length < 30) {
         _showStatusBottomSheet(
-          'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          message1: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
           isError: true,
         );
         _aciklamaFocusNode.requestFocus();
@@ -550,7 +550,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           _adresHatali = true;
         });
         _showStatusBottomSheet(
-          'Lütfen izin süresince bulunacağınız adresi giriniz',
+          message1: 'Lütfen izin süresince bulunacağınız adresi giriniz',
           isError: true,
         );
         _adresFocusNode.requestFocus();
@@ -560,7 +560,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       // Başlangıç tarihi bitiş tarihinden sonra olamaz
       if (_baslangicTarihi!.isAfter(bitisTarih)) {
         _showStatusBottomSheet(
-          'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
+          message1: 'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
           isError: true,
         );
         return;
@@ -571,7 +571,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           _baslangicSaat == _bitisSaat &&
           _baslangicDakika == _bitisDakika) {
         _showStatusBottomSheet(
-          'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
+          message1: 'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
           isError: true,
         );
         return;
@@ -667,13 +667,13 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               );
             },
             onError: (error) {
-              _showStatusBottomSheet('Hata: $error', isError: true);
+              _showStatusBottomSheet(message1: 'Hata: $error', isError: true);
             },
           );
         }
       } catch (e) {
         if (mounted) {
-          _showStatusBottomSheet('Hata oluştu: $e', isError: true);
+          _showStatusBottomSheet(message1: 'Hata oluştu: $e', isError: true);
         }
       }
     }
