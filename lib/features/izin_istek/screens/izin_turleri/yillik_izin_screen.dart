@@ -658,39 +658,11 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               if (result is Failure) {
                 throw Exception(result.message);
               }
-              // Yıllık izin için uyarı popup'ı göster
-              if (mounted) {
-                await showDialog(
-                  context: this.context,
-                  barrierDismissible: false,
-                  builder: (context) => AlertDialog(
-                    title: const Text(
-                      'Önemli Bilgi',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    content: const Text(
-                      'Yıllık izin talebiniz onaylandıktan sonra lütfen izin formunu ıslak imzalı ve onaylanmış olarak İnsan Kaynakları departmanına iletiniz.',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text(
-                          'Tamam',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
             },
             onSuccess: () {
               _showStatusBottomSheet(
-                'Yıllık izin talebi başarıyla gönderildi!',
+                message1: 'Yıllık izin talebi başarıyla gönderildi!',
+                message2: 'Yıllık izin talebiniz onaylandıktan sonra lütfen izin formunu ıslak imzalı ve onaylanmış olarak İnsan Kaynakları departmanına iletiniz.',
                 isError: false,
               );
             },
@@ -707,7 +679,11 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
     }
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) async {
+  void _showStatusBottomSheet(
+    String message1, {
+    String? message2,
+    bool isError = false,
+  }) async {
     // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
     _aciklamaFocusNode.unfocus();
     _adresFocusNode.unfocus();
@@ -735,13 +711,25 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                message,
+                message1,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (message2 != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  message2,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
