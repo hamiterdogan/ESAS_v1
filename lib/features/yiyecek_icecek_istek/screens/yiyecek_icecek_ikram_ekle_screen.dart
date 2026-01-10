@@ -51,7 +51,7 @@ class _YiyecekIcecekIkramEkleScreenState
         _bitisSaat = int.parse(endParts[0]);
         _bitisDakika = int.parse(endParts[1]);
       }
-      
+
       // Handle custom text for 'Diğer'
       for (var ikram in _selectedIkramlar) {
         if (ikram.startsWith('Diğer: ')) {
@@ -68,7 +68,8 @@ class _YiyecekIcecekIkramEkleScreenState
       text: _kurumDisiAdet.toString(),
     );
     _toplamController = TextEditingController(
-        text: '${_kurumIciAdet + _kurumDisiAdet} kişi');
+      text: '${_kurumIciAdet + _kurumDisiAdet} kişi',
+    );
   }
 
   @override
@@ -268,7 +269,7 @@ class _YiyecekIcecekIkramEkleScreenState
       ),
       builder: (context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.5,
+          initialChildSize: 0.75,
           minChildSize: 0.3,
           maxChildSize: 0.9,
           expand: false,
@@ -292,9 +293,8 @@ class _YiyecekIcecekIkramEkleScreenState
                       ),
                       Text(
                         'İkram Seçiniz',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
                       Expanded(
@@ -307,8 +307,8 @@ class _YiyecekIcecekIkramEkleScreenState
                                   itemCount: ikramTurleri.length,
                                   itemBuilder: (context, index) {
                                     final ikram = ikramTurleri[index];
-                                    final isSelected =
-                                        _selectedIkramlar.contains(ikram);
+                                    final isSelected = _selectedIkramlar
+                                        .contains(ikram);
                                     return Column(
                                       children: [
                                         CheckboxListTile(
@@ -346,19 +346,23 @@ class _YiyecekIcecekIkramEkleScreenState
                                                 ),
                                                 enabledBorder:
                                                     OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  borderSide: BorderSide(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                      borderSide: BorderSide(
+                                                        color: Colors
+                                                            .grey
+                                                            .shade300,
+                                                      ),
+                                                    ),
                                                 fillColor: Colors.white,
                                                 filled: true,
                                                 contentPadding:
                                                     const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 8,
-                                                ),
+                                                      horizontal: 12,
+                                                      vertical: 8,
+                                                    ),
                                               ),
                                             ),
                                           ),
@@ -369,12 +373,10 @@ class _YiyecekIcecekIkramEkleScreenState
                               },
                             );
                           },
-                          loading: () => const Center(
-                            child: BrandedLoadingIndicator(),
-                          ),
-                          error: (error, stack) => Center(
-                            child: Text('Hata: $error'),
-                          ),
+                          loading: () =>
+                              const Center(child: BrandedLoadingIndicator()),
+                          error: (error, stack) =>
+                              Center(child: Text('Hata: $error')),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -399,6 +401,7 @@ class _YiyecekIcecekIkramEkleScreenState
                           ),
                         ),
                       ),
+                      const SizedBox(height: 50),
                     ],
                   ),
                 );
@@ -437,8 +440,8 @@ class _YiyecekIcecekIkramEkleScreenState
                   Text(
                     'Seçilen İkramlar',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   if (_selectedIkramlar.isEmpty)
@@ -456,7 +459,8 @@ class _YiyecekIcecekIkramEkleScreenState
                           String displayText = ikram;
                           if (ikram == 'Diğer' &&
                               _ikramSecinizController.text.isNotEmpty) {
-                            displayText = 'Diğer: ${_ikramSecinizController.text}';
+                            displayText =
+                                'Diğer: ${_ikramSecinizController.text}';
                           }
                           return ListTile(
                             title: Text(displayText),
@@ -480,6 +484,7 @@ class _YiyecekIcecekIkramEkleScreenState
                         },
                       ),
                     ),
+                  const SizedBox(height: 60),
                 ],
               ),
             );
@@ -538,10 +543,7 @@ class _YiyecekIcecekIkramEkleScreenState
                   ),
                   child: const Text(
                     'Tamam',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -582,6 +584,17 @@ class _YiyecekIcecekIkramEkleScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  'Katılımcı Sayıları',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                    color: AppColors.inputLabelColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
@@ -590,15 +603,12 @@ class _YiyecekIcecekIkramEkleScreenState
                         children: [
                           Text(
                             'Kurum İçi',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontSize:
-                                      (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
                                           14) +
                                       1,
                                   color: AppColors.inputLabelColor,
@@ -620,15 +630,12 @@ class _YiyecekIcecekIkramEkleScreenState
                         children: [
                           Text(
                             'Kurum Dışı',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontSize:
-                                      (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
                                           14) +
                                       1,
                                   color: AppColors.inputLabelColor,
@@ -688,20 +695,34 @@ class _YiyecekIcecekIkramEkleScreenState
                   children: [
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontSize: (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
+                              color: AppColors.inputLabelColor,
+                            ),
                         initialHour: _baslangicSaat,
                         initialMinute: _baslangicDakika,
                         minHour: 0,
                         maxHour: 23,
-                        allowedMinutes: const [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+                        allowedMinutes: const [
+                          0,
+                          5,
+                          10,
+                          15,
+                          20,
+                          25,
+                          30,
+                          35,
+                          40,
+                          45,
+                          50,
+                          55,
+                        ],
                         label: 'Başlangıç Saati',
                         onTimeChanged: (hour, minute) {
                           setState(() {
@@ -713,7 +734,6 @@ class _YiyecekIcecekIkramEkleScreenState
                             if (_baslangicSaat > _bitisSaat ||
                                 (_baslangicSaat == _bitisSaat &&
                                     _baslangicDakika >= _bitisDakika)) {
-
                               // 5 dakika ekle
                               int nextMinute = _baslangicDakika + 5;
                               int nextHour = _baslangicSaat;
@@ -742,20 +762,34 @@ class _YiyecekIcecekIkramEkleScreenState
                     const SizedBox(width: 16),
                     Expanded(
                       child: TimePickerBottomSheetWidget(
-                        labelStyle:
-                            Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontSize: (Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
+                              color: AppColors.inputLabelColor,
+                            ),
                         initialHour: _bitisSaat,
                         initialMinute: _bitisDakika,
                         minHour: _baslangicSaat,
                         maxHour: 23,
-                        allowedMinutes: const [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+                        allowedMinutes: const [
+                          0,
+                          5,
+                          10,
+                          15,
+                          20,
+                          25,
+                          30,
+                          35,
+                          40,
+                          45,
+                          50,
+                          55,
+                        ],
                         label: 'Bitiş Saati',
                         onTimeChanged: (hour, minute) {
                           // Bitiş saati başlangıç saatinden küçük olamaz kontrolü
@@ -804,7 +838,8 @@ class _YiyecekIcecekIkramEkleScreenState
                   bitisSaati:
                       '${_bitisSaat.toString().padLeft(2, '0')}:${_bitisDakika.toString().padLeft(2, '0')}',
                   secilenIkramlar: _selectedIkramlar.map((e) {
-                    if (e == 'Diğer' && _ikramSecinizController.text.isNotEmpty) {
+                    if (e == 'Diğer' &&
+                        _ikramSecinizController.text.isNotEmpty) {
                       return 'Diğer: ${_ikramSecinizController.text}';
                     }
                     return e;
