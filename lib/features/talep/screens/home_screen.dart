@@ -70,13 +70,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ]
             : null,
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          const AnaSayfaContent(),
-          IsteklerimContent(key: _isteklerimKey),
-          GelenKutusuContent(key: _gelenKutusuKey),
-        ],
+      body: Builder(
+        builder: (context) {
+          // Sadece aktif tab'ı render et - gereksiz API çağrılarını önler
+          switch (_currentIndex) {
+            case 0:
+              return const AnaSayfaContent();
+            case 1:
+              return IsteklerimContent(key: _isteklerimKey);
+            case 2:
+              return GelenKutusuContent(key: _gelenKutusuKey);
+            default:
+              return const AnaSayfaContent();
+          }
+        },
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),

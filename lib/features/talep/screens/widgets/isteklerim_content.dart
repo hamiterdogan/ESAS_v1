@@ -128,6 +128,39 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   // Filtre sayfası durumu - null = ana liste, 'talepTuru' = talep türü sayfası, vb.
   String? _currentFilterPage;
 
+  /// Hata mesajlarını kullanıcı dostu hale getir
+  String _getHataBasligi(String error) {
+    final lowerError = error.toLowerCase();
+    if (lowerError.contains('timeout') || lowerError.contains('time out')) {
+      return 'Bağlantı Zaman Aşımı';
+    } else if (lowerError.contains('connection') ||
+        lowerError.contains('network')) {
+      return 'Bağlantı Hatası';
+    } else if (lowerError.contains('401') ||
+        lowerError.contains('unauthorized')) {
+      return 'Oturum Süresi Doldu';
+    } else if (lowerError.contains('500') || lowerError.contains('server')) {
+      return 'Sunucu Hatası';
+    }
+    return 'Bir Hata Oluştu';
+  }
+
+  String _getHataMesaji(String error) {
+    final lowerError = error.toLowerCase();
+    if (lowerError.contains('timeout') || lowerError.contains('time out')) {
+      return 'Sunucuya bağlanırken zaman aşımı oluştu. İnternet bağlantınızı kontrol edin ve tekrar deneyin.';
+    } else if (lowerError.contains('connection') ||
+        lowerError.contains('network')) {
+      return 'İnternet bağlantısı kurulamadı. Lütfen bağlantınızı kontrol edin.';
+    } else if (lowerError.contains('401') ||
+        lowerError.contains('unauthorized')) {
+      return 'Oturumunuzun süresi doldu. Lütfen uygulamayı yeniden başlatın.';
+    } else if (lowerError.contains('500') || lowerError.contains('server')) {
+      return 'Sunucu geçici olarak hizmet veremiyor. Lütfen daha sonra tekrar deneyin.';
+    }
+    return 'Veriler yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.';
+  }
+
   /// AppBar'dan çağrılacak public metodlar
   void showSiralamaBottomSheetPublic() {
     _showSiralamaBottomSheet(context);
@@ -707,29 +740,68 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
     return asyncValue.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Hata: ${error.toString()}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red, fontSize: 16),
+      error: (error, stack) => RefreshIndicator(
+        onRefresh: () async {
+          if (widget.tip == 0) {
+            ref.invalidate(devamEdenIsteklerimProvider);
+          } else {
+            ref.invalidate(tamamlananIsteklerimProvider);
+          }
+          // Provider'ın yeniden yüklenmesini bekle
+          await Future.delayed(const Duration(milliseconds: 100));
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off, size: 64, color: Colors.grey[400]),
+                    const SizedBox(height: 24),
+                    Text(
+                      _getHataBasligi(error.toString()),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _getHataMesaji(error.toString()),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (widget.tip == 0) {
+                          ref.invalidate(devamEdenIsteklerimProvider);
+                        } else {
+                          ref.invalidate(tamamlananIsteklerimProvider);
+                        }
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Tekrar Dene'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gradientStart,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (widget.tip == 0) {
-                  ref.invalidate(devamEdenIsteklerimProvider);
-                } else {
-                  ref.invalidate(tamamlananIsteklerimProvider);
-                }
-              },
-              child: const Text('Tekrar Dene'),
-            ),
-          ],
+          ),
         ),
       ),
       data: (response) {

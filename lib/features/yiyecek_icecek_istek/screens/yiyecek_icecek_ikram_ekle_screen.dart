@@ -25,6 +25,13 @@ class _YiyecekIcecekIkramEkleScreenState
   late final TextEditingController _kurumDisiController;
   late final TextEditingController _toplamController;
   final TextEditingController _ikramSecinizController = TextEditingController();
+  final FocusNode _ikramFocusNode = FocusNode();
+  
+  // Validation Focus Nodes
+  final FocusNode _kurumIciFocusNode = FocusNode();
+  final FocusNode _ikramSecimiFocusNode = FocusNode();
+
+
   List<String> _selectedIkramlar = [];
   int _baslangicSaat = 8;
   int _baslangicDakika = 0;
@@ -78,6 +85,9 @@ class _YiyecekIcecekIkramEkleScreenState
     _kurumDisiController.dispose();
     _toplamController.dispose();
     _ikramSecinizController.dispose();
+    _ikramFocusNode.dispose();
+    _kurumIciFocusNode.dispose();
+    _ikramSecimiFocusNode.dispose();
     super.dispose();
   }
 
@@ -115,8 +125,9 @@ class _YiyecekIcecekIkramEkleScreenState
   Widget _buildSpinnerRow(
     int value,
     TextEditingController controller,
-    Function(int) onUpdate,
-  ) {
+    Function(int) onUpdate, {
+    FocusNode? focusNode,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -149,6 +160,7 @@ class _YiyecekIcecekIkramEkleScreenState
               color: Colors.white,
             ),
             child: TextField(
+              focusNode: focusNode,
               controller: controller,
               textAlign: TextAlign.center,
               textAlignVertical: TextAlignVertical.center,
@@ -209,30 +221,33 @@ class _YiyecekIcecekIkramEkleScreenState
         InkWell(
           onTap: _showIkramSelectionBottomSheet,
           borderRadius: BorderRadius.circular(8),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _selectedIkramlar.isEmpty
-                      ? 'İkram Seçiniz'
-                      : '${_selectedIkramlar.length} İkram Seçildi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _selectedIkramlar.isEmpty
-                        ? Colors.grey.shade600
-                        : Colors.black,
+          child: Focus(
+            focusNode: _ikramSecimiFocusNode,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _selectedIkramlar.isEmpty
+                        ? 'İkram Seçiniz'
+                        : '${_selectedIkramlar.length} İkram Seçildi',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _selectedIkramlar.isEmpty
+                          ? Colors.grey.shade600
+                          : Colors.black,
+                    ),
                   ),
-                ),
-                Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-              ],
+                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+                ],
+              ),
             ),
           ),
         ),
@@ -259,8 +274,15 @@ class _YiyecekIcecekIkramEkleScreenState
     );
   }
 
-  void _showIkramSelectionBottomSheet() {
-    showModalBottomSheet(
+  Future<void> _showIkramSelectionBottomSheet({
+    bool scrollToBottom = false,
+    String? validationError,
+  }) {
+    bool hasScrolled = false;
+    // Local state to manage error visibility inside the sheet
+    String? currentError = validationError;
+
+    return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -278,8 +300,27 @@ class _YiyecekIcecekIkramEkleScreenState
               builder: (context, ref, child) {
                 final ikramTurleriAsync = ref.watch(ikramTurleriProvider);
 
+                if (scrollToBottom && !hasScrolled) {
+                  hasScrolled = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_ikramFocusNode.canRequestFocus) {
+                      _ikramFocusNode.requestFocus();
+                    }
+                    if (scrollController.hasClients) {
+                      scrollController.animateTo(
+                        scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  });
+                }
+
+                // Calculate bottom padding for keyboard
+                final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
                 return Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboardHeight),
                   child: Column(
                     children: [
                       Container(
@@ -310,6 +351,7 @@ class _YiyecekIcecekIkramEkleScreenState
                                     final isSelected = _selectedIkramlar
                                         .contains(ikram);
                                     return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         CheckboxListTile(
                                           title: Text(ikram),
@@ -322,6 +364,10 @@ class _YiyecekIcecekIkramEkleScreenState
                                               } else {
                                                 _selectedIkramlar.remove(ikram);
                                               }
+                                              // Clear error if user changes selection (optional, but good UX)
+                                              if (currentError != null) {
+                                                  currentError = null;
+                                              }
                                             });
                                             // Update main screen as well
                                             this.setState(() {});
@@ -332,38 +378,56 @@ class _YiyecekIcecekIkramEkleScreenState
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 16,
                                             ),
-                                            child: TextField(
-                                              controller:
-                                                  _ikramSecinizController,
-                                              decoration: InputDecoration(
-                                                hintText: 'İkramı belirtiniz',
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  borderSide: BorderSide(
-                                                    color: Colors.grey.shade300,
-                                                  ),
-                                                ),
-                                                enabledBorder:
-                                                    OutlineInputBorder(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                TextField(
+                                                  controller:
+                                                      _ikramSecinizController,
+                                                  focusNode: _ikramFocusNode,
+                                                  onChanged: (value) {
+                                                    // Clear error when user types
+                                                    if (currentError != null && value.isNotEmpty) {
+                                                      setSheetState(() {
+                                                        currentError = null;
+                                                      });
+                                                    }
+                                                  },
+                                                  decoration: InputDecoration(
+                                                    hintText: 'İkramı belirtiniz',
+                                                    border: OutlineInputBorder(
                                                       borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
+                                                          BorderRadius.circular(8),
                                                       borderSide: BorderSide(
-                                                        color: Colors
-                                                            .grey
-                                                            .shade300,
+                                                        color: currentError != null 
+                                                            ? Colors.red 
+                                                            : Colors.grey.shade300,
                                                       ),
                                                     ),
-                                                fillColor: Colors.white,
-                                                filled: true,
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 8,
-                                                    ),
-                                              ),
+                                                    enabledBorder:
+                                                        OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8,
+                                                              ),
+                                                          borderSide: BorderSide(
+                                                            color: currentError != null
+                                                                ? Colors.red
+                                                                : Colors
+                                                                .grey
+                                                                .shade300,
+                                                          ),
+                                                        ),
+                                                    fillColor: Colors.white,
+                                                    filled: true,
+                                                    contentPadding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 8,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                       ],
@@ -494,6 +558,66 @@ class _YiyecekIcecekIkramEkleScreenState
     );
   }
 
+  Future<void> _showWarningBottomSheet(String message) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red.shade700,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tamam',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showStatusBottomSheet(String message, {bool isError = false}) {
     showModalBottomSheet(
       context: context,
@@ -619,6 +743,7 @@ class _YiyecekIcecekIkramEkleScreenState
                             _kurumIciAdet,
                             _kurumIciController,
                             _updateKurumIciAdet,
+                            focusNode: _kurumIciFocusNode,
                           ),
                         ],
                       ),
@@ -821,7 +946,7 @@ class _YiyecekIcecekIkramEkleScreenState
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
+                style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -830,6 +955,44 @@ class _YiyecekIcecekIkramEkleScreenState
                 ),
               ),
               onPressed: () {
+                // 1. Katılımcı sayısı kontrolü
+                if (_kurumIciAdet + _kurumDisiAdet == 0) {
+                  _showWarningBottomSheet(
+                    "Lütfen katılımcı sayılarını belirtiniz",
+                  ).then((_) {
+                    // Warning kapandıktan sonra focuslan
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      if (_kurumIciFocusNode.canRequestFocus) {
+                        _kurumIciFocusNode.requestFocus();
+                      }
+                    });
+                  });
+                  return;
+                }
+
+                // 2. İkram seçimi kontrolü
+                if (_selectedIkramlar.isEmpty) {
+                  _showWarningBottomSheet("Lütfen ikram seçiniz").then((_) {
+                    // Warning kapandıktan sonra focuslan
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      if (_ikramSecimiFocusNode.canRequestFocus) {
+                         _ikramSecimiFocusNode.requestFocus();
+                      }
+                    });
+                  });
+                  return;
+                }
+
+                // 3. Diğer İkram Input Kontrolü
+                if (_selectedIkramlar.contains('Diğer') &&
+                    _ikramSecinizController.text.trim().isEmpty) {
+                   _showIkramSelectionBottomSheet(
+                     scrollToBottom: true,
+                     validationError: "Lütfen ikramı belirtiniz",
+                   );
+                   return;
+                }
+                
                 final data = YiyecekIcecekIkramData(
                   kurumIciAdet: _kurumIciAdet,
                   kurumDisiAdet: _kurumDisiAdet,

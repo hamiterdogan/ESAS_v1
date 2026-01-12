@@ -12,7 +12,10 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_ikra
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_ikram_ekle_screen.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_ekle_req.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/widgets/yiyecek_icecek_ozet_bottom_sheet.dart';
+import 'package:esas_v1/core/models/result.dart'; // Add this for Success/Failure checks
 
 class YiyecekIcecekIstekScreen extends ConsumerStatefulWidget {
   const YiyecekIcecekIstekScreen({super.key});
@@ -31,9 +34,18 @@ class _YiyecekIcecekIstekScreenState
   String? _selectedDonem;
   String? _selectedEtkinlik;
   final TextEditingController _customEtkinlikController = TextEditingController();
+  final FocusNode _customEtkinlikFocusNode = FocusNode();
   final TextEditingController _ikramYeriController = TextEditingController();
+  final FocusNode _ikramYeriFocusNode = FocusNode();
   final TextEditingController _aciklamaController = TextEditingController();
   final FocusNode _aciklamaFocusNode = FocusNode();
+
+  
+  // Validation Focus Nodes
+  final FocusNode _donemFocusNode = FocusNode();
+  final FocusNode _etkinlikFocusNode = FocusNode();
+  final FocusNode _submitFocusNode = FocusNode();
+
   final List<YiyecekIcecekIkramData> _addedIkramlar = [];
 
   @override
@@ -46,9 +58,14 @@ class _YiyecekIcecekIstekScreenState
   void dispose() {
     _searchBinaController.dispose();
     _customEtkinlikController.dispose();
+    _customEtkinlikFocusNode.dispose();
     _ikramYeriController.dispose();
+    _ikramYeriFocusNode.dispose();
     _aciklamaController.dispose();
     _aciklamaFocusNode.dispose();
+    _donemFocusNode.dispose();
+    _etkinlikFocusNode.dispose();
+    _submitFocusNode.dispose();
     super.dispose();
   }
 
@@ -559,13 +576,13 @@ class _YiyecekIcecekIstekScreenState
     _unlockInputsAfterSheet();
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
-    showModalBottomSheet(
+  Future<void> _showWarningBottomSheet(String message) async {
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -576,18 +593,10 @@ class _YiyecekIcecekIstekScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: isError ? Colors.red.shade100 : Colors.green.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isError ? Icons.error_outline : Icons.check,
-                  color: isError ? Colors.red : Colors.green,
-                  size: 32,
-                ),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red.shade700,
+                size: 48,
               ),
               const SizedBox(height: 16),
               Text(
@@ -624,6 +633,325 @@ class _YiyecekIcecekIstekScreenState
           ),
         );
       },
+    );
+  }
+
+  void _validateAndSubmit() {
+    // 1. Dönem Kontrolü
+    if (_selectedDonem == null) {
+      _showWarningBottomSheet("Lütfen dönem seçiniz").then((_) {
+        // Warning kapandıktan sonra focuslan
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_donemFocusNode.canRequestFocus) {
+            _donemFocusNode.requestFocus();
+          }
+        });
+      });
+      return;
+    }
+
+    // 2. Etkinlik Adı Kontrolü
+    if (_selectedEtkinlik == null) {
+      _showWarningBottomSheet("Lütfen etkinlik adını seçiniz").then((_) {
+        // Warning kapandıktan sonra focuslan
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_etkinlikFocusNode.canRequestFocus) {
+            _etkinlikFocusNode.requestFocus();
+          }
+        });
+      });
+      return;
+    }
+
+    // 3. Etkinlik Adı "Diğer" ise input kontrolü
+    if (_selectedEtkinlik == 'Diğer' &&
+        _customEtkinlikController.text.trim().isEmpty) {
+      _showWarningBottomSheet("Lütfen etkinlik adını giriniz").then((_) {
+        // Warning kapandıktan sonra input'a focusla
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_customEtkinlikFocusNode.canRequestFocus) {
+            _customEtkinlikFocusNode.requestFocus();
+          }
+        });
+      });
+      return;
+    }
+
+    // 4. İkram Yapılacak Yer Kontrolü
+    if (_ikramYeriController.text.trim().isEmpty) {
+      _showWarningBottomSheet(
+        "Lütfen ikram yapılak yer bilgisi giriniz",
+      ).then((_) {
+        // Warning kapandıktan sonra input'a focusla
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_ikramYeriFocusNode.canRequestFocus) {
+            _ikramYeriFocusNode.requestFocus();
+          }
+        });
+      });
+      return;
+    }
+
+    // 5. Açıklama Kontrolü
+    if (_aciklamaController.text.trim().isEmpty) {
+      _showWarningBottomSheet("Lütfen açıklama giriniz").then((_) {
+        // Warning kapandıktan sonra input'a focusla
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (_aciklamaFocusNode.canRequestFocus) {
+            _aciklamaFocusNode.requestFocus();
+          }
+        });
+      });
+      return;
+    }
+
+    // 6. En az bir ikram kontrolü
+    // 6. En az bir ikram kontrolü
+    if (_addedIkramlar.isEmpty) {
+      _showWarningBottomSheet("Lütfen ikram bilgisi giriniz").then((_) {
+        // İkram eklenmemişse direkt ikram ekle sayfasına yönlendir
+        Navigator.push<YiyecekIcecekIkramData>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const YiyecekIcecekIkramEkleScreen(),
+          ),
+        ).then((result) {
+          if (result != null) {
+            setState(() {
+              _addedIkramlar.add(result);
+            });
+            // Focus on submit button and hide keyboard
+             Future.delayed(const Duration(milliseconds: 300), () {
+                FocusScope.of(context).unfocus(); // Ensure keyboard is gone
+                if (_submitFocusNode.canRequestFocus) {
+                  _submitFocusNode.requestFocus();
+                }
+             });
+          }
+        });
+      });
+      return;
+    }
+
+    // Validasyon başarılı, özet ekranını göster
+    _showSummary();
+  }
+
+  void _showSummary() async {
+     // Prepare Data
+      // Map selected bina codes to IDs
+      final binalar = ref.read(satinAlmaBinalarProvider).asData?.value ?? [];
+      final List<int> binaIds = [];
+      String binalarText = ''; // For summary text
+      
+      final selectedBinaNames = <String>[];
+      for (var code in _selectedBinaKodlari) {
+        final bina = binalar.firstWhere(
+          (b) => b.binaKodu == code,
+          orElse: () => SatinAlmaBina(id: 0, binaAdi: '', binaKodu: ''),
+        );
+        if (bina.id != 0) {
+          binaIds.add(bina.id);
+          selectedBinaNames.add(bina.binaAdi);
+        }
+      }
+      binalarText = selectedBinaNames.join(', ');
+
+      // Map Ikrams
+      final List<IkramRequest> ikramRequests = _addedIkramlar.map((ikramData) {
+        // Parse secilenIkramlar strings to booleans
+        final secilen = ikramData.secilenIkramlar;
+        String digerIkramStr = 'string'; // Default per example if empty
+        
+        // Check for 'Diğer: ...'
+        final digerItem = secilen.firstWhere(
+          (e) => e.startsWith('Diğer'), 
+          orElse: () => '',
+        );
+        if (digerItem.startsWith('Diğer: ')) {
+           digerIkramStr = digerItem.substring(7);
+        }
+
+        return IkramRequest(
+          cay: secilen.contains('Çay'),
+          kahve: secilen.contains('Kahve'),
+          mesrubat: secilen.contains('Meşrubat'),
+          kasarliSimit: secilen.contains('Kaşarlı Simit'),
+          kruvasan: secilen.contains('Kruvasan'),
+          kurabiye: secilen.contains('Kurabiye'),
+          ogleYemegi: secilen.contains('Öğle Yemeği'),
+          kokteyl: secilen.contains('Kokteyl'),
+          aksamYemegi: secilen.contains('Akşam Yemeği'),
+          kumanya: secilen.contains('Kumanya'),
+          diger: secilen.any((e) => e.startsWith('Diğer')),
+          digerIkram: digerIkramStr,
+          kiKatilimci: ikramData.kurumIciAdet,
+          kdKatilimci: ikramData.kurumDisiAdet,
+          toplamKatilimci: ikramData.kurumIciAdet + ikramData.kurumDisiAdet,
+          baslangicSaat: ikramData.baslangicSaati.split(':')[0],
+          baslangicDakika: ikramData.baslangicSaati.split(':')[1],
+          bitisSaat: ikramData.bitisSaati.split(':')[0],
+          bitisDakika: ikramData.bitisSaati.split(':')[1],
+        );
+      }).toList();
+
+      final req = YiyecekIstekEkleReq(
+        binaId: binaIds,
+        ikramlar: ikramRequests,
+        etkinlikTarihi: _selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+        donem: _selectedDonem ?? 'string',
+        etkinlikAdi: _selectedEtkinlik ?? 'string',
+        etkinlikAdiDiger: _selectedEtkinlik == 'Diğer' ? _customEtkinlikController.text : 'string',
+        ikramYeri: _ikramYeriController.text,
+        aciklama: _aciklamaController.text,
+      );
+
+      // Build Summary Items
+      final ozetItems = <YiyecekIcecekOzetItem>[];
+      
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Okullar', value: binalarText));
+      
+      String etkinlikAdi = _selectedEtkinlik ?? '-';
+      if(etkinlikAdi == 'Diğer') {
+         etkinlikAdi = 'Diğer (${_customEtkinlikController.text})';
+      }
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Etkinlik Adı', value: etkinlikAdi));
+      
+      String tarihStr = '-';
+      if (_selectedDate != null) {
+         tarihStr = '${_selectedDate!.day.toString().padLeft(2, '0')}.${_selectedDate!.month.toString().padLeft(2, '0')}.${_selectedDate!.year}';
+      }
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Etkinlik Tarihi', value: tarihStr));
+      
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Dönem', value: _selectedDonem ?? '-'));
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'İkram Yeri', value: _ikramYeriController.text));
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Açıklama', value: _aciklamaController.text.isEmpty ? '-' : _aciklamaController.text));
+      
+      // Ikram Summary
+      final ikramOzetleri = _addedIkramlar.map((ikram) {
+         String treats = ikram.secilenIkramlar.join(', ');
+         return 'Saat: ${ikram.baslangicSaati}-${ikram.bitisSaati} | Kişi: ${ikram.kurumIciAdet + ikram.kurumDisiAdet} | $treats';
+      }).join('\n\n');
+      
+      ozetItems.add(YiyecekIcecekOzetItem(label: 'Eklenen İkramlar', value: ikramOzetleri));
+
+      // Show Summary Sheet
+      await showYiyecekIcecekOzetBottomSheet(
+        context: context,
+        request: req,
+        talepTipi: 'Yiyecek İçecek',
+        ozetItems: ozetItems,
+        onGonder: () async {
+           // Actual API submission logic moved here (minus the loading dialog which is handled by wrapper)
+           final repo = ref.read(yiyecekIcecekRepositoryProvider);
+           // Repository method returns void currently and throws exception on error. 
+           // We need to wrap it to be safe or update repository to return Result.
+           // Since existing repository method matches what we expect (exception on failure), we can just call it.
+           await repo.yiyecekIstekEkle(req);
+        },
+        onSuccess: () {
+           // Navigate back
+           if (mounted) {
+              Navigator.pop(context); // Close screen
+              _showStatusBottomSheet('İstek başarıyla oluşturuldu', onSuccess: true); // Show success on previous screen? Or just pop and show?
+              // Actual flow: 
+              // 1. User is on Create form.
+              // 2. Clicks Submit -> Summary Sheet opens.
+              // 3. Clicks Send -> Success.
+              // 4. We should close Summary Sheet (handled by wrapper) AND Close Create Form.
+              // Logic in SatinAlma: context.go('/satin_alma') which replaces stack.
+              // Here we probably want to go back to list.
+              context.pop(); // Pop Create Screen
+           }
+        },
+        onError: (error) {
+           _showStatusBottomSheet(error, isError: true);
+        },
+      );
+  }
+
+
+
+
+
+  void _showStatusBottomSheet(String message, {bool isError = false, bool onSuccess = false}) {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      barrierColor: Colors.black54,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomLeft: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: isError ? Colors.red[100] : Colors.green[100],
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isError ? Icons.error_rounded : Icons.check_circle,
+                  size: 48,
+                  color: isError ? Colors.red[600] : Colors.green[600],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                     Navigator.pop(context); // Close sheet
+                     if (onSuccess) {
+                        Navigator.pop(context); // Return to previous screen (Management Screen)
+                     }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tamam',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -786,34 +1114,37 @@ class _YiyecekIcecekIstekScreenState
                         const SizedBox(height: 4),
                          GestureDetector(
                           onTap: _showDonemBottomSheet,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    _selectedDonem ?? 'Seçiniz',
-                                    style: TextStyle(
-                                      color: _selectedDonem == null
-                                          ? Colors.grey.shade600
-                                          : Colors.black,
-                                      fontSize: 16,
+                          child: Focus(
+                            focusNode: _donemFocusNode,
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      _selectedDonem ?? 'Seçiniz',
+                                      style: TextStyle(
+                                        color: _selectedDonem == null
+                                            ? Colors.grey.shade600
+                                            : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                                const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                              ],
+                                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -839,34 +1170,37 @@ class _YiyecekIcecekIstekScreenState
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _showEtkinlikBottomSheet,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _selectedEtkinlik ?? 'Seçiniz',
-                          style: TextStyle(
-                            color: _selectedEtkinlik == null
-                                ? Colors.grey.shade600
-                                : Colors.black,
-                            fontSize: 16,
+                child: Focus(
+                  focusNode: _etkinlikFocusNode,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _selectedEtkinlik ?? 'Seçiniz',
+                            style: TextStyle(
+                              color: _selectedEtkinlik == null
+                                  ? Colors.grey.shade600
+                                  : Colors.black,
+                              fontSize: 16,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                    ],
+                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -876,6 +1210,7 @@ class _YiyecekIcecekIstekScreenState
                 const SizedBox(height: 16),
                 TextField(
                   controller: _customEtkinlikController,
+                  focusNode: _customEtkinlikFocusNode,
                   decoration: InputDecoration(
                     hintText: 'Etkinlik adını yazınız',
                     hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -913,6 +1248,7 @@ class _YiyecekIcecekIstekScreenState
               const SizedBox(height: 8),
               TextField(
                 controller: _ikramYeriController,
+                focusNode: _ikramYeriFocusNode,
                 decoration: InputDecoration(
                   hintText: 'Bahçe, study vb. belirtiniz',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -1109,6 +1445,13 @@ class _YiyecekIcecekIstekScreenState
                       setState(() {
                         _addedIkramlar.add(result);
                       });
+                       // Focus on submit button and hide keyboard
+                       Future.delayed(const Duration(milliseconds: 300), () {
+                          FocusScope.of(context).unfocus(); 
+                          if (_submitFocusNode.canRequestFocus) {
+                            _submitFocusNode.requestFocus();
+                          }
+                       });
                     }
                   },
                   borderRadius: BorderRadius.circular(8),
@@ -1154,6 +1497,31 @@ class _YiyecekIcecekIstekScreenState
                 controller: _aciklamaController,
                 focusNode: _aciklamaFocusNode,
               ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  focusNode: _submitFocusNode,
+                  onPressed: _validateAndSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    'Gönder',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
             ],
           ),
         ),

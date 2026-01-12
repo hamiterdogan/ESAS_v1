@@ -27,6 +27,7 @@ import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_talep_y
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_turu_secim_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_istek_screen.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknoloji_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep_yonetim_screen.dart';
 
@@ -188,10 +189,19 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/yiyecek_icecek_istek',
       builder: (context, state) => const YiyecekIcecekTalepYonetimScreen(),
-    ),
-    GoRoute(
-      path: '/yiyecek_icecek_istek/ekle',
-      builder: (context, state) => const YiyecekIcecekIstekScreen(),
+      routes: [
+        GoRoute(
+          path: 'ekle',
+          builder: (context, state) => const YiyecekIcecekIstekScreen(),
+        ),
+        GoRoute(
+          path: 'detay/:id',
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['id']!);
+            return YiyecekIcecekDetayScreen(talepId: id);
+          },
+        ),
+      ],
     ),
   ],
 );
