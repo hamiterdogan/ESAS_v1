@@ -14,7 +14,7 @@ class ValidationUyariWidget {
   }) async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -28,7 +28,7 @@ class ValidationUyariWidget {
             bottom: 60,
           ),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
@@ -42,7 +42,7 @@ class ValidationUyariWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -50,7 +50,7 @@ class ValidationUyariWidget {
               // Uyarı İkonu (transparent background)
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.orange,
+                color: AppColors.warning,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -61,7 +61,7 @@ class ValidationUyariWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -85,7 +85,7 @@ class ValidationUyariWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                   ),
                 ),

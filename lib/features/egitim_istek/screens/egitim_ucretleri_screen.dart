@@ -16,11 +16,11 @@ class EgitimUcretleriScreen extends ConsumerStatefulWidget {
   final bool shouldFocusInput;
 
   const EgitimUcretleriScreen({
-    Key? key,
+    super.key,
     this.initialData,
     this.selectedPersonelCount = 1,
     this.shouldFocusInput = false,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<EgitimUcretleriScreen> createState() =>
@@ -313,7 +313,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         final icon = isError ? Icons.error_outline : Icons.check_circle_outline;
-        final iconColor = isError ? Colors.red : AppColors.gradientStart;
+        final iconColor = isError ? AppColors.error : AppColors.gradientStart;
 
         return Container(
           padding: const EdgeInsets.only(
@@ -323,7 +323,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
             bottom: 60,
           ),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
@@ -336,7 +336,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -388,6 +388,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     // 🔒 3. 1 frame bekle (ÇOK ÖNEMLİ)
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
+
     // 🔒 4. BottomSheet aç
     await showModalBottomSheet(
       context: context,
@@ -404,7 +406,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
             bottom: 60,
           ),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
@@ -417,7 +419,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -485,10 +487,11 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                     height: 24,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.white,
+                                      color: AppColors.textOnPrimary,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
+                                          color: AppColors.textPrimary
+                                              .withValues(alpha: 0.2),
                                           blurRadius: 4,
                                           offset: const Offset(0, 2),
                                         ),
@@ -531,7 +534,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                   ),
                 ),
@@ -592,7 +595,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
@@ -601,7 +604,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.orange,
+                color: AppColors.warning,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -613,7 +616,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
               const Text(
                 'Lütfen eğitimin ücretini giriniz',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black87),
+                style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -632,7 +635,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                   ),
                 ),
@@ -649,43 +652,11 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          // Back button basıldığında verileri kaydet ve geri gönder
-          final data = {
-            'egitimUcretiAna': _egitimUcretiAnaController.text,
-            'egitimUcretiKusurat': _egitimUcretiKusuratController.text,
-            'ulasimUcretiAna': _ulasimUcretiAnaController.text,
-            'ulasimUcretiKusurat': _ulasimUcretiKusuratController.text,
-            'konaklamaUcretiAna': _konaklamaUcretiAnaController.text,
-            'konaklamaUcretiKusurat': _konaklamaUcretiKusuratController.text,
-            'yemekUcretiAna': _yemekUcretiAnaController.text,
-            'yemekUcretiKusurat': _yemekUcretiKusuratController.text,
-            'kisiBasiToplamAna': _kisiBasiToplamAnaController.text,
-            'kisiBasiToplamKusurat': _kisiBasiToplamKusuratController.text,
-            'genelToplamAna': _genelToplamAnaController.text,
-            'genelToplamKusurat': _genelToplamKusuratController.text,
-            'iban': _ibanController.text,
-            'hesapAdi': _hesapAdiController.text,
-            'digerEkBilgiler': _digerEkBilgilerController.text,
-            'selectedParaBirimi': _selectedParaBirimi,
-            'selectedUlasimParaBirimi': _selectedUlasimParaBirimi,
-            'selectedKonaklamaParaBirimi': _selectedKonaklamaParaBirimi,
-            'selectedYemekParaBirimi': _selectedYemekParaBirimi,
-            'selectedOdemeTuru': _selectedOdemeTuru,
-            'vadeli': _vadeli,
-            'odemeVadesi': _odemeVadesi,
-            'egitimKuru': _egitimKuru,
-            'ulasimKuru': _ulasimKuru,
-            'konaklamaKuru': _konaklamaKuru,
-            'yemekKuru': _yemekKuru,
-          };
-          // Navigator.pop zaten çağrıldı, sadece data'yı result olarak ayarlayalım
-          // Bu durumda bir şey yapmamıza gerek yok, çünkü didPop zaten true
-        }
+      onPopInvokedWithResult: (didPop, result) {
+        // Pop işlemi zaten gerçekleşti, ek işlem yapılmasına gerek yok
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Container(
@@ -697,7 +668,10 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.textOnPrimary,
+                    ),
                     onPressed: () {
                       final data = {
                         'egitimUcretiAna': _egitimUcretiAnaController.text,
@@ -741,7 +715,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                   const Text(
                     'Eğitim Ücretleri',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -868,9 +842,9 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: Colors.grey.shade300,
+                                          color: AppColors.border,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -886,7 +860,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                               style: TextStyle(
                                                 color:
                                                     _selectedParaBirimi != null
-                                                    ? Colors.black87
+                                                    ? AppColors.textPrimary87
                                                     : Colors.grey.shade600,
                                                 fontSize: 16,
                                               ),
@@ -959,9 +933,9 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: Colors.grey.shade300,
+                                          color: AppColors.border,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -978,7 +952,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                 color:
                                                     _selectedUlasimParaBirimi !=
                                                         null
-                                                    ? Colors.black87
+                                                    ? AppColors.textPrimary87
                                                     : Colors.grey.shade600,
                                                 fontSize: 16,
                                               ),
@@ -1051,9 +1025,9 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: Colors.grey.shade300,
+                                          color: AppColors.border,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1071,7 +1045,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                 color:
                                                     _selectedKonaklamaParaBirimi !=
                                                         null
-                                                    ? Colors.black87
+                                                    ? AppColors.textPrimary87
                                                     : Colors.grey.shade600,
                                                 fontSize: 16,
                                               ),
@@ -1144,9 +1118,9 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                         vertical: 12,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: Colors.grey.shade300,
+                                          color: AppColors.border,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1163,7 +1137,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                                 color:
                                                     _selectedYemekParaBirimi !=
                                                         null
-                                                    ? Colors.black87
+                                                    ? AppColors.textPrimary87
                                                     : Colors.grey.shade600,
                                                 fontSize: 16,
                                               ),
@@ -1235,8 +1209,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                               children: [
                                 Switch(
                                   value: _vadeli,
-                                  activeColor: AppColors.gradientStart,
-                                  inactiveTrackColor: Colors.white,
+                                  activeThumbColor: AppColors.gradientStart,
+                                  inactiveTrackColor: AppColors.textOnPrimary,
                                   onChanged: (v) {
                                     FocusScope.of(context).unfocus();
                                     setState(() {
@@ -1323,17 +1297,17 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   vertical: 12,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: AppColors.textOnPrimary,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1346,7 +1320,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                               ),
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -1384,17 +1358,17 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   vertical: 12,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: AppColors.textOnPrimary,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1407,7 +1381,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                               ),
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -1446,17 +1420,17 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   vertical: 12,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: AppColors.textOnPrimary,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey.shade300,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1469,7 +1443,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                               ),
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: Colors.black87,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -1550,7 +1524,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                               child: const Text(
                                 'Tamam',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1568,18 +1542,6 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         ),
       ),
     );
-
-    // 🔓 5. Sheet kapandıktan sonra focus izni geri ver
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final scope = FocusScope.of(context);
-        scope.unfocus();
-        scope.canRequestFocus = true;
-        _ibanFocusNode.canRequestFocus = true;
-        _hesapAdiFocusNode.canRequestFocus = true;
-        _digerEkBilgilerFocusNode.canRequestFocus = true;
-      }
-    });
   }
 
   Future<void> _showParaBirimiBottomSheet() async {
@@ -1619,6 +1581,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(paraBirimlerProvider.future);
@@ -1653,7 +1616,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   Future<void> _openParaBirimiBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -1674,7 +1637,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                   child: Center(
                     child: Text(
                       'Para birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -1711,7 +1674,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -1735,7 +1698,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                               : FontWeight.normal,
                                           color: isSelected
                                               ? AppColors.gradientStart
-                                              : Colors.black87,
+                                              : AppColors.textPrimary87,
                                           fontSize:
                                               (Theme.of(context)
                                                       .textTheme
@@ -1818,6 +1781,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(paraBirimlerProvider.future);
@@ -1852,7 +1816,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   Future<void> _openUlasimParaBirimiBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -1873,7 +1837,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                   child: Center(
                     child: Text(
                       'Para birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -1910,7 +1874,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -2015,6 +1979,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(paraBirimlerProvider.future);
@@ -2049,7 +2014,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   Future<void> _openKonaklamaParaBirimiBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -2070,7 +2035,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                   child: Center(
                     child: Text(
                       'Para birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -2107,7 +2072,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -2212,6 +2177,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(paraBirimlerProvider.future);
@@ -2246,7 +2212,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
   Future<void> _openYemekParaBirimiBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -2267,7 +2233,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                   child: Center(
                     child: Text(
                       'Para birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -2304,7 +2270,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -2371,4 +2337,3 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     );
   }
 }
-

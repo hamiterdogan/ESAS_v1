@@ -32,11 +32,11 @@ class IzinDetayScreen extends ConsumerWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('İzin isteği başarıyla silindi'),
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.success,
                 ),
               );
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Sil'),
           ),
         ],
@@ -52,15 +52,15 @@ class IzinDetayScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(
           'İzin İstek Detayı',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.textOnPrimary),
         ),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => context.go('/izin_istek'),
         ),
       ),
@@ -71,7 +71,7 @@ class IzinDetayScreen extends ConsumerWidget {
             height: 32,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF014B92)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
         ),
@@ -79,7 +79,7 @@ class IzinDetayScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
               const SizedBox(height: 16),
               Text('Hata: $error'),
             ],
@@ -125,9 +125,9 @@ class IzinDetayScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[50],
+                    color: AppColors.textTertiary,
                   ),
                   child: Text(
                     detay.aciklama ?? 'Açıklama yok',
@@ -153,7 +153,7 @@ class IzinDetayScreen extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: () => _silIstekDialog(context, ref),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.error,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -161,7 +161,7 @@ class IzinDetayScreen extends ConsumerWidget {
                     child: const Text(
                       'İzin İsteğini Sil',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -185,15 +185,15 @@ class IzinDetayScreen extends ConsumerWidget {
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(8),
-            color: Colors.grey[50],
+            color: AppColors.textTertiary,
           ),
           child: Column(children: children),
         ),
@@ -220,7 +220,7 @@ class IzinDetayScreen extends ConsumerWidget {
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
-              color: Colors.black87,
+              color: AppColors.textPrimary,
             ),
           ),
         ],

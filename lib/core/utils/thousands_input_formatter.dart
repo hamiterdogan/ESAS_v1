@@ -21,8 +21,7 @@ class ThousandsInputFormatter extends TextInputFormatter {
       integerPart = '0';
     } else {
       // Remove leading zeros from integer part
-      integerPart =
-          integerPart.replaceFirst(RegExp(r'^0+(?=\d)'), '') ?? integerPart;
+      integerPart = integerPart.replaceFirst(RegExp(r'^0+(?=\d)'), '');
       if (integerPart.isEmpty) integerPart = '0';
     }
 

@@ -44,7 +44,6 @@ class JwtDecoder {
 
       return null;
     } catch (e) {
-      print('❌ PersonelId çıkarma hatası: $e');
       return null;
     }
   }

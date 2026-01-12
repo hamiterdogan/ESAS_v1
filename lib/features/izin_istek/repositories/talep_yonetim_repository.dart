@@ -44,29 +44,21 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     required int tip,
   }) async {
     try {
-      print('📡 TaleplerimiGetir API çağrısı: tip=$tip');
-
       final response = await dio.post(
         '/TalepYonetimi/TaleplerimiGetir',
         data: {'tip': tip},
         options: Options(contentType: 'application/json'),
       );
 
-      print('📡 Response alındı. Status: ${response.statusCode}');
-      print('📡 Response data: ${response.data}');
-
       if (response.statusCode == 200) {
         final data = TalepYonetimResponse.fromJson(response.data);
-        print('✅ Başarılı! ${data.talepler.length} talep bulundu');
         return Success(data);
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -74,30 +66,21 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<IzinTalepleriResponse>> izinTaleplerimiGetir() async {
     try {
-      print('📡 API çağrısı başlıyor: /IzinIstek/IzinTaleplerimiGetir');
       final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
         data: '{}',
         options: Options(contentType: 'application/json'),
       );
 
-      print('📡 Response alındı. Status: ${response.statusCode}');
-      print('📡 Response data: ${response.data}');
-
       if (response.statusCode == 200) {
         final data = IzinTalepleriResponse.fromJson(response.data);
-        print('✅ Başarılı! ${data.talepler.length} talep bulundu');
         return Success(data);
       }
 
-      print('❌ Status hata: ${response.statusCode}');
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -107,39 +90,21 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     required int tip,
   }) async {
     try {
-      print('🔹 [REPO] izinTaleplerimiGetirByTip başladı: tip=$tip');
-      print(
-        '📡 API çağrısı başlıyor: /IzinIstek/IzinTaleplerimiGetir (tip: $tip)',
-      );
       final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
         data: '{"tip": $tip}',
         options: Options(contentType: 'application/json'),
       );
 
-      print('🔹 [REPO] Response statusCode: ${response.statusCode}');
-      print('🔹 [REPO] Response data type: ${response.data.runtimeType}');
-      print('📡 Response data: ${response.data}');
-
       if (response.statusCode == 200) {
-        print('🔹 [REPO] JSON parse başladı');
         final data = IzinTalepleriResponse.fromJson(response.data);
-        print('✅ Başarılı! ${data.talepler.length} talep bulundu');
-        data.talepler.forEach((t) {
-          print('  ✓ ${t.onayKayitId}: ${t.izinTuru} - ${t.onayDurumu}');
-        });
         return Success(data);
       }
 
-      print('❌ Status hata: ${response.statusCode}');
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
       return Failure(e.toString());
     }
   }
@@ -190,12 +155,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<List<Gorev>>> gorevleriGetir() async {
     try {
-      print('📡 GorevDoldur API çağrısı başlıyor');
       final response = await dio.get('/TalepYonetimi/GorevDoldur');
-
-      print('📡 Response alındı. Status: ${response.statusCode}');
-      print('📡 Response data type: ${response.data.runtimeType}');
-      print('📡 Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         List<dynamic>? dataList;
@@ -223,21 +183,16 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
           final gorevler = dataList
               .map((e) => Gorev.fromJson(e as Map<String, dynamic>))
               .toList();
-          print('✅ Başarılı! ${gorevler.length} görev bulundu');
           return Success(gorevler);
         }
 
-        print('❌ Response formatı tanınmadı');
         return Failure('Beklenmeyen response formatı');
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -245,12 +200,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<List<GorevYeri>>> gorevYerleriniGetir() async {
     try {
-      print('📡 GorevYeriDoldur API çağrısı başlıyor');
       final response = await dio.get('/TalepYonetimi/GorevYeriDoldur');
-
-      print('📡 Response alındı. Status: ${response.statusCode}');
-      print('📡 Response data type: ${response.data.runtimeType}');
-      print('📡 Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         List<dynamic>? dataList;
@@ -279,21 +229,16 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
           final gorevYerleri = dataList
               .map((e) => GorevYeri.fromJson(e as Map<String, dynamic>))
               .toList();
-          print('✅ Başarılı! ${gorevYerleri.length} görev yeri bulundu');
           return Success(gorevYerleri);
         }
 
-        print('❌ Response formatı tanınmadı');
         return Failure('Beklenmeyen response formatı');
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -304,10 +249,6 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     required String onayTipi,
   }) async {
     try {
-      print(
-        '📡 OnayDurumuGetir API çağrısı: talepId=$talepId, onayTipi=$onayTipi',
-      );
-
       // onayTipi bazı listelerde farklı/boş gelebiliyor; API sabit "İzin İstek" bekliyor.
       final normalizedOnayTipi = onayTipi.trim().isNotEmpty
           ? onayTipi.trim()
@@ -318,8 +259,6 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
         data: {'onayTipi': normalizedOnayTipi, 'onayKayitId': talepId},
         options: Options(contentType: 'application/json'),
       );
-
-      print('📡 Response alındı. Status: ${response.statusCode}');
 
       // API response'ı Map'e dönüştür
       late Map<String, dynamic> data;
@@ -337,17 +276,13 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
 
       if (data.isNotEmpty) {
         final result = OnayDurumuResponse.fromJson(data);
-        print('✅ OnayDurumu başarıyla alındı');
         return Success(result);
       }
 
       return Failure('Onay durumu verisi boş');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }

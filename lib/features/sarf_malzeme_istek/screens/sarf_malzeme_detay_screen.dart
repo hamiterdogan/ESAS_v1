@@ -39,7 +39,7 @@ class _SarfMalzemeDetayScreenState
     final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
@@ -47,7 +47,7 @@ class _SarfMalzemeDetayScreenState
           child: Text(
             'Sarf Malzeme İstek Detayı (${widget.talepId})',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -56,7 +56,7 @@ class _SarfMalzemeDetayScreenState
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.of(context).pop(),
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
@@ -158,7 +158,7 @@ class _SarfMalzemeDetayScreenState
         height: 175,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.05),
+          color: AppColors.textOnPrimary.withValues(alpha: 0.05),
         ),
         alignment: Alignment.center,
         child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
@@ -173,12 +173,12 @@ class _SarfMalzemeDetayScreenState
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 80, color: Colors.red[400]),
+            Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
               'Detay yüklenemedi\n$error',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red[600]),
+              style: TextStyle(color: AppColors.error),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -188,7 +188,7 @@ class _SarfMalzemeDetayScreenState
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
               ),
               child: const Text('Tekrar Dene'),
             ),
@@ -306,7 +306,7 @@ class _SarfMalzemeDetayScreenState
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Text(
             'Ürün bilgisi yüklenmedi',
-            style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ),
       );
@@ -335,9 +335,9 @@ class _SarfMalzemeDetayScreenState
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[50], // Very light background
+                color: AppColors.textTertiary, // Very light background
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: AppColors.border),
               ),
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -349,7 +349,7 @@ class _SarfMalzemeDetayScreenState
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -360,7 +360,7 @@ class _SarfMalzemeDetayScreenState
                       urun.urunDetay,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF5A6B7A),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -372,7 +372,7 @@ class _SarfMalzemeDetayScreenState
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -393,11 +393,11 @@ class _SarfMalzemeDetayScreenState
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -407,22 +407,22 @@ class _SarfMalzemeDetayScreenState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
-            leading: Icon(icon, color: const Color(0xFF014B92)),
+            leading: Icon(icon, color: AppColors.primary),
             title: Text(
               title,
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
             trailing: Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: const Color(0xFF718096),
+              color: AppColors.textTertiary,
             ),
             onTap: onTap,
           ),
-          if (isExpanded) const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          if (isExpanded) const Divider(height: 1, color: AppColors.border),
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -450,7 +450,7 @@ class _SarfMalzemeDetayScreenState
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4A5568),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -459,7 +459,7 @@ class _SarfMalzemeDetayScreenState
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
           ] else ...[
@@ -471,7 +471,7 @@ class _SarfMalzemeDetayScreenState
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -480,7 +480,7 @@ class _SarfMalzemeDetayScreenState
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -489,7 +489,7 @@ class _SarfMalzemeDetayScreenState
           ],
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -525,7 +525,7 @@ class _SarfMalzemeDetayScreenState
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF4A5568),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -591,7 +591,7 @@ class _SarfMalzemeDetayScreenState
           ),
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -649,7 +649,7 @@ class _SarfMalzemeDetayScreenState
           padding: const EdgeInsets.all(16),
           child: Text(
             'Onay süreci yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -675,7 +675,7 @@ class _SarfMalzemeDetayScreenState
         child: onayDurumu.bildirimGidecekler.isEmpty
             ? const Text(
                 'Bildirim gidecek personel bulunmamaktadır.',
-                style: TextStyle(color: Colors.black87),
+                style: TextStyle(color: AppColors.textPrimary),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,7 +724,7 @@ class _SarfMalzemeDetayScreenState
           padding: const EdgeInsets.all(16),
           child: Text(
             'Bildirim gidecekler yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -746,12 +746,12 @@ class _SarfMalzemeDetayScreenState
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.blue[100],
+                color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.person_outline,
-                color: Colors.blue[700],
+                color: AppColors.primary,
                 size: 22,
               ),
             ),
@@ -769,7 +769,10 @@ class _SarfMalzemeDetayScreenState
                   ),
                   Text(
                     '$gorevi - $gorevYeri',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                    style: TextStyle(
+                      color: AppColors.textTertiary,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -786,7 +789,7 @@ class _SarfMalzemeDetayScreenState
       return [
         const Text(
           'Onay süreci bilgisi bulunmamaktadır.',
-          style: TextStyle(color: Colors.black87),
+          style: TextStyle(color: AppColors.textPrimary),
         ),
       ];
     }
@@ -799,11 +802,11 @@ class _SarfMalzemeDetayScreenState
       // Determine colors based on approval status
       Color statusColor;
       if (personel.onayDurumu == 'Onaylandı') {
-        statusColor = Colors.green;
+        statusColor = AppColors.success;
       } else if (personel.onayDurumu == 'Reddedildi') {
-        statusColor = Colors.red;
+        statusColor = AppColors.error;
       } else {
-        statusColor = Colors.orange;
+        statusColor = AppColors.warning;
       }
 
       return Column(
@@ -815,7 +818,7 @@ class _SarfMalzemeDetayScreenState
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -843,7 +846,10 @@ class _SarfMalzemeDetayScreenState
                     if (personel.gorevi.isNotEmpty)
                       Text(
                         '${personel.gorevi} - ${personel.gorevYeri}',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                        style: TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 13,
+                        ),
                       ),
                     const SizedBox(height: 4),
                     Text(
@@ -859,7 +865,10 @@ class _SarfMalzemeDetayScreenState
                         DateFormat(
                           'dd.MM.yyyy HH:mm',
                         ).format(personel.islemTarihi!),
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(
+                          color: AppColors.textTertiary,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),

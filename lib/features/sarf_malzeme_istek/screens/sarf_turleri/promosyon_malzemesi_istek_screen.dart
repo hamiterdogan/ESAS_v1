@@ -7,18 +7,12 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
-import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:intl/intl.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
-import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_turleri/sarf_malzeme_urun_ekle_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_ekle_req.dart';
-import 'package:esas_v1/features/sarf_malzeme_istek/repositories/sarf_malzeme_repository.dart'
-    hide sarfMalzemeRepositoryProvider;
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/core/models/result.dart';
 
@@ -98,17 +92,20 @@ class _PromosyonMalzemesiIstekScreenState
     // 1. Validate 'Açıklama' (Description) field
     if (_aciklamaController.text.trim().isEmpty) {
       FocusScope.of(context).unfocus();
-      await Future.delayed(Duration.zero);
-      // Ensure widget is visible if possible
+      // Get keyContext before async gap
       final keyContext = _aciklamaKey.currentContext;
+      await Future.delayed(Duration.zero);
+      if (!mounted) return;
+      // Ensure widget is visible if possible
       if (keyContext != null) {
         await Scrollable.ensureVisible(
-          keyContext,
+          keyContext, // ignore: use_build_context_synchronously
           duration: const Duration(milliseconds: 450),
           curve: Curves.easeInOut,
         );
       }
 
+      if (!mounted) return;
       if (mounted) {
         await showModalBottomSheet(
           context: context,
@@ -337,6 +334,7 @@ class _PromosyonMalzemesiIstekScreenState
         final result = await repo.sarfMalzemeEkle(sarfReq);
 
         if (result is Failure) {
+          if (!mounted) return;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('Hata: ${result.message}')));
@@ -959,9 +957,6 @@ class _PromosyonMalzemesiIstekScreenState
 
   Future<void> _showSelectedBinalarSheet(List<SatinAlmaBina> binalar) async {
     _lockAndUnfocusInputs();
-    final selectedBinalar = binalar
-        .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
-        .toList();
 
     await showModalBottomSheet(
       context: context,
@@ -1423,6 +1418,8 @@ class _PromosyonMalzemesiIstekScreenState
                         ),
                       );
 
+                      if (!mounted) return;
+
                       if (result != null) {
                         setState(() {
                           _urunler.add(result);
@@ -1430,12 +1427,11 @@ class _PromosyonMalzemesiIstekScreenState
                       }
 
                       // After returning, scroll to submit button and unfocus
-                      if (mounted) {
-                        FocusScope.of(context).unfocus();
-                        Future.delayed(const Duration(milliseconds: 300), () {
-                          _scrollToWidget(_gonderButtonKey);
-                        });
-                      }
+                      // ignore: use_build_context_synchronously
+                      FocusScope.of(context).unfocus();
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        _scrollToWidget(_gonderButtonKey);
+                      });
                     },
                     icon: const Icon(
                       Icons.add,

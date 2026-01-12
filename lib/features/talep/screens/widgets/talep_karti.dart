@@ -25,11 +25,11 @@ class TalepKarti extends StatelessWidget {
   Color _getOnayDurumuRengi(String durum) {
     switch (durum.toLowerCase()) {
       case 'onay bekliyor':
-        return Colors.orange;
+        return AppColors.warning;
       case 'onaylandı':
-        return Colors.green;
+        return AppColors.success;
       case 'reddedildi':
-        return Colors.red;
+        return AppColors.error;
       default:
         return Colors.grey;
     }
@@ -56,10 +56,10 @@ class TalepKarti extends StatelessWidget {
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
-            Colors.white,
+            AppColors.textOnPrimary,
             0.65,
           ) ??
-          Colors.white,
+          AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
@@ -128,7 +128,7 @@ class TalepKarti extends StatelessWidget {
                           'Süreç No: ',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Text(
@@ -161,7 +161,7 @@ class TalepKarti extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey[700],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Container(
@@ -202,7 +202,7 @@ class TalepKarti extends StatelessWidget {
               ),
               // Sağ taraf - Büyüktür ikonu
               const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: Colors.grey[400], size: 28),
+              Icon(Icons.chevron_right, color: AppColors.textTertiary, size: 28),
             ],
           ),
         ),

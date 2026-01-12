@@ -78,7 +78,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -87,7 +87,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -99,7 +99,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -131,7 +131,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -140,7 +140,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -179,11 +179,11 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          backgroundColor: const Color(0xFFEEF1F5),
+          backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(
             title: const Text(
               'Dini İzin İstek',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textOnPrimary),
             ),
             elevation: 0,
             flexibleSpace: Container(
@@ -191,7 +191,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 gradient: AppColors.primaryGradient,
               ),
             ),
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
@@ -239,7 +239,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                           alpha: 0.5,
                         ),
                         activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -398,10 +398,10 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: Colors.grey.shade300,
+                                      color: AppColors.border,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
-                                    color: Colors.white,
+                                    color: AppColors.textOnPrimary,
                                   ),
                                   child: Row(
                                     mainAxisAlignment:
@@ -412,14 +412,14 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                           secilenGunAdi,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            color: Colors.black,
+                                            color: AppColors.textPrimary,
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                       const Icon(
                                         Icons.arrow_drop_down,
-                                        color: Colors.black,
+                                        color: AppColors.textPrimary,
                                       ),
                                     ],
                                   ),
@@ -433,7 +433,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF014B92),
+                                    AppColors.primary,
                                   ),
                                 ),
                               ),
@@ -441,7 +441,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                             error: (error, stack) => Text(
                               'Hata: $error',
                               style: const TextStyle(
-                                color: Colors.red,
+                                color: AppColors.error,
                                 fontSize: 12,
                               ),
                             ),
@@ -493,7 +493,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                     ),
                     minLines: 3,
                     maxLines: 5,
@@ -546,7 +546,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                       child: const Text(
                         'Gönder',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 19,
                           fontWeight: FontWeight.w600,
                         ),
@@ -723,7 +723,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -732,7 +732,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -773,7 +773,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 ),
                 child: const Text(
                   'Tamam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
               const SizedBox(height: 50),
@@ -810,7 +810,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -854,7 +854,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                               : FontWeight.normal,
                           color: isSelected
                               ? AppColors.gradientEnd
-                              : Colors.black,
+                              : AppColors.textPrimary,
                         ),
                       ),
                       trailing: isSelected

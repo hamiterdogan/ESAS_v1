@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 class DersSaatiSpinnerWidget extends ConsumerStatefulWidget {
   final Function(int) onValueChanged;
@@ -61,7 +62,7 @@ class _DersSaatiSpinnerWidgetState
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-            color: const Color(0xFF01396B),
+            color: AppColors.primaryLight,
           ),
           maxLines: 1,
           overflow: TextOverflow.visible,
@@ -83,18 +84,18 @@ class _DersSaatiSpinnerWidgetState
                   width: 50,
                   height: 46,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: AppColors.border),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(8),
                       bottomLeft: Radius.circular(8),
                     ),
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                   ),
                   child: Icon(
                     Icons.remove,
                     color: _value > widget.minValue
-                        ? Colors.black
-                        : Colors.grey.shade300,
+                        ? AppColors.textPrimary
+                        : AppColors.border,
                     size: 24,
                   ),
                 ),
@@ -105,8 +106,8 @@ class _DersSaatiSpinnerWidgetState
                 width: 80,
                 height: 46,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  color: Colors.white,
+                  border: Border.all(color: AppColors.border),
+                  color: AppColors.textOnPrimary,
                 ),
                 child: TextField(
                   controller: _controller,
@@ -114,7 +115,7 @@ class _DersSaatiSpinnerWidgetState
                   textAlignVertical: TextAlignVertical.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(fontSize: 17, color: Colors.black),
+                  style: const TextStyle(fontSize: 17, color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.only(bottom: 9),
@@ -162,18 +163,18 @@ class _DersSaatiSpinnerWidgetState
                   width: 50,
                   height: 46,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: AppColors.border),
                     borderRadius: const BorderRadius.only(
                       topRight: Radius.circular(8),
                       bottomRight: Radius.circular(8),
                     ),
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                   ),
                   child: Icon(
                     Icons.add,
                     color: _value < widget.maxValue
-                        ? Colors.black
-                        : Colors.grey.shade300,
+                        ? AppColors.textPrimary
+                        : AppColors.border,
                     size: 24,
                   ),
                 ),

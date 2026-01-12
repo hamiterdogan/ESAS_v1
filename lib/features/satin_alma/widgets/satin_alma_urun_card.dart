@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_kategori_models.dart';
-import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
 import 'package:esas_v1/common/index.dart';
@@ -42,11 +41,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   final TextEditingController _tlKurFiyatiController = TextEditingController();
   final TextEditingController _toplamTlFiyatiController =
       TextEditingController();
-
-  bool _showingKategoriLoading = false;
-  bool _showingAltKategoriLoading = false;
-  bool _showingOlcuBirimLoading = false;
-  bool _showingParaBirimiLoading = false;
 
   @override
   void initState() {
@@ -179,9 +173,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -196,14 +191,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   width: 50,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Icon(
                   Icons.warning_amber_rounded,
-                  color: Colors.orange.shade600,
+                  color: AppColors.warning,
                   size: 48,
                 ),
                 const SizedBox(height: 16),
@@ -239,7 +234,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -275,6 +270,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(satinAlmaAnaKategorilerProvider.future);
@@ -294,7 +290,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   Future<void> _openAnaKategoriBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -316,14 +312,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   child: Center(
                     child: Text(
                       'Kategoriler alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
                 data: (kategoriler) {
                   final allKategoriler = kategoriler;
-                  final TextEditingController searchController =
-                      TextEditingController();
 
                   return _AnaKategoriBottomSheetContent(
                     kategoriler: allKategoriler,
@@ -373,6 +367,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(
@@ -394,7 +389,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   Future<void> _openAltKategoriBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -416,7 +411,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   child: Center(
                     child: Text(
                       'Alt kategoriler alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -460,6 +455,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(satinAlmaOlcuBirimleriProvider.future);
@@ -479,7 +475,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   Future<void> _openOlcuBirimBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -502,7 +498,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   child: Center(
                     child: Text(
                       'Ölçü birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -539,7 +535,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -563,7 +559,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                               : FontWeight.normal,
                                           color: isSelected
                                               ? AppColors.gradientStart
-                                              : Colors.black87,
+                                              : AppColors.textPrimary87,
                                           fontSize:
                                               (Theme.of(context)
                                                       .textTheme
@@ -621,6 +617,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(paraBirimlerProvider.future);
@@ -639,7 +636,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
   void _openParaBirimiBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -660,7 +657,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   child: Center(
                     child: Text(
                       'Para birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -697,7 +694,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -721,7 +718,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                               : FontWeight.normal,
                                           color: isSelected
                                               ? AppColors.gradientStart
-                                              : Colors.black87,
+                                              : AppColors.textPrimary87,
                                           fontSize:
                                               (Theme.of(context)
                                                       .textTheme
@@ -778,10 +775,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
     final kdvRates = [20, 10, 1];
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -817,7 +815,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                               : FontWeight.normal,
                           color: _kdvOrani == rate
                               ? AppColors.gradientStart
-                              : Colors.black87,
+                              : AppColors.textPrimary87,
                           fontSize: 16,
                         ),
                       ),
@@ -1011,10 +1009,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
-            Colors.white,
+            AppColors.textOnPrimary,
             0.65,
           ) ??
-          Colors.white,
+          AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -1041,8 +1039,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.textOnPrimary,
+                  border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1054,7 +1052,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         style: TextStyle(
                           color: _selectedAnaKategori == null
                               ? Colors.grey.shade600
-                              : Colors.black,
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -1090,10 +1088,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     border: Border.all(
                       color: _selectedAltKategori == null
-                          ? Colors.red.shade300
+                          ? AppColors.error
                           : Colors.grey.shade300,
                     ),
                     borderRadius: BorderRadius.circular(8),
@@ -1108,7 +1106,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           style: TextStyle(
                             color: _selectedAltKategori == null
                                 ? Colors.grey.shade600
-                                : Colors.black,
+                                : AppColors.textPrimary,
                             fontSize: 16,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1141,14 +1139,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: AppColors.textOnPrimary,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1199,8 +1197,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.textOnPrimary,
+                  border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1212,7 +1210,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         style: TextStyle(
                           color: _selectedOlcuBirim == null
                               ? Colors.grey.shade600
-                              : Colors.black,
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -1258,18 +1256,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           decoration: InputDecoration(
                             hintText: '0',
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1312,18 +1306,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           decoration: InputDecoration(
                             hintText: '00',
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1347,8 +1337,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   children: [
                     Switch(
                       value: _kdvDahilDegil,
-                      activeColor: AppColors.gradientStart,
-                      inactiveTrackColor: Colors.white,
+                      activeThumbColor: AppColors.gradientStart,
+                      inactiveTrackColor: AppColors.textOnPrimary,
                       onChanged: (v) {
                         setState(() {
                           _kdvDahilDegil = v;
@@ -1394,8 +1384,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.textOnPrimary,
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1405,7 +1395,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         _kdvOrani > 0 ? '%$_kdvOrani' : 'KDV Oranı Seçiniz',
                         style: TextStyle(
                           color: _kdvOrani > 0
-                              ? Colors.black
+                              ? AppColors.textPrimary
                               : Colors.grey.shade600,
                           fontSize: 16,
                         ),
@@ -1449,8 +1439,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: AppColors.textOnPrimary,
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -1464,7 +1454,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   style: TextStyle(
                                     color: _selectedParaBirimi == null
                                         ? Colors.grey.shade600
-                                        : Colors.black,
+                                        : AppColors.textPrimary,
                                     fontSize: 16,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -1509,11 +1499,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           fillColor: Colors.grey.shade100,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -1565,11 +1555,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           fillColor: Colors.grey.shade100,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -1614,11 +1604,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           fillColor: Colors.grey.shade100,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -1721,7 +1711,7 @@ class _AnaKategoriBottomSheetContentState
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 contentPadding: const EdgeInsets.all(8),
               ),
@@ -1751,7 +1741,7 @@ class _AnaKategoriBottomSheetContentState
                           : FontWeight.normal,
                       color: isSelected
                           ? AppColors.gradientStart
-                          : Colors.black87,
+                          : AppColors.textPrimary87,
                     ),
                   ),
                   trailing: isSelected
@@ -1845,7 +1835,7 @@ class _AltKategoriBottomSheetContentState
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 contentPadding: const EdgeInsets.all(8),
               ),
@@ -1859,7 +1849,7 @@ class _AltKategoriBottomSheetContentState
                 ? Center(
                     child: Text(
                       'Sonuç bulunamadı',
-                      style: TextStyle(color: Colors.grey.shade600),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                   )
                 : ListView.separated(
@@ -1885,7 +1875,7 @@ class _AltKategoriBottomSheetContentState
                                 : FontWeight.normal,
                             color: isSelected
                                 ? AppColors.gradientStart
-                                : Colors.black87,
+                                : AppColors.textPrimary87,
                           ),
                         ),
                         trailing: isSelected
@@ -1906,4 +1896,3 @@ class _AltKategoriBottomSheetContentState
     );
   }
 }
-

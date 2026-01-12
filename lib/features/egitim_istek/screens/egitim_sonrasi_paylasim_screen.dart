@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
@@ -38,8 +37,11 @@ class _EgitimSonrasiPaylasimsScreenState
   final Set<int> _selectedPersonelIds = {};
   final Set<int> _selectedGorevYeriIds = {};
   final Set<int> _selectedGorevIds = {};
+  // ignore: unused_field - may be used in future
   List<PersonelItem> _personeller = [];
+  // ignore: unused_field - may be used in future
   List<GorevItem> _gorevler = [];
+  // ignore: unused_field - may be used in future
   List<GorevYeriItem> _gorevYerleri = [];
 
   @override
@@ -144,6 +146,8 @@ class _EgitimSonrasiPaylasimsScreenState
     // 🔒 3. 1 frame bekle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
+
     // 🔒 4. BottomSheet aç
     await showModalBottomSheet<void>(
       context: context,
@@ -151,7 +155,7 @@ class _EgitimSonrasiPaylasimsScreenState
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
@@ -160,7 +164,7 @@ class _EgitimSonrasiPaylasimsScreenState
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.orange,
+                color: AppColors.warning,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -172,7 +176,10 @@ class _EgitimSonrasiPaylasimsScreenState
               Text(
                 errorMessage,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -191,7 +198,7 @@ class _EgitimSonrasiPaylasimsScreenState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                   ),
                 ),
@@ -216,25 +223,11 @@ class _EgitimSonrasiPaylasimsScreenState
   Widget build(BuildContext context) {
     return PopScope(
       canPop: true,
-      onPopInvoked: (didPop) {
-        if (didPop) {
-          // Back button basıldığında verileri kaydet ve geri gönder
-          final data = {
-            'baslangicTarihi': _baslangicTarihi,
-            'bitisTarihi': _bitisTarihi,
-            'baslangicSaat': _baslangicSaat,
-            'baslangicDakika': _baslangicDakika,
-            'bitisSaat': _bitisSaat,
-            'bitisDakika': _bitisDakika,
-            'egitimYeri': _egitimYeriController.text,
-            'selectedPersonelIds': _selectedPersonelIds.toList(),
-            'selectedGorevYeriIds': _selectedGorevYeriIds.toList(),
-            'selectedGorevIds': _selectedGorevIds.toList(),
-          };
-        }
+      onPopInvokedWithResult: (didPop, result) {
+        // Pop işlemi zaten gerçekleşti, ek işlem yapılmasına gerek yok
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Container(
@@ -246,7 +239,10 @@ class _EgitimSonrasiPaylasimsScreenState
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.textOnPrimary,
+                    ),
                     onPressed: () {
                       final data = {
                         'baslangicTarihi': _baslangicTarihi,
@@ -266,7 +262,7 @@ class _EgitimSonrasiPaylasimsScreenState
                   const Text(
                     'Eğitim Sonrası Kurum İçi Paylaşım',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -455,10 +451,10 @@ class _EgitimSonrasiPaylasimsScreenState
                               decoration: InputDecoration(
                                 hintText: 'Eğitimin yapılacağı yeri giriniz',
                                 hintStyle: TextStyle(
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textSecondary,
                                 ),
                                 filled: true,
-                                fillColor: Colors.white,
+                                fillColor: AppColors.textOnPrimary,
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 14,
@@ -466,19 +462,19 @@ class _EgitimSonrasiPaylasimsScreenState
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey[300]!,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: Colors.grey[300]!,
+                                    color: AppColors.border,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: const BorderSide(
-                                    color: Colors.blue,
+                                    color: AppColors.primary,
                                     width: 2,
                                   ),
                                 ),
@@ -576,7 +572,7 @@ class _EgitimSonrasiPaylasimsScreenState
                       child: const Text(
                         'Tamam',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -592,4 +588,3 @@ class _EgitimSonrasiPaylasimsScreenState
     );
   }
 }
-

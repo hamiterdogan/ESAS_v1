@@ -35,7 +35,7 @@ class _AnaSayfaContent extends ConsumerWidget {
 class TalepTuruCard extends ConsumerWidget {
   final TalepTuru talep;
 
-  const TalepTuruCard({Key? key, required this.talep}) : super(key: key);
+  const TalepTuruCard({super.key, required this.talep});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -56,7 +56,7 @@ class TalepTuruCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(talep.icon, size: 44, color: Colors.white),
+              Icon(talep.icon, size: 44, color: AppColors.textOnPrimary),
               const SizedBox(height: 6),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -64,7 +64,7 @@ class TalepTuruCard extends ConsumerWidget {
                   talep.label,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),

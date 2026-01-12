@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// A configurable time range picker widget for selecting hours and minutes
 /// with customizable hour and minute ranges.
@@ -79,9 +80,9 @@ class _TimeRangePickerWidgetState extends ConsumerState<TimeRangePickerWidget> {
       width: widget.width,
       height: widget.height,
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -112,7 +113,7 @@ class _TimeRangePickerWidgetState extends ConsumerState<TimeRangePickerWidget> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     );
@@ -134,7 +135,7 @@ class _TimeRangePickerWidgetState extends ConsumerState<TimeRangePickerWidget> {
                     height: 4,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -143,7 +144,7 @@ class _TimeRangePickerWidgetState extends ConsumerState<TimeRangePickerWidget> {
                     height: 4,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -176,7 +177,7 @@ class _TimeRangePickerWidgetState extends ConsumerState<TimeRangePickerWidget> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     );

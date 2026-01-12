@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// A simple time picker widget with fixed width and height
 /// Displays hour and minute selection with top/bottom borders only
@@ -85,10 +86,10 @@ class _SimpleTimePickerWidgetState
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               widget.label!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -102,10 +103,10 @@ class _SimpleTimePickerWidgetState
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     border: Border(
-                      top: BorderSide(color: Colors.grey[300]!, width: 1),
-                      bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                      top: BorderSide(color: AppColors.border, width: 1),
+                      bottom: BorderSide(color: AppColors.border, width: 1),
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -131,7 +132,7 @@ class _SimpleTimePickerWidgetState
                               fontWeight: isSelected
                                   ? FontWeight.w500
                                   : FontWeight.normal,
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         );
@@ -151,7 +152,7 @@ class _SimpleTimePickerWidgetState
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -161,10 +162,10 @@ class _SimpleTimePickerWidgetState
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     border: Border(
-                      top: BorderSide(color: Colors.grey[300]!, width: 1),
-                      bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                      top: BorderSide(color: AppColors.border, width: 1),
+                      bottom: BorderSide(color: AppColors.border, width: 1),
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4),
@@ -192,7 +193,7 @@ class _SimpleTimePickerWidgetState
                               fontWeight: isSelected
                                   ? FontWeight.w500
                                   : FontWeight.normal,
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         );
@@ -294,10 +295,10 @@ class _SimpleTimePickerWidgetFullBorderState
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               widget.label!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -311,9 +312,9 @@ class _SimpleTimePickerWidgetFullBorderState
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[400]!, width: 2),
+                    border: Border.all(color: AppColors.textDisabled, width: 2),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey[50],
+                    color: AppColors.cardBackground,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: ListWheelScrollView.useDelegate(
@@ -338,7 +339,7 @@ class _SimpleTimePickerWidgetFullBorderState
                               fontWeight: isSelected
                                   ? FontWeight.w500
                                   : FontWeight.normal,
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         );
@@ -358,7 +359,7 @@ class _SimpleTimePickerWidgetFullBorderState
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -368,9 +369,9 @@ class _SimpleTimePickerWidgetFullBorderState
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[400]!, width: 2),
+                    border: Border.all(color: AppColors.textDisabled, width: 2),
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.grey[50],
+                    color: AppColors.cardBackground,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: ListWheelScrollView.useDelegate(
@@ -397,7 +398,7 @@ class _SimpleTimePickerWidgetFullBorderState
                               fontWeight: isSelected
                                   ? FontWeight.w500
                                   : FontWeight.normal,
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         );

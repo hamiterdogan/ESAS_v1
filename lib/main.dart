@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/routing/router.dart';
 import 'core/network/dio_provider.dart';
+import 'core/theme/app_theme.dart';
+import 'core/constants/app_colors.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -25,7 +27,7 @@ class MyApp extends ConsumerWidget {
                 content: Text(
                   'Oturum süresi doldu. Lütfen tekrar giriş yapın.',
                 ),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
                 duration: Duration(seconds: 5),
               ),
             );
@@ -40,11 +42,7 @@ class MyApp extends ConsumerWidget {
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'ESAS - İzin İstek',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF2F4F7),
-      ),
+      theme: AppTheme.light,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

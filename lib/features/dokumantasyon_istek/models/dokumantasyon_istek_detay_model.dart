@@ -59,12 +59,12 @@ class DokumantasyonIstekDetayResponse {
         ? Map<String, dynamic>.from(json['data'])
         : json;
 
-    DateTime? _parseDate(dynamic v) {
+    DateTime? parseDate(dynamic v) {
       if (v == null) return null;
       return DateTime.tryParse(v.toString());
     }
 
-    int? _parseInt(dynamic v) {
+    int? parseInt(dynamic v) {
       if (v == null) return null;
       if (v is int) return v;
       if (v is double) return v.toInt();
@@ -82,14 +82,14 @@ class DokumantasyonIstekDetayResponse {
         const <DokumantasyonOkulSatir>[];
 
     return DokumantasyonIstekDetayResponse(
-      id: _parseInt(map['id']) ?? 0,
-      personelId: _parseInt(map['personelId']) ?? 0,
-      teslimTarihi: _parseDate(map['teslimTarihi']),
-      baskiAdedi: _parseInt(map['baskiAdedi']),
+      id: parseInt(map['id']) ?? 0,
+      personelId: parseInt(map['personelId']) ?? 0,
+      teslimTarihi: parseDate(map['teslimTarihi']),
+      baskiAdedi: parseInt(map['baskiAdedi']),
       kagitTalebi: map['kagitTalebi']?.toString() ?? '-',
       dokumanTuru: map['dokumanTuru']?.toString(),
       departman: map['departman']?.toString(),
-      paket: _parseInt(map['paket']),
+      paket: parseInt(map['paket']),
       a4Talebi: map['a4Talebi'] as bool? ?? false,
       aciklama: map['aciklama']?.toString() ?? '',
       baskiTuru: map['baskiTuru']?.toString() ?? '',
@@ -102,11 +102,11 @@ class DokumantasyonIstekDetayResponse {
       gorevi: map['gorevi']?.toString(),
       dosyaAdi: map['dosyaAdi']?.toString(),
       dosyaAciklama: map['dosyaAciklama']?.toString(),
-      sayfaSayisi: _parseInt(map['sayfaSayisi']),
-      toplamSayfa: _parseInt(map['toplamSayfa']),
+      sayfaSayisi: parseInt(map['sayfaSayisi']),
+      toplamSayfa: parseInt(map['toplamSayfa']),
       okullarSatir: okullar,
-      ogrenciSayisi: _parseInt(map['ogrenciSayisi']),
-      olusturmaTarihi: _parseDate(map['olusturmaTarihi']),
+      ogrenciSayisi: parseInt(map['ogrenciSayisi']),
+      olusturmaTarihi: parseDate(map['olusturmaTarihi']),
     );
   }
 

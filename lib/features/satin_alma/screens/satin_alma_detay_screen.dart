@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -37,7 +36,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     final personelAsync = ref.watch(personelBilgiProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
@@ -45,7 +44,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           child: Text(
             'Satın Alma İstek Detayı (${widget.talepId})',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -54,7 +53,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.of(context).pop(),
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
@@ -153,7 +152,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         height: 175,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(0.05),
+          color: AppColors.textOnPrimary.withValues(alpha: 0.05),
         ),
         alignment: Alignment.center,
         child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
@@ -168,12 +167,12 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 80, color: Colors.red[400]),
+            Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
               'Detay yüklenemedi\n$error',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red[600]),
+              style: TextStyle(color: AppColors.error),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -183,7 +182,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
               ),
               child: const Text('Tekrar Dene'),
             ),
@@ -296,7 +295,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Text(
             'Ürün bilgisi yüklenmedi',
-            style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ),
       );
@@ -344,9 +343,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.textTertiary,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: AppColors.border),
               ),
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -358,7 +357,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -369,7 +368,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       urun.urunDetay,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF5A6B7A),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -380,7 +379,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     text: TextSpan(
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF2D3748),
+                        color: AppColors.textPrimary,
                       ),
                       children: [
                         TextSpan(
@@ -403,7 +402,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3748),
+                        color: AppColors.textPrimary,
                       ),
                       children: [
                         TextSpan(text: '$toplamFiyatStr ${urun.paraBirimi}'),
@@ -418,7 +417,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                         ),
                         TextSpan(
                           text: '$toplamTLFiyatStr TL',
-                          style: const TextStyle(color: Color(0xFF014B92)),
+                          style: const TextStyle(color: AppColors.primary),
                         ),
                       ],
                     ),
@@ -441,11 +440,11 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.cardShadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -454,22 +453,22 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
       child: Column(
         children: [
           ListTile(
-            leading: Icon(icon, color: const Color(0xFF014B92)),
+            leading: Icon(icon, color: AppColors.primary),
             title: Text(
               title,
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
             trailing: Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: const Color(0xFF718096),
+              color: AppColors.textTertiary,
             ),
             onTap: onTap,
           ),
-          if (isExpanded) const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          if (isExpanded) const Divider(height: 1, color: AppColors.border),
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -497,7 +496,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4A5568),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -506,7 +505,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
           ] else ...[
@@ -518,7 +517,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -527,7 +526,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -536,7 +535,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           ],
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -572,7 +571,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF4A5568),
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -638,7 +637,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           ),
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -695,7 +694,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           padding: const EdgeInsets.all(16),
           child: Text(
             'Onay süreci yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -721,7 +720,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         child: onayDurumu.bildirimGidecekler.isEmpty
             ? const Text(
                 'Bildirim gidecek personel bulunmamaktadır.',
-                style: TextStyle(color: Colors.black87),
+                style: TextStyle(color: AppColors.textPrimary),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,7 +769,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           padding: const EdgeInsets.all(16),
           child: Text(
             'Bildirim gidecekler yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -792,12 +791,12 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.blue[100],
+                color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.person_outline,
-                color: Colors.blue[700],
+                color: AppColors.primary,
                 size: 22,
               ),
             ),
@@ -811,7 +810,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -819,14 +818,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     gorevYeri,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF4A5568),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   Text(
                     gorevi,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF718096),
+                      color: AppColors.textTertiary,
                     ),
                   ),
                 ],
@@ -836,7 +835,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         ),
         if (!isLast) ...[
           const SizedBox(height: 12),
-          Divider(height: 1, color: Colors.grey[300]),
+          Divider(height: 1, color: AppColors.textTertiary),
           const SizedBox(height: 12),
         ],
       ],
@@ -864,16 +863,16 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
       if (personel.onay == true) {
         icon = Icons.check_circle;
-        iconColor = Colors.green;
+        iconColor = AppColors.success;
       } else if (personel.onay == false) {
         icon = Icons.cancel;
-        iconColor = Colors.red;
+        iconColor = AppColors.error;
       } else if (personel.geriGonderildi) {
         icon = Icons.replay;
-        iconColor = Colors.orange;
+        iconColor = AppColors.warning;
       } else {
         icon = Icons.hourglass_empty;
-        iconColor = Colors.orange;
+        iconColor = AppColors.warning;
       }
 
       widgets.add(
@@ -911,7 +910,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.gradientStart.withOpacity(0.1),
+                color: AppColors.gradientStart.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -921,7 +920,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               ),
             ),
             if (!isLast)
-              Container(width: 2, height: 70, color: Colors.grey[300]),
+              Container(width: 2, height: 70, color: AppColors.textTertiary),
           ],
         ),
         const SizedBox(width: 12),
@@ -936,7 +935,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -946,7 +945,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.gradientStart.withOpacity(0.1),
+                    color: AppColors.gradientStart.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -974,14 +973,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   gorevYeri,
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Text(
                   gorevi,
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Color(0xFF718096),
+                    color: AppColors.textTertiary,
                   ),
                 ),
                 if (tarih != null) ...[
@@ -991,14 +990,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       Icon(
                         Icons.access_time,
                         size: 18,
-                        color: Colors.grey[600],
+                        color: AppColors.textTertiary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         DateFormat('dd.MM.yyyy HH:mm').format(tarih),
                         style: const TextStyle(
                           fontSize: 15,
-                          color: Color(0xFF718096),
+                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],
@@ -1034,13 +1033,13 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 22),
             ),
             if (!isLast)
-              Container(width: 2, height: 80, color: Colors.grey[300]),
+              Container(width: 2, height: 80, color: AppColors.textTertiary),
           ],
         ),
         const SizedBox(width: 12),
@@ -1057,7 +1056,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D3748),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1079,14 +1078,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   gorevYeri,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Text(
                   gorevi,
                   style: const TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF718096),
+                    color: AppColors.textTertiary,
                   ),
                 ),
                 if (aciklama != null && aciklama.isNotEmpty) ...[
@@ -1094,16 +1093,16 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: AppColors.textTertiary,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Text(
                       aciklama,
                       style: const TextStyle(
                         fontSize: 14,
                         fontStyle: FontStyle.italic,
-                        color: Color(0xFF4A5568),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -1115,14 +1114,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       Icon(
                         Icons.access_time,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.textTertiary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         DateFormat('dd.MM.yyyy HH:mm').format(tarih),
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF718096),
+                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],

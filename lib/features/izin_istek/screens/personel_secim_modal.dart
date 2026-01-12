@@ -15,13 +15,13 @@ class PersonelSecimModal extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(
           'Personel Seçin',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.textOnPrimary),
         ),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
       ),
       body: Column(
         children: [
@@ -64,7 +64,7 @@ class PersonelSecimModal extends ConsumerWidget {
                     const Icon(
                       Icons.error_outline,
                       size: 48,
-                      color: Colors.red,
+                      color: AppColors.error,
                     ),
                     const SizedBox(height: 16),
                     Text('Hata: $error'),

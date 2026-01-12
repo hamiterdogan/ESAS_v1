@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:developer' as developer;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
-import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
-import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/index.dart';
@@ -61,7 +58,6 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   List<String> _egitimTurleri = [];
   bool _egitimTurleriYuklendi = false;
   double _aldigiEgitimUcreti = 0;
-  bool _ucretYukleniyor = true;
   bool _agreeWithDocuments = false;
 
   final Set<int> _selectedPersonelIdsForTopluIstek = {};
@@ -100,6 +96,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   final GlobalKey _sehirKey = GlobalKey();
   final GlobalKey _ulkeSehirKey = GlobalKey();
   final GlobalKey _personelKey = GlobalKey();
+
+  // ignore: unused_field - used to track loading state
+  bool _ucretYukleniyor = false;
 
   @override
   void initState() {
@@ -182,6 +181,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           // 🔒 Critical: Wait 1 frame for focus state to settle
           await Future.delayed(Duration.zero);
 
+          if (!mounted) return;
+
           await showModalBottomSheet(
             context: context,
             builder: (context) => Container(
@@ -193,7 +194,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                 bottom: 60,
               ),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -206,14 +207,14 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 24),
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -226,7 +227,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   Text(
                     duplicateNames.join(', '),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -245,7 +249,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                         ),
                       ),
                     ),
@@ -279,8 +283,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     if (_adres.isNotEmpty) return true;
     if (_egitimUlkeSehir.isNotEmpty) return true;
     if (_secilenSehir != null) return true;
-    if (_topluIstekte && _selectedPersonelIdsForTopluIstek.isNotEmpty)
+    if (_topluIstekte && _selectedPersonelIdsForTopluIstek.isNotEmpty) {
       return true;
+    }
     if (_ozelEgitimAdiController.text.isNotEmpty) return true;
     if (_egitimTeklifIcerikController.text.isNotEmpty) return true;
     if (_selectedFiles.isNotEmpty) return true;
@@ -297,7 +302,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -306,7 +311,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -318,7 +323,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -350,7 +358,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -359,7 +367,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -398,7 +406,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Container(
@@ -410,7 +418,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.textOnPrimary,
+                    ),
                     onPressed: () async {
                       if (_hasFormData()) {
                         final shouldPop = await _showExitConfirmationDialog();
@@ -425,7 +436,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   const Text(
                     'Eğitim İstek',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                     ),
@@ -595,10 +606,13 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           // 🔒 Enhanced focus control
                           _egitimTeklifIcerikFocusNode.canRequestFocus = false;
                           _ozelEgitimAdiFocusNode.canRequestFocus = false;
+                          if (!mounted) return;
                           FocusScope.of(context).unfocus();
 
                           // 🔒 Critical: Wait 1 frame for focus state to settle
                           await Future.delayed(Duration.zero);
+
+                          if (!context.mounted) return;
 
                           await showModalBottomSheet<void>(
                             context: context,
@@ -613,7 +627,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(16),
                                   ),
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                 ),
                                 padding: const EdgeInsets.all(24),
                                 child: Column(
@@ -640,7 +654,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
-                                        color: Color(0xFF2D3748),
+                                        color: AppColors.textPrimary,
                                         height: 1.5,
                                       ),
                                     ),
@@ -673,7 +687,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         child: const Text(
                                           'Tamam',
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.textOnPrimary,
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -803,8 +817,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             vertical: 14,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey[300]!),
+                            color: AppColors.textOnPrimary,
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -816,7 +830,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: _secilenEgitimAdi != null
-                                        ? Colors.black
+                                        ? AppColors.textPrimary
                                         : Colors.grey.shade600,
                                   ),
                                   maxLines: 1,
@@ -825,7 +839,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               ),
                               Icon(
                                 Icons.chevron_right,
-                                color: Colors.grey.shade600,
+                                color: AppColors.textSecondary,
                               ),
                             ],
                           ),
@@ -839,18 +853,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             hintText: 'Eğitimin Adını Yazınız',
                             hintStyle: TextStyle(color: Colors.grey.shade500),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -894,8 +908,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   vertical: 14,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(color: Colors.grey[300]!),
+                                  color: AppColors.textOnPrimary,
+                                  border: Border.all(color: AppColors.border),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -909,7 +923,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: _secilenEgitimTuru != null
-                                              ? Colors.black
+                                              ? AppColors.textPrimary
                                               : Colors.grey.shade600,
                                         ),
                                         maxLines: 1,
@@ -918,7 +932,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                     ),
                                     Icon(
                                       Icons.chevron_right,
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ],
                                 ),
@@ -976,18 +990,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           hintText: 'Eğitim şirketinin adını giriniz',
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1029,18 +1043,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           hintText: 'Eğitimin konusunu giriniz',
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1104,18 +1118,18 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           hintText: 'http://',
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1172,7 +1186,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             hintText: 'Ülke / Şehir bilgisini giriniz',
                             hintStyle: TextStyle(color: Colors.grey.shade500),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.textOnPrimary,
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -1212,8 +1226,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               vertical: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.grey[300]!),
+                              color: AppColors.textOnPrimary,
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1225,7 +1239,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: _secilenSehir != null
-                                          ? Colors.black
+                                          ? AppColors.textPrimary
                                           : Colors.grey.shade600,
                                     ),
                                     maxLines: 1,
@@ -1234,7 +1248,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                 ),
                                 Icon(
                                   Icons.chevron_right,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textSecondary,
                                 ),
                               ],
                             ),
@@ -1277,7 +1291,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             hintText: 'Adres bilgisini giriniz',
                             hintStyle: TextStyle(color: Colors.grey.shade500),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: AppColors.textOnPrimary,
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -1421,8 +1435,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               vertical: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.grey[300]!),
+                              color: AppColors.textOnPrimary,
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1433,7 +1447,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                     'Kişi başı ücretleri giriniz',
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -1441,7 +1455,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                 ),
                                 Icon(
                                   Icons.chevron_right,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textSecondary,
                                 ),
                               ],
                             ),
@@ -1501,8 +1515,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             vertical: 14,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Colors.grey[300]!),
+                            color: AppColors.textOnPrimary,
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -1513,7 +1527,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   'Paylaşım detaylarını giriniz',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.grey.shade600,
+                                    color: AppColors.textSecondary,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -1521,7 +1535,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               ),
                               Icon(
                                 Icons.chevron_right,
-                                color: Colors.grey.shade600,
+                                color: AppColors.textSecondary,
                               ),
                             ],
                           ),
@@ -1552,9 +1566,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(color: AppColors.border),
                           ),
                           child: Column(
                             children: [
@@ -1567,7 +1581,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                               Text(
                                 'Dosya Seçmek İçin Dokunun',
                                 style: TextStyle(
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.textSecondary,
                                   fontSize: 13,
                                 ),
                               ),
@@ -1616,7 +1630,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   IconButton(
                                     icon: const Icon(
                                       Icons.close,
-                                      color: Colors.red,
+                                      color: AppColors.error,
                                       size: 20,
                                     ),
                                     onPressed: () => _removeFile(index),
@@ -1653,7 +1667,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                           contentPadding: const EdgeInsets.all(12),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.textOnPrimary,
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
@@ -1674,10 +1688,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   const SizedBox(height: 32),
                   // PDF Dökümanları Card
                   Card(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade300, width: 1),
+                      side: BorderSide(color: AppColors.border, width: 1),
                     ),
                     margin: EdgeInsets.zero,
                     child: Column(
@@ -1729,7 +1743,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                         Divider(
                           height: 1,
-                          color: Colors.grey.shade300,
+                          color: AppColors.border,
                           indent: 16,
                           endIndent: 16,
                         ),
@@ -1788,13 +1802,13 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     children: [
                       Switch(
                         value: _agreeWithDocuments,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                         onChanged: (value) {
                           setState(() {
                             _agreeWithDocuments = value;
                           });
                         },
-                        activeThumbColor: Colors.white,
+                        activeThumbColor: AppColors.textOnPrimary,
                         activeTrackColor: AppColors.gradientStart,
                       ),
                       const SizedBox(width: 12),
@@ -1838,7 +1852,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         child: const Text(
                           'Gönder',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1865,11 +1879,13 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
+
     String searchQuery = '';
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -1886,7 +1902,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             return Container(
               height: MediaQuery.of(context).size.height * 0.75,
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Column(
@@ -1898,7 +1914,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.textTertiary,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1935,11 +1951,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             : null,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(color: AppColors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(color: AppColors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1991,7 +2007,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         : FontWeight.normal,
                                     color: isSelected
                                         ? AppColors.gradientStart
-                                        : Colors.black,
+                                        : AppColors.textPrimary,
                                   ),
                                 ),
                                 trailing: isSelected
@@ -2039,9 +2055,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
+
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -2050,7 +2068,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         return Container(
           height: MediaQuery.of(context).size.height * 0.45,
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: Column(
@@ -2062,7 +2080,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppColors.textTertiary,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2108,7 +2126,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                     : FontWeight.normal,
                                 color: isSelected
                                     ? AppColors.gradientStart
-                                    : Colors.black,
+                                    : AppColors.textPrimary,
                               ),
                             ),
                             trailing: isSelected
@@ -2285,7 +2303,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       builder: (BuildContext context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
@@ -2294,7 +2312,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.orange,
+                color: AppColors.warning,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -2306,7 +2324,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
               const Text(
                 'Lütfen eğitimin ücretini giriniz',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.black87),
+                style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -2325,7 +2343,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                   ),
                 ),
@@ -2387,7 +2405,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       );
 
       // Focus'u ayarla
-      if (focusNode != null) {
+      if (focusNode != null && mounted) {
         FocusScope.of(this.context).requestFocus(focusNode);
       }
     }
@@ -3145,6 +3163,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       );
     }
 
+    if (!mounted) return;
+
     // Özet ekranını göster
     await showGenericSummaryBottomSheet(
       context: context,
@@ -3200,7 +3220,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -3209,7 +3229,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -3246,7 +3266,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -3271,11 +3291,13 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
+
     String searchQuery = '';
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -3291,7 +3313,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             return Container(
               height: MediaQuery.of(context).size.height * 0.75,
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Column(
@@ -3303,7 +3325,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.textTertiary,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -3334,11 +3356,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(color: AppColors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: BorderSide(color: AppColors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -3360,7 +3382,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ? Center(
                             child: Text(
                               'Şehir bulunamadı',
-                              style: TextStyle(color: Colors.grey.shade600),
+                              style: TextStyle(color: AppColors.textSecondary),
                             ),
                           )
                         : ListView.separated(
@@ -3383,7 +3405,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         : FontWeight.normal,
                                     color: isSelected
                                         ? AppColors.gradientStart
-                                        : Colors.black,
+                                        : AppColors.textPrimary,
                                   ),
                                 ),
                                 trailing: isSelected

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/personel/providers/personel_providers.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 
@@ -50,7 +51,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Column(
@@ -61,7 +62,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppColors.textTertiary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -81,7 +82,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Personel ara...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF014B92)),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.grey),
@@ -94,7 +95,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                       )
                     : null,
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: AppColors.textTertiary,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -105,12 +106,12 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(
-                    color: Color(0xFF014B92),
+                    color: AppColors.primary,
                     width: 2,
                   ),
                 ),
@@ -158,7 +159,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                     return ListTile(
                       onTap: () => widget.onSelected(personel.fullName),
                       tileColor: isSelected
-                          ? const Color(0xFF014B92).withValues(alpha: 0.1)
+                          ? AppColors.primary.withValues(alpha: 0.1)
                           : null,
                       title: Text(
                         personel.fullName,
@@ -168,8 +169,8 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                               : FontWeight.w500,
                           fontSize: 15,
                           color: isSelected
-                              ? const Color(0xFF014B92)
-                              : Colors.black87,
+                              ? AppColors.primary
+                              : AppColors.textPrimary87,
                         ),
                       ),
                       subtitle: personel.unvan != null
@@ -182,7 +183,7 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                             )
                           : null,
                       trailing: isSelected
-                          ? const Icon(Icons.check, color: Color(0xFF014B92))
+                          ? const Icon(Icons.check, color: AppColors.primary)
                           : null,
                     );
                   },
@@ -193,15 +194,11 @@ class _TalepEdenSecimWidgetState extends ConsumerState<TalepEdenSecimWidget> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
-                    ),
+                    Icon(Icons.error_outline, size: 48, color: AppColors.error),
                     const SizedBox(height: 12),
                     Text(
                       'Hata: $error',
-                      style: const TextStyle(color: Colors.red),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ],

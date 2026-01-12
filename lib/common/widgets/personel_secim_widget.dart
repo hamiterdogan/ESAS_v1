@@ -63,7 +63,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
               },
               activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
               activeThumbColor: AppColors.gradientEnd,
-              inactiveTrackColor: Colors.white,
+              inactiveTrackColor: AppColors.textOnPrimary,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -72,7 +72,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
                 alignment: Alignment.centerLeft,
                 child: const Text(
                   'Başkası adına istekte bulunuyorum',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
+                  style: TextStyle(fontSize: 14, color: AppColors.primaryLight),
                 ),
               ),
             ),
@@ -107,9 +107,9 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white,
+          color: AppColors.textOnPrimary,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -131,7 +131,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
                         '${_secilenPersonel!.ad} ${_secilenPersonel!.soyad}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -139,7 +139,7 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
           ],
         ),
       ),

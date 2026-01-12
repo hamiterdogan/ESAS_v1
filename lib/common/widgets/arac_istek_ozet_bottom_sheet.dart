@@ -68,7 +68,7 @@ class _AracIstekOzetBottomSheetState
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           child: Column(
             children: [
@@ -83,11 +83,11 @@ class _AracIstekOzetBottomSheetState
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: AppColors.cardShadow,
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -130,7 +130,7 @@ class _AracIstekOzetBottomSheetState
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2D3748),
+                                        color: AppColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -151,11 +151,11 @@ class _AracIstekOzetBottomSheetState
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: AppColors.cardShadow,
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -180,7 +180,7 @@ class _AracIstekOzetBottomSheetState
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2D3748),
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -190,7 +190,7 @@ class _AracIstekOzetBottomSheetState
                                 _debugRequestJson,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF2D3748),
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -221,7 +221,7 @@ class _AracIstekOzetBottomSheetState
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A1A),
+                color: AppColors.textOnSurface,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -273,7 +273,7 @@ class _AracIstekOzetBottomSheetState
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4A5568),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -282,7 +282,7 @@ class _AracIstekOzetBottomSheetState
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
           ] else ...[
@@ -294,7 +294,7 @@ class _AracIstekOzetBottomSheetState
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -303,7 +303,7 @@ class _AracIstekOzetBottomSheetState
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -312,7 +312,7 @@ class _AracIstekOzetBottomSheetState
           ],
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -366,14 +366,14 @@ class _AracIstekOzetBottomSheetState
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              AppColors.textOnPrimary,
                             ),
                           ),
                         )
                       : const Text(
                           'Gönder',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

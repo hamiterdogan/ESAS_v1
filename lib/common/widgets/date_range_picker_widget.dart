@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter_holo_date_picker/flutter_holo_date_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -91,9 +92,9 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -104,15 +105,15 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                             : _formatDate(_baslangicTarihi),
                         style: TextStyle(
                           color: _baslangicTarihi == null
-                              ? Colors.grey
-                              : Colors.black,
+                              ? AppColors.textTertiary
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                       ),
                       const Icon(
                         Icons.calendar_today,
                         size: 20,
-                        color: Color(0xFF014B92),
+                        color: AppColors.primary,
                       ),
                     ],
                   ),
@@ -143,9 +144,9 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -156,15 +157,15 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                               : _formatDate(_baslangicTarihi),
                           style: TextStyle(
                             color: _baslangicTarihi == null
-                                ? Colors.grey
-                                : Colors.black,
+                                ? AppColors.textTertiary
+                                : AppColors.textPrimary,
                             fontSize: 16,
                           ),
                         ),
                         const Icon(
                           Icons.calendar_today,
                           size: 20,
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                         ),
                       ],
                     ),
@@ -191,9 +192,9 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -204,15 +205,15 @@ class _DateRangePickerWidgetState extends ConsumerState<DateRangePickerWidget> {
                               : _formatDate(_bitisTarihi),
                           style: TextStyle(
                             color: _bitisTarihi == null
-                                ? Colors.grey
-                                : Colors.black,
+                                ? AppColors.textTertiary
+                                : AppColors.textPrimary,
                             fontSize: 16,
                           ),
                         ),
                         const Icon(
                           Icons.calendar_today,
                           size: 20,
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                         ),
                       ],
                     ),

@@ -191,7 +191,7 @@ class _DatePickerBottomSheetWidgetState
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -219,7 +219,7 @@ class _DatePickerBottomSheetWidgetState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -263,7 +263,7 @@ class _DatePickerBottomSheetWidgetState
                           child: _DateSpinner(
                             key: ValueKey('month-$tempYear'),
                             itemCount: months.length,
-                            initialItem: months.indexOf(tempMonth) >= 0
+                            initialItem: months.contains(tempMonth)
                                 ? months.indexOf(tempMonth)
                                 : 0,
                             onSelectedItemChanged: (index) {
@@ -295,7 +295,7 @@ class _DatePickerBottomSheetWidgetState
                           width: 65,
                           child: _DateSpinner(
                             itemCount: years.length,
-                            initialItem: years.indexOf(tempYear) >= 0
+                            initialItem: years.contains(tempYear)
                                 ? years.indexOf(tempYear)
                                 : 0,
                             onSelectedItemChanged: (index) {
@@ -335,7 +335,7 @@ class _DatePickerBottomSheetWidgetState
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -361,7 +361,7 @@ class _DatePickerBottomSheetWidgetState
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -372,7 +372,7 @@ class _DatePickerBottomSheetWidgetState
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                         ),
                       ),
                     ),
@@ -418,8 +418,8 @@ class _DatePickerBottomSheetWidgetState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13.5),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
+              color: AppColors.textOnPrimary,
+              border: Border.all(color: AppColors.border),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -427,7 +427,7 @@ class _DatePickerBottomSheetWidgetState
                 const Icon(
                   Icons.calendar_today,
                   size: 18,
-                  color: Color(0xFF014B92),
+                  color: AppColors.primary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -436,7 +436,7 @@ class _DatePickerBottomSheetWidgetState
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -504,8 +504,8 @@ class _DateSpinnerState extends State<_DateSpinner> {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 1),
-          bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+          top: BorderSide(color: AppColors.border, width: 1),
+          bottom: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
       child: ListWheelScrollView.useDelegate(
@@ -555,8 +555,8 @@ class _DateFadeSpinnerItem extends StatelessWidget {
     final scale = _lerpDouble(1.0, 0.75, normalizedDistance);
     final opacity = _lerpDouble(1.0, 0.4, normalizedDistance);
     final color = Color.lerp(
-      Colors.black,
-      Colors.grey[600],
+      AppColors.textPrimary,
+      AppColors.textSecondary,
       normalizedDistance,
     )!;
     final fontWeight = normalizedDistance < 0.3
@@ -707,8 +707,8 @@ class _DaySpinnerState extends State<_DaySpinner> {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 1),
-          bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+          top: BorderSide(color: AppColors.border, width: 1),
+          bottom: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
       child: ListWheelScrollView.useDelegate(
@@ -756,8 +756,8 @@ class _DayFadeSpinnerItem extends StatelessWidget {
     final scale = _lerpDouble(1.0, 0.75, normalizedDistance);
     final opacity = _lerpDouble(1.0, 0.4, normalizedDistance);
     final color = Color.lerp(
-      Colors.black,
-      Colors.grey[600],
+      AppColors.textPrimary,
+      AppColors.textSecondary,
       normalizedDistance,
     )!;
     final fontWeight = normalizedDistance < 0.3

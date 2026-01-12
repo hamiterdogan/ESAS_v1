@@ -1,156 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:esas_v1/core/constants/app_colors.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
-import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 
-class TalepYonetimScreen extends ConsumerStatefulWidget {
+import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/generic_talep_yonetim_screen.dart';
+import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+
+/// İzin talep yönetim ekranı.
+///
+/// GenericTalepYonetimScreen kullanarak ortak yapıyı uygular.
+/// FAB gösterilmez çünkü izin isteği ayrı bir akıştan oluşturulur.
+class TalepYonetimScreen extends ConsumerWidget {
   const TalepYonetimScreen({super.key});
 
   @override
-  ConsumerState<TalepYonetimScreen> createState() => _TalepYonetimScreenState();
-}
-
-class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          context.go('/'); // Ana sayfaya git
-        }
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
-        appBar: AppBar(
-          title: const Text('İzin İsteklerini Yönet'),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          elevation: 1,
-          foregroundColor: Colors.black,
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: AppColors.gradientEnd,
-            labelColor: AppColors.gradientEnd,
-            unselectedLabelColor: Colors.grey,
-            labelStyle: const TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: const [
-              Tab(text: 'Devam Eden'),
-              Tab(text: 'Tamamlanan'),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            // Devam eden talepler
-            _buildTalepListesi(ref.watch(devamEdenIsteklerimProvider)),
-            // Tamamlanan talepler
-            _buildTalepListesi(ref.watch(tamamlananIsteklerimProvider)),
-          ],
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GenericTalepYonetimScreen<Talep>(
+      config: TalepYonetimConfig<Talep>(
+        title: 'İzin İsteklerini Yönet',
+        addRoute: '/izin_istek/ekle', // Kullanılmayacak
+        showFab: false, // İzin için FAB yok
+        devamEdenBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _IzinTalepListesi(
+                taleplerAsync: ref.watch(devamEdenIsteklerimProvider),
+                onRefresh: () {
+                  ref.invalidate(devamEdenIsteklerimProvider);
+                  return Future.value();
+                },
+                helper: helper,
+              );
+            },
+        tamamlananBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _IzinTalepListesi(
+                taleplerAsync: ref.watch(tamamlananIsteklerimProvider),
+                onRefresh: () {
+                  ref.invalidate(tamamlananIsteklerimProvider);
+                  return Future.value();
+                },
+                helper: helper,
+              );
+            },
       ),
     );
   }
+}
 
-  Widget _buildTalepListesi(AsyncValue taleplerAsync) {
+class _IzinTalepListesi extends ConsumerWidget {
+  const _IzinTalepListesi({
+    required this.taleplerAsync,
+    required this.onRefresh,
+    required this.helper,
+  });
+
+  final AsyncValue<TalepYonetimResponse> taleplerAsync;
+  final Future<void> Function() onRefresh;
+  final TalepYonetimHelper helper;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return taleplerAsync.when(
       data: (talepResponse) {
         if (talepResponse.talepler.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'Talep Bulunamadı',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          );
+          return helper.buildEmptyState(onRefresh: onRefresh);
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(12),
-          itemCount: talepResponse.talepler.length,
-          itemBuilder: (context, index) {
-            final talep = talepResponse.talepler[index];
-            return _buildTalepCard(talep);
-          },
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: talepResponse.talepler.length,
+            itemBuilder: (context, index) {
+              final talep = talepResponse.talepler[index];
+              return _IzinTalepCard(talep: talep);
+            },
+          ),
         );
       },
-      loading: () => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const BrandedLoadingIndicator(size: 48),
-            const SizedBox(height: 16),
-            Text(
-              'Talepler Yükleniyor...',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-      error: (error, stack) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-            const SizedBox(height: 16),
-            Text(
-              'Hata: ${error.toString()}',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red[600]),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                // Refresh providers
-                ref.invalidate(devamEdenIsteklerimProvider);
-                ref.invalidate(tamamlananIsteklerimProvider);
-              },
-              child: const Text('Tekrar Dene'),
-            ),
-          ],
-        ),
-      ),
+      loading: () => helper.buildLoadingState(),
+      error: (error, stack) =>
+          helper.buildErrorState(error: error, onRetry: onRefresh),
     );
   }
+}
 
-  Widget _buildTalepCard(dynamic talep) {
+class _IzinTalepCard extends StatelessWidget {
+  const _IzinTalepCard({required this.talep});
+
+  final Talep talep;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
@@ -170,7 +118,10 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
                     children: [
                       Text(
                         'Oluşturma Tarihi',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiary,
+                        ),
                       ),
                       Text(
                         _formatTarih(talep.olusturmaTarihi),
@@ -188,7 +139,10 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
                     children: [
                       Text(
                         'Durum',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiary,
+                        ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -203,7 +157,7 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
                           talep.onayDurumu,
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -216,215 +170,255 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
             const SizedBox(height: 8),
             Text(
               'Kayıt ID: ${talep.onayKayitId}',
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
             ),
           ],
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: Colors.grey[400],
+          color: AppColors.textTertiary,
         ),
-        onTap: () {
-          _showTalepDetay(talep);
-        },
+        onTap: () => _showTalepDetay(context, talep),
       ),
     );
   }
 
-  void _showTalepDetay(dynamic talep) {
+  void _showTalepDetay(BuildContext context, Talep talep) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
+      builder: (context) => _IzinTalepDetaySheet(talep: talep),
+    );
+  }
+
+  String _formatTarih(String tarihi) {
+    try {
+      final date = DateTime.parse(tarihi);
+      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    } catch (e) {
+      return tarihi;
+    }
+  }
+
+  Color _getStatusColor(String durum) {
+    switch (durum.toLowerCase()) {
+      case 'onaylandı':
+        return AppColors.success;
+      case 'reddedildi':
+        return AppColors.error;
+      case 'bekleniyor':
+        return AppColors.warning;
+      case 'taslak':
+        return Colors.grey;
+      default:
+        return AppColors.primary;
+    }
+  }
+}
+
+/// İzin talep detay bottom sheet
+class _IzinTalepDetaySheet extends StatelessWidget {
+  const _IzinTalepDetaySheet({required this.talep});
+
+  final Talep talep;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.textOnPrimary,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textTertiary,
+                borderRadius: BorderRadius.circular(2),
               ),
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-                ),
-                child: Row(
+            ),
+            // Header
+            _buildHeader(context),
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.description_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'İzin Talep Detayı',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
-                            ),
+                    _buildDetaySection(
+                      icon: Icons.person_outline,
+                      title: 'Talep Eden Kişi',
+                      items: [
+                        _DetayItem(
+                          label: 'Ad Soyad',
+                          value: talep.olusturanKisi,
+                        ),
+                        if (talep.gorevYeri != null &&
+                            talep.gorevYeri!.isNotEmpty)
+                          _DetayItem(
+                            label: 'Görev Yeri',
+                            value: talep.gorevYeri!,
                           ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(talep.onayDurumu),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              talep.onayDurumu,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                        if (talep.gorevi != null && talep.gorevi!.isNotEmpty)
+                          _DetayItem(label: 'Görevi', value: talep.gorevi!),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDetaySection(
+                      icon: Icons.info_outline,
+                      title: 'Talep Bilgileri',
+                      items: [
+                        _DetayItem(label: 'Talep Türü', value: talep.onayTipi),
+                        _DetayItem(
+                          label: 'Kayıt ID',
+                          value: talep.onayKayitId.toString(),
+                        ),
+                        _DetayItem(
+                          label: 'Oluşturma Tarihi',
+                          value: _formatTarihDetay(talep.olusturmaTarihi),
+                        ),
+                        _DetayItem(
+                          label: 'İşlem Tarihi',
+                          value: _formatTarihDetay(talep.islemTarihi),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDetaySection(
+                      icon: Icons.check_circle_outline,
+                      title: 'Onay Durumu',
+                      items: [
+                        _DetayItem(label: 'Durum', value: talep.onayDurumu),
+                        if (talep.beklemeDurumu != null &&
+                            talep.beklemeDurumu!.isNotEmpty)
+                          _DetayItem(
+                            label: 'Bekleme Durumu',
+                            value: talep.beklemeDurumu!,
                           ),
-                        ],
-                      ),
+                        _DetayItem(
+                          label: 'Onay Sırası',
+                          value: talep.onaySirasi.toString(),
+                        ),
+                        if (talep.cevapVeren != null &&
+                            talep.cevapVeren!.isNotEmpty)
+                          _DetayItem(
+                            label: 'Cevap Veren',
+                            value: talep.cevapVeren!,
+                          ),
+                        if (talep.bekletKademe != null &&
+                            talep.bekletKademe!.isNotEmpty)
+                          _DetayItem(
+                            label: 'Beklet Kademe',
+                            value: talep.bekletKademe!,
+                          ),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close, color: Colors.grey[600]),
+                    const SizedBox(height: 20),
+                    _buildDetaySection(
+                      icon: Icons.more_horiz,
+                      title: 'Ek Bilgiler',
+                      items: [
+                        _DetayItem(
+                          label: 'Arşiv',
+                          value: talep.arsiv ? 'Evet' : 'Hayır',
+                        ),
+                        _DetayItem(
+                          label: 'Geri Gönderildi',
+                          value: talep.geriGonderildi ? 'Evet' : 'Hayır',
+                        ),
+                        if (talep.actionAdi != null &&
+                            talep.actionAdi!.isNotEmpty)
+                          _DetayItem(label: 'Aksiyon', value: talep.actionAdi!),
+                        if (talep.toplamTutar > 0)
+                          _DetayItem(
+                            label: 'Toplam Tutar',
+                            value: '${talep.toplamTutar} ₺',
+                          ),
+                      ],
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Talep eden kişi bilgileri
-                      _buildDetaySection(
-                        icon: Icons.person_outline,
-                        title: 'Talep Eden Kişi',
-                        items: [
-                          _buildDetayItem('Ad Soyad', talep.olusturanKisi),
-                          if (talep.gorevYeri != null &&
-                              talep.gorevYeri!.isNotEmpty)
-                            _buildDetayItem('Görev Yeri', talep.gorevYeri!),
-                          if (talep.gorevi != null && talep.gorevi!.isNotEmpty)
-                            _buildDetayItem('Görevi', talep.gorevi!),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Talep bilgileri
-                      _buildDetaySection(
-                        icon: Icons.info_outline,
-                        title: 'Talep Bilgileri',
-                        items: [
-                          _buildDetayItem('Talep Türü', talep.onayTipi),
-                          _buildDetayItem(
-                            'Kayıt ID',
-                            talep.onayKayitId.toString(),
-                          ),
-                          _buildDetayItem(
-                            'Oluşturma Tarihi',
-                            _formatTarihDetay(talep.olusturmaTarihi),
-                          ),
-                          _buildDetayItem(
-                            'İşlem Tarihi',
-                            _formatTarihDetay(talep.islemTarihi),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Onay durumu bilgileri
-                      _buildDetaySection(
-                        icon: Icons.check_circle_outline,
-                        title: 'Onay Durumu',
-                        items: [
-                          _buildDetayItem('Durum', talep.onayDurumu),
-                          if (talep.beklemeDurumu != null &&
-                              talep.beklemeDurumu!.isNotEmpty)
-                            _buildDetayItem(
-                              'Bekleme Durumu',
-                              talep.beklemeDurumu!,
-                            ),
-                          _buildDetayItem(
-                            'Onay Sırası',
-                            talep.onaySirasi.toString(),
-                          ),
-                          if (talep.cevapVeren != null &&
-                              talep.cevapVeren!.isNotEmpty)
-                            _buildDetayItem('Cevap Veren', talep.cevapVeren!),
-                          if (talep.bekletKademe != null &&
-                              talep.bekletKademe!.isNotEmpty)
-                            _buildDetayItem(
-                              'Beklet Kademe',
-                              talep.bekletKademe!,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Ek bilgiler
-                      _buildDetaySection(
-                        icon: Icons.more_horiz,
-                        title: 'Ek Bilgiler',
-                        items: [
-                          _buildDetayItem(
-                            'Arşiv',
-                            talep.arsiv ? 'Evet' : 'Hayır',
-                          ),
-                          _buildDetayItem(
-                            'Geri Gönderildi',
-                            talep.geriGonderildi ? 'Evet' : 'Hayır',
-                          ),
-                          if (talep.actionAdi != null &&
-                              talep.actionAdi!.isNotEmpty)
-                            _buildDetayItem('Aksiyon', talep.actionAdi!),
-                          if (talep.toplamTutar > 0)
-                            _buildDetayItem(
-                              'Toplam Tutar',
-                              '${talep.toplamTutar} ₺',
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.description_outlined,
+              color: AppColors.textOnPrimary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'İzin Talep Detayı',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(talep.onayDurumu),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    talep.onayDurumu,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textOnPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close, color: AppColors.textTertiary),
+          ),
+        ],
       ),
     );
   }
@@ -432,18 +426,17 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
   Widget _buildDetaySection({
     required IconData icon,
     required String title,
-    required List<Widget> items,
+    required List<_DetayItem> items,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppColors.scaffoldBackground,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section header
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -459,38 +452,41 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
             ),
           ),
-          Divider(height: 1, color: Colors.grey[200]),
-          // Items
+          Divider(height: 1, color: AppColors.border),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(children: items),
+            child: Column(
+              children: items
+                  .map((item) => _buildDetayItemWidget(item))
+                  .toList(),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDetayItem(String baslik, String deger) {
+  Widget _buildDetayItemWidget(_DetayItem item) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            baslik,
+            item.label,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -499,15 +495,15 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
             padding: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                bottom: BorderSide(color: AppColors.border, width: 1),
               ),
             ),
             child: Text(
-              deger,
-              style: TextStyle(
+              item.value,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -530,27 +526,24 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen>
     }
   }
 
-  String _formatTarih(String tarihi) {
-    try {
-      final date = DateTime.parse(tarihi);
-      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-    } catch (e) {
-      return tarihi;
-    }
-  }
-
   Color _getStatusColor(String durum) {
     switch (durum.toLowerCase()) {
       case 'onaylandı':
-        return Colors.green;
+        return AppColors.success;
       case 'reddedildi':
-        return Colors.red;
+        return AppColors.error;
       case 'bekleniyor':
-        return Colors.orange;
+        return AppColors.warning;
       case 'taslak':
         return Colors.grey;
       default:
-        return Colors.blue;
+        return AppColors.primary;
     }
   }
+}
+
+class _DetayItem {
+  const _DetayItem({required this.label, required this.value});
+  final String label;
+  final String value;
 }

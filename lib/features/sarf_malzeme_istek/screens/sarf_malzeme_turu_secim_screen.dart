@@ -37,33 +37,31 @@ class _SarfMalzemeTuruSecimScreenState
 
     // Türler yüklendiğinde loading dialog'u kapat
     ref.listen(allSarfMalzemeTurleriProvider, (prev, next) {
-      if (next != null) {
-        next.when(
-          data: (_) {
-            if (mounted && !_turlerYuklendi) {
-              setState(() => _turlerYuklendi = true);
-              BrandedLoadingDialog.hide(context);
-            }
-          },
-          loading: () {},
-          error: (error, stack) {
-            if (mounted && !_turlerYuklendi) {
-              setState(() => _turlerYuklendi = true);
-              BrandedLoadingDialog.hide(context);
-            }
-          },
-        );
-      }
+      next.when(
+        data: (_) {
+          if (mounted && !_turlerYuklendi) {
+            setState(() => _turlerYuklendi = true);
+            BrandedLoadingDialog.hide(context);
+          }
+        },
+        loading: () {},
+        error: (error, stack) {
+          if (mounted && !_turlerYuklendi) {
+            setState(() => _turlerYuklendi = true);
+            BrandedLoadingDialog.hide(context);
+          }
+        },
+      );
     });
 
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
             'Sarf Malzeme Türü Seçin',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
           elevation: 0,
           flexibleSpace: Container(
@@ -71,7 +69,7 @@ class _SarfMalzemeTuruSecimScreenState
               gradient: AppColors.primaryGradient,
             ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         ),
         body: turlerAsync.when(
           loading: () => const SizedBox.shrink(),
@@ -79,7 +77,11 @@ class _SarfMalzemeTuruSecimScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.error,
+                ),
                 const SizedBox(height: 16),
                 Text('Hata: $error'),
               ],
@@ -116,7 +118,7 @@ class _SarfMalzemeTuruSecimScreenState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              border: Border(bottom: BorderSide(color: AppColors.textTertiary)),
             ),
             child: Row(
               children: [

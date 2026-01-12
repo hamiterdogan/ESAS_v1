@@ -43,26 +43,13 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   @override
   Future<Result<List<IzinNedeni>>> getIzinNedenleri() async {
     try {
-      print('🔍 İzin nedenleri getiriliyor...');
       final response = await _dio.get('/IzinIstek/IzinSebebiDoldur');
-      print('✅ Response status: ${response.statusCode}');
-      print('📋 Response data type: ${response.data.runtimeType}');
-      print('📋 TAM Response data: ${response.data}');
-      print('📋 JSON encoded: ${response.data.toString()}');
 
       if (response.statusCode == 200) {
         if (response.data is List) {
           final List<IzinNedeni> nedenler = (response.data as List).map((item) {
-            print('📝 Item: $item');
             return IzinNedeni.fromJson(item as Map<String, dynamic>);
           }).toList();
-          print('✅ ${nedenler.length} neden getirildi');
-          for (int i = 0; i < nedenler.length; i++) {
-            final neden = nedenler[i];
-            print(
-              '  [$i] ID: ${neden.izinSebebiId}, İçNedeni: ${neden.izinNedeni}, İzinAdı: ${neden.izinAdi}',
-            );
-          }
           return Success(nedenler);
         }
 
@@ -89,16 +76,9 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
                   (item) => IzinNedeni.fromJson(item as Map<String, dynamic>),
                 )
                 .toList();
-            print('✅ ${nedenler.length} neden getirildi');
-            for (var neden in nedenler) {
-              print(
-                '  - ${neden.izinNedeni} (izinAdi: ${neden.izinAdi}, saatGoster: ${neden.saatGoster})',
-              );
-            }
             return Success(nedenler);
           }
 
-          print('❌ Bilinmeyen response formatı: ${body.keys}');
           return Failure('Bilinmeyen response formatı: ${body.keys}');
         }
 
@@ -109,11 +89,8 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response: ${e.response?.data}');
       return Failure('${e.message} - ${e.response?.data}');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure('Hata: $e');
     }
   }
@@ -121,27 +98,22 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   @override
   Future<Result<List<DiniGun>>> getDiniGunler(int personelId) async {
     try {
-      print('🔍 Dini günler getiriliyor... PersonelId: $personelId');
       final response = await _dio.post(
         '/IzinIstek/DiniGunDoldur',
         data: {'personelId': personelId},
       );
-      print('✅ Response status: ${response.statusCode}');
-      print('📋 Response data: ${response.data}');
 
       if (response.statusCode == 200) {
         if (response.data is List) {
           final List<DiniGun> gunler = (response.data as List)
               .map((item) => DiniGun.fromJson(item as Map<String, dynamic>))
               .toList();
-          print('✅ ${gunler.length} dini gün getirildi');
           return Success(gunler);
         }
         return Failure('Beklenmeyen veri formatı');
       }
       return Failure('Dini günler getirilemedi: ${response.statusCode}');
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure('Bir hata oluştu: $e');
     }
   }
@@ -152,19 +124,14 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
     File? file,
   }) async {
     try {
-      print('🔍 İzin isteği ekleniyor...');
-
       // STEP 1: Create request via JSON payload
       final jsonPayload = request.toJson();
-      print('📤 JSON Payload: $jsonPayload');
 
       final response = await _dio.post(
         '/IzinIstek/IzinIstekEkle',
         data: jsonPayload,
         options: Options(contentType: 'application/json'),
       );
-      print('✅ Response status: ${response.statusCode}');
-      print('✅ Response data: ${response.data}');
 
       if (response.statusCode != 200) {
         return Failure('Hata: ${response.statusCode} - ${response.data}');
@@ -178,12 +145,9 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
       }
 
       final int onayKayitId = responseData['onayKayitId'] ?? 0;
-      print('✅ OnayKayitId alındı: $onayKayitId');
 
       // STEP 2: Upload file if exists
       if (file != null && await file.exists() && onayKayitId > 0) {
-        print('📎 Dosya yükleniyor...');
-
         final fileName = file.path.split(Platform.pathSeparator).last;
         final extension = fileName.split('.').last.toLowerCase();
 
@@ -219,8 +183,6 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
             break;
         }
 
-        print('📎 Dosya: $fileName, MIME: $contentType');
-
         final multipartFile = await MultipartFile.fromFile(
           file.path,
           filename: fileName,
@@ -240,9 +202,6 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
           options: Options(contentType: 'multipart/form-data'),
         );
 
-        print('✅ Dosya yükleme response: ${uploadResponse.statusCode}');
-        print('✅ Dosya yükleme data: ${uploadResponse.data}');
-
         if (uploadResponse.statusCode != 200) {
           return Failure('Dosya yüklenemedi: ${uploadResponse.statusCode}');
         }
@@ -250,17 +209,11 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
 
       return const Success(null);
     } on DioException catch (e) {
-      print('❌ DioException: ${e.message}');
-      print('❌ Response data: ${e.response?.data}');
-      print('❌ Response status: ${e.response?.statusCode}');
-      print('❌ Error type: ${e.type}');
-
       // Sunucudan gelen hata mesajını çıkar
       String errorMessage = 'Sunucu hatası oluştu';
 
       if (e.response?.data != null) {
         final data = e.response!.data;
-        print('❌ Data type: ${data.runtimeType}');
 
         if (data is Map<String, dynamic>) {
           if (data.containsKey('mesaj') &&
@@ -309,10 +262,8 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
         }
       }
 
-      print('❌ Final error message: $errorMessage');
       return Failure(errorMessage);
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -320,12 +271,10 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   @override
   Future<Result<IzinIstekDetay>> getIzinDetay(int id) async {
     try {
-      print('🔍 İzin detayı getiriliyor: $id');
       final response = await _dio.post(
         '/TalepYonetimi/IzinIstek/IzinIstekDetay',
         data: {'id': id},
       );
-      print('✅ Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final detay = IzinIstekDetay.fromJson(
@@ -336,10 +285,8 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: $e');
       return Failure(e.toString());
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -347,12 +294,10 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   @override
   Future<Result<void>> izinIstekSil(int id) async {
     try {
-      print('🔍 İzin isteği siliniyor: $id');
       final response = await _dio.delete(
         '/IzinIstek/IzinIstekSil',
         data: {'id': id},
       );
-      print('✅ Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return const Success(null);
@@ -360,10 +305,8 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: $e');
       return Failure(e.toString());
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }
@@ -371,12 +314,10 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   @override
   Future<Result<List<Personel>>> getPersoneller(String query) async {
     try {
-      print('🔍 Personeller getiriliyor: $query');
       final response = await _dio.get(
         '/Personel/PersonelleriGetir',
         queryParameters: {'aktif': true},
       );
-      print('✅ Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         List<Personel> personeller = [];
@@ -405,16 +346,13 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
               .toList();
         }
 
-        print('✅ ${personeller.length} personel getirildi');
         return Success(personeller);
       }
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
-      print('❌ DioException: $e');
       return Failure(e.toString());
     } catch (e) {
-      print('❌ Hata: $e');
       return Failure(e.toString());
     }
   }

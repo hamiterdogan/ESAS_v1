@@ -408,8 +408,9 @@ class AracTalepFormNotifier extends Notifier<AracTalepFormState> {
         .where((n) => n.isNotEmpty)
         .toList();
 
-    if (names.isEmpty)
+    if (names.isEmpty) {
       return '${state.selectedPersonelIds.length} personel seçildi';
+    }
     if (names.length <= 2) return names.join(', ');
     return '${names.length} personel seçildi';
   }

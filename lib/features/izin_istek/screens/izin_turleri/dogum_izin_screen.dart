@@ -76,7 +76,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -85,7 +85,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -97,7 +97,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -129,7 +129,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -138,7 +138,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -177,11 +177,11 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          backgroundColor: const Color(0xFFEEF1F5),
+          backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(
             title: const Text(
               'Doğum İzni İstek',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textOnPrimary),
             ),
             elevation: 0,
             flexibleSpace: Container(
@@ -189,7 +189,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 gradient: AppColors.primaryGradient,
               ),
             ),
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
@@ -357,7 +357,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                     ),
                     minLines: 3,
                     maxLines: 5,
@@ -410,7 +410,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                       child: const Text(
                         'Gönder',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -582,7 +582,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -591,7 +591,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -632,7 +632,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                 ),
                 child: const Text(
                   'Tamam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
               const SizedBox(height: 50),

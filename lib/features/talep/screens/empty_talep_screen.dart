@@ -7,21 +7,24 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 class EmptyTalepScreen extends ConsumerWidget {
   final TalepTuru talep;
 
-  const EmptyTalepScreen({Key? key, required this.talep}) : super(key: key);
+  const EmptyTalepScreen({super.key, required this.talep});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(talep.label, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          talep.label,
+          style: const TextStyle(color: AppColors.textOnPrimary),
+        ),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => context.go('/'),
         ),
       ),
@@ -38,7 +41,7 @@ class EmptyTalepScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               'Bu talep türü yakında kullanıma açılacaktır.',
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
           ],

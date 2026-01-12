@@ -10,7 +10,7 @@ class DovizKuru {
     }
     if (raw is Map) {
       return DovizKuru.fromJson(
-        Map<String, dynamic>.from(raw as Map),
+        Map<String, dynamic>.from(raw),
         fallbackDovizKodu: fallbackDovizKodu,
       );
     }
@@ -19,7 +19,7 @@ class DovizKuru {
       final first = raw.first;
       if (first is Map) {
         return DovizKuru.fromJson(
-          Map<String, dynamic>.from(first as Map),
+          Map<String, dynamic>.from(first),
           fallbackDovizKodu: fallbackDovizKodu,
         );
       }
@@ -44,7 +44,7 @@ class DovizKuru {
     final nested = (json['data'] ?? json['result'] ?? json['sonuc']);
     if (nested is Map) {
       return DovizKuru.fromJson(
-        Map<String, dynamic>.from(nested as Map),
+        Map<String, dynamic>.from(nested),
         fallbackDovizKodu: fallbackDovizKodu,
       );
     }
@@ -52,7 +52,7 @@ class DovizKuru {
       final first = nested.first;
       if (first is Map) {
         return DovizKuru.fromJson(
-          Map<String, dynamic>.from(first as Map),
+          Map<String, dynamic>.from(first),
           fallbackDovizKodu: fallbackDovizKodu,
         );
       }

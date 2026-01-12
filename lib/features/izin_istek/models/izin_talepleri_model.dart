@@ -1,5 +1,5 @@
-/// Yeni endpoint: IzinTaleplerimiGetir
-/// URL: /api/IzinIstek/IzinTaleplerimiGetir
+// Yeni endpoint: IzinTaleplerimiGetir
+// URL: /api/IzinIstek/IzinTaleplerimiGetir
 
 class IzinTalepleriResponse {
   final List<IzinTalep> talepler;

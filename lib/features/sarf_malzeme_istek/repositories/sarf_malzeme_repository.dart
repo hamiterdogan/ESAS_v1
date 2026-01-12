@@ -81,9 +81,6 @@ class SarfMalzemeRepository {
         data: {'anaKategoriId': anaKategoriId},
       );
 
-      print('DEBUG: getAltKategoriler response status: ${response.statusCode}');
-      print('DEBUG: getAltKategoriler response data: ${response.data}');
-
       final data = response.data;
 
       if (data is List) {
@@ -101,9 +98,8 @@ class SarfMalzemeRepository {
           }
         }
       }
-    } catch (e, s) {
-      print('DEBUG: getAltKategoriler error: $e');
-      print('DEBUG: getAltKategoriler stack: $s');
+    } catch (e) {
+      // Error logged silently for production
     }
     return [];
   }

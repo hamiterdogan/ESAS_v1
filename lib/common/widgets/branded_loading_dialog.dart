@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 class BrandedLoadingDialog {
   static void show(BuildContext context) {
@@ -7,7 +8,7 @@ class BrandedLoadingDialog {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: AppColors.textPrimary.withValues(alpha: 0.6),
       builder: (dialogContext) {
         return PopScope(
           canPop: false,
@@ -17,7 +18,7 @@ class BrandedLoadingDialog {
               height: 175,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.05),
+                color: AppColors.textOnPrimary.withValues(alpha: 0.05),
               ),
               alignment: Alignment.center,
               child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),

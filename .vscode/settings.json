@@ -12,5 +12,11 @@
   "github.copilot.chat.allowMultipleRequests": true,
 
   // 🔕 “Allow this action?” uyarılarını sustur
-  "github.copilot.chat.suppressCommandExecutionWarning": true
+  "github.copilot.chat.suppressCommandExecutionWarning": true,
+  "chat.tools.terminal.autoApprove": {
+    "/^\\$colors = @\\(\\); Get-ChildItem -Recurse -Filter \"\\*\\.dart\" lib/features \\| ForEach-Object \\{ Select-String -Path \\$_\\.FullName -Pattern \"Color\\\\\\(0x\\[0-9A-Fa-f\\]\\{8\\}\\\\\\)\" -AllMatches \\| ForEach-Object \\{ \\$_\\.Matches \\| ForEach-Object \\{ \\$colors \\+= \\$_\\.Value \\} \\} \\}; \\$colors \\| Group-Object \\| Sort-Object Count -Descending \\| Select-Object -First 15 \\| Format-Table -AutoSize$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
 }

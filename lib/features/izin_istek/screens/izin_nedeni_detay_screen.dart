@@ -11,14 +11,14 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: Text(neden.izinAdi, style: const TextStyle(color: Colors.white)),
+        title: Text(neden.izinAdi, style: const TextStyle(color: AppColors.textOnPrimary)),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
       ),
       body: Center(
         child: Column(
@@ -28,13 +28,13 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFF014B92).withValues(alpha: 0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
               child: const Icon(
                 Icons.description_outlined,
                 size: 40,
-                color: Color(0xFF014B92),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -45,7 +45,7 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               'İzin Türü: ${neden.izinNedeni}',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
             ),
             const SizedBox(height: 32),
             Padding(
@@ -58,7 +58,7 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
+                      color: AppColors.textTertiary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -84,7 +84,7 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: AppColors.textTertiary,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -98,7 +98,7 @@ class IzinNedeniDetayScreen extends ConsumerWidget {
             value,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey[700],
+              color: AppColors.textTertiary,
               fontWeight: FontWeight.w500,
             ),
           ),

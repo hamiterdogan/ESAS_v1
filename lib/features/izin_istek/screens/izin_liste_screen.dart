@@ -1,3 +1,4 @@
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,7 +50,7 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: FittedBox(
             fit: BoxFit.scaleDown,
@@ -57,14 +58,14 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
             child: const Text(
               'İzin İsteklerini Yönet',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          backgroundColor: const Color(0xFF014B92),
+          backgroundColor: AppColors.primary,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
             onPressed: () => context.go('/'),
           ),
           elevation: 0,
@@ -91,9 +92,9 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
                 ],
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
+            indicatorColor: AppColors.textOnPrimary,
+            labelColor: AppColors.textOnPrimary,
+            unselectedLabelColor: AppColors.textOnPrimaryMuted,
             labelStyle: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -128,18 +129,22 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
               ref.invalidate(onaylananTaleplerProvider);
             }
           },
-          backgroundColor: const Color(0xFF014B92),
+          backgroundColor: AppColors.primary,
           icon: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.3),
+              color: AppColors.textOnPrimary.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             padding: const EdgeInsets.all(6),
-            child: const Icon(Icons.add, color: Colors.white, size: 24),
+            child: const Icon(
+              Icons.add,
+              color: AppColors.textOnPrimary,
+              size: 24,
+            ),
           ),
           label: const Text(
             'Yeni İstek',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
         ),
       ),
@@ -161,8 +166,8 @@ class _IzinTalepleriListesi extends ConsumerStatefulWidget {
 class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
   // Filtre değerleri - Çoklu seçim için Set kullanılıyor
   String _selectedSure = 'Tümü';
-  Set<String> _selectedIzinTurleri = {};
-  Set<String> _selectedTalepDurumlari = {};
+  final Set<String> _selectedIzinTurleri = {};
+  final Set<String> _selectedTalepDurumlari = {};
 
   // Sıralama: true = yeniden eskiye (varsayılan), false = eskiden yeniye
   bool _yenidenEskiye = true;
@@ -261,7 +266,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AppColors.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -282,12 +287,12 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ? FontWeight.bold
                       : FontWeight.normal,
                   color: !_yenidenEskiye
-                      ? const Color(0xFF014B92)
-                      : Colors.black87,
+                      ? AppColors.primary
+                      : AppColors.textPrimary87,
                 ),
               ),
               trailing: !_yenidenEskiye
-                  ? const Icon(Icons.check, color: Color(0xFF014B92))
+                  ? const Icon(Icons.check, color: AppColors.primary)
                   : null,
               onTap: () {
                 setState(() => _yenidenEskiye = false);
@@ -303,12 +308,12 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ? FontWeight.bold
                       : FontWeight.normal,
                   color: _yenidenEskiye
-                      ? const Color(0xFF014B92)
-                      : Colors.black87,
+                      ? AppColors.primary
+                      : AppColors.textPrimary87,
                 ),
               ),
               trailing: _yenidenEskiye
-                  ? const Icon(Icons.check, color: Color(0xFF014B92))
+                  ? const Icon(Icons.check, color: AppColors.primary)
                   : null,
               onTap: () {
                 setState(() => _yenidenEskiye = true);
@@ -347,7 +352,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: AppColors.textTertiary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -434,7 +439,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -442,7 +447,10 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ),
                       child: const Text(
                         'Uygula',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textOnPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -464,7 +472,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -472,7 +480,10 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ),
                       child: const Text(
                         'Tamam',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textOnPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -538,9 +549,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -553,7 +562,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   if (selectedValue != 'Tümü') ...[
@@ -562,7 +571,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       selectedValue,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Color(0xFF014B92),
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
@@ -607,14 +616,14 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                         ? FontWeight.bold
                         : FontWeight.normal,
                     color: secenek == _selectedSure
-                        ? const Color(0xFF014B92)
-                        : Colors.black87,
+                        ? AppColors.primary
+                        : AppColors.textPrimary87,
                   ),
                 ),
                 trailing: secenek == _selectedSure
                     ? const Icon(
                         Icons.check,
-                        color: Color(0xFF014B92),
+                        color: AppColors.primary,
                         size: 22,
                       )
                     : null,
@@ -646,7 +655,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       setModalState(() => _selectedIzinTurleri.clear()),
                   child: const Text(
                     'Temizle',
-                    style: TextStyle(color: Color(0xFF014B92)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -662,16 +671,16 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ? FontWeight.bold
                       : FontWeight.normal,
                   color: _selectedIzinTurleri.contains(tur)
-                      ? const Color(0xFF014B92)
-                      : Colors.black87,
+                      ? AppColors.primary
+                      : AppColors.textPrimary87,
                 ),
               ),
               value: _selectedIzinTurleri.contains(tur),
-              activeColor: const Color(0xFF014B92),
+              activeColor: AppColors.primary,
               checkboxShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              side: BorderSide(color: Colors.grey[800]!, width: 1.5),
+              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
               onChanged: (bool? value) {
                 setModalState(() {
                   if (value == true) {
@@ -702,7 +711,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       setModalState(() => _selectedTalepDurumlari.clear()),
                   child: const Text(
                     'Temizle',
-                    style: TextStyle(color: Color(0xFF014B92)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -718,16 +727,16 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
                       ? FontWeight.bold
                       : FontWeight.normal,
                   color: _selectedTalepDurumlari.contains(secenek)
-                      ? const Color(0xFF014B92)
-                      : Colors.black87,
+                      ? AppColors.primary
+                      : AppColors.textPrimary87,
                 ),
               ),
               value: _selectedTalepDurumlari.contains(secenek),
-              activeColor: const Color(0xFF014B92),
+              activeColor: AppColors.primary,
               checkboxShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              side: BorderSide(color: Colors.grey[800]!, width: 1.5),
+              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
               onChanged: (bool? value) {
                 setModalState(() {
                   if (value == true) {
@@ -756,12 +765,12 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
               'Hata: ${error.toString()}',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red, fontSize: 16),
+              style: const TextStyle(color: AppColors.error, fontSize: 16),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -885,7 +894,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sil', style: TextStyle(color: Colors.red)),
+            child: const Text('Sil', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -906,21 +915,24 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('İzin talebi başarıyla iptal edildi'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
       } else if (result is Failure) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Hata: ${result.message}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata oluştu: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Hata oluştu: $e'),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -942,15 +954,15 @@ class _IzinTalepKarti extends StatelessWidget {
 
     switch (statusText.toLowerCase()) {
       case 'onaylandı':
-        statusColor = Colors.green;
+        statusColor = AppColors.success;
         statusIcon = Icons.check_circle;
         break;
       case 'reddedildi':
-        statusColor = Colors.red;
+        statusColor = AppColors.error;
         statusIcon = Icons.cancel;
         break;
       default:
-        statusColor = Colors.orange;
+        statusColor = AppColors.warning;
         statusIcon = Icons.schedule;
     }
 
@@ -977,10 +989,10 @@ class _IzinTalepKarti extends StatelessWidget {
               children: [
                 CustomSlidableAction(
                   onPressed: (context) => onDelete(),
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.error,
                   child: Container(
                     decoration: const BoxDecoration(
-                      color: Colors.red,
+                      color: AppColors.error,
                       borderRadius: BorderRadius.only(
                         topRight: Radius.circular(12),
                         bottomRight: Radius.circular(12),
@@ -989,12 +1001,16 @@ class _IzinTalepKarti extends StatelessWidget {
                     child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.delete, size: 40, color: Colors.white),
+                        Icon(
+                          Icons.delete,
+                          size: 40,
+                          color: AppColors.textOnPrimary,
+                        ),
                         SizedBox(height: 6),
                         Text(
                           'İzni İptal Et',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1039,10 +1055,10 @@ class _IzinTalepKarti extends StatelessWidget {
               color:
                   Color.lerp(
                     Theme.of(context).scaffoldBackgroundColor,
-                    Colors.white,
+                    AppColors.textOnPrimary,
                     0.65,
                   ) ??
-                  Colors.white,
+                  AppColors.textOnPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1064,7 +1080,7 @@ class _IzinTalepKarti extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               Text(
@@ -1072,7 +1088,7 @@ class _IzinTalepKarti extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF014B92),
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ],
@@ -1083,7 +1099,7 @@ class _IzinTalepKarti extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF014B92),
+                              color: AppColors.primary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -1095,7 +1111,7 @@ class _IzinTalepKarti extends StatelessWidget {
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               Container(

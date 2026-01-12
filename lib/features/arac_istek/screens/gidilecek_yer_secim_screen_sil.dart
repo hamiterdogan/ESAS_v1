@@ -58,9 +58,9 @@ class _GidilecekYerSecimScreenState
       appBar: AppBar(
         title: const Text(
           'Gidilecek Yer Seçimi',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.textOnPrimary),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
@@ -223,10 +223,10 @@ class _GidilecekYerSecimScreenState
                               vertical: 8,
                               horizontal: 26,
                             ),
-                            backgroundColor: Colors.white,
+                            backgroundColor: AppColors.textOnPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: Colors.grey.shade300),
+                              side: BorderSide(color: AppColors.border),
                             ),
                             alignment: Alignment.centerLeft,
                           ),
@@ -322,7 +322,7 @@ class _GidilecekYerSecimScreenState
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w400,
                                     fontSize: 17,
-                                    color: Colors.black87,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 trailing: Checkbox(
@@ -401,7 +401,7 @@ class _GidilecekYerSecimScreenState
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.gradientStart,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.textOnPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

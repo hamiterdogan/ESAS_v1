@@ -79,7 +79,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -88,7 +88,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -100,7 +100,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -132,7 +135,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -141,7 +144,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -182,11 +185,11 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          backgroundColor: const Color(0xFFEEF1F5),
+          backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(
             title: const Text(
               'Yıllık İzin İstek',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textOnPrimary),
             ),
             elevation: 0,
             flexibleSpace: Container(
@@ -194,7 +197,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                 gradient: AppColors.primaryGradient,
               ),
             ),
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
@@ -245,7 +248,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                           alpha: 0.5,
                         ),
                         activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -367,7 +370,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                       Expanded(
                         child: TimePickerBottomSheetWidget(
                           key: ValueKey(
-                            'end-time-${_baslangicSaat}-${_baslangicDakika}-${_birGunlukIzin}-${_baslangicTarihi}-${_bitisTarihi}-${_bitisSaat}-${_bitisDakika}',
+                            'end-time-$_baslangicSaat-$_baslangicDakika-$_birGunlukIzin-$_baslangicTarihi-$_bitisTarihi-$_bitisSaat-$_bitisDakika',
                           ),
                           initialHour: _bitisSaat,
                           initialMinute: _bitisDakika,
@@ -440,7 +443,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                     ),
                     minLines: 3,
                     maxLines: 5,
@@ -492,7 +495,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                       child: const Text(
                         'Gönder',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -587,11 +590,6 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
             ? _secilenPersonel!.personelId
             : 0;
 
-        print('✅ Yıllık İzni İstek (ID: 1)');
-        print(
-          '👤 baskaPersonelId: $baskaPersonelIdValue, dolduranPersonelId: $currentPersonelId',
-        );
-
         final request = IzinIstekEkleReq(
           izinSebebiId: izinSebebiId,
           izinBaslangicTarihi: _baslangicTarihi!,
@@ -606,8 +604,6 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
           baskaPersonelId: baskaPersonelIdValue,
           dolduranPersonelId: currentPersonelId,
         );
-
-        print('📤 Gönderilen istek: \${request.toJson()}');
 
         // Bottom sheet'te özet göster
         if (mounted) {
@@ -696,7 +692,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -705,7 +701,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -746,7 +742,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                 ),
                 child: const Text(
                   'Tamam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
               const SizedBox(height: 50),
@@ -768,4 +764,3 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 }
-

@@ -14,19 +14,20 @@ class OdemeSekliWidget extends ConsumerStatefulWidget {
   final VoidCallback? onAfterHideSheet;
 
   const OdemeSekliWidget({
-    Key? key,
+    super.key,
     required this.selectedOdemeTuru,
     required this.onOdemeTuruSelected,
     this.title = 'Ödeme Şekli',
     this.onBeforeShowSheet,
     this.onAfterHideSheet,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<OdemeSekliWidget> createState() => _OdemeSekliWidgetState();
 }
 
 class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
+  // ignore: unused_field - used to track loading state
   bool _showingLoading = false;
 
   @override
@@ -49,8 +50,8 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey.shade300),
+              color: AppColors.textOnPrimary,
+              border: Border.all(color: AppColors.border),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -61,11 +62,11 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
                   style: TextStyle(
                     fontSize: 14,
                     color: widget.selectedOdemeTuru == null
-                        ? Colors.grey.shade500
-                        : Colors.black,
+                        ? AppColors.textTertiary
+                        : AppColors.textPrimary,
                   ),
                 ),
-                Icon(Icons.arrow_drop_down, color: Colors.grey.shade500),
+                Icon(Icons.arrow_drop_down, color: AppColors.textTertiary),
               ],
             ),
           ),
@@ -113,7 +114,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
   void _openBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -134,7 +135,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
                   child: Center(
                     child: Text(
                       'Ödeme türleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -171,7 +172,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -179,7 +180,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
                                   itemCount: odemeTurleri.length,
                                   separatorBuilder: (_, __) => Divider(
                                     height: 1,
-                                    color: Colors.grey.shade200,
+                                    color: AppColors.borderLight,
                                   ),
                                   itemBuilder: (context, index) {
                                     final item = odemeTurleri[index];
@@ -194,7 +195,7 @@ class _OdemeSekliWidgetState extends ConsumerState<OdemeSekliWidget> {
                                               : FontWeight.normal,
                                           color: isSelected
                                               ? AppColors.gradientStart
-                                              : Colors.black87,
+                                              : AppColors.textPrimary87,
                                           fontSize: 16,
                                         ),
                                       ),

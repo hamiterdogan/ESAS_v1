@@ -87,8 +87,8 @@ class _PersonelSelectorWidgetState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
+              color: AppColors.textOnPrimary,
+              border: Border.all(color: AppColors.border),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -99,8 +99,8 @@ class _PersonelSelectorWidgetState
                     _buildPersonelSummary(),
                     style: TextStyle(
                       color: _selectedPersonelIds.isNotEmpty
-                          ? Colors.black
-                          : Colors.grey.shade600,
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary,
                       fontSize: 16,
                       fontWeight: _selectedPersonelIds.isNotEmpty
                           ? FontWeight.w600
@@ -117,7 +117,7 @@ class _PersonelSelectorWidgetState
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 else
-                  Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                  Icon(Icons.chevron_right, color: AppColors.textSecondary),
               ],
             ),
           ),
@@ -253,7 +253,7 @@ class _PersonelSelectorWidgetState
                                   },
                                   child: const Text(
                                     'Evet',
-                                    style: TextStyle(color: Colors.red),
+                                    style: TextStyle(color: AppColors.error),
                                   ),
                                 ),
                               ],
@@ -262,7 +262,7 @@ class _PersonelSelectorWidgetState
                         },
                         child: const Text(
                           'Tümü Sil',
-                          style: TextStyle(color: Colors.red),
+                          style: TextStyle(color: AppColors.error),
                         ),
                       ),
                     ],
@@ -288,7 +288,7 @@ class _PersonelSelectorWidgetState
                           trailing: IconButton(
                             icon: const Icon(
                               Icons.delete_outline,
-                              color: Colors.grey,
+                              color: AppColors.textTertiary,
                             ),
                             onPressed: () {
                               setSheetState(() {
@@ -432,7 +432,7 @@ class _PersonelSelectorWidgetState
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: localSelectedPersonel.isEmpty
-                              ? const Color(0xFFD32F2F)
+                              ? AppColors.error
                               : AppColors.gradientStart,
                         ),
                       ),
@@ -571,7 +571,7 @@ class _PersonelSelectorWidgetState
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF014B92),
+                          backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -581,7 +581,7 @@ class _PersonelSelectorWidgetState
                           _currentFilterPage.isEmpty ? 'Uygula' : 'Uygula',
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                           ),
                         ),
                       ),
@@ -651,9 +651,7 @@ class _PersonelSelectorWidgetState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -684,7 +682,7 @@ class _PersonelSelectorWidgetState
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: AppColors.textTertiary),
           ],
         ),
       ),
@@ -702,17 +700,13 @@ class _PersonelSelectorWidgetState
         children: [
           TextButton(
             onPressed: onClear,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Temizle', style: TextStyle(fontSize: 16)),
           ),
           const SizedBox(width: 8),
           TextButton(
             onPressed: onSelectAll,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Tümü', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -726,8 +720,9 @@ class _PersonelSelectorWidgetState
     Set<int> localSelectedGorev,
     Set<int> localSelectedPersonel,
   ) {
-    if (_gorevYerleri.isEmpty)
+    if (_gorevYerleri.isEmpty) {
       return const Center(child: Text('Görev veri verisi bulunamadı'));
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -761,10 +756,11 @@ class _PersonelSelectorWidgetState
                 value: isSelected,
                 onChanged: (val) {
                   setModalState(() {
-                    if (val == true)
+                    if (val == true) {
                       localSelectedGorevYeri.add(yer.id);
-                    else
+                    } else {
                       localSelectedGorevYeri.remove(yer.id);
+                    }
                     _syncPersonelSelectionFromFilters(
                       localSelectedGorevYeri,
                       localSelectedGorev,
@@ -781,7 +777,7 @@ class _PersonelSelectorWidgetState
                         : FontWeight.normal,
                   ),
                 ),
-                activeColor: const Color(0xFF014B92),
+                activeColor: AppColors.primary,
               );
             }).toList(),
           ),
@@ -796,8 +792,9 @@ class _PersonelSelectorWidgetState
     Set<int> localSelectedGorevYeri,
     Set<int> localSelectedPersonel,
   ) {
-    if (_gorevler.isEmpty)
+    if (_gorevler.isEmpty) {
       return const Center(child: Text('Görev verisi bulunamadı'));
+    }
 
     // Filter gorevler based on selected gorev yeri
     final Set<int> allowedGorevIdsByPersonel = localSelectedGorevYeri.isEmpty
@@ -819,10 +816,11 @@ class _PersonelSelectorWidgetState
       return matchByYeri || matchByPersonel;
     }).toList();
 
-    if (filteredGorevler.isEmpty)
+    if (filteredGorevler.isEmpty) {
       return const Center(
         child: Text('Seçilen görev yerine ait görev bulunamadı'),
       );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -856,10 +854,11 @@ class _PersonelSelectorWidgetState
                 value: isSelected,
                 onChanged: (val) {
                   setModalState(() {
-                    if (val == true)
+                    if (val == true) {
                       localSelectedGorev.add(gorev.id);
-                    else
+                    } else {
                       localSelectedGorev.remove(gorev.id);
+                    }
                     _syncPersonelSelectionFromFilters(
                       localSelectedGorevYeri,
                       localSelectedGorev,
@@ -876,7 +875,7 @@ class _PersonelSelectorWidgetState
                         : FontWeight.normal,
                   ),
                 ),
-                activeColor: const Color(0xFF014B92),
+                activeColor: AppColors.primary,
               );
             }).toList(),
           ),
@@ -920,8 +919,9 @@ class _PersonelSelectorWidgetState
     Set<int> localSelectedGorev,
     Set<int> localSelectedGorevYeri,
   ) {
-    if (_personeller.isEmpty)
+    if (_personeller.isEmpty) {
       return const Center(child: Text('Personel verisi bulunamadı'));
+    }
 
     // Use a hook or local state for search controller?
     // Since this is inside a StatefulBuilder's builder, reinstantiating controller every build is bad if it rebuilt frequently?
@@ -1027,11 +1027,11 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                   : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -1056,7 +1056,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF014B92),
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -1069,7 +1069,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                   },
                   child: const Text(
                     'Temizle',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF014B92)),
+                    style: TextStyle(fontSize: 14, color: AppColors.primary),
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -1085,7 +1085,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                   },
                   child: const Text(
                     'Tümü',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF014B92)),
+                    style: TextStyle(fontSize: 14, color: AppColors.primary),
                   ),
                 ),
               ],
@@ -1097,7 +1097,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
             padding: EdgeInsets.all(16),
             child: Text(
               'Sonuç bulunamadı',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppColors.textTertiary),
             ),
           )
         else
@@ -1108,7 +1108,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
               itemCount: filtered.length,
               separatorBuilder: (context, index) => Divider(
                 height: 1,
-                color: Colors.grey.shade200,
+                color: AppColors.borderLight,
                 indent: 16,
                 endIndent: 16,
               ),
@@ -1122,10 +1122,11 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                   value: isSelected,
                   onChanged: (val) {
                     setState(() {
-                      if (val == true)
+                      if (val == true) {
                         widget.selectedPersonelIds.add(kisi.personelId);
-                      else
+                      } else {
                         widget.selectedPersonelIds.remove(kisi.personelId);
+                      }
                     });
                     widget.onSelectionChanged(widget.selectedPersonelIds);
                   },
@@ -1138,7 +1139,7 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                           : FontWeight.normal,
                     ),
                   ),
-                  activeColor: const Color(0xFF014B92),
+                  activeColor: AppColors.primary,
                 );
               },
             ),

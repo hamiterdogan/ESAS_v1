@@ -155,7 +155,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
               ),
               child: const Text(
                 'Tamam',
-                style: TextStyle(color: Colors.white, fontSize: 17),
+                style: TextStyle(color: AppColors.textOnPrimary, fontSize: 17),
               ),
             ),
           ],
@@ -169,11 +169,11 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
             'A4 Kağıdı İstek',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
           flexibleSpace: Container(
             decoration: const BoxDecoration(
@@ -181,7 +181,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
             onPressed: () => context.pop(),
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
@@ -209,7 +209,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                 child: const Text(
                   'Gönder',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -233,7 +233,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
-                    color: const Color(0xFF01396B),
+                    color: AppColors.primaryLight,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -278,7 +278,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
-                    color: const Color(0xFF01396B),
+                    color: AppColors.primaryLight,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -293,17 +293,17 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         width: 50,
                         height: 46,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: AppColors.border),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(8),
                             bottomLeft: Radius.circular(8),
                           ),
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                         ),
                         child: Icon(
                           Icons.remove,
                           color: _paketAdedi > 1
-                              ? Colors.black
+                              ? AppColors.textPrimary
                               : Colors.grey.shade300,
                           size: 24,
                         ),
@@ -314,8 +314,8 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                       width: 64,
                       height: 46,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        color: Colors.white,
+                        border: Border.all(color: AppColors.border),
+                        color: AppColors.textOnPrimary,
                       ),
                       child: TextField(
                         controller: _paketController,
@@ -328,7 +328,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         ],
                         style: const TextStyle(
                           fontSize: 17,
-                          color: Colors.black,
+                          color: AppColors.textPrimary,
                         ),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
@@ -357,17 +357,17 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                         width: 50,
                         height: 46,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: AppColors.border),
                           borderRadius: const BorderRadius.only(
                             topRight: Radius.circular(8),
                             bottomRight: Radius.circular(8),
                           ),
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                         ),
                         child: Icon(
                           Icons.add,
                           color: _paketAdedi < 9999
-                              ? Colors.black
+                              ? AppColors.textPrimary
                               : Colors.grey.shade300,
                           size: 24,
                         ),
@@ -397,7 +397,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -406,7 +406,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -434,7 +434,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                 ),
                 child: const Text(
                   'Tamam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
               const SizedBox(height: 50),

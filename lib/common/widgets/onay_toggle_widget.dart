@@ -42,7 +42,7 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
           },
           activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
           activeThumbColor: AppColors.gradientEnd,
-          inactiveTrackColor: Colors.white,
+          inactiveTrackColor: AppColors.textOnPrimary,
         ),
         const SizedBox(width: 5),
         Expanded(

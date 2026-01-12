@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// A time picker widget that displays selected time as text
 /// and opens a bottom sheet with spinner for time selection when tapped.
@@ -94,7 +95,7 @@ class _TimePickerBottomSheetWidgetState
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -111,7 +112,7 @@ class _TimePickerBottomSheetWidgetState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -167,9 +168,8 @@ class _TimePickerBottomSheetWidgetState
                             itemCount: _getAvailableMinutes(tempHour).length,
                             initialItem:
                                 _getAvailableMinutes(
-                                      tempHour,
-                                    ).indexOf(tempMinute) >=
-                                    0
+                                  tempHour,
+                                ).contains(tempMinute)
                                 ? _getAvailableMinutes(
                                     tempHour,
                                   ).indexOf(tempMinute)
@@ -194,9 +194,8 @@ class _TimePickerBottomSheetWidgetState
                             },
                             selectedIndex:
                                 _getAvailableMinutes(
-                                      tempHour,
-                                    ).indexOf(tempMinute) >=
-                                    0
+                                  tempHour,
+                                ).contains(tempMinute)
                                 ? _getAvailableMinutes(
                                     tempHour,
                                   ).indexOf(tempMinute)
@@ -220,7 +219,7 @@ class _TimePickerBottomSheetWidgetState
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -231,7 +230,7 @@ class _TimePickerBottomSheetWidgetState
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                         ),
                       ),
                     ),
@@ -299,10 +298,10 @@ class _TimePickerBottomSheetWidgetState
               widget.label!,
               style:
                   widget.labelStyle ??
-                  const TextStyle(
+                  TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
             ),
           ),
@@ -311,21 +310,25 @@ class _TimePickerBottomSheetWidgetState
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
+              color: AppColors.textOnPrimary,
+              border: Border.all(color: AppColors.border),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.access_time, size: 24, color: Colors.grey[600]),
+                Icon(
+                  Icons.access_time,
+                  size: 24,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   _formatTime(),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -390,8 +393,8 @@ class _ScrollAwareSpinnerState extends State<_ScrollAwareSpinner> {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 1),
-          bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+          top: BorderSide(color: AppColors.border, width: 1),
+          bottom: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
       child: ListWheelScrollView.useDelegate(
@@ -441,8 +444,8 @@ class _FadeSpinnerItem extends StatelessWidget {
 
     // Renk: Merkezde siyah, uzaklaştıkça koyu gri
     final color = Color.lerp(
-      Colors.black,
-      Colors.grey[600],
+      AppColors.textPrimary,
+      AppColors.textSecondary,
       normalizedDistance,
     )!;
 

@@ -33,12 +33,12 @@ class _SarfMalzemeUrunEkleScreenState
           alignment: Alignment.centerLeft,
           child: Text(
             'Ürün Ekle',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.w600),
           ),
         ),
-        backgroundColor: const Color(0xFF014B92),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
@@ -65,7 +65,7 @@ class _SarfMalzemeUrunEkleScreenState
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

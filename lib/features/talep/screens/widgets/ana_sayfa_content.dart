@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/talep/models/talep_turu.dart';
 import 'package:esas_v1/features/talep/screens/widgets/talep_turu_card.dart';
 
@@ -12,7 +13,7 @@ class AnaSayfaContent extends ConsumerWidget {
     final talepTurleri = TalepTuru.getAll();
 
     return Container(
-      color: const Color(0xFFEEF1F5),
+      color: AppColors.scaffoldBackground,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(

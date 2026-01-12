@@ -12,7 +12,7 @@ class PriceInputWidget extends StatelessWidget {
   final bool readOnly;
 
   const PriceInputWidget({
-    Key? key,
+    super.key,
     required this.title,
     required this.mainController,
     required this.decimalController,
@@ -20,7 +20,7 @@ class PriceInputWidget extends StatelessWidget {
     this.onDecimalChanged,
     this.inputsOffset = 0,
     this.readOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,14 +58,16 @@ class PriceInputWidget extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: '0',
                     filled: true,
-                    fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
+                    fillColor: readOnly
+                        ? Colors.grey.shade100
+                        : AppColors.textOnPrimary,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -110,14 +112,16 @@ class PriceInputWidget extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: '00',
                     filled: true,
-                    fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
+                    fillColor: readOnly
+                        ? Colors.grey.shade100
+                        : AppColors.textOnPrimary,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.border),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

@@ -55,7 +55,7 @@ class _DokumantasyonBaskiIstekScreenState
   bool _isKopyaElden = false;
 
   // File Upload
-  List<File> _selectedFiles = [];
+  final List<File> _selectedFiles = [];
   TextEditingController _dosyaIcerikController = TextEditingController();
 
   // Class Selection
@@ -70,7 +70,9 @@ class _DokumantasyonBaskiIstekScreenState
   List<String> _initialSeviyeList = [];
   List<String> _initialSinifList = [];
 
+  // ignore: unused_field - used to track loading state
   bool _classSheetLoading = false;
+  // ignore: unused_field - used to track error state
   String? _classSheetError;
   String _currentFilterPage = '';
   int _totalStudentCount = 0;
@@ -241,7 +243,7 @@ class _DokumantasyonBaskiIstekScreenState
                 bottom: 60,
               ),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -254,14 +256,14 @@ class _DokumantasyonBaskiIstekScreenState
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 24),
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -274,7 +276,10 @@ class _DokumantasyonBaskiIstekScreenState
                   Text(
                     duplicateNames.join(', '),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Container(
@@ -297,7 +302,7 @@ class _DokumantasyonBaskiIstekScreenState
                         child: const Text(
                           'Tamam',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -373,7 +378,7 @@ class _DokumantasyonBaskiIstekScreenState
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -449,7 +454,7 @@ class _DokumantasyonBaskiIstekScreenState
 
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -699,17 +704,17 @@ class _DokumantasyonBaskiIstekScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
           'Dokümantasyon Baskı İstek',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.textOnPrimary),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => context.pop(),
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
@@ -730,7 +735,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
-                  color: const Color(0xFF01396B),
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(height: 4),
@@ -766,7 +771,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
-                  color: const Color(0xFF01396B),
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -779,8 +784,8 @@ class _DokumantasyonBaskiIstekScreenState
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.textOnPrimary,
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -791,7 +796,7 @@ class _DokumantasyonBaskiIstekScreenState
                         style: TextStyle(
                           color: _selectedDokumanTuru == null
                               ? Colors.grey.shade600
-                              : Colors.black,
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                       ),
@@ -819,7 +824,7 @@ class _DokumantasyonBaskiIstekScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
-                                color: const Color(0xFF01396B),
+                                color: AppColors.primaryLight,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -846,7 +851,7 @@ class _DokumantasyonBaskiIstekScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
-                                color: const Color(0xFF01396B),
+                                color: AppColors.primaryLight,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -867,7 +872,7 @@ class _DokumantasyonBaskiIstekScreenState
                   'Toplam Sayfa: ${_baskiAdedi * _sayfaSayisi}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF01396B),
+                    color: AppColors.primaryLight,
                     fontSize:
                         (Theme.of(context).textTheme.bodyMedium?.fontSize ??
                             14) +
@@ -884,7 +889,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
-                  color: const Color(0xFF01396B),
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(height: 8),
@@ -897,8 +902,8 @@ class _DokumantasyonBaskiIstekScreenState
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.textOnPrimary,
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -907,7 +912,7 @@ class _DokumantasyonBaskiIstekScreenState
                       Text(
                         _baskiBoyutu,
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: AppColors.textPrimary,
                           fontSize: 16,
                         ),
                       ),
@@ -930,9 +935,11 @@ class _DokumantasyonBaskiIstekScreenState
                 children: [
                   Switch(
                     value: _isRenkliBaski,
-                    activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
+                    activeTrackColor: AppColors.gradientStart.withValues(
+                      alpha: 0.5,
+                    ),
                     activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (value) {
                       FocusScope.of(context).unfocus();
                       setState(() {
@@ -943,7 +950,10 @@ class _DokumantasyonBaskiIstekScreenState
                   const Expanded(
                     child: Text(
                       'Renkli Baskı',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.primaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -954,9 +964,11 @@ class _DokumantasyonBaskiIstekScreenState
                 children: [
                   Switch(
                     value: _isArkaliOnlu,
-                    activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
+                    activeTrackColor: AppColors.gradientStart.withValues(
+                      alpha: 0.5,
+                    ),
                     activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (value) {
                       FocusScope.of(context).unfocus();
                       setState(() {
@@ -967,7 +979,10 @@ class _DokumantasyonBaskiIstekScreenState
                   const Expanded(
                     child: Text(
                       'Arkalı Önlü Baskı',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.primaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -978,9 +993,11 @@ class _DokumantasyonBaskiIstekScreenState
                 children: [
                   Switch(
                     value: _isKopyaElden,
-                    activeTrackColor: AppColors.gradientStart.withOpacity(0.5),
+                    activeTrackColor: AppColors.gradientStart.withValues(
+                      alpha: 0.5,
+                    ),
                     activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (value) {
                       FocusScope.of(context).unfocus();
                       setState(() {
@@ -991,7 +1008,10 @@ class _DokumantasyonBaskiIstekScreenState
                   const Expanded(
                     child: Text(
                       'Çoğaltılacak kopya elden teslim edilecektir',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF01396B)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.primaryLight,
+                      ),
                     ),
                   ),
                 ],
@@ -1007,7 +1027,7 @@ class _DokumantasyonBaskiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
-                    color: const Color(0xFF01396B),
+                    color: AppColors.primaryLight,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1017,9 +1037,9 @@ class _DokumantasyonBaskiIstekScreenState
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       children: [
@@ -1032,7 +1052,7 @@ class _DokumantasyonBaskiIstekScreenState
                         Text(
                           'Dosya Seçmek İçin Dokunun',
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
                         ),
@@ -1081,7 +1101,7 @@ class _DokumantasyonBaskiIstekScreenState
                             IconButton(
                               icon: const Icon(
                                 Icons.close,
-                                color: Colors.red,
+                                color: AppColors.error,
                                 size: 20,
                               ),
                               onPressed: () => _removeFile(index),
@@ -1102,7 +1122,7 @@ class _DokumantasyonBaskiIstekScreenState
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
                         1,
-                    color: const Color(0xFF01396B),
+                    color: AppColors.primaryLight,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1113,25 +1133,25 @@ class _DokumantasyonBaskiIstekScreenState
                     hintText: 'Dosya içeriği hakkında bilgi veriniz',
                     contentPadding: const EdgeInsets.all(12),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: AppColors.textOnPrimary,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                         width: 0.5,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                         width: 0.5,
                       ),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                         width: 0.5,
                       ),
                     ),
@@ -1147,7 +1167,7 @@ class _DokumantasyonBaskiIstekScreenState
                   fontSize:
                       (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                       1,
-                  color: const Color(0xFF01396B),
+                  color: AppColors.primaryLight,
                 ),
               ),
               const SizedBox(height: 12),
@@ -1159,8 +1179,8 @@ class _DokumantasyonBaskiIstekScreenState
                     vertical: 14,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!),
+                    color: AppColors.textOnPrimary,
+                    border: Border.all(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -1170,7 +1190,7 @@ class _DokumantasyonBaskiIstekScreenState
                         child: Text(
                           'Yeni sınıf ekle',
                           style: TextStyle(
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
                           ),
@@ -1178,7 +1198,7 @@ class _DokumantasyonBaskiIstekScreenState
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                      Icon(Icons.chevron_right, color: AppColors.textSecondary),
                     ],
                   ),
                 ),
@@ -1220,7 +1240,7 @@ class _DokumantasyonBaskiIstekScreenState
                     child: const Text(
                       'Gönder',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1250,16 +1270,16 @@ class _DokumantasyonBaskiIstekScreenState
             width: 44, // Slightly smaller to fit 2 in row? Or just 50 as before
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppColors.border),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 bottomLeft: Radius.circular(8),
               ),
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
             child: Icon(
               Icons.remove,
-              color: value > 1 ? Colors.black : Colors.grey.shade300,
+              color: value > 1 ? AppColors.textPrimary : Colors.grey.shade300,
               size: 24,
             ),
           ),
@@ -1269,8 +1289,8 @@ class _DokumantasyonBaskiIstekScreenState
           child: Container(
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              color: Colors.white,
+              border: Border.all(color: AppColors.border),
+              color: AppColors.textOnPrimary,
             ),
             child: TextField(
               controller: controller,
@@ -1281,7 +1301,10 @@ class _DokumantasyonBaskiIstekScreenState
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(4),
               ],
-              style: const TextStyle(fontSize: 17, color: Colors.black),
+              style: const TextStyle(
+                fontSize: 17,
+                color: AppColors.textPrimary,
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.only(bottom: 9),
@@ -1308,16 +1331,18 @@ class _DokumantasyonBaskiIstekScreenState
             width: 44,
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppColors.border),
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
             child: Icon(
               Icons.add,
-              color: value < 9999 ? Colors.black : Colors.grey.shade300,
+              color: value < 9999
+                  ? AppColors.textPrimary
+                  : Colors.grey.shade300,
               size: 24,
             ),
           ),
@@ -1368,14 +1393,14 @@ class _DokumantasyonBaskiIstekScreenState
               _classSheetLoading = false;
               _classSheetError = message;
             });
+            if (!mounted) return;
             BrandedLoadingDialog.hide(context);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Veri yüklenemedi: $message')),
-              );
-            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Veri yüklenemedi: $message')),
+            );
             return;
           case Loading():
+            if (!mounted) return;
             BrandedLoadingDialog.hide(context);
             return;
         }
@@ -1402,6 +1427,7 @@ class _DokumantasyonBaskiIstekScreenState
         onUpdateCount: (c) => localStudentCount = c,
       );
 
+      if (!mounted) return;
       BrandedLoadingDialog.hide(context);
       _currentFilterPage = '';
 
@@ -1460,7 +1486,7 @@ class _DokumantasyonBaskiIstekScreenState
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: localStudentCount == 0
-                              ? const Color(0xFFD32F2F)
+                              ? AppColors.error
                               : AppColors.gradientStart,
                         ),
                       ),
@@ -1569,7 +1595,7 @@ class _DokumantasyonBaskiIstekScreenState
                               );
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF014B92),
+                              foregroundColor: AppColors.primary,
                             ),
                             child: const Text('Tüm filtreleri temizle'),
                           ),
@@ -1651,7 +1677,9 @@ class _DokumantasyonBaskiIstekScreenState
                                   _totalStudentCount = 0;
                                 });
 
-                                Navigator.pop(context);
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                }
                               }
                             } else {
                               // "TAMAM" pressed: Commit temp -> local
@@ -1691,7 +1719,7 @@ class _DokumantasyonBaskiIstekScreenState
                           },
 
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF014B92),
+                            backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1701,7 +1729,7 @@ class _DokumantasyonBaskiIstekScreenState
                             _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                             ),
                           ),
                         ),
@@ -1716,7 +1744,9 @@ class _DokumantasyonBaskiIstekScreenState
       );
     } catch (e) {
       debugPrint('Error in class sheet: $e');
-      BrandedLoadingDialog.hide(context);
+      if (mounted) {
+        BrandedLoadingDialog.hide(context);
+      }
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
 
@@ -1792,7 +1822,7 @@ class _DokumantasyonBaskiIstekScreenState
                       ),
                       decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Colors.grey.shade300),
+                          bottom: BorderSide(color: AppColors.border),
                         ),
                       ),
                       child: Row(
@@ -1803,7 +1833,7 @@ class _DokumantasyonBaskiIstekScreenState
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF01396B),
+                              color: AppColors.primaryLight,
                             ),
                           ),
                           TextButton(
@@ -1815,7 +1845,7 @@ class _DokumantasyonBaskiIstekScreenState
                             },
                             child: const Text(
                               'Tümünü Temizle',
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: AppColors.error),
                             ),
                           ),
                         ],
@@ -1860,7 +1890,7 @@ class _DokumantasyonBaskiIstekScreenState
                                   trailing: IconButton(
                                     icon: const Icon(
                                       Icons.delete_outline,
-                                      color: Color(0xFF424242),
+                                      color: AppColors.textPrimary,
                                     ),
                                     onPressed: () {
                                       setStartModalState(() {
@@ -1908,7 +1938,7 @@ class _DokumantasyonBaskiIstekScreenState
                             child: const Text(
                               'Tamam',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textOnPrimary,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -2040,9 +2070,7 @@ class _DokumantasyonBaskiIstekScreenState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -2055,7 +2083,7 @@ class _DokumantasyonBaskiIstekScreenState
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF01396B),
+                      color: AppColors.primaryLight,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -2075,7 +2103,7 @@ class _DokumantasyonBaskiIstekScreenState
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -2129,7 +2157,7 @@ class _DokumantasyonBaskiIstekScreenState
                   prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -2200,7 +2228,7 @@ class _DokumantasyonBaskiIstekScreenState
                       );
                     },
                     title: Text(item),
-                    activeColor: const Color(0xFF014B92),
+                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2286,7 +2314,7 @@ class _DokumantasyonBaskiIstekScreenState
                       );
                     },
                     title: Text(item),
-                    activeColor: const Color(0xFF014B92),
+                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2334,7 +2362,7 @@ class _DokumantasyonBaskiIstekScreenState
                   prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -2401,7 +2429,7 @@ class _DokumantasyonBaskiIstekScreenState
                       );
                     },
                     title: Text(item),
-                    activeColor: const Color(0xFF014B92),
+                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2423,17 +2451,13 @@ class _DokumantasyonBaskiIstekScreenState
         children: [
           TextButton(
             onPressed: onClear,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Temizle', style: TextStyle(fontSize: 16)),
           ),
           const SizedBox(width: 8),
           TextButton(
             onPressed: onSelectAll,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Tümü', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -2459,26 +2483,6 @@ class _DokumantasyonBaskiIstekScreenState
     return '${ids.length} sınıf seçildi';
   }
 
-  String _buildClassSelectionSummary() {
-    if (_totalStudentCount > 0) {
-      return '$_totalStudentCount öğrenci seçildi';
-    }
-
-    if (_selectedSinif.isNotEmpty) {
-      if (_selectedSinif.length <= 2) return _selectedSinif.join(', ');
-      return '${_selectedSinif.length} sınıf seçildi';
-    }
-    if (_selectedSeviye.isNotEmpty) {
-      if (_selectedSeviye.length <= 2) return _selectedSeviye.join(', ');
-      return '${_selectedSeviye.length} seviye seçildi';
-    }
-    if (_selectedOkulKodu.isNotEmpty) {
-      if (_selectedOkulKodu.length <= 2) return _selectedOkulKodu.join(', ');
-      return '${_selectedOkulKodu.length} okul seçildi';
-    }
-    return 'Sınıf Seçiniz';
-  }
-
   void _showStatusBottomSheet(String message, {bool isError = false}) async {
     if (!mounted) return;
 
@@ -2496,7 +2500,7 @@ class _DokumantasyonBaskiIstekScreenState
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -2505,7 +2509,7 @@ class _DokumantasyonBaskiIstekScreenState
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -2520,7 +2524,7 @@ class _DokumantasyonBaskiIstekScreenState
               Container(
                 decoration: BoxDecoration(
                   gradient: isError ? null : AppColors.primaryGradient,
-                  color: isError ? Colors.redAccent : null,
+                  color: isError ? AppColors.errorAccent : null,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: SizedBox(
@@ -2543,7 +2547,7 @@ class _DokumantasyonBaskiIstekScreenState
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),

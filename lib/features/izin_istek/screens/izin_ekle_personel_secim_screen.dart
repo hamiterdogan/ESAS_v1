@@ -15,11 +15,11 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
             'Personel Seçin',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
           elevation: 0,
           flexibleSpace: Container(
@@ -27,7 +27,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
               gradient: AppColors.primaryGradient,
             ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         ),
         body: Column(
           children: [
@@ -39,7 +39,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
                   hintText: 'Ad veya Soyadı yazınız...',
                   prefixIcon: const Icon(
                     Icons.search,
-                    color: Color(0xFF014B92),
+                    color: AppColors.primary,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -48,7 +48,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(
-                      color: Color(0xFF014B92),
+                      color: AppColors.primary,
                       width: 2,
                     ),
                   ),
@@ -70,7 +70,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF014B92),
+                        AppColors.primary,
                       ),
                     ),
                   ),
@@ -83,7 +83,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
                       const Icon(
                         Icons.error_outline,
                         size: 48,
-                        color: Colors.red,
+                        color: AppColors.error,
                       ),
                       const SizedBox(height: 16),
                       Text('Hata: $error'),
@@ -141,7 +141,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              border: Border(bottom: BorderSide(color: AppColors.textTertiary)),
             ),
             child: Row(
               children: [

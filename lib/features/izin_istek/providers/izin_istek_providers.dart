@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay.dart';
@@ -13,7 +13,7 @@ final izinIstekRepositoryProvider = Provider<IzinIstekRepository>((ref) {
   return IzinIstekRepositoryImpl(dio);
 });
 
-// İzin detayı provider
+// Izin detayi provider
 final izinDetayProvider = FutureProvider.autoDispose
     .family<IzinIstekDetay, int>((ref, id) async {
       final repo = ref.watch(izinIstekRepositoryProvider);
@@ -22,11 +22,11 @@ final izinDetayProvider = FutureProvider.autoDispose
       return switch (result) {
         Success(:final data) => data,
         Failure(:final message) => throw Exception(message),
-        Loading() => throw Exception('Yükleniyor'),
+        Loading() => throw Exception('Yukleniyor'),
       };
     });
 
-// Personel seçim ekranı için arama sorgusu - NotifierProvider ile
+// Personel secim ekrani icin arama sorgusu - NotifierProvider ile
 class PersonelSearchNotifier extends Notifier<String> {
   @override
   String build() => '';
@@ -41,11 +41,11 @@ final personelSecimSearchQueryProvider =
       () => PersonelSearchNotifier(),
     );
 
-// Tüm personelleri getir (bir kez yükle, cache'le)
+// Tum personelleri getir (bir kez yukle, cache'le)
 final allPersonelProvider = FutureProvider.autoDispose<List<Personel>>((
   ref,
 ) async {
-  // Cache'leme için keepAlive - ekran kapandığında hemen dispose etme
+  // Cache'leme icin keepAlive - ekran kapandiginda hemen dispose etme
   ref.keepAlive();
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getPersoneller('');
@@ -53,11 +53,11 @@ final allPersonelProvider = FutureProvider.autoDispose<List<Personel>>((
   return switch (result) {
     Success(:final data) => data,
     Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Yükleniyor'),
+    Loading() => throw Exception('Yukleniyor'),
   };
 });
 
-// Filtrelenmiş personel listesi (client-side filtering)
+// Filtrelenmis personel listesi (client-side filtering)
 final filteredPersonelProvider = Provider<AsyncValue<List<Personel>>>((ref) {
   final allPersonelAsync = ref.watch(allPersonelProvider);
   final searchQuery = ref.watch(personelSecimSearchQueryProvider);
@@ -78,11 +78,11 @@ final filteredPersonelProvider = Provider<AsyncValue<List<Personel>>>((ref) {
   });
 });
 
-// İzin nedenlerini getir (bir kez yükle, cache'le)
+// Izin nedenlerini getir (bir kez yukle, cache'le)
 final allIzinNedenlerProvider = FutureProvider.autoDispose<List<IzinNedeni>>((
   ref,
 ) async {
-  // Cache'leme için keepAlive
+  // Cache'leme icin keepAlive
   ref.keepAlive();
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getIzinNedenleri();
@@ -90,11 +90,11 @@ final allIzinNedenlerProvider = FutureProvider.autoDispose<List<IzinNedeni>>((
   return switch (result) {
     Success(:final data) => data,
     Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Yükleniyor'),
+    Loading() => throw Exception('Yukleniyor'),
   };
 });
 
-// Dini günleri getir (bir kez yükle, cache'le)
+// Dini gunleri getir (bir kez yukle, cache'le)
 final diniGunlerProvider = FutureProvider.autoDispose
     .family<List<DiniGun>, int>((ref, personelId) async {
       final repo = ref.watch(izinIstekRepositoryProvider);
@@ -103,6 +103,6 @@ final diniGunlerProvider = FutureProvider.autoDispose
       return switch (result) {
         Success(:final data) => data,
         Failure(:final message) => throw Exception(message),
-        Loading() => throw Exception('Yükleniyor'),
+        Loading() => throw Exception('Yukleniyor'),
       };
     });

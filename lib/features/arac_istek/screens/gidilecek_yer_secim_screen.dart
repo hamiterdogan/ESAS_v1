@@ -1,3 +1,4 @@
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
@@ -21,7 +22,7 @@ class _GidilecekYerSecimScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(title: const Text('Gidilecek Yer Seçimi')),
       body: const Center(
         child: Text(

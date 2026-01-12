@@ -149,7 +149,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                 bottom: 60,
               ),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -162,14 +162,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 24),
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -182,7 +182,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   Text(
                     duplicateNames.join(', '),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Container(
@@ -205,7 +208,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         child: const Text(
                           'Tamam',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -242,8 +245,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     if (_selectedFiles.isNotEmpty) return true;
     if (_fiyatTeklifIcerikController.text.isNotEmpty) return true;
     if (_genelToplamController.text.isNotEmpty &&
-        _genelToplamController.text != '0,00 TL')
+        _genelToplamController.text != '0,00 TL') {
       return true;
+    }
 
     return false;
   }
@@ -255,7 +259,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -264,7 +268,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -276,7 +280,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -308,7 +315,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -317,7 +324,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -376,7 +383,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     FocusScope.of(context).unfocus();
     showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -423,8 +430,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.error,
+                          foregroundColor: AppColors.textOnPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -498,7 +505,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _lockAndUnfocusInputs();
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -540,7 +547,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 padding: const EdgeInsets.all(16.0),
                                 child: Text(
                                   'Seçili okul bulunmamaktadır',
-                                  style: TextStyle(color: Colors.grey.shade600),
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ),
                               ),
                             )
@@ -586,7 +595,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.gradientStart,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.textOnPrimary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -618,7 +627,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _lockAndUnfocusInputs();
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -638,7 +647,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   child: Center(
                     child: Text(
                       'Bina listesi alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -755,7 +764,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                       child: Text(
                                         'Eşleşen okul bulunamadı',
                                         style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                          color: AppColors.textSecondary,
                                           fontSize: 14,
                                         ),
                                       ),
@@ -801,7 +810,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.gradientStart,
-                                    foregroundColor: Colors.white,
+                                    foregroundColor: AppColors.textOnPrimary,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -861,7 +870,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Container(
@@ -873,7 +882,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.textOnPrimary,
+                    ),
                     onPressed: () async {
                       if (_hasFormData()) {
                         final shouldPop = await _showExitConfirmationDialog();
@@ -896,7 +908,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
@@ -937,8 +949,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade300),
+                        color: AppColors.textOnPrimary,
+                        border: Border.all(color: AppColors.border),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -951,7 +963,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 style: TextStyle(
                                   color: _selectedBinaKodlari.isEmpty
                                       ? Colors.grey.shade600
-                                      : Colors.black,
+                                      : AppColors.textPrimary,
                                   fontSize: 16,
                                 ),
                                 overflow: TextOverflow.ellipsis,
@@ -972,7 +984,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                               ),
                               error: (err, stack) => Text(
                                 'Liste alınamadı',
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: AppColors.error),
                               ),
                             ),
                           ),
@@ -1030,14 +1042,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       hintText: 'Firma adını giriniz',
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1077,14 +1089,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       hintText: '+90 5__ ___ __ __',
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1120,14 +1132,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       hintText: 'http://',
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1212,10 +1224,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                       }
                                     });
                                   },
-                                  backgroundColor: Colors.blue,
+                                  backgroundColor: AppColors.primary,
                                   child: Container(
                                     decoration: const BoxDecoration(
-                                      color: Colors.blue,
+                                      color: AppColors.primary,
                                       borderRadius: BorderRadius.only(
                                         topLeft: Radius.circular(12),
                                         bottomLeft: Radius.circular(12),
@@ -1231,13 +1243,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                         Icon(
                                           Icons.edit,
                                           size: 36,
-                                          color: Colors.white,
+                                          color: AppColors.textOnPrimary,
                                         ),
                                         SizedBox(height: 6),
                                         Text(
                                           'Düzenle',
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.textOnPrimary,
                                             fontSize: 15,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1249,10 +1261,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 ),
                                 CustomSlidableAction(
                                   onPressed: (_) => _deleteUrun(index),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: AppColors.error,
                                   child: Container(
                                     decoration: const BoxDecoration(
-                                      color: Colors.red,
+                                      color: AppColors.error,
                                       borderRadius: BorderRadius.only(
                                         topRight: Radius.circular(12),
                                         bottomRight: Radius.circular(12),
@@ -1268,13 +1280,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                         Icon(
                                           Icons.delete,
                                           size: 36,
-                                          color: Colors.white,
+                                          color: AppColors.textOnPrimary,
                                         ),
                                         SizedBox(height: 6),
                                         Text(
                                           'Sil',
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.textOnPrimary,
                                             fontSize: 15,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -1308,10 +1320,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                           Theme.of(
                                             context,
                                           ).scaffoldBackgroundColor,
-                                          Colors.white,
+                                          AppColors.textOnPrimary,
                                           0.65,
                                         ) ??
-                                        Colors.white,
+                                        AppColors.textOnPrimary,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1483,7 +1495,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                     text: TextSpan(
                                                       style: const TextStyle(
                                                         fontSize: 16,
-                                                        color: Colors.black,
+                                                        color: AppColors
+                                                            .textPrimary,
                                                       ),
                                                       children: [
                                                         TextSpan(
@@ -1601,10 +1614,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                           vertical: 8,
                           horizontal: 16,
                         ),
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppColors.textOnPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: Colors.grey.shade300),
+                          side: BorderSide(color: AppColors.border),
                         ),
                         alignment: Alignment.centerLeft,
                       ),
@@ -1629,14 +1642,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     decoration: InputDecoration(
                       hintText: '0,00 TL',
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1673,8 +1686,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         children: [
                           Switch(
                             value: _vadeli,
-                            activeColor: AppColors.gradientStart,
-                            inactiveTrackColor: Colors.white,
+                            activeThumbColor: AppColors.gradientStart,
+                            inactiveTrackColor: AppColors.textOnPrimary,
                             onChanged: (v) {
                               FocusScope.of(context).unfocus();
                               setState(() {
@@ -1748,9 +1761,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Column(
                         children: [
@@ -1763,7 +1776,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                           Text(
                             'Dosya Seçmek İçin Dokunun',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: AppColors.textSecondary,
                               fontSize: 13,
                             ),
                           ),
@@ -1812,7 +1825,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                               IconButton(
                                 icon: const Icon(
                                   Icons.close,
-                                  color: Colors.red,
+                                  color: AppColors.error,
                                   size: 20,
                                 ),
                                 onPressed: () => _removeFile(index),
@@ -1843,7 +1856,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       contentPadding: const EdgeInsets.all(12),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       border: InputBorder.none,
@@ -1871,7 +1884,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         child: const Text(
                           'Gönder',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -2085,7 +2098,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           return Container(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
             child: Column(
@@ -2094,7 +2107,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                 Icon(
                   Icons.warning_amber_rounded,
                   size: 64,
-                  color: Colors.orange.shade700,
+                  color: AppColors.warning,
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -2119,7 +2132,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -2283,7 +2296,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -2292,7 +2305,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -2326,7 +2339,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),

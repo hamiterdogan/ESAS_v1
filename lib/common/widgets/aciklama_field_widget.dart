@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 class AciklamaFieldWidget extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -56,7 +57,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-            color: const Color(0xFF01396B),
+            color: AppColors.primaryLight,
           ),
         ),
         const SizedBox(height: 8),
@@ -65,33 +66,27 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           controller: widget.controller,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
+            hintStyle: TextStyle(color: AppColors.textTertiary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: isMinCharactersMet
-                    ? Colors.grey.shade300
-                    : const Color(0xFFB57070),
+                color: isMinCharactersMet ? AppColors.border : AppColors.error,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: isMinCharactersMet
-                    ? Colors.grey.shade300
-                    : const Color(0xFFB57070),
+                color: isMinCharactersMet ? AppColors.border : AppColors.error,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
-                color: isMinCharactersMet
-                    ? const Color(0xFF014B92)
-                    : const Color(0xFFB57070),
+                color: isMinCharactersMet ? AppColors.primary : AppColors.error,
               ),
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.textOnPrimary,
           ),
           minLines: widget.minLines,
           maxLines: widget.maxLines,
@@ -105,17 +100,15 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
               style: TextStyle(
                 fontSize: 14,
                 color: isMinCharactersMet
-                    ? Colors.grey
-                    : const Color(0xFFB57070),
+                    ? AppColors.textTertiary
+                    : AppColors.error,
               ),
             ),
             Text(
               'Minimum: ${widget.minCharacters}',
               style: TextStyle(
                 fontSize: 14,
-                color: isMinCharactersMet
-                    ? Colors.green
-                    : const Color(0xFFB57070),
+                color: isMinCharactersMet ? AppColors.success : AppColors.error,
                 fontWeight: FontWeight.w500,
               ),
             ),

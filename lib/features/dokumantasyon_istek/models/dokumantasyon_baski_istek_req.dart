@@ -1,5 +1,3 @@
-import 'dart:io';
-
 class DokumantasyonBaskiIstekReq {
   final DateTime teslimTarihi;
   final int baskiAdedi;
@@ -38,7 +36,8 @@ class DokumantasyonBaskiIstekReq {
     required this.okullarSatir,
     this.departman = '', // Default to empty based on sample
     this.paket = 0, // Default to 0 based on sample
-    this.a4Talebi = true, // Defaulting to true, or infer from kagitTalebi if needed
+    this.a4Talebi =
+        true, // Defaulting to true, or infer from kagitTalebi if needed
   });
 
   Map<String, dynamic> toJson() {

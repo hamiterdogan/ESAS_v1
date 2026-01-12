@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_istek_detay_model.dart';
@@ -20,7 +19,8 @@ class YiyecekIcecekDetayScreen extends ConsumerStatefulWidget {
       _YiyecekIcecekDetayScreenState();
 }
 
-class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScreen> {
+class _YiyecekIcecekDetayScreenState
+    extends ConsumerState<YiyecekIcecekDetayScreen> {
   bool _personelBilgileriExpanded = true;
   bool _yiyecekIcecekDetaylariExpanded = true;
   bool _ikramBilgileriExpanded = true;
@@ -33,7 +33,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
     final personelAsync = ref.watch(personelBilgiProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
@@ -41,7 +41,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           child: Text(
             'Yiyecek İçecek İstek Detayı (${widget.talepId})',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -50,7 +50,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.of(context).pop(),
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
@@ -106,12 +106,14 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
             ),
             const SizedBox(height: 16),
             _buildAccordion(
-              icon: Icons.restaurant_menu, // Appropriate icon for Food & Beverage
+              icon:
+                  Icons.restaurant_menu, // Appropriate icon for Food & Beverage
               title: 'Yiyecek İçecek İstek Detayları',
               isExpanded: _yiyecekIcecekDetaylariExpanded,
               onTap: () {
                 setState(() {
-                  _yiyecekIcecekDetaylariExpanded = !_yiyecekIcecekDetaylariExpanded;
+                  _yiyecekIcecekDetaylariExpanded =
+                      !_yiyecekIcecekDetaylariExpanded;
                 });
               },
               child: Column(
@@ -138,7 +140,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
         height: 175,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.05),
+          color: AppColors.textOnPrimary.withValues(alpha: 0.05),
         ),
         alignment: Alignment.center,
         child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
@@ -153,12 +155,12 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 80, color: Colors.red[400]),
+            Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
               'Detay yüklenemedi\n$error',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red[600]),
+              style: TextStyle(color: AppColors.error),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -167,7 +169,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
               ),
               child: const Text('Tekrar Dene'),
             ),
@@ -185,7 +187,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
     if (detay.etkinlikAdiDiger != null && detay.etkinlikAdiDiger!.isNotEmpty) {
       items.add(MapEntry('Etkinlik Adı (Diğer)', detay.etkinlikAdiDiger!));
     }
-    
+
     // Format Date
     String tarihStr = detay.etkinlikTarihi;
     try {
@@ -195,7 +197,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
       }
     } catch (_) {}
     items.add(MapEntry('Etkinlik Tarihi', tarihStr));
-    
+
     items.add(MapEntry('Dönem', detay.donem));
     items.add(MapEntry('İkram Yeri', detay.ikramYeri));
     items.add(MapEntry('Alınan Yer', detay.alinanYer));
@@ -204,7 +206,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
       final isLast = i == items.length - 1;
-      
+
       // Assumption: Description might be long
       final multiLine = item.key == 'Açıklama' || item.key == 'İkram Yeri';
 
@@ -236,7 +238,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Text(
             'İkram bilgisi bulunamadı',
-            style: TextStyle(fontSize: 14, color: Color(0xFF718096)),
+            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ),
       );
@@ -278,65 +280,87 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           // Format Time
           String timeRange = '${ikram.baslangicSaati} - ${ikram.bitisSaati}';
           try {
-             // Basic formatting if needed, assuming HH:mm:ss from API
-             final start = ikram.baslangicSaati.substring(0, 5);
-             final end = ikram.bitisSaati.substring(0, 5);
-             timeRange = '$start - $end';
-          } catch(_){}
-
+            // Basic formatting if needed, assuming HH:mm:ss from API
+            final start = ikram.baslangicSaati.substring(0, 5);
+            final end = ikram.bitisSaati.substring(0, 5);
+            timeRange = '$start - $end';
+          } catch (_) {}
 
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.textTertiary,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: AppColors.border),
               ),
               padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Saat Aralığı Badge
-                   Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                     decoration: BoxDecoration(
-                       color: AppColors.gradientStart.withValues(alpha: 0.1),
-                       borderRadius: BorderRadius.circular(6),
-                     ),
-                     child: Row(
-                       mainAxisSize: MainAxisSize.min,
-                       children: [
-                         const Icon(Icons.access_time, size: 14, color: AppColors.gradientStart),
-                         const SizedBox(width: 4),
-                         Text(
-                           timeRange,
-                           style: const TextStyle(
-                             color: AppColors.gradientStart,
-                             fontWeight: FontWeight.bold,
-                             fontSize: 12,
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
-                   const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gradientStart.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: AppColors.gradientStart,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          timeRange,
+                          style: const TextStyle(
+                            color: AppColors.gradientStart,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
 
-                   // İkramlar
-                   _buildInnerRow('İkramlar', treatStr),
-                   
-                   const SizedBox(height: 8),
-                   const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                   const SizedBox(height: 8),
+                  // İkramlar
+                  _buildInnerRow('İkramlar', treatStr),
 
-                   // Katılımcı Sayıları (Grid like structure)
-                   Row(
-                     children: [
-                       Expanded(child: _buildCountColumn('Kurum İçi', ikram.kiKatilimci)),
-                       Expanded(child: _buildCountColumn('Kurum Dışı', ikram.kdKatilimci)),
-                       Expanded(child: _buildCountColumn('Toplam', ikram.toplamKatilimci, isTotal: true)),
-                     ],
-                   ),
+                  const SizedBox(height: 8),
+                  const Divider(height: 1, color: AppColors.border),
+                  const SizedBox(height: 8),
+
+                  // Katılımcı Sayıları (Grid like structure)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCountColumn(
+                          'Kurum İçi',
+                          ikram.kiKatilimci,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildCountColumn(
+                          'Kurum Dışı',
+                          ikram.kdKatilimci,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildCountColumn(
+                          'Toplam',
+                          ikram.toplamKatilimci,
+                          isTotal: true,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -347,27 +371,24 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
   }
 
   Widget _buildInnerRow(String label, String value) {
-     return Column(
-       crossAxisAlignment: CrossAxisAlignment.start,
-       children: [
-         Text(
-           label,
-           style: const TextStyle(
-             fontSize: 13,
-             fontWeight: FontWeight.bold,
-             color: Color(0xFF4A5568),
-           ),
-         ),
-         const SizedBox(height: 2),
-         Text(
-           value.isEmpty ? '-' : value,
-           style: const TextStyle(
-            fontSize: 14,
-            color: Color(0xFF2D3748),
-           ),
-         ),
-       ],
-     );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value.isEmpty ? '-' : value,
+          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+        ),
+      ],
+    );
   }
 
   Widget _buildCountColumn(String label, int count, {bool isTotal = false}) {
@@ -377,7 +398,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isTotal ? AppColors.gradientStart : const Color(0xFF718096),
+            color: isTotal ? AppColors.gradientStart : AppColors.textTertiary,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -387,13 +408,12 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: isTotal ? AppColors.gradientStart : const Color(0xFF2D3748),
+            color: isTotal ? AppColors.gradientStart : AppColors.textPrimary,
           ),
         ),
       ],
     );
   }
-
 
   Widget _buildAccordion({
     required IconData icon,
@@ -404,11 +424,11 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.cardShadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -417,22 +437,22 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
       child: Column(
         children: [
           ListTile(
-            leading: Icon(icon, color: const Color(0xFF014B92)),
+            leading: Icon(icon, color: AppColors.primary),
             title: Text(
               title,
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
             trailing: Icon(
               isExpanded ? Icons.expand_less : Icons.expand_more,
-              color: const Color(0xFF718096),
+              color: AppColors.textTertiary,
             ),
             onTap: onTap,
           ),
-          if (isExpanded) const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          if (isExpanded) const Divider(height: 1, color: AppColors.border),
           if (isExpanded)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -460,7 +480,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF4A5568),
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -469,7 +489,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
-                color: Color(0xFF2D3748),
+                color: AppColors.textPrimary,
               ),
             ),
           ] else ...[
@@ -481,7 +501,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A5568),
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 Expanded(
@@ -490,7 +510,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,
-                      color: Color(0xFF2D3748),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -499,7 +519,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           ],
           if (!isLast) ...[
             const SizedBox(height: 10),
-            Container(height: 1, color: const Color(0xFFE2E8F0)),
+            Container(height: 1, color: AppColors.border),
           ],
         ],
       ),
@@ -556,7 +576,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           padding: const EdgeInsets.all(16),
           child: Text(
             'Onay süreci yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -567,117 +587,136 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
   // Since we don't inherit from a common base or have a shared widget for this content yet (it's inside SatinAlma screen private methods),
   // we must duplicate the rendering logic for OnaySureci content here or move it to a shared widget.
   // For safety and speed matching the "exact same" request, I will duplicate the layout logic found in shared patterns.
-  
+
   List<Widget> _buildOnaySureciContent(OnayDurumuResponse onayDurumu) {
     if (onayDurumu.onayVerecekler.isEmpty) {
-        return [const Text('Onay süreci bulunmamaktadır.')];
+      return [const Text('Onay süreci bulunmamaktadır.')];
     }
-    
+
     return onayDurumu.onayVerecekler.asMap().entries.map((entry) {
-        final index = entry.key;
-        final p = entry.value;
-        final isLast = index == onayDurumu.onayVerecekler.length - 1;
-        
-        return Column(
+      final index = entry.key;
+      final p = entry.value;
+      final isLast = index == onayDurumu.onayVerecekler.length - 1;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        // Timeline Line
-                        Column(
-                            children: [
-                                Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                        color: _getOnayColor(p.onayDurumu).withValues(alpha: 0.1),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(color: _getOnayColor(p.onayDurumu), width: 2),
-                                    ),
-                                    child: Center(
-                                        child: Text(
-                                            '${index + 1}',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: _getOnayColor(p.onayDurumu),
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                                if (!isLast)
-                                    Container(
-                                        width: 2,
-                                        height: 60, // approximate height
-                                        color: Colors.grey[300],
-                                    ),
-                            ],
+              // Timeline Line
+              Column(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: _getOnayColor(p.onayDurumu).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _getOnayColor(p.onayDurumu),
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _getOnayColor(p.onayDurumu),
                         ),
-                        const SizedBox(width: 12),
-                        // Content
-                        Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                    Text(
-                                        p.personelAdi,
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
-                                    Text(
-                                        '${p.gorevYeri} - ${p.gorevi}',
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                            color: _getOnayColor(p.onayDurumu).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                            p.onayDurumu,
-                                            style: TextStyle(
-                                                color: _getOnayColor(p.onayDurumu),
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                            ),
-                                        ),
-                                    ),
-                                    if (p.islemTarihi != null)
-                                        Padding(
-                                            padding: const EdgeInsets.only(top: 4),
-                                            child: Text(
-                                                DateFormat('dd.MM.yyyy HH:mm').format(p.islemTarihi!),
-                                                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                                            ),
-                                        ),
-                                     if (p.aciklama != null && p.aciklama!.isNotEmpty)
-                                        Padding(
-                                            padding: const EdgeInsets.only(top: 4),
-                                            child: Text(
-                                                'Açıklama: ${p.aciklama}',
-                                                style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black87),
-                                            ),
-                                        ),
-                                    const SizedBox(height: 16),
-                                ],
-                            ),
+                      ),
+                    ),
+                  ),
+                  if (!isLast)
+                    Container(
+                      width: 2,
+                      height: 60, // approximate height
+                      color: AppColors.textTertiary,
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      p.personelAdi,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      '${p.gorevYeri} - ${p.gorevi}',
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getOnayColor(
+                          p.onayDurumu,
+                        ).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        p.onayDurumu,
+                        style: TextStyle(
+                          color: _getOnayColor(p.onayDurumu),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
-                    ],
+                      ),
+                    ),
+                    if (p.islemTarihi != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          DateFormat('dd.MM.yyyy HH:mm').format(p.islemTarihi!),
+                          style: TextStyle(
+                            color: AppColors.textTertiary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    if (p.aciklama != null && p.aciklama!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          'Açıklama: ${p.aciklama}',
+                          style: const TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
+              ),
             ],
-        );
+          ),
+        ],
+      );
     }).toList();
   }
 
   Color _getOnayColor(String durum) {
-    if (durum.toLowerCase().contains('onaylandı')) return Colors.green;
-    if (durum.toLowerCase().contains('red')) return Colors.red;
-    if (durum.toLowerCase().contains('bekliyor')) return Colors.orange;
+    if (durum.toLowerCase().contains('onaylandı')) return AppColors.success;
+    if (durum.toLowerCase().contains('red')) return AppColors.error;
+    if (durum.toLowerCase().contains('bekliyor')) return AppColors.warning;
     return Colors.grey;
   }
-
 
   Widget _buildBildirimGideceklerAccordion() {
     const onayTipi = 'Yiyecek İçecek İstek';
@@ -698,7 +737,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
         child: onayDurumu.bildirimGidecekler.isEmpty
             ? const Text(
                 'Bildirim gidecek personel bulunmamaktadır.',
-                style: TextStyle(color: Colors.black87),
+                style: TextStyle(color: AppColors.textPrimary),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -747,7 +786,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           padding: const EdgeInsets.all(16),
           child: Text(
             'Bildirim gidecekler yüklenemedi',
-            style: TextStyle(color: Colors.red[600]),
+            style: TextStyle(color: AppColors.error),
           ),
         ),
       ),
@@ -769,13 +808,10 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.blue[100],
+                color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.person_outline,
-                color: Colors.blue[700],
-              ),
+              child: Icon(Icons.person_outline, color: AppColors.primary),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -792,7 +828,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
                   Text(
                     '$gorevYeri - $gorevi',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppColors.textTertiary,
                       fontSize: 14,
                     ),
                   ),
@@ -806,7 +842,7 @@ class _YiyecekIcecekDetayScreenState extends ConsumerState<YiyecekIcecekDetayScr
           const Divider(height: 1),
           const SizedBox(height: 12),
         ] else
-           const SizedBox(height: 4),
+          const SizedBox(height: 4),
       ],
     );
   }

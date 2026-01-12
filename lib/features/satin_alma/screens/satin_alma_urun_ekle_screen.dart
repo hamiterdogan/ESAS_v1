@@ -31,14 +31,14 @@ class _SatinAlmaUrunEkleScreenState
                 ? 'Ürün / Hizmet Ekle'
                 : 'Ürün / Hizmet Düzenle',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        backgroundColor: const Color(0xFF014B92),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
@@ -64,7 +64,7 @@ class _SatinAlmaUrunEkleScreenState
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -55,7 +55,7 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
     return Column(
       children: [
         Container(
-          color: Colors.white,
+          color: AppColors.textOnPrimary,
           child: TabBar(
             controller: _tabController,
             indicatorColor: AppColors.gradientStart,
@@ -238,7 +238,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AppColors.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -260,7 +260,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       : FontWeight.normal,
                   color: !_yenidenEskiye
                       ? AppColors.gradientStart
-                      : Colors.black87,
+                      : AppColors.textPrimary87,
                 ),
               ),
               trailing: !_yenidenEskiye
@@ -281,7 +281,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       : FontWeight.normal,
                   color: _yenidenEskiye
                       ? AppColors.gradientStart
-                      : Colors.black87,
+                      : AppColors.textPrimary87,
                 ),
               ),
               trailing: _yenidenEskiye
@@ -324,7 +324,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: AppColors.textTertiary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -411,7 +411,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF014B92),
+                        backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -419,7 +419,10 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       ),
                       child: const Text(
                         'Uygula',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textOnPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -458,7 +461,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppColors.textOnPrimary,
                           ),
                         ),
                       ),
@@ -526,9 +529,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -541,7 +542,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   if (selectedValue != 'Tümü') ...[
@@ -615,7 +616,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       : FontWeight.normal,
                   color: _selectedTalepTurleri.contains(tur)
                       ? AppColors.gradientStart
-                      : Colors.black87,
+                      : AppColors.textPrimary87,
                 ),
               ),
               value: _selectedTalepTurleri.contains(tur),
@@ -623,7 +624,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
               checkboxShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              side: BorderSide(color: Colors.grey[800]!, width: 1.5),
+              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
               onChanged: (bool? value) {
                 setModalState(() {
                   if (value == true) {
@@ -656,7 +657,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         : FontWeight.normal,
                     color: secenek == _selectedSure
                         ? AppColors.gradientStart
-                        : Colors.black87,
+                        : AppColors.textPrimary87,
                   ),
                 ),
                 trailing: secenek == _selectedSure
@@ -707,7 +708,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       : FontWeight.normal,
                   color: _selectedTalepDurumlari.contains(secenek)
                       ? AppColors.gradientStart
-                      : Colors.black87,
+                      : AppColors.textPrimary87,
                 ),
               ),
               value: _selectedTalepDurumlari.contains(secenek),
@@ -715,7 +716,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
               checkboxShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4),
               ),
-              side: BorderSide(color: Colors.grey[800]!, width: 1.5),
+              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
               onChanged: (bool? value) {
                 setModalState(() {
                   if (value == true) {
@@ -760,7 +761,11 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off, size: 64, color: Colors.grey[400]),
+                    Icon(
+                      Icons.cloud_off,
+                      size: 64,
+                      color: AppColors.textTertiary,
+                    ),
                     const SizedBox(height: 24),
                     Text(
                       _getHataBasligi(error.toString()),
@@ -768,14 +773,17 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       _getHataMesaji(error.toString()),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textTertiary,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
@@ -790,7 +798,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       label: const Text('Tekrar Dene'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.gradientStart,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.textOnPrimary,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 12,
@@ -869,14 +877,14 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         Icon(
                           Icons.filter_list_off,
                           size: 64,
-                          color: Colors.grey[400],
+                          color: AppColors.textTertiary,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Filtre kriterlerine uygun talep yok',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                       ],

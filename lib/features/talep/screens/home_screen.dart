@@ -48,13 +48,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text(appBarTitle, style: const TextStyle(color: Colors.white)),
+        title: Text(appBarTitle, style: const TextStyle(color: AppColors.textOnPrimary)),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         actions: _currentIndex != 0
             ? [
                 CommonAppBarActionButton(
@@ -94,7 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
+                color: AppColors.textPrimary.withValues(alpha: 0.15),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -156,8 +156,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   isSelected ? activeIcon : icon,
                   size: 33,
                   color: isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.6),
+                      ? AppColors.textOnPrimary
+                      : AppColors.textOnPrimary.withValues(alpha: 0.6),
                 ),
                 const SizedBox(height: 2),
                 Flexible(
@@ -168,8 +168,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: isSelected
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.6),
+                          ? AppColors.textOnPrimary
+                          : AppColors.textOnPrimary.withValues(alpha: 0.6),
                       fontSize: 12,
                       fontWeight: isSelected
                           ? FontWeight.bold

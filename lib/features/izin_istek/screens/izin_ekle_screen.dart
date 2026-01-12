@@ -1,3 +1,4 @@
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -322,18 +323,18 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text(
             '�zin istek',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
-          backgroundColor: const Color(0xFF014B92),
+          backgroundColor: AppColors.primary,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
             onPressed: () => Navigator.pop(context),
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
@@ -367,13 +368,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       ),
                       Switch(
                         value: formState.isBaskasiAdinaBakinlari,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                         onChanged: (_) {
                           ref
                               .read(izinEkleFormProvider.notifier)
                               .toggleBaskasiAdinaBakinlari();
                         },
-                        activeThumbColor: const Color(0xFF014B92),
+                        activeThumbColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -419,11 +420,11 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
   static Widget _buildCard({required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.textOnPrimary,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.cardShadow,
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -462,7 +463,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+            border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -475,15 +476,15 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     color: formState.secilenPersonel != null
-                        ? Colors.black
-                        : Colors.grey[700],
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
                     fontWeight: formState.secilenPersonel != null
                         ? FontWeight.w600
                         : FontWeight.normal,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Color(0xFF014B92)),
+              const Icon(Icons.chevron_right, color: AppColors.primary),
             ],
           ),
         ),
@@ -520,7 +521,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+            border: Border(bottom: BorderSide(color: AppColors.border)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -533,15 +534,15 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     color: formState.secilenNedeni != null
-                        ? Colors.black
-                        : Colors.grey[700],
+                        ? AppColors.textPrimary
+                        : AppColors.textTertiary,
                     fontWeight: formState.secilenNedeni != null
                         ? FontWeight.w600
                         : FontWeight.normal,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Color(0xFF014B92)),
+              const Icon(Icons.chevron_right, color: AppColors.primary),
             ],
           ),
         ),
@@ -577,7 +578,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF666666),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -592,21 +593,21 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -657,7 +658,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               vertical: 19.5,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -672,13 +673,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   style: TextStyle(
                                     fontSize: 15,
                                     color: formState.tahminiBirthDate != null
-                                        ? Colors.black
-                                        : Colors.grey[700],
+                                        ? AppColors.textPrimary
+                                        : AppColors.textTertiary,
                                   ),
                                 ),
                                 const Icon(
                                   Icons.calendar_today,
-                                  color: Color(0xFF014B92),
+                                  color: AppColors.primary,
                                   size: 20,
                                 ),
                               ],
@@ -740,7 +741,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               vertical: 15.5,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Row(
@@ -748,7 +749,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                 const Icon(
                                   Icons.calendar_today,
                                   size: 18,
-                                  color: Color(0xFF014B92),
+                                  color: AppColors.primary,
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -761,8 +762,8 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: formState.evlilikTarihi != null
-                                          ? Colors.black
-                                          : Colors.grey[700],
+                                          ? AppColors.textPrimary
+                                          : AppColors.textTertiary,
                                     ),
                                   ),
                                 ),
@@ -792,7 +793,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   labelStyle: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF666666),
+                    color: AppColors.textSecondary,
                   ),
                   hintText: 'E� ad�n� giriniz',
                   border: OutlineInputBorder(
@@ -800,12 +801,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: const BorderSide(
-                      color: Color(0xFF014B92),
+                      color: AppColors.primary,
                       width: 2,
                     ),
                   ),
@@ -826,7 +827,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF666666),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -841,21 +842,21 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -885,11 +886,11 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.doktorRaporuVar,
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (_) => ref
                         .read(izinEkleFormProvider.notifier)
                         .toggleDoktorRaporuVar(),
-                    activeThumbColor: const Color(0xFF014B92),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               ),
@@ -908,7 +909,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.hastalikDurumu == 'acil',
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (_) {
                       ref
                           .read(izinEkleFormProvider.notifier)
@@ -916,7 +917,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             formState.hastalikDurumu == 'acil' ? null : 'acil',
                           );
                     },
-                    activeThumbColor: const Color(0xFF014B92),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               ),
@@ -935,7 +936,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -950,21 +951,21 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -987,7 +988,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1000,7 +1001,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF666666),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1015,7 +1016,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   'Saat',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF666666),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -1058,7 +1059,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   'Dakika',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF666666),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -1092,7 +1093,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFF666666),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1107,7 +1108,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   'Saat',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF666666),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -1150,7 +1151,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                   'Dakika',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF666666),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -1197,18 +1198,19 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: formState.baslangicSaati,
+                    initialValue: formState.baslangicSaati,
                     items: _saatDropdownItems(),
                     onChanged: (value) {
-                      if (value != null)
+                      if (value != null) {
                         ref
                             .read(izinEkleFormProvider.notifier)
                             .setBaslangicSaati(value);
+                      }
                     },
                     decoration: InputDecoration(
                       hintText: 'Saati se?iniz',
@@ -1217,7 +1219,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                     ),
                   ),
@@ -1238,13 +1240,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   ),
                   Switch(
                     value: formState.gunlukIzinToggle,
-                    inactiveTrackColor: Colors.white,
+                    inactiveTrackColor: AppColors.textOnPrimary,
                     onChanged: (_) {
                       ref
                           .read(izinEkleFormProvider.notifier)
                           .toggleGunlukIzin();
                     },
-                    activeThumbColor: const Color(0xFF014B92),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               ),
@@ -1263,18 +1265,19 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: formState.bitisSaati,
+                    initialValue: formState.bitisSaati,
                     items: _saatDropdownItems(),
                     onChanged: (value) {
-                      if (value != null)
+                      if (value != null) {
                         ref
                             .read(izinEkleFormProvider.notifier)
                             .setBitisSaati(value);
+                      }
                     },
                     decoration: InputDecoration(
                       hintText: 'Saati se�iniz',
@@ -1283,7 +1286,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                     ),
                   ),
@@ -1304,7 +1307,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1319,21 +1322,21 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -1364,7 +1367,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1379,21 +1382,21 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: BorderSide(
-                          color: Colors.grey[300]!,
+                          color: AppColors.border,
                           width: 1,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
                         borderSide: const BorderSide(
-                          color: Color(0xFF014B92),
+                          color: AppColors.primary,
                           width: 2,
                         ),
                       ),
@@ -1448,7 +1451,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               vertical: 13,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -1503,7 +1506,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               vertical: 13,
                             ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -1537,13 +1540,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF666666),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
@@ -1558,14 +1561,14 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                                       formState.girilmeyenDersSaati - 1,
                                     )
                               : null,
-                          color: const Color(0xFF014B92),
+                          color: AppColors.primary,
                         ),
                         Text(
                           '${formState.girilmeyenDersSaati}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF014B92),
+                            color: AppColors.primary,
                           ),
                         ),
                         IconButton(
@@ -1575,7 +1578,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               .setGirilmeyenDersSaati(
                                 formState.girilmeyenDersSaati + 1,
                               ),
-                          color: const Color(0xFF014B92),
+                          color: AppColors.primary,
                         ),
                       ],
                     ),
@@ -1587,12 +1590,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[500]!, width: 1),
+              border: Border.all(color: AppColors.textTertiary, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.cardShadow,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -1609,7 +1612,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF666666),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1617,12 +1620,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     'Dini g�n izni talep etti�iniz tarihlerde, dersin yap�lmad���n� ve yap�laca�� saatlerin girilemedi�ini belirtmeniz gerekir. Ayn� zamanda bu i�leme ili�kin m�d�rl���m�ze ba�vuru yapman�z zorunludur.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF666666),
+                      color: AppColors.textSecondary,
                       height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Divider(color: Colors.grey[300], height: 1),
+                  Divider(color: AppColors.textTertiary, height: 1),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1633,17 +1636,17 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF333333),
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
                       Switch(
                         value: formState.diniGunOnay,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                         onChanged: (_) => ref
                             .read(izinEkleFormProvider.notifier)
                             .toggleDiniGunOnay(),
-                        activeThumbColor: const Color(0xFF014B92),
+                        activeThumbColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -1670,7 +1673,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF333333),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1684,22 +1687,16 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     hintText: 'A��klama',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+                      borderSide: BorderSide(color: AppColors.border, width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+                      borderSide: BorderSide(color: AppColors.border, width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                       borderSide: const BorderSide(
-                        color: Color(0xFF014B92),
+                        color: AppColors.primary,
                         width: 2,
                       ),
                     ),
@@ -1722,7 +1719,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF333333),
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1736,22 +1733,16 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     hintText: 'Adres giriniz',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+                      borderSide: BorderSide(color: AppColors.border, width: 1),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
-                      borderSide: BorderSide(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
+                      borderSide: BorderSide(color: AppColors.border, width: 1),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(4),
                       borderSide: const BorderSide(
-                        color: Color(0xFF014B92),
+                        color: AppColors.primary,
                         width: 2,
                       ),
                     ),
@@ -1768,7 +1759,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
   static List<DropdownMenuItem<String>> _saatDropdownItems() {
     final saatler = <String>[];
     for (int i = 8; i <= 18; i++) {
-      saatler.add('${i.toString().padLeft(2, '0')}');
+      saatler.add(i.toString().padLeft(2, '0'));
     }
     return saatler
         .map((saat) => DropdownMenuItem(value: saat, child: Text(saat)))
@@ -1811,7 +1802,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             vertical: 15.5,
                           ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Row(
@@ -1819,7 +1810,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               const Icon(
                                 Icons.calendar_today,
                                 size: 18,
-                                color: Color(0xFF014B92),
+                                color: AppColors.primary,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -1854,7 +1845,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                             vertical: 15.5,
                           ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Row(
@@ -1862,7 +1853,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                               const Icon(
                                 Icons.calendar_today,
                                 size: 18,
-                                color: Color(0xFF014B92),
+                                color: AppColors.primary,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -1886,12 +1877,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
                 '?? Ba�lang�� Tarihi se�ildi�inde biti� tarihi otomatik olarak ayn� g�n olarak ayarlan�r. 1 g�nl�k izin i�in tekrar biti� tarihi girmenize gerek yoktur.',
-                style: TextStyle(fontSize: 11, color: Color(0xFF1976D2)),
+                style: TextStyle(fontSize: 11, color: AppColors.info),
               ),
             ),
           ],
@@ -1925,14 +1916,14 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           diniGunAciklamaFocusNode,
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF014B92),
+          backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           elevation: 0,
         ),
         child: const Text(
           'Gönder',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -2068,13 +2059,13 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
 
       // Provider'ları yenile
-      ref.refresh(devamEdenIsteklerimProvider);
-      ref.refresh(tamamlananIsteklerimProvider);
+      ref.invalidate(devamEdenIsteklerimProvider);
+      ref.invalidate(tamamlananIsteklerimProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('İzin isteği başarıyla oluşturuldu'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.pop(context);
@@ -2099,13 +2090,13 @@ class CustomTimePickerSpinner extends ConsumerStatefulWidget {
   final List<String> disabledItems;
 
   const CustomTimePickerSpinner({
-    Key? key,
+    super.key,
     required this.initialValue,
     required this.items,
     required this.onChanged,
     this.label,
     this.disabledItems = const [],
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<CustomTimePickerSpinner> createState() =>
@@ -2143,9 +2134,9 @@ class _CustomTimePickerSpinnerState
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(8),
-          color: Colors.grey[50],
+          color: AppColors.textTertiary,
         ),
         child: Stack(
           children: [
@@ -2155,10 +2146,10 @@ class _CustomTimePickerSpinnerState
                 height: 32,
                 decoration: BoxDecoration(
                   border: Border(
-                    top: BorderSide(color: Colors.grey[300]!, width: 1),
-                    bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                    top: BorderSide(color: AppColors.border, width: 1),
+                    bottom: BorderSide(color: AppColors.border, width: 1),
                   ),
-                  color: Color(0xFF014B92).withValues(alpha: 0.05),
+                  color: AppColors.primary.withValues(alpha: 0.05),
                 ),
               ),
             ),
@@ -2192,10 +2183,10 @@ class _CustomTimePickerSpinnerState
                           ? FontWeight.bold
                           : FontWeight.normal,
                       color: isDisabled
-                          ? Colors.grey[300]
+                          ? AppColors.textTertiary
                           : isSelected
-                          ? const Color(0xFF014B92)
-                          : Colors.grey[600],
+                          ? AppColors.primary
+                          : AppColors.textTertiary,
                     ),
                   ),
                 );

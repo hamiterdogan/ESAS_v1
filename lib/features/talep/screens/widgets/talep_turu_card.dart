@@ -19,11 +19,11 @@ class TalepTuruCard extends ConsumerWidget {
       child: Card(
         color: Color.lerp(
           Theme.of(context).scaffoldBackgroundColor,
-          Colors.white,
+          AppColors.textOnPrimary,
           0.65,
-        ) ?? Colors.white,
+        ) ?? AppColors.textOnPrimary,
         elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.15),
+        shadowColor: AppColors.textPrimary.withValues(alpha: 0.15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
@@ -47,14 +47,14 @@ class TalepTuruCard extends ConsumerWidget {
                     gradient: AppColors.primaryGradient,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: AppColors.textPrimary.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Center(
-                    child: Icon(talep.icon, size: 52, color: Colors.white),
+                    child: Icon(talep.icon, size: 52, color: AppColors.textOnPrimary),
                   ),
                 ),
               ),
@@ -74,7 +74,7 @@ class TalepTuruCard extends ConsumerWidget {
       textAlign: TextAlign.center,
       softWrap: true,
       style: const TextStyle(
-        color: Color(0xFF2D3748),
+        color: AppColors.textPrimary,
         fontSize: 15,
         fontWeight: FontWeight.w600,
         height: 1.3,

@@ -46,28 +46,28 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
     final personellerAsync = ref.watch(personellerProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           'Personel Seçimi',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             fontSize: 18,
             fontWeight: FontWeight.w500,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
             onPressed: () {
               ref.invalidate(personellerProvider);
             },
@@ -85,7 +85,7 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF014B92)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
               ),
               SizedBox(height: 16),
@@ -135,7 +135,7 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Personel ara...',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF014B92)),
+              prefixIcon: const Icon(Icons.search, color: AppColors.primary),
               suffixIcon: _searchQuery.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, color: Colors.grey),
@@ -148,19 +148,19 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
                     )
                   : null,
               filled: true,
-              fillColor: Colors.white,
+              fillColor: AppColors.textOnPrimary,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
-                  color: Color(0xFF014B92),
+                  color: AppColors.primary,
                   width: 2,
                 ),
               ),
@@ -232,14 +232,14 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
             const Text(
               'Personeller yüklenirken hata oluştu',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -254,13 +254,13 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
               onPressed: () {
                 ref.invalidate(personellerProvider);
               },
-              icon: const Icon(Icons.refresh, color: Colors.white),
+              icon: const Icon(Icons.refresh, color: AppColors.textOnPrimary),
               label: const Text(
                 'Tekrar Dene',
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.textOnPrimary),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF014B92),
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
@@ -281,7 +281,7 @@ class _PersonelSecimScreenState extends ConsumerState<PersonelSecimScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${personel.fullName} seçildi'),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.success,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -311,7 +311,7 @@ class _PersonelListTile extends ConsumerWidget {
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
           ),
         ),
         subtitle: personel.unvan != null
@@ -325,7 +325,7 @@ class _PersonelListTile extends ConsumerWidget {
             : null,
         trailing: const Icon(
           Icons.arrow_forward_ios,
-          color: Color(0xFF014B92),
+          color: AppColors.primary,
           size: 18,
         ),
       ),

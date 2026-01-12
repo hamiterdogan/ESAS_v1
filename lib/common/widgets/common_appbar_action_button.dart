@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// Uygulamada yaygın kullanılan AppBar action button (Filtrele, Sırala vs.)
 /// Tutarlı stil ve davranış sağlar
@@ -32,13 +33,13 @@ class CommonAppBarActionButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: iconSize),
+              Icon(icon, color: AppColors.textOnPrimary, size: iconSize),
               const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: fontSize,
-                  color: Colors.white,
+                  color: AppColors.textOnPrimary,
                   height: 1.1,
                 ),
                 textAlign: TextAlign.center,

@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/constants/app_spacing.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
-import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -48,6 +48,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   int _donusDakika = 0;
   // Araç istek nedeni seçimi için durum
   int? _selectedAracIstekNedeniId;
+  // ignore: unused_field - used to store custom reason text
   String? _customAracIstekNedeni;
   List<AracIstekNedeniItem> _aracIstekNedenleri = [];
   // Yolcu (personel) seçimi için durum
@@ -76,6 +77,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   List<String> _takimList = [];
   List<FilterOgrenciItem> _ogrenciList = [];
   bool _ogrenciSheetLoading = false;
+  // ignore: unused_field - used to track error state
   String? _ogrenciSheetError;
   bool _isMEB = false;
 
@@ -201,44 +203,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, size: 40, color: AppColors.gradientEnd),
-            const SizedBox(height: 16),
-            const Text(
-              'Tahmini Mesafe',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Gidilecek yere navigasyondan bakarak tahmini kaç kilometre mesafe olduğunu yazınız.',
-              style: TextStyle(fontSize: 17),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gradientEnd,
-                minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Tamam',
-                style: TextStyle(color: Colors.white, fontSize: 17),
-              ),
-            ),
-          ],
-        ),
-      ),
+    InfoBottomSheet.show(
+      context,
+      title: 'Tahmini Mesafe',
+      message:
+          'Gidilecek yere navigasyondan bakarak tahmini kaç kilometre mesafe olduğunu yazınız.',
     ).whenComplete(() {
       _unlockInputsAfterSheet();
       if (mounted) setState(() => _isActionInProgress = false);
@@ -285,18 +254,18 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           _getFormattedTitle(aracTuru),
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.textOnPrimary),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => context.pop(),
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
@@ -326,16 +295,16 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                 const SizedBox(height: 16),
                 InkWell(
                   onTap: _openYerSecimiBottomSheet,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.inputRadius,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16,
+                      vertical: AppSpacing.md,
+                      horizontal: AppSpacing.xl,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
+                      color: AppColors.surface,
+                      borderRadius: AppRadius.inputRadius,
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -364,14 +333,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     alignment: Alignment.topLeft,
                     child: Text(
                       'Henüz yer eklenmedi.',
-                      style: TextStyle(color: Colors.grey, fontSize: 15),
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 15,
+                      ),
                     ),
                   )
                 else
                   Card(
                     elevation: 2,
                     margin: EdgeInsets.zero,
-                    color: Colors.white,
+                    color: AppColors.surface,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -397,14 +369,14 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                           style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w400,
-                                            color: Colors.black87,
+                                            color: AppColors.textPrimary,
                                           ),
                                         ),
                                       ),
                                       IconButton(
                                         icon: const Icon(
                                           Icons.delete_outline,
-                                          color: Color(0xFF707070),
+                                          color: AppColors.textTertiary,
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -495,17 +467,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             width: 50,
                             height: 46,
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: const BorderRadius.only(
                                 topLeft: Radius.circular(8),
                                 bottomLeft: Radius.circular(8),
                               ),
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                             ),
                             child: Icon(
                               Icons.remove,
                               color: _tahminiMesafe > 1
-                                  ? Colors.black
+                                  ? AppColors.textPrimary
                                   : Colors.grey.shade300,
                               size: 24,
                             ),
@@ -516,8 +488,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           width: 64,
                           height: 46,
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            color: Colors.white,
+                            border: Border.all(color: AppColors.border),
+                            color: AppColors.textOnPrimary,
                           ),
                           child: TextField(
                             controller: _mesafeController,
@@ -530,7 +502,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             ],
                             style: const TextStyle(
                               fontSize: 17,
-                              color: Colors.black,
+                              color: AppColors.textPrimary,
                             ),
                             decoration: const InputDecoration(
                               border: InputBorder.none,
@@ -562,17 +534,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             width: 50,
                             height: 46,
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
+                              border: Border.all(color: AppColors.border),
                               borderRadius: const BorderRadius.only(
                                 topRight: Radius.circular(8),
                                 bottomRight: Radius.circular(8),
                               ),
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                             ),
                             child: Icon(
                               Icons.add,
                               color: _tahminiMesafe < 9999
-                                  ? Colors.black
+                                  ? AppColors.textPrimary
                                   : Colors.grey.shade300,
                               size: 24,
                             ),
@@ -592,7 +564,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         alpha: 0.5,
                       ),
                       activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: Colors.white,
+                      inactiveTrackColor: AppColors.textOnPrimary,
                       onChanged: (value) {
                         FocusScope.of(context).unfocus();
                         setState(() {
@@ -677,7 +649,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           );
                           return TimePickerBottomSheetWidget(
                             key: ValueKey(
-                              'donus-${_gidisSaat}-${_gidisDakika}-${_donusSaat}-${_donusDakika}',
+                              'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
                             ),
                             labelStyle: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
@@ -727,8 +699,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey[300]!),
+                      color: AppColors.textOnPrimary,
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -739,7 +711,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             _buildAracIstekNedeniSummary(),
                             style: TextStyle(
                               color: _selectedAracIstekNedeniId != null
-                                  ? Colors.black
+                                  ? AppColors.textPrimary
                                   : Colors.grey.shade600,
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
@@ -748,7 +720,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -769,14 +744,14 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         decoration: InputDecoration(
                           hintText: 'Araç istek nedenini giriniz',
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderSide: BorderSide(color: AppColors.border),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -840,8 +815,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey[300]!),
+                      color: AppColors.textOnPrimary,
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -852,7 +827,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             _buildOgrenciSummary(),
                             style: TextStyle(
                               color: _selectedOgrenciIds.isNotEmpty
-                                  ? Colors.black
+                                  ? AppColors.textPrimary
                                   : Colors.grey.shade600,
                               fontSize: 16,
                               fontWeight: _selectedOgrenciIds.isNotEmpty
@@ -872,7 +847,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         else
                           Icon(
                             Icons.chevron_right,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                           ),
                       ],
                     ),
@@ -902,7 +877,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -926,7 +901,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       child: const Text(
                         'Gönder',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1041,73 +1016,34 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (BuildContext statusContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                size: 64,
-                color: isError ? Colors.red : Colors.green,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(statusContext);
+        return StatusBottomSheet(
+          message: message,
+          isError: isError,
+          onButtonPressed: () {
+            Navigator.pop(statusContext);
 
-                  // Başarı durumunda Araç Taleplerini Yönet ekranına git
-                  if (!isError) {
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        // Provider'ları yenile
-                        ref.refresh(aracDevamEdenTaleplerProvider);
-                        ref.refresh(aracTamamlananTaleplerProvider);
+            // Başarı durumunda Araç Taleplerini Yönet ekranına git
+            if (!isError) {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  // Provider'ları yenile
+                  ref.invalidate(aracDevamEdenTaleplerProvider);
+                  ref.invalidate(aracTamamlananTaleplerProvider);
 
-                        // Tüm önceki ekranları temizleyip doğrudan Araç Taleplerini Yönet'e git
-                        Navigator.of(
-                          context,
-                        ).popUntil((route) => route.isFirst);
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (mounted) {
-                            context.go('/arac_istek');
-                          }
-                        });
-                      }
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gradientEnd,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Tamam',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
+                  // Tüm önceki ekranları temizleyip doğrudan Araç Taleplerini Yönet'e git
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (mounted) {
+                      context.go('/arac_istek');
+                    }
+                  });
+                }
+              });
+            }
+          },
         );
       },
     ).whenComplete(() {
@@ -1435,17 +1371,13 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         children: [
           TextButton(
             onPressed: onClear,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Temizle', style: TextStyle(fontSize: 16)),
           ),
           const SizedBox(width: 8),
           TextButton(
             onPressed: onSelectAll,
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF014B92),
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
             child: const Text('Tümü', style: TextStyle(fontSize: 16)),
           ),
         ],
@@ -1464,9 +1396,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[300]!, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
         ),
         child: Row(
           children: [
@@ -1481,7 +1411,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       if (subtitle != null) ...[
@@ -1490,7 +1420,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           subtitle,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -1540,7 +1470,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           builder: (context, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -1603,13 +1533,13 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
+                                      color: AppColors.border,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
+                                      color: AppColors.border,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -1717,7 +1647,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               builder: (context, setModalState) {
                 return Container(
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.textOnPrimary,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16),
                       topRight: Radius.circular(16),
@@ -1764,7 +1694,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         },
                                         child: const Text(
                                           'Evet',
-                                          style: TextStyle(color: Colors.red),
+                                          style: TextStyle(
+                                            color: AppColors.error,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1774,7 +1706,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                               child: const Text(
                                 'Tümünü Sil',
                                 style: TextStyle(
-                                  color: Colors.red,
+                                  color: AppColors.error,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1816,14 +1748,14 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                             .trim(),
                                         style: const TextStyle(
                                           fontSize: 16,
-                                          color: Colors.black87,
+                                          color: AppColors.textPrimary,
                                         ),
                                       ),
                                     ),
                                     IconButton(
                                       icon: Icon(
                                         Icons.delete_outline,
-                                        color: Colors.grey[600],
+                                        color: AppColors.textTertiary,
                                         size: 26,
                                       ),
                                       onPressed: () {
@@ -1873,7 +1805,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                               child: const Text(
                                 'Tamam',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textOnPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1934,12 +1866,12 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               _ogrenciSheetLoading = false;
               _ogrenciSheetError = message;
             });
+            if (!mounted) return;
             BrandedLoadingDialog.hide(context);
-            if (mounted) {
-              _showStatusBottomSheet(message, isError: true);
-            }
+            _showStatusBottomSheet(message, isError: true);
             return;
           case Loading():
+            if (!mounted) return;
             BrandedLoadingDialog.hide(context);
             return;
         }
@@ -1997,6 +1929,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         });
       }
 
+      if (!mounted) return;
       BrandedLoadingDialog.hide(context);
       final localSelectedOgrenci = {..._selectedOgrenciIds};
 
@@ -2090,7 +2023,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: localSelectedOgrenci.isEmpty
-                              ? const Color(0xFFD32F2F)
+                              ? AppColors.error
                               : AppColors.gradientStart,
                         ),
                       ),
@@ -2234,7 +2167,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                               );
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF014B92),
+                              foregroundColor: AppColors.primary,
                             ),
                             child: const Text('Tüm filtreleri temizle'),
                           ),
@@ -2347,7 +2280,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF014B92),
+                            backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -2357,7 +2290,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             _currentFilterPage.isEmpty ? 'Uygula' : 'Tamam',
                             style: const TextStyle(
                               fontSize: 16,
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                             ),
                           ),
                         ),
@@ -2623,11 +2556,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -2745,10 +2678,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -2809,11 +2742,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -2931,10 +2864,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -2995,11 +2928,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -3117,10 +3050,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -3181,11 +3114,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -3303,10 +3236,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -3367,11 +3300,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -3477,10 +3410,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -3539,11 +3472,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderSide: BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -3613,10 +3546,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
-                          color: Colors.black87,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      activeColor: const Color(0xFF014B92),
+                      activeColor: AppColors.primary,
                       checkboxShape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -3647,7 +3580,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           builder: (context, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -3709,13 +3642,13 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
+                                      color: AppColors.border,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide(
-                                      color: Colors.grey[300]!,
+                                      color: AppColors.border,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -3776,7 +3709,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
     if (selected != null) {
       _addEntry(selected);
-      FocusScope.of(context).unfocus();
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
     }
   }
 

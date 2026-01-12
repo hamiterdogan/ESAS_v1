@@ -26,11 +26,10 @@ class _YiyecekIcecekIkramEkleScreenState
   late final TextEditingController _toplamController;
   final TextEditingController _ikramSecinizController = TextEditingController();
   final FocusNode _ikramFocusNode = FocusNode();
-  
+
   // Validation Focus Nodes
   final FocusNode _kurumIciFocusNode = FocusNode();
   final FocusNode _ikramSecimiFocusNode = FocusNode();
-
 
   List<String> _selectedIkramlar = [];
   int _baslangicSaat = 8;
@@ -137,16 +136,16 @@ class _YiyecekIcecekIkramEkleScreenState
             width: 44,
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppColors.border),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 bottomLeft: Radius.circular(8),
               ),
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
             child: Icon(
               Icons.remove,
-              color: value > 0 ? Colors.black : Colors.grey.shade300,
+              color: value > 0 ? AppColors.textPrimary : Colors.grey.shade300,
               size: 24,
             ),
           ),
@@ -156,8 +155,8 @@ class _YiyecekIcecekIkramEkleScreenState
           child: Container(
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              color: Colors.white,
+              border: Border.all(color: AppColors.border),
+              color: AppColors.textOnPrimary,
             ),
             child: TextField(
               focusNode: focusNode,
@@ -169,7 +168,10 @@ class _YiyecekIcecekIkramEkleScreenState
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(4),
               ],
-              style: const TextStyle(fontSize: 17, color: Colors.black),
+              style: const TextStyle(
+                fontSize: 17,
+                color: AppColors.textPrimary,
+              ),
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.only(bottom: 9),
@@ -196,16 +198,18 @@ class _YiyecekIcecekIkramEkleScreenState
             width: 44,
             height: 46,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: AppColors.border),
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(8),
                 bottomRight: Radius.circular(8),
               ),
-              color: Colors.white,
+              color: AppColors.textOnPrimary,
             ),
             child: Icon(
               Icons.add,
-              color: value < 9999 ? Colors.black : Colors.grey.shade300,
+              color: value < 9999
+                  ? AppColors.textPrimary
+                  : Colors.grey.shade300,
               size: 24,
             ),
           ),
@@ -227,9 +231,9 @@ class _YiyecekIcecekIkramEkleScreenState
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: AppColors.border),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -242,10 +246,10 @@ class _YiyecekIcecekIkramEkleScreenState
                       fontSize: 16,
                       color: _selectedIkramlar.isEmpty
                           ? Colors.grey.shade600
-                          : Colors.black,
+                          : AppColors.textPrimary,
                     ),
                   ),
-                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+                  Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
                 ],
               ),
             ),
@@ -285,7 +289,7 @@ class _YiyecekIcecekIkramEkleScreenState
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -328,7 +332,7 @@ class _YiyecekIcecekIkramEkleScreenState
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: AppColors.border,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -351,7 +355,8 @@ class _YiyecekIcecekIkramEkleScreenState
                                     final isSelected = _selectedIkramlar
                                         .contains(ikram);
                                     return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         CheckboxListTile(
                                           title: Text(ikram),
@@ -366,11 +371,11 @@ class _YiyecekIcecekIkramEkleScreenState
                                               }
                                               // Clear error if user changes selection (optional, but good UX)
                                               if (currentError != null) {
-                                                  currentError = null;
+                                                currentError = null;
                                               }
                                             });
                                             // Update main screen as well
-                                            this.setState(() {});
+                                            setState(() {});
                                           },
                                         ),
                                         if (ikram == 'Diğer' && isSelected)
@@ -379,7 +384,8 @@ class _YiyecekIcecekIkramEkleScreenState
                                               horizontal: 16,
                                             ),
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 TextField(
                                                   controller:
@@ -387,21 +393,28 @@ class _YiyecekIcecekIkramEkleScreenState
                                                   focusNode: _ikramFocusNode,
                                                   onChanged: (value) {
                                                     // Clear error when user types
-                                                    if (currentError != null && value.isNotEmpty) {
+                                                    if (currentError != null &&
+                                                        value.isNotEmpty) {
                                                       setSheetState(() {
                                                         currentError = null;
                                                       });
                                                     }
                                                   },
                                                   decoration: InputDecoration(
-                                                    hintText: 'İkramı belirtiniz',
+                                                    hintText:
+                                                        'İkramı belirtiniz',
                                                     border: OutlineInputBorder(
                                                       borderRadius:
-                                                          BorderRadius.circular(8),
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
                                                       borderSide: BorderSide(
-                                                        color: currentError != null 
-                                                            ? Colors.red 
-                                                            : Colors.grey.shade300,
+                                                        color:
+                                                            currentError != null
+                                                            ? AppColors.error
+                                                            : Colors
+                                                                  .grey
+                                                                  .shade300,
                                                       ),
                                                     ),
                                                     enabledBorder:
@@ -411,14 +424,18 @@ class _YiyecekIcecekIkramEkleScreenState
                                                                 8,
                                                               ),
                                                           borderSide: BorderSide(
-                                                            color: currentError != null
-                                                                ? Colors.red
+                                                            color:
+                                                                currentError !=
+                                                                    null
+                                                                ? AppColors
+                                                                      .error
                                                                 : Colors
-                                                                .grey
-                                                                .shade300,
+                                                                      .grey
+                                                                      .shade300,
                                                           ),
                                                         ),
-                                                    fillColor: Colors.white,
+                                                    fillColor:
+                                                        AppColors.textOnPrimary,
                                                     filled: true,
                                                     contentPadding:
                                                         const EdgeInsets.symmetric(
@@ -450,7 +467,7 @@ class _YiyecekIcecekIkramEkleScreenState
                           onPressed: () => Navigator.pop(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.gradientStart,
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.textOnPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -480,7 +497,7 @@ class _YiyecekIcecekIkramEkleScreenState
   void _showSelectedIkramlarBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -497,7 +514,7 @@ class _YiyecekIcecekIkramEkleScreenState
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: AppColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -538,7 +555,7 @@ class _YiyecekIcecekIkramEkleScreenState
                                   _selectedIkramlar.removeAt(index);
                                 });
                                 // Update main screen state
-                                this.setState(() {});
+                                setState(() {});
                                 if (_selectedIkramlar.isEmpty) {
                                   Navigator.pop(context);
                                 }
@@ -566,7 +583,7 @@ class _YiyecekIcecekIkramEkleScreenState
         return Container(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -577,7 +594,7 @@ class _YiyecekIcecekIkramEkleScreenState
             children: [
               Icon(
                 Icons.warning_amber_rounded,
-                color: Colors.red.shade700,
+                color: AppColors.error,
                 size: 48,
               ),
               const SizedBox(height: 16),
@@ -604,7 +621,7 @@ class _YiyecekIcecekIkramEkleScreenState
                   child: const Text(
                     'Tamam',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textOnPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -618,83 +635,25 @@ class _YiyecekIcecekIkramEkleScreenState
     );
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError
-                    ? Icons.warning_amber_rounded
-                    : Icons.check_circle_outline,
-                color: isError ? Colors.orange : Colors.green,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                isError ? 'Uyarı' : 'Başarılı',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tamam',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
             'İkram Ekle',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: AppColors.textOnPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
-        backgroundColor: const Color(0xFF014B92),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
@@ -798,14 +757,14 @@ class _YiyecekIcecekIkramEkleScreenState
                     readOnly: true,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: AppColors.border),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -946,9 +905,9 @@ class _YiyecekIcecekIkramEkleScreenState
           child: SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
+              style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.textOnPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -976,7 +935,7 @@ class _YiyecekIcecekIkramEkleScreenState
                     // Warning kapandıktan sonra focuslan
                     Future.delayed(const Duration(milliseconds: 300), () {
                       if (_ikramSecimiFocusNode.canRequestFocus) {
-                         _ikramSecimiFocusNode.requestFocus();
+                        _ikramSecimiFocusNode.requestFocus();
                       }
                     });
                   });
@@ -986,13 +945,13 @@ class _YiyecekIcecekIkramEkleScreenState
                 // 3. Diğer İkram Input Kontrolü
                 if (_selectedIkramlar.contains('Diğer') &&
                     _ikramSecinizController.text.trim().isEmpty) {
-                   _showIkramSelectionBottomSheet(
-                     scrollToBottom: true,
-                     validationError: "Lütfen ikramı belirtiniz",
-                   );
-                   return;
+                  _showIkramSelectionBottomSheet(
+                    scrollToBottom: true,
+                    validationError: "Lütfen ikramı belirtiniz",
+                  );
+                  return;
                 }
-                
+
                 final data = YiyecekIcecekIkramData(
                   kurumIciAdet: _kurumIciAdet,
                   kurumDisiAdet: _kurumDisiAdet,

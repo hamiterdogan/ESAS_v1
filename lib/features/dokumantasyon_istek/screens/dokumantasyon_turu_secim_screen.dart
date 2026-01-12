@@ -1,3 +1,4 @@
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_turu.dart';
@@ -10,18 +11,21 @@ class DokumantasyonTuruSecimScreen extends StatelessWidget {
     final turler = DokumantasyonTuru.getAll();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: const Text('Yeni İstek', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Yeni İstek',
+          style: TextStyle(color: AppColors.textOnPrimary),
+        ),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
           onPressed: () => context.pop(),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Color(0xFF01579B), Color(0xFF002F6C)],
+              colors: [AppColors.primary, AppColors.primaryDark],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -46,7 +50,7 @@ class DokumantasyonTuruSecimScreen extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Colors.grey[200]!),
+                      bottom: BorderSide(color: AppColors.textTertiary),
                     ),
                   ),
                   child: Row(

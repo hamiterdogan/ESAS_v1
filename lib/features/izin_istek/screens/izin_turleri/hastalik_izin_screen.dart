@@ -37,7 +37,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
   bool _birGunlukIzin = false;
   File? _doktorRaporuFile;
   Personel? _secilenPersonel;
-  bool _basaksiAdinaIstekte = false;
+  final bool _basaksiAdinaIstekte = false;
 
   // Hata durumu state'leri
   bool _adresHatali = false;
@@ -84,7 +84,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
           builder: (BuildContext context) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.textOnPrimary,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               padding: const EdgeInsets.all(24),
@@ -93,7 +93,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 children: [
                   const Icon(
                     Icons.warning_amber_rounded,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     size: 48,
                   ),
                   const SizedBox(height: 16),
@@ -105,7 +105,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black87),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -137,7 +140,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: AppColors.warning,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -146,7 +149,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           child: const Text(
                             'Tamam',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textOnPrimary,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -217,11 +220,11 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-          backgroundColor: const Color(0xFFEEF1F5),
+          backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(
             title: const Text(
               'Hastalık İzni İstek',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textOnPrimary),
             ),
             elevation: 0,
             flexibleSpace: Container(
@@ -229,7 +232,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 gradient: AppColors.primaryGradient,
               ),
             ),
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
@@ -277,7 +280,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           alpha: 0.5,
                         ),
                         activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                       ),
                       const Text(
                         '1 günlük izin',
@@ -398,7 +401,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       Expanded(
                         child: TimePickerBottomSheetWidget(
                           key: ValueKey(
-                            'end-time-${_baslangicSaat}-${_baslangicDakika}-${_birGunlukIzin}-${_baslangicTarihi}-${_bitisTarihi}-${_bitisSaat}-${_bitisDakika}',
+                            'end-time-$_baslangicSaat-$_baslangicDakika-$_birGunlukIzin-$_baslangicTarihi-$_bitisTarihi-$_bitisSaat-$_bitisDakika',
                           ),
                           initialHour: _bitisSaat,
                           initialMinute: _bitisDakika,
@@ -445,7 +448,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           alpha: 0.5,
                         ),
                         activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                         onChanged: (value) {
                           setState(() {
                             _acil = value;
@@ -510,7 +513,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: AppColors.textOnPrimary,
                     ),
                     minLines: 3,
                     maxLines: 5,
@@ -533,7 +536,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           alpha: 0.5,
                         ),
                         activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: Colors.white,
+                        inactiveTrackColor: AppColors.textOnPrimary,
                         onChanged: (value) {
                           setState(() {
                             _doktorRaporuVar = value;
@@ -574,9 +577,9 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: AppColors.border),
                         ),
                         child: Column(
                           children: [
@@ -589,7 +592,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                             Text(
                               'Dosya Seçmek İçin Dokunun',
                               style: TextStyle(
-                                color: Colors.grey.shade600,
+                                color: AppColors.textSecondary,
                                 fontSize: 13,
                               ),
                             ),
@@ -636,7 +639,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                             IconButton(
                               icon: const Icon(
                                 Icons.close,
-                                color: Colors.red,
+                                color: AppColors.error,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -691,7 +694,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       child: const Text(
                         'Gönder',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textOnPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -786,18 +789,10 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
 
       try {
         // İzin nedenleri provider'dan hastalık izin ID'sini al
-        final izinNedenleri = await ref.read(allIzinNedenlerProvider.future);
-        print('📋 İzin nedenleri: ${izinNedenleri.length}');
-        for (var neden in izinNedenleri) {
-          print(
-            '  - Neden: ${neden.izinNedeni}, Sebep ID: ${neden.izinSebebiId}',
-          );
-        }
+        await ref.read(allIzinNedenlerProvider.future);
 
         // Hastalık izin sebep ID: 4
         const int izinSebebiId = 4;
-
-        print('✅ Seçilen izin sebep ID: $izinSebebiId');
 
         // IzinIstekEkleReq oluştur - API'nin beklediği format
         final request = IzinIstekEkleReq(
@@ -815,8 +810,6 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
           izindeGirilmeyenToplamDersSaati: _girileymeyenDersSaati,
           baskaPersonelId: _secilenPersonel?.personelId,
         );
-
-        print('📤 Gönderilen istek: ${request.toJson()}');
 
         // Bottom sheet'te verileri göster
         if (mounted) {
@@ -924,7 +917,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
         return Container(
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: Colors.white,
+            color: AppColors.textOnPrimary,
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -933,7 +926,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
               Icon(
                 isError ? Icons.error_outline : Icons.check_circle_outline,
                 size: 64,
-                color: isError ? Colors.red : Colors.green,
+                color: isError ? AppColors.error : AppColors.success,
               ),
               const SizedBox(height: 16),
               Text(
@@ -974,7 +967,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 ),
                 child: const Text(
                   'Tamam',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.textOnPrimary),
                 ),
               ),
               const SizedBox(height: 50),
@@ -992,4 +985,3 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     });
   }
 }
-

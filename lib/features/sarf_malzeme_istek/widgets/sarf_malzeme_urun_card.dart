@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_kategori_models.dart';
-import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
@@ -38,10 +35,6 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   late final TextEditingController _urunDetayController;
   final TextEditingController _miktarController = TextEditingController();
   final TextEditingController _aciklamaController = TextEditingController();
-
-  bool _showingKategoriLoading = false;
-  bool _showingAltKategoriLoading = false;
-  bool _showingOlcuBirimLoading = false;
 
   @override
   void initState() {
@@ -115,13 +108,13 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     }
     if (_selectedAltKategori == null) {
       _showErrorBottomSheet('Alt kategorisi seçiniz');
-       return false;
+      return false;
     }
     if (_urunDetayController.text.isEmpty) {
       _showErrorBottomSheet('Ürün detay bilgisi giriniz');
       return false;
     }
-     if (_selectedOlcuBirim == null) {
+    if (_selectedOlcuBirim == null) {
       _showErrorBottomSheet('Birim seçiniz');
       return false;
     }
@@ -144,9 +137,10 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
 
     await Future.delayed(Duration.zero);
 
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -161,14 +155,14 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   width: 50,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 const SizedBox(height: 24),
                 Icon(
                   Icons.warning_amber_rounded,
-                  color: Colors.orange.shade600,
+                  color: AppColors.warning,
                   size: 48,
                 ),
                 const SizedBox(height: 16),
@@ -204,7 +198,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                     child: const Text(
                       'Tamam',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textOnPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -232,12 +226,12 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     await Future.delayed(Duration.zero);
 
     AsyncValue<List<SarfMalzemeAnaKategori>> kategorilerAsync;
-    
+
     // Select dynamic provider
     if (widget.talepTuru.toLowerCase().contains('temizlik')) {
       kategorilerAsync = ref.read(sarfMalzemeTemizlikKategorilerProvider);
-    } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
-               widget.talepTuru.toLowerCase().contains('kirtasiye')) {
+    } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') ||
+        widget.talepTuru.toLowerCase().contains('kirtasiye')) {
       kategorilerAsync = ref.read(sarfMalzemeKirtasiyeKategorilerProvider);
     } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
       kategorilerAsync = ref.read(sarfMalzemePromosyonKategorilerProvider);
@@ -251,18 +245,19 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
-        if (widget.talepTuru.toLowerCase().contains('temizlik')) {
-            await ref.read(sarfMalzemeTemizlikKategorilerProvider.future);
-        } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
-                widget.talepTuru.toLowerCase().contains('kirtasiye')) {
-            await ref.read(sarfMalzemeKirtasiyeKategorilerProvider.future);
-        } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
-             await ref.read(sarfMalzemePromosyonKategorilerProvider.future);
-        } else {
-             await ref.read(sarfMalzemeYiyecekKategorilerProvider.future);
-        }
+      if (widget.talepTuru.toLowerCase().contains('temizlik')) {
+        await ref.read(sarfMalzemeTemizlikKategorilerProvider.future);
+      } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') ||
+          widget.talepTuru.toLowerCase().contains('kirtasiye')) {
+        await ref.read(sarfMalzemeKirtasiyeKategorilerProvider.future);
+      } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
+        await ref.read(sarfMalzemePromosyonKategorilerProvider.future);
+      } else {
+        await ref.read(sarfMalzemeYiyecekKategorilerProvider.future);
+      }
 
       if (mounted) {
         BrandedLoadingDialog.hide(context);
@@ -280,7 +275,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   Future<void> _openAnaKategoriBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -289,18 +284,26 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
         return SafeArea(
           child: Consumer(
             builder: (context, ref, _) {
-                 AsyncValue<List<SarfMalzemeAnaKategori>> asyncKategoriler;
-                 if (widget.talepTuru.toLowerCase().contains('temizlik')) {
-                    asyncKategoriler = ref.watch(sarfMalzemeTemizlikKategorilerProvider);
-                 } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
-                            widget.talepTuru.toLowerCase().contains('kirtasiye')) {
-                    asyncKategoriler = ref.watch(sarfMalzemeKirtasiyeKategorilerProvider);
-                 } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
-                    asyncKategoriler = ref.watch(sarfMalzemePromosyonKategorilerProvider);
-                 } else {
-                    asyncKategoriler = ref.watch(sarfMalzemeYiyecekKategorilerProvider);
-                 }
-              
+              AsyncValue<List<SarfMalzemeAnaKategori>> asyncKategoriler;
+              if (widget.talepTuru.toLowerCase().contains('temizlik')) {
+                asyncKategoriler = ref.watch(
+                  sarfMalzemeTemizlikKategorilerProvider,
+                );
+              } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') ||
+                  widget.talepTuru.toLowerCase().contains('kirtasiye')) {
+                asyncKategoriler = ref.watch(
+                  sarfMalzemeKirtasiyeKategorilerProvider,
+                );
+              } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
+                asyncKategoriler = ref.watch(
+                  sarfMalzemePromosyonKategorilerProvider,
+                );
+              } else {
+                asyncKategoriler = ref.watch(
+                  sarfMalzemeYiyecekKategorilerProvider,
+                );
+              }
+
               return asyncKategoriler.when(
                 loading: () => const SizedBox(
                   height: 240,
@@ -311,17 +314,21 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   child: Center(
                     child: Text(
                       'Kategoriler alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
                 data: (sarfKategoriler) {
-                  final allKategoriler = sarfKategoriler.map((k) => SatinAlmaAnaKategori(
-                    id: k.id,
-                    kategori: k.kategori,
-                    aktif: k.aktif,
-                  )).toList();
-                  
+                  final allKategoriler = sarfKategoriler
+                      .map(
+                        (k) => SatinAlmaAnaKategori(
+                          id: k.id,
+                          kategori: k.kategori,
+                          aktif: k.aktif,
+                        ),
+                      )
+                      .toList();
+
                   return _AnaKategoriBottomSheetContent(
                     kategoriler: allKategoriler,
                     selectedKategori: _selectedAnaKategori,
@@ -351,11 +358,11 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     _urunDetayFocusNode.canRequestFocus = false;
     _urunDetayFocusNode.unfocus();
     FocusScope.of(context).unfocus();
-    
+
     await Future.delayed(Duration.zero);
-     
+
     if (_selectedAnaKategori == null) return;
-     
+
     final altKategorilerAsync = ref.read(
       sarfMalzemeAltKategorilerProvider(_selectedAnaKategori!.id),
     );
@@ -365,6 +372,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(
@@ -386,7 +394,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   Future<void> _openAltKategoriBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -395,13 +403,13 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
         return SafeArea(
           child: Consumer(
             builder: (context, ref, _) {
-               final asyncSubKategoriler = ref.watch(
+              final asyncSubKategoriler = ref.watch(
                 // Use the Sarf Malzeme specific provider with the selected category ID
                 sarfMalzemeAltKategorilerProvider(_selectedAnaKategori!.id),
               );
 
               return asyncSubKategoriler.when(
-                 loading: () => const SizedBox(
+                loading: () => const SizedBox(
                   height: 240,
                   child: Center(child: BrandedLoadingIndicator(size: 56)),
                 ),
@@ -410,18 +418,22 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   child: Center(
                     child: Text(
                       'Alt kategoriler alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
                 data: (sarfKategoriler) {
                   // Map specific SarfMalzemeAltKategori model to SatinAlmaAltKategori for UI compatibility
-                   final altKategoriler = sarfKategoriler.map((k) => SatinAlmaAltKategori(
-                    id: k.id,
-                    altKategori: k.altKategori,
-                    satinAlmaAnaKategoriId: k.anaKategoriId,
-                    aktif: k.aktif,
-                  )).toList();
+                  final altKategoriler = sarfKategoriler
+                      .map(
+                        (k) => SatinAlmaAltKategori(
+                          id: k.id,
+                          altKategori: k.altKategori,
+                          satinAlmaAnaKategoriId: k.anaKategoriId,
+                          aktif: k.aktif,
+                        ),
+                      )
+                      .toList();
 
                   return _AltKategoriBottomSheetContent(
                     altKategoriler: altKategoriler,
@@ -461,6 +473,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       return;
     }
 
+    if (!mounted) return;
     BrandedLoadingDialog.show(context);
     try {
       await ref.read(satinAlmaOlcuBirimleriProvider.future);
@@ -480,7 +493,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   Future<void> _openOlcuBirimBottomSheet() async {
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.textOnPrimary,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -503,7 +516,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   child: Center(
                     child: Text(
                       'Ölçü birimleri alınamadı',
-                      style: TextStyle(color: Colors.red.shade600),
+                      style: TextStyle(color: AppColors.error),
                     ),
                   ),
                 ),
@@ -540,7 +553,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                                   child: Text(
                                     'Kayıt bulunamadı',
                                     style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 )
@@ -564,7 +577,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                                               : FontWeight.normal,
                                           color: isSelected
                                               ? AppColors.gradientStart
-                                              : Colors.black87,
+                                              : AppColors.textPrimary87,
                                           fontSize:
                                               (Theme.of(context)
                                                       .textTheme
@@ -608,18 +621,18 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   }
 
   void _handleAutoSelect(AsyncValue<List<SarfMalzemeAnaKategori>> next) {
-      if (next.hasValue && next.value != null && next.value!.isNotEmpty) {
-          if (_selectedAnaKategori == null) {
-              final firstCat = next.value!.first;
-               setState(() {
-                _selectedAnaKategori = SatinAlmaAnaKategori(
-                  id: firstCat.id,
-                  kategori: firstCat.kategori,
-                  aktif: firstCat.aktif,
-                );
-              });
-          }
+    if (next.hasValue && next.value != null && next.value!.isNotEmpty) {
+      if (_selectedAnaKategori == null) {
+        final firstCat = next.value!.first;
+        setState(() {
+          _selectedAnaKategori = SatinAlmaAnaKategori(
+            id: firstCat.id,
+            kategori: firstCat.kategori,
+            aktif: firstCat.aktif,
+          );
+        });
       }
+    }
   }
 
   @override
@@ -629,8 +642,8 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       ref.listen(sarfMalzemeTemizlikKategorilerProvider, (previous, next) {
         _handleAutoSelect(next);
       });
-    } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') || 
-               widget.talepTuru.toLowerCase().contains('kirtasiye')) {
+    } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') ||
+        widget.talepTuru.toLowerCase().contains('kirtasiye')) {
       ref.listen(sarfMalzemeKirtasiyeKategorilerProvider, (previous, next) {
         _handleAutoSelect(next);
       });
@@ -650,10 +663,10 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
-            Colors.white,
+            AppColors.textOnPrimary,
             0.65,
           ) ??
-          Colors.white,
+          AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -679,8 +692,8 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.textOnPrimary,
+                  border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -692,7 +705,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                         style: TextStyle(
                           color: _selectedAnaKategori == null
                               ? Colors.grey.shade600
-                              : Colors.black,
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -708,51 +721,54 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
 
             // Ürün Alt Kategorisi - Always visible
             Text(
-            'Ürün Alt Kategorisi',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              'Ürün Alt Kategorisi',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
-            ),
+              ),
             ),
             const SizedBox(height: 8),
             GestureDetector(
-            onTap: _showAltKategoriBottomSheet, // Will handle empty/null parent check internally if needed
-            child: Container(
+              onTap:
+                  _showAltKategoriBottomSheet, // Will handle empty/null parent check internally if needed
+              child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+                  horizontal: 16,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(
+                  color: AppColors.textOnPrimary,
+                  border: Border.all(
                     color: _selectedAltKategori == null
-                        ? Colors.grey.shade300 // Start plain, highlight error via validation if needed
+                        ? Colors
+                              .grey
+                              .shade300 // Start plain, highlight error via validation if needed
                         : Colors.grey.shade300,
-                ),
-                borderRadius: BorderRadius.circular(8),
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Expanded(
-                    child: Text(
+                      child: Text(
                         _selectedAltKategori?.altKategori ??
                             'Ürün alt kategorisi',
                         style: TextStyle(
-                        color: _selectedAltKategori == null
-                            ? Colors.grey.shade600
-                            : Colors.black,
-                        fontSize: 16,
+                          color: _selectedAltKategori == null
+                              ? Colors.grey.shade600
+                              : AppColors.textPrimary,
+                          fontSize: 16,
                         ),
                         overflow: TextOverflow.ellipsis,
-                    ),
+                      ),
                     ),
                     const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                ],
+                  ],
                 ),
-            ),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -774,14 +790,14 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: AppColors.textOnPrimary,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -830,8 +846,8 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppColors.textOnPrimary,
+                  border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -843,7 +859,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                         style: TextStyle(
                           color: _selectedOlcuBirim == null
                               ? Colors.grey.shade600
-                              : Colors.black,
+                              : AppColors.textPrimary,
                           fontSize: 16,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -938,7 +954,7 @@ class _AnaKategoriBottomSheetContentState
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 contentPadding: const EdgeInsets.all(8),
               ),
@@ -968,7 +984,7 @@ class _AnaKategoriBottomSheetContentState
                           : FontWeight.normal,
                       color: isSelected
                           ? AppColors.gradientStart
-                          : Colors.black87,
+                          : AppColors.textPrimary87,
                     ),
                   ),
                   trailing: isSelected
@@ -1062,7 +1078,7 @@ class _AltKategoriBottomSheetContentState
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 contentPadding: const EdgeInsets.all(8),
               ),
@@ -1076,7 +1092,7 @@ class _AltKategoriBottomSheetContentState
                 ? Center(
                     child: Text(
                       'Sonuç bulunamadı',
-                      style: TextStyle(color: Colors.grey.shade600),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                   )
                 : ListView.separated(
@@ -1102,7 +1118,7 @@ class _AltKategoriBottomSheetContentState
                                 : FontWeight.normal,
                             color: isSelected
                                 ? AppColors.gradientStart
-                                : Colors.black87,
+                                : AppColors.textPrimary87,
                           ),
                         ),
                         trailing: isSelected

@@ -22,13 +22,13 @@ class GelenKutusuKarti extends StatelessWidget {
   Color _getOnayDurumuRengi(String durum) {
     switch (durum.toLowerCase()) {
       case 'onay bekliyor':
-        return Colors.orange;
+        return AppColors.warning;
       case 'onaylandı':
-        return Colors.green;
+        return AppColors.success;
       case 'reddedildi':
-        return Colors.red;
+        return AppColors.error;
       case 'tamamlandı':
-        return Colors.green;
+        return AppColors.success;
       default:
         return Colors.grey;
     }
@@ -57,10 +57,10 @@ class GelenKutusuKarti extends StatelessWidget {
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
-            Colors.white,
+            AppColors.textOnPrimary,
             0.65,
           ) ??
-          Colors.white,
+          AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
@@ -95,7 +95,7 @@ class GelenKutusuKarti extends StatelessWidget {
                           'Süreç No: ',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Text(
@@ -116,7 +116,7 @@ class GelenKutusuKarti extends StatelessWidget {
                           'Talep Türü: ',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Expanded(
@@ -141,7 +141,7 @@ class GelenKutusuKarti extends StatelessWidget {
                           'Talep Eden: ',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Expanded(
@@ -177,7 +177,7 @@ class GelenKutusuKarti extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey[700],
+                            color: AppColors.textTertiary,
                           ),
                         ),
                         Container(
@@ -218,7 +218,7 @@ class GelenKutusuKarti extends StatelessWidget {
               ),
               // Sağ taraf - Büyüktür ikonu
               const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: Colors.grey[400], size: 28),
+              Icon(Icons.chevron_right, color: AppColors.textTertiary, size: 28),
             ],
           ),
         ),

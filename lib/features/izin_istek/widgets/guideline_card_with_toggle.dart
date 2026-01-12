@@ -42,10 +42,10 @@ class GuidelineCardWithToggle extends StatelessWidget {
       children: [
         // PDF Kartı
         Card(
-          color: Colors.white,
+          color: AppColors.textOnPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey.shade300, width: 1),
+            side: BorderSide(color: AppColors.border, width: 1),
           ),
           margin: EdgeInsets.zero,
           child: Padding(
@@ -95,9 +95,9 @@ class GuidelineCardWithToggle extends StatelessWidget {
           children: [
             Switch(
               value: toggleValue,
-              inactiveTrackColor: Colors.white,
+              inactiveTrackColor: AppColors.textOnPrimary,
               onChanged: onToggleChanged,
-              activeThumbColor: Colors.white,
+              activeThumbColor: AppColors.textOnPrimary,
               activeTrackColor: AppColors.gradientStart,
             ),
             const SizedBox(width: 12),

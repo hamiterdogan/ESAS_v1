@@ -30,11 +30,11 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
     return PopScope(
       canPop: true,
       child: Scaffold(
-        backgroundColor: const Color(0xFFEEF1F5),
+        backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
             'İzin Türü Seçin',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.textOnPrimary),
           ),
           elevation: 0,
           flexibleSpace: Container(
@@ -42,7 +42,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
               gradient: AppColors.primaryGradient,
             ),
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         ),
         body: izinNedenlerAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -50,7 +50,11 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppColors.error,
+                ),
                 const SizedBox(height: 16),
                 Text('Hata: $error'),
               ],
@@ -65,9 +69,6 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
               itemCount: nedenler.length,
               itemBuilder: (context, index) {
                 final neden = nedenler[index];
-                print(
-                  '📌 Liste item $index: ID=${neden.izinSebebiId}, İzinAdı=${neden.izinAdi}',
-                );
                 return _buildIzinTuruTile(neden, context);
               },
             );
@@ -90,7 +91,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              border: Border(bottom: BorderSide(color: AppColors.textTertiary)),
             ),
             child: Row(
               children: [
@@ -120,49 +121,35 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
     setState(() => _isActionInProgress = true);
 
     try {
-      print(
-        '🔀 Navigating to izin screen: ID=${neden.izinSebebiId}, İzinAdı=${neden.izinAdi}',
-      );
       Widget screen;
 
       // İzin türü ID'sine göre doğru sayfaya yönlendir
       switch (neden.izinSebebiId) {
         case 1: // Yıllık İzin
-          print('  → Yıllık İzin seçildi');
           screen = const YillikIzinScreen();
           break;
         case 2: // Evlilik İzni
-          print('  → Evlilik İzni seçildi');
           screen = const EvlilikIzinScreen();
           break;
         case 3: // Vefat İzni
-          print('  → Vefat İzni seçildi');
           screen = const VefatIzinScreen();
           break;
         case 4: // Hastalık İzni
-          print('  → Hastalık İzni seçildi');
           screen = const HastalikIzinScreen();
           break;
         case 5: // Mazeret İzni
-          print('  → Mazeret İzni seçildi');
           screen = const MazeretIzinScreen();
           break;
         case 6: // Dini İzin
-          print('  → Dini İzin seçildi');
           screen = const DiniIzinScreen();
           break;
         case 7: // Doğum İzni
-          print('  → Doğum İzni seçildi');
           screen = const DogumIzinScreen();
           break;
         case 8: // Kurum Görevlendirmesi
-          print('  → Kurum Görevlendirmesi seçildi');
           screen = const KurumGorevlendirmesiIzinScreen();
           break;
         default:
-          print(
-            '  ⚠️ Bilinmeyen ID: ${neden.izinSebebiId}, Dini İzin yükleniyor',
-          );
           screen = const DiniIzinScreen();
       }
 
