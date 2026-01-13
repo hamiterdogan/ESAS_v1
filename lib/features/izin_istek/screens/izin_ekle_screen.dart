@@ -148,7 +148,7 @@ class IzinEkleFormState {
   }
 }
 
-class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
+class IzinEkleFormNotifier extends AutoDisposeNotifier<IzinEkleFormState> {
   @override
   IzinEkleFormState build() {
     final now = DateTime.now();
