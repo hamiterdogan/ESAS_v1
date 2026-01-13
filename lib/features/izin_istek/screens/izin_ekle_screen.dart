@@ -148,7 +148,7 @@ class IzinEkleFormState {
   }
 }
 
-class IzinEkleFormNotifier extends AutoDisposeNotifier<IzinEkleFormState> {
+class IzinEkleFormNotifier extends Notifier<IzinEkleFormState> {
   @override
   IzinEkleFormState build() {
     final now = DateTime.now();
@@ -283,8 +283,8 @@ class IzinEkleFormNotifier extends AutoDisposeNotifier<IzinEkleFormState> {
 }
 
 final izinEkleFormProvider =
-    NotifierProvider.autoDispose<IzinEkleFormNotifier, IzinEkleFormState>(
-      () => IzinEkleFormNotifier(),
+    NotifierProvider<IzinEkleFormNotifier, IzinEkleFormState>(
+      IzinEkleFormNotifier.new,
     );
 
 class IzinEkleScreen extends ConsumerStatefulWidget {

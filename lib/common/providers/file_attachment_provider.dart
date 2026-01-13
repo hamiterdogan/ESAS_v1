@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:state_notifier/state_notifier.dart';
 
 /// State encapsulating the list of selected files and potential errors.
 class FileAttachmentState {
@@ -28,8 +27,18 @@ class FileAttachmentState {
   }
 }
 
-mixin FileAttachmentMixin on StateNotifier<FileAttachmentState> {
-  List<String> get allowedExtensions;
+/// Riverpod 3 Notifier for file attachments
+class GenericFileAttachmentNotifier extends Notifier<FileAttachmentState> {
+  List<String> _allowedExtensions = ['pdf', 'doc', 'docx', 'jpg', 'png'];
+
+  @override
+  FileAttachmentState build() {
+    return const FileAttachmentState();
+  }
+
+  void setAllowedExtensions(List<String> extensions) {
+    _allowedExtensions = extensions;
+  }
 
   Future<void> pickFiles() async {
     if (state.isPicking) return;
@@ -39,11 +48,14 @@ mixin FileAttachmentMixin on StateNotifier<FileAttachmentState> {
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
         type: FileType.custom,
-        allowedExtensions: allowedExtensions,
+        allowedExtensions: _allowedExtensions,
       );
 
       if (result != null) {
-        final newFiles = result.paths.map((path) => File(path!)).toList();
+        final newFiles = result.paths
+            .where((path) => path != null)
+            .map((path) => File(path!))
+            .toList();
         final currentFiles = [...state.files];
         final duplicates = <String>[];
 
@@ -87,32 +99,22 @@ mixin FileAttachmentMixin on StateNotifier<FileAttachmentState> {
     }
   }
 
-  void clearHelper() {
+  void clearError() {
     state = FileAttachmentState(
       files: state.files,
       errorMessage: null,
       isPicking: state.isPicking,
     );
   }
+
+  void clearFiles() {
+    state = const FileAttachmentState();
+  }
 }
 
-class GenericFileAttachmentNotifier extends StateNotifier<FileAttachmentState>
-    with FileAttachmentMixin {
-  final List<String> _allowedExtensions;
-
-  GenericFileAttachmentNotifier(this._allowedExtensions)
-    : super(const FileAttachmentState());
-
-  @override
-  List<String> get allowedExtensions => _allowedExtensions;
-}
-
-final fileAttachmentProvider = StateNotifierProvider.family
-    .autoDispose<
-      GenericFileAttachmentNotifier,
-      FileAttachmentState,
-      List<String>
-    >(
-      (ref, allowedExtensions) =>
-          GenericFileAttachmentNotifier(allowedExtensions),
+/// Generic File Attachment Provider - Riverpod 3 pattern
+/// This is the base provider, features should create their own providers using this pattern
+final fileAttachmentProvider =
+    NotifierProvider<GenericFileAttachmentNotifier, FileAttachmentState>(
+      GenericFileAttachmentNotifier.new,
     );

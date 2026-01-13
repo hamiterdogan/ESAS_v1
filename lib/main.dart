@@ -34,7 +34,7 @@ class MyApp extends ConsumerWidget {
           }
         });
         // Reset auth error state
-        ref.read(authErrorProvider.notifier).state = false;
+        ref.read(authErrorProvider.notifier).setError(false);
       }
     });
 

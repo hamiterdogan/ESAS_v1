@@ -8,8 +8,20 @@ final tokenProvider = Provider<String>((ref) {
   return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiNDUwNyIsIkVtYWlsIjoidGVzdGV2cmVuLnRvbWJ1bEBleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJFVE9NQlVMIiwiR29yZXZJZCI6IjQ2IiwibmJmIjoxNzY0MzI5NDUwLCJleHAiOjE3OTU0MzM0NTAsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0In0.lSaV7AXUSEvbNb6m4YCwCyUcP7Tbs5hn4YoJt7WzrGg';
 });
 
+// Auth Error Notifier - Riverpod 3 pattern (StateProvider yerine)
+class AuthErrorNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void setError(bool value) {
+    state = value;
+  }
+}
+
 // Auth state provider - 401 durumunda true olur
-final authErrorProvider = StateProvider<bool>((ref) => false);
+final authErrorProvider = NotifierProvider<AuthErrorNotifier, bool>(
+  AuthErrorNotifier.new,
+);
 
 // Current User PersonelId Provider
 final currentPersonelIdProvider = Provider<int>((ref) {
@@ -47,7 +59,7 @@ final dioProvider = Provider<Dio>((ref) {
         if (error.response?.statusCode == 401) {
           // Token geçersiz veya süresi dolmuş
           // authErrorProvider'ı true yap - UI bunu dinleyip kullanıcıyı bilgilendirecek
-          ref.read(authErrorProvider.notifier).state = true;
+          ref.read(authErrorProvider.notifier).setError(true);
           if (kDebugMode) {
             print('⚠️ 401 Unauthorized - Token expired or invalid');
           }

@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'package:state_notifier/state_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/domain/entities/dokumantasyon_talep.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/domain/usecases/create_dokumantasyon_talep_usecase.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/presentation/providers/dokumantasyon_providers.dart';
 
 class DokumantasyonFormState {
   final bool isLoading;
@@ -18,7 +19,7 @@ class DokumantasyonFormState {
   final bool kopyaElden;
   final String dosyaAciklama;
   // Simplified for this refactor demo
-  
+
   const DokumantasyonFormState({
     this.isLoading = false,
     this.errorMessage,
@@ -65,10 +66,15 @@ class DokumantasyonFormState {
   }
 }
 
-class DokumantasyonFormNotifier extends StateNotifier<DokumantasyonFormState> {
-  final CreateDokumantasyonTalepUseCase _useCase;
+/// Riverpod 3 - Migrated from StateNotifier to Notifier
+class DokumantasyonFormNotifier extends Notifier<DokumantasyonFormState> {
+  late final CreateDokumantasyonTalepUseCase _useCase;
 
-  DokumantasyonFormNotifier(this._useCase) : super(const DokumantasyonFormState());
+  @override
+  DokumantasyonFormState build() {
+    _useCase = ref.watch(createDokumantasyonUseCaseProvider);
+    return const DokumantasyonFormState();
+  }
 
   void setTeslimTarihi(DateTime d) => state = state.copyWith(teslimTarihi: d);
   void setBaskiAdedi(int v) => state = state.copyWith(baskiAdedi: v);
@@ -81,37 +87,40 @@ class DokumantasyonFormNotifier extends StateNotifier<DokumantasyonFormState> {
   void setDosyaAciklama(String v) => state = state.copyWith(dosyaAciklama: v);
 
   Future<void> submit(List<File> files) async {
-      state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(isLoading: true, errorMessage: null);
 
-      if (state.teslimTarihi == null) {
-         state = state.copyWith(isLoading: false, errorMessage: 'Teslim tarihi seçiniz.');
-         return;
-      }
-
-      final talep = DokumantasyonTalep(
-          teslimTarihi: state.teslimTarihi!,
-          baskiAdedi: state.baskiAdedi,
-          kagitTalebi: state.kagitTalebi,
-          dokumanTuru: state.dokumanTuru,
-          aciklama: state.aciklama,
-          baskiTuru: state.baskiTuru,
-          onluArkali: state.onluArkali,
-          kopyaElden: state.kopyaElden,
-          files: files,
-          dosyaAciklama: state.dosyaAciklama,
-          sayfaSayisi: 0,
-          toplamSayfa: 0,
-          ogrenciSayisi: 0,
-          okullarSatir: [],
-          departman: '',
-          paket: 0,
-          a4Talebi: state.kagitTalebi == 'A4',
+    if (state.teslimTarihi == null) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Teslim tarihi seçiniz.',
       );
+      return;
+    }
 
-      final result = await _useCase(talep);
-      state = result.when(
-          success: (_) => state.copyWith(isLoading: false, isSuccess: true),
-          failure: (msg) => state.copyWith(isLoading: false, errorMessage: msg),
-      );
+    final talep = DokumantasyonTalep(
+      teslimTarihi: state.teslimTarihi!,
+      baskiAdedi: state.baskiAdedi,
+      kagitTalebi: state.kagitTalebi,
+      dokumanTuru: state.dokumanTuru,
+      aciklama: state.aciklama,
+      baskiTuru: state.baskiTuru,
+      onluArkali: state.onluArkali,
+      kopyaElden: state.kopyaElden,
+      files: files,
+      dosyaAciklama: state.dosyaAciklama,
+      sayfaSayisi: 0,
+      toplamSayfa: 0,
+      ogrenciSayisi: 0,
+      okullarSatir: [],
+      departman: '',
+      paket: 0,
+      a4Talebi: state.kagitTalebi == 'A4',
+    );
+
+    final result = await _useCase(talep);
+    state = result.when(
+      success: (_) => state.copyWith(isLoading: false, isSuccess: true),
+      failure: (msg) => state.copyWith(isLoading: false, errorMessage: msg),
+    );
   }
 }

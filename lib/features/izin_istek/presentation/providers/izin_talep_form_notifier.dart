@@ -1,6 +1,7 @@
-import 'package:state_notifier/state_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/izin_istek/domain/entities/izin_talep.dart';
 import 'package:esas_v1/features/izin_istek/domain/usecases/create_izin_talep_usecase.dart';
+import 'package:esas_v1/features/izin_istek/presentation/providers/izin_talep_providers.dart';
 
 class IzinTalepFormState {
   final bool isLoading;
@@ -71,11 +72,15 @@ class IzinTalepFormState {
   }
 }
 
-class IzinTalepFormNotifier extends StateNotifier<IzinTalepFormState> {
-  final CreateIzinTalepUseCase _createUseCase;
+/// Riverpod 3 - Migrated from StateNotifier to Notifier
+class IzinTalepFormNotifier extends Notifier<IzinTalepFormState> {
+  late final CreateIzinTalepUseCase _createUseCase;
 
-  IzinTalepFormNotifier(this._createUseCase)
-    : super(const IzinTalepFormState());
+  @override
+  IzinTalepFormState build() {
+    _createUseCase = ref.watch(createIzinTalepUseCaseProvider);
+    return const IzinTalepFormState();
+  }
 
   void setIzinSebebi(int id) => state = state.copyWith(izinSebebiId: id);
   void setAciklama(String value) => state = state.copyWith(aciklama: value);
@@ -104,8 +109,9 @@ class IzinTalepFormNotifier extends StateNotifier<IzinTalepFormState> {
   Future<void> _calculateDuration() async {
     if (state.izinBaslangicTarihi == null ||
         state.izinBitisTarihi == null ||
-        state.izinSebebiId == 0)
+        state.izinSebebiId == 0) {
       return;
+    }
 
     // Call repository to calculate duration if needed.
   }

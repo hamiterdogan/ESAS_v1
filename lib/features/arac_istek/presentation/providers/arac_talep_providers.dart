@@ -38,8 +38,8 @@ final gidilecekYerlerProvider = FutureProvider<List<dynamic>>((ref) async {
   );
 });
 
-// Form Notifier Provider
-final aracTalepFormProvider = StateNotifierProvider.autoDispose<AracTalepFormNotifier, AracTalepFormState>((ref) {
-  final createAracTalepUseCase = ref.watch(createAracTalepUseCaseProvider);
-  return AracTalepFormNotifier(createAracTalepUseCase);
-});
+// Form Notifier Provider - Riverpod 3 pattern
+final aracTalepFormProvider =
+    NotifierProvider<AracTalepFormNotifier, AracTalepFormState>(
+      AracTalepFormNotifier.new,
+    );

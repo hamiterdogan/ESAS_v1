@@ -1,0 +1,600 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:image_picker/image_picker.dart';
+
+import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolojileri_hizmet_ekle_screen.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/bilgi_teknolojileri_hizmet_data.dart';
+
+class BilgiTeknolojileriIstekScreen extends ConsumerStatefulWidget {
+  final String destekTuru;
+  final String baslik;
+
+  const BilgiTeknolojileriIstekScreen({
+    super.key,
+    this.destekTuru = 'bilgiTek',
+    this.baslik = 'Bilgi Teknolojileri İstek',
+  });
+
+  @override
+  ConsumerState<BilgiTeknolojileriIstekScreen> createState() =>
+      _BilgiTeknolojileriIstekScreenState();
+}
+
+class _BilgiTeknolojileriIstekScreenState
+    extends ConsumerState<BilgiTeknolojileriIstekScreen> {
+  final List<File> _selectedFiles = [];
+  final TextEditingController _dosyaIcerikController = TextEditingController();
+  final FocusNode _dosyaIcerikFocusNode = FocusNode();
+  final List<BilgiTeknolojileriHizmetData> _addedHizmetler = [];
+
+  @override
+  void dispose() {
+    _dosyaIcerikController.dispose();
+    _dosyaIcerikFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFiles() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: [
+          'pdf',
+          'jpg',
+          'jpeg',
+          'png',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx',
+        ],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          for (var pickedFile in result.files) {
+            if (pickedFile.path != null) {
+              final file = File(pickedFile.path!);
+              // Check if file already exists
+              if (!_selectedFiles.any((f) => f.path == file.path)) {
+                _selectedFiles.add(file);
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
+      }
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
+  }
+
+  Future<void> _pickFromCamera() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+      if (image != null) {
+        setState(() {
+          final file = File(image.path);
+          if (!_selectedFiles.any((f) => f.path == file.path)) {
+            _selectedFiles.add(file);
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Kamera açılamadı: $e')));
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> images = await picker.pickMultiImage();
+
+      if (images.isNotEmpty) {
+        setState(() {
+          for (var image in images) {
+            final file = File(image.path);
+            if (!_selectedFiles.any((f) => f.path == file.path)) {
+              _selectedFiles.add(file);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Galeri açılamadı: $e')));
+      }
+    }
+  }
+
+  Future<void> _showFilePickerOptions() async {
+    FocusScope.of(context).unfocus();
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.textOnPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(
+                    Icons.camera_alt,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Kamera'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickFromCamera();
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.photo_library,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Galeri'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickFromGallery();
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(
+                    Icons.insert_drive_file,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Dosya Yükle'),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _pickFiles();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          centerTitle: false,
+          title: Text(
+            widget.baslik,
+            style: const TextStyle(
+              color: AppColors.textOnPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: AppColors.gradientStart,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
+            onPressed: () => context.pop(),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Eklenen Hizmetler Listesi
+              if (_addedHizmetler.isNotEmpty) ...[
+                ..._addedHizmetler.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final hizmet = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Slidable(
+                      key: ValueKey(hizmet),
+                      endActionPane: ActionPane(
+                        motion: const ScrollMotion(),
+                        children: [
+                          CustomSlidableAction(
+                            onPressed: (context) async {
+                              final result =
+                                  await Navigator.push<
+                                    BilgiTeknolojileriHizmetData
+                                  >(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          BilgiTeknolojileriHizmetEkleScreen(
+                                            existingData: hizmet,
+                                            destekTuru: widget.destekTuru,
+                                          ),
+                                    ),
+                                  );
+
+                              if (result != null) {
+                                setState(() {
+                                  _addedHizmetler[index] = result;
+                                });
+                              }
+                            },
+                            backgroundColor: AppColors.primary,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  bottomLeft: Radius.circular(12),
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    size: 24,
+                                    color: AppColors.textOnPrimary,
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'Düzenle',
+                                    style: TextStyle(
+                                      color: AppColors.textOnPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          CustomSlidableAction(
+                            onPressed: (context) {
+                              setState(() {
+                                _addedHizmetler.removeAt(index);
+                              });
+                            },
+                            backgroundColor: AppColors.error,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: AppColors.error,
+                                borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.delete,
+                                    size: 24,
+                                    color: AppColors.textOnPrimary,
+                                  ),
+                                  SizedBox(height: 6),
+                                  Text(
+                                    'Sil',
+                                    style: TextStyle(
+                                      color: AppColors.textOnPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.textOnPrimary,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.shade200.withValues(
+                                alpha: 0.5,
+                              ),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              hizmet.kategori,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            if (hizmet.aciklama.isNotEmpty)
+                              Text(
+                                hizmet.aciklama,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
+              ],
+
+              // Hizmet Ekle Butonu
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: InkWell(
+                  onTap: () async {
+                    final result =
+                        await Navigator.push<BilgiTeknolojileriHizmetData>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                BilgiTeknolojileriHizmetEkleScreen(
+                                  destekTuru: widget.destekTuru,
+                                ),
+                          ),
+                        );
+
+                    if (result != null) {
+                      setState(() {
+                        _addedHizmetler.add(result);
+                      });
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.textOnPrimary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Hizmet Ekle',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.normal,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const Text(
+                          '+',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w300,
+                            height: 1.0,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Dosya/Fotoğraf Yükle
+              Text(
+                'Dosya/Fotoğraf Yükle',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                  color: AppColors.primaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _showFilePickerOptions,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.textOnPrimary,
+                    foregroundColor: AppColors.textPrimary,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: AppColors.border),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(
+                    Icons.add_photo_alternate_outlined,
+                    size: 24,
+                  ),
+                  label: const Text(
+                    'Dosya/Fotoğraf Yükle',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+              if (_selectedFiles.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _selectedFiles.length,
+                  itemBuilder: (context, index) {
+                    final file = _selectedFiles[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.insert_drive_file_outlined,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              file.path.split(Platform.pathSeparator).last,
+                              style: const TextStyle(fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _removeFile(index),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Dosyaların İçeriğini Belirtiniz
+              Text(
+                'Dosyaların İçeriğini Belirtiniz',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize:
+                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
+                      1,
+                  color: AppColors.primaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                focusNode: _dosyaIcerikFocusNode,
+                controller: _dosyaIcerikController,
+                decoration: InputDecoration(
+                  hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                  contentPadding: const EdgeInsets.all(12),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                maxLines: 1,
+              ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientStart,
+                  foregroundColor: AppColors.textOnPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  // TODO: API'ye gönder
+                },
+                child: const Text(
+                  'Gönder',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

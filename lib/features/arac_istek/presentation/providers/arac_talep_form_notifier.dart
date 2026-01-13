@@ -1,6 +1,7 @@
-import 'package:state_notifier/state_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/arac_istek/domain/entities/arac_talep.dart';
 import 'package:esas_v1/features/arac_istek/domain/usecases/create_arac_talep_usecase.dart';
+import 'package:esas_v1/features/arac_istek/presentation/providers/arac_talep_providers.dart';
 
 class AracTalepFormState {
   final bool isLoading;
@@ -84,11 +85,15 @@ class AracTalepFormState {
   }
 }
 
-class AracTalepFormNotifier extends StateNotifier<AracTalepFormState> {
-  final CreateAracTalepUseCase _createAracTalepUseCase;
+/// Riverpod 3 - Migrated from StateNotifier to Notifier
+class AracTalepFormNotifier extends Notifier<AracTalepFormState> {
+  late final CreateAracTalepUseCase _createAracTalepUseCase;
 
-  AracTalepFormNotifier(this._createAracTalepUseCase)
-    : super(const AracTalepFormState());
+  @override
+  AracTalepFormState build() {
+    _createAracTalepUseCase = ref.watch(createAracTalepUseCaseProvider);
+    return const AracTalepFormState();
+  }
 
   void setGidilecekTarih(DateTime date) {
     state = state.copyWith(gidilecekTarih: date);

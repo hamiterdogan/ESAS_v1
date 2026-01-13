@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:state_notifier/state_notifier.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/satin_alma/domain/entities/satin_alma_talep_entity.dart';
 import 'package:esas_v1/features/satin_alma/domain/usecases/create_satin_alma_talep_usecase.dart';
+import 'package:esas_v1/features/satin_alma/presentation/providers/satin_alma_providers.dart';
 
 class SatinAlmaFormState {
   final bool isLoading;
@@ -20,11 +21,14 @@ class SatinAlmaFormState {
   final String saticiFirma;
   final String dosyaAciklama;
   final int odemeVadesiGun;
-  
+
   final List<SatinAlmaUrunSatirEntity> urunSatirlar;
-  
+
   // Calculated
-  double get genelToplam => urunSatirlar.fold(0, (sum, item) => sum + (item.miktar * item.birimFiyati));
+  double get genelToplam => urunSatirlar.fold(
+    0,
+    (sum, item) => sum + (item.miktar * item.birimFiyati),
+  );
 
   const SatinAlmaFormState({
     this.isLoading = false,
@@ -78,21 +82,31 @@ class SatinAlmaFormState {
   }
 }
 
-class SatinAlmaFormNotifier extends StateNotifier<SatinAlmaFormState> {
-  final CreateSatinAlmaTalepUseCase _createUseCase;
+/// Riverpod 3 - Migrated from StateNotifier to Notifier
+class SatinAlmaFormNotifier extends Notifier<SatinAlmaFormState> {
+  late final CreateSatinAlmaTalepUseCase _createUseCase;
 
-  SatinAlmaFormNotifier(this._createUseCase) : super(const SatinAlmaFormState());
+  @override
+  SatinAlmaFormState build() {
+    _createUseCase = ref.watch(createSatinAlmaTalepUseCaseProvider);
+    return const SatinAlmaFormState();
+  }
 
   void setPesin(bool value) => state = state.copyWith(pesin: value);
-  void setSonTeslimTarihi(DateTime date) => state = state.copyWith(sonTeslimTarihi: date);
-  void setAliminAmaci(String value) => state = state.copyWith(aliminAmaci: value);
+  void setSonTeslimTarihi(DateTime date) =>
+      state = state.copyWith(sonTeslimTarihi: date);
+  void setAliminAmaci(String value) =>
+      state = state.copyWith(aliminAmaci: value);
   void setOdemeSekli(int id) => state = state.copyWith(odemeSekliId: id);
   void setWebSitesi(String value) => state = state.copyWith(webSitesi: value);
   void setSaticiTel(String value) => state = state.copyWith(saticiTel: value);
-  void setSaticiFirma(String value) => state = state.copyWith(saticiFirma: value);
-  void setDosyaAciklama(String value) => state = state.copyWith(dosyaAciklama: value);
-  void setOdemeVadesiGun(int value) => state = state.copyWith(odemeVadesiGun: value);
-  
+  void setSaticiFirma(String value) =>
+      state = state.copyWith(saticiFirma: value);
+  void setDosyaAciklama(String value) =>
+      state = state.copyWith(dosyaAciklama: value);
+  void setOdemeVadesiGun(int value) =>
+      state = state.copyWith(odemeVadesiGun: value);
+
   void toggleBina(int id) {
     final current = [...state.binaId];
     if (current.contains(id)) {
@@ -106,11 +120,11 @@ class SatinAlmaFormNotifier extends StateNotifier<SatinAlmaFormState> {
   void addUrunSatir(SatinAlmaUrunSatirEntity item) {
     state = state.copyWith(urunSatirlar: [...state.urunSatirlar, item]);
   }
-  
+
   void removeUrunSatir(int index) {
-      final updated = [...state.urunSatirlar];
-      updated.removeAt(index);
-      state = state.copyWith(urunSatirlar: updated);
+    final updated = [...state.urunSatirlar];
+    updated.removeAt(index);
+    state = state.copyWith(urunSatirlar: updated);
   }
 
   Future<void> submit(List<File> files) async {
@@ -118,12 +132,18 @@ class SatinAlmaFormNotifier extends StateNotifier<SatinAlmaFormState> {
 
     // Validation
     if (state.binaId.isEmpty) {
-         state = state.copyWith(isLoading: false, errorMessage: 'Lütfen en az bir yerleşke/bina seçiniz.');
-         return;
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Lütfen en az bir yerleşke/bina seçiniz.',
+      );
+      return;
     }
     if (state.urunSatirlar.isEmpty) {
-         state = state.copyWith(isLoading: false, errorMessage: 'Lütfen en az bir ürün ekleyiniz.');
-         return;
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Lütfen en az bir ürün ekleyiniz.',
+      );
+      return;
     }
 
     final talep = SatinAlmaTalep(
@@ -146,7 +166,8 @@ class SatinAlmaFormNotifier extends StateNotifier<SatinAlmaFormState> {
 
     state = result.when(
       success: (_) => state.copyWith(isLoading: false, isSuccess: true),
-      failure: (message) => state.copyWith(isLoading: false, errorMessage: message),
+      failure: (message) =>
+          state.copyWith(isLoading: false, errorMessage: message),
     );
   }
 }

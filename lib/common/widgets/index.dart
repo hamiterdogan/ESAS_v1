@@ -18,6 +18,9 @@ export 'validation_uyari_widget.dart';
 export 'talep_yonetim_helper.dart';
 export 'gradient_appbar.dart';
 
+// Centralized Dialogs (Stabilization)
+export 'app_dialogs.dart';
+
 // Design System Widgets
 export 'search_text_field.dart';
 export 'selection_trigger_tile.dart';

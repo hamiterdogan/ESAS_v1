@@ -28,26 +28,12 @@ final dokumanTurleriProvider = FutureProvider<List<dynamic>>(
           .when(success: (d) => d, failure: (e) => throw e),
 );
 
-final dokumantasyonFileProvider =
-    StateNotifierProvider.autoDispose<
-      GenericFileAttachmentNotifier,
-      FileAttachmentState
-    >((ref) {
-      return GenericFileAttachmentNotifier([
-        'pdf',
-        'doc',
-        'docx',
-        'jpg',
-        'png',
-      ]);
-    });
+// File Attachment Provider - Riverpod 3 pattern
+// Uses the shared fileAttachmentProvider
+final dokumantasyonFileProvider = fileAttachmentProvider;
 
+// Form Notifier - Riverpod 3 pattern
 final dokumantasyonFormProvider =
-    StateNotifierProvider.autoDispose<
-      DokumantasyonFormNotifier,
-      DokumantasyonFormState
-    >((ref) {
-      return DokumantasyonFormNotifier(
-        ref.watch(createDokumantasyonUseCaseProvider),
-      );
-    });
+    NotifierProvider<DokumantasyonFormNotifier, DokumantasyonFormState>(
+      DokumantasyonFormNotifier.new,
+    );

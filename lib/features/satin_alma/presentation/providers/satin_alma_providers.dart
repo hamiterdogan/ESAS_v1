@@ -59,27 +59,12 @@ final odemeSekilleriProvider = FutureProvider<List<dynamic>>(
       ),
 );
 
-// File Attachment Provider for Satin Alma
-final satinAlmaFileProvider =
-    StateNotifierProvider.autoDispose<
-      GenericFileAttachmentNotifier,
-      FileAttachmentState
-    >((ref) {
-      return GenericFileAttachmentNotifier([
-        'pdf',
-        'doc',
-        'docx',
-        'jpg',
-        'png',
-      ]);
-    });
+// File Attachment Provider for Satin Alma - Riverpod 3 pattern
+// Uses the shared fileAttachmentProvider
+final satinAlmaFileProvider = fileAttachmentProvider;
 
-// Form Notifier
+// Form Notifier - Riverpod 3 pattern
 final satinAlmaFormProvider =
-    StateNotifierProvider.autoDispose<
-      SatinAlmaFormNotifier,
-      SatinAlmaFormState
-    >((ref) {
-      final createUseCase = ref.watch(createSatinAlmaTalepUseCaseProvider);
-      return SatinAlmaFormNotifier(createUseCase);
-    });
+    NotifierProvider<SatinAlmaFormNotifier, SatinAlmaFormState>(
+      SatinAlmaFormNotifier.new,
+    );

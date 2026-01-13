@@ -29,12 +29,8 @@ final izinSebepleriProvider = FutureProvider<List<dynamic>>((ref) async {
   );
 });
 
-// Form Notifier
+// Form Notifier - Riverpod 3 pattern
 final izinTalepFormProvider =
-    StateNotifierProvider.autoDispose<
-      IzinTalepFormNotifier,
-      IzinTalepFormState
-    >((ref) {
-      final createUseCase = ref.watch(createIzinTalepUseCaseProvider);
-      return IzinTalepFormNotifier(createUseCase);
-    });
+    NotifierProvider<IzinTalepFormNotifier, IzinTalepFormState>(
+      IzinTalepFormNotifier.new,
+    );
