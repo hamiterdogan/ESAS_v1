@@ -471,9 +471,8 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   // Girilmeyen Ders Saati Spinner
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {

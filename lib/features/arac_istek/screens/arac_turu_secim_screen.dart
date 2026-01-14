@@ -16,7 +16,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
-          'Yeni İstek',
+          'Yeni Araç İsteği',
           style: TextStyle(color: AppColors.textOnPrimary),
         ),
         elevation: 0,
@@ -76,6 +76,22 @@ class AracTuruSecimScreen extends ConsumerWidget {
             itemCount: aracTurleri.length,
             itemBuilder: (context, index) {
               final item = aracTurleri[index];
+
+              // Araç türüne göre ikon belirleme
+              IconData icon;
+              if (item.tur.toLowerCase().contains('binek')) {
+                icon = Icons.directions_car;
+              } else if (item.tur.toLowerCase().contains('kamyon') ||
+                  item.tur.toLowerCase().contains('yük')) {
+                icon = Icons.local_shipping;
+              } else if (item.tur.toLowerCase().contains('minibüs')) {
+                icon = Icons.airport_shuttle;
+              } else if (item.tur.toLowerCase().contains('otobüs')) {
+                icon = Icons.directions_bus;
+              } else {
+                icon = Icons.drive_eta;
+              }
+
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Material(
@@ -83,30 +99,44 @@ class AracTuruSecimScreen extends ConsumerWidget {
                   child: InkWell(
                     onTap: () => context.push('/arac/ekle/${item.id}'),
                     borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: AppColors.textTertiary),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.tur,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                              ),
-                            ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
-                          const Icon(Icons.chevron_right, color: Colors.grey),
-                        ],
-                      ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                icon,
+                                color: AppColors.gradientStart,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Text(
+                                  item.tur,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Çizgi - sağdan ve soldan 8px içerde
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          height: 1,
+                          color: Colors.grey.shade400,
+                        ),
+                      ],
                     ),
                   ),
                 ),

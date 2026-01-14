@@ -448,7 +448,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {

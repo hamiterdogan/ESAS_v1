@@ -1162,7 +1162,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             const SizedBox(height: 16),
 
             // Miktar Spinner
-            DersSaatiSpinnerWidget(
+            NumericSpinnerWidget(
               label: 'Miktar',
               minValue: 1,
               maxValue: 99999,

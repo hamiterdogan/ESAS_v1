@@ -813,7 +813,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
             const SizedBox(height: 16),
 
             // Miktar Spinner
-            DersSaatiSpinnerWidget(
+            NumericSpinnerWidget(
               label: 'Miktar',
               minValue: 1,
               maxValue: 99999,

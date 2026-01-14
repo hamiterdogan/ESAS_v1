@@ -735,7 +735,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {

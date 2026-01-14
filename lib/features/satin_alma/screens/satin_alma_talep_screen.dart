@@ -16,7 +16,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
-import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
@@ -1716,7 +1716,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        DersSaatiSpinnerWidget(
+                        NumericSpinnerWidget(
                           label: 'Ödeme Vadesi',
                           minValue: 1,
                           maxValue: 999,

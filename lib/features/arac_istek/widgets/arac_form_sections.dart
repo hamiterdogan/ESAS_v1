@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
-import 'package:esas_v1/core/constants/app_spacing.dart';
+import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 
 /// Gidilecek yer listesi bölümü.
 class GidilecekYerSection<T> extends StatelessWidget {
@@ -39,40 +41,7 @@ class GidilecekYerSection<T> extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Yer Ekle Button
-        InkWell(
-          onTap: onYerEkle,
-          borderRadius: AppRadius.inputRadius,
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: AppSpacing.md,
-              horizontal: AppSpacing.xl,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: AppRadius.inputRadius,
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_location_alt_outlined,
-                  color: AppColors.gradientStart,
-                  size: 28,
-                ),
-                SizedBox(width: 12),
-                Text(
-                  'Yer Ekle',
-                  style: TextStyle(
-                    color: AppColors.gradientStart,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        YerEkleButton(onTap: onYerEkle),
         const SizedBox(height: 12),
 
         // Entries List
@@ -167,11 +136,10 @@ class GidilecekYerSection<T> extends StatelessWidget {
 }
 
 /// Tahmini mesafe bölümü.
-class TahminiMesafeSection extends StatelessWidget {
+class TahminiMesafeSection extends ConsumerWidget {
   const TahminiMesafeSection({
     super.key,
     required this.mesafe,
-    required this.controller,
     required this.onMesafeChanged,
     required this.onInfoTap,
     this.minValue = 1,
@@ -179,25 +147,25 @@ class TahminiMesafeSection extends StatelessWidget {
   });
 
   final int mesafe;
-  final TextEditingController controller;
   final void Function(int newValue) onMesafeChanged;
   final VoidCallback onInfoTap;
   final int minValue;
   final int maxValue;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(
-              'Tahmini Mesafe (km)',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontSize:
-                    (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                    1,
+            Expanded(
+              child: NumericSpinnerWidget(
+                onValueChanged: onMesafeChanged,
+                initialValue: mesafe,
+                minValue: minValue,
+                maxValue: maxValue,
+                label: 'Tahmini Mesafe (km)',
               ),
             ),
             const SizedBox(width: 8),
@@ -207,119 +175,6 @@ class TahminiMesafeSection extends StatelessWidget {
                 Icons.info_outline,
                 color: AppColors.gradientStart,
                 size: 20,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Decrease button
-            GestureDetector(
-              onTap: mesafe > minValue
-                  ? () {
-                      FocusScope.of(context).unfocus();
-                      onMesafeChanged(mesafe - 1);
-                    }
-                  : null,
-              child: Container(
-                width: 50,
-                height: 46,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    bottomLeft: Radius.circular(8),
-                  ),
-                  color: AppColors.textOnPrimary,
-                ),
-                child: Icon(
-                  Icons.remove,
-                  color: mesafe > minValue
-                      ? AppColors.textPrimary
-                      : Colors.grey.shade300,
-                  size: 24,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Input field
-            Container(
-              width: 64,
-              height: 46,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border),
-                color: AppColors.textOnPrimary,
-              ),
-              child: TextField(
-                controller: controller,
-                textAlign: TextAlign.center,
-                textAlignVertical: TextAlignVertical.center,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                ],
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                  isDense: true,
-                ),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-                onChanged: (value) {
-                  final intVal = int.tryParse(value);
-                  if (intVal != null &&
-                      intVal >= minValue &&
-                      intVal <= maxValue) {
-                    onMesafeChanged(intVal);
-                  }
-                },
-                onSubmitted: (value) {
-                  final intVal = int.tryParse(value);
-                  if (intVal == null || intVal < minValue) {
-                    controller.text = minValue.toString();
-                    onMesafeChanged(minValue);
-                  } else if (intVal > maxValue) {
-                    controller.text = maxValue.toString();
-                    onMesafeChanged(maxValue);
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Increase button
-            GestureDetector(
-              onTap: mesafe < maxValue
-                  ? () {
-                      FocusScope.of(context).unfocus();
-                      onMesafeChanged(mesafe + 1);
-                    }
-                  : null,
-              child: Container(
-                width: 50,
-                height: 46,
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(8),
-                    bottomRight: Radius.circular(8),
-                  ),
-                  color: AppColors.textOnPrimary,
-                ),
-                child: Icon(
-                  Icons.add,
-                  color: mesafe < maxValue
-                      ? AppColors.textPrimary
-                      : Colors.grey.shade300,
-                  size: 24,
-                ),
               ),
             ),
           ],

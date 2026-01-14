@@ -2,7 +2,7 @@ export 'personel_secim_widget.dart';
 export 'personel_selector_widget.dart';
 export 'date_range_picker_widget.dart';
 export 'aciklama_field_widget.dart';
-export 'ders_saati_spinner_widget.dart';
+export 'numeric_spinner_widget.dart';
 export 'onay_toggle_widget.dart';
 export 'time_picker_spinner_widget.dart';
 export 'time_range_picker_widget.dart';

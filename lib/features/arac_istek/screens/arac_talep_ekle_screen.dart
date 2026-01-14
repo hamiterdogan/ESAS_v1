@@ -10,6 +10,7 @@ import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
+import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
 
 class AracTalepEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -293,40 +294,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                InkWell(
-                  onTap: _openYerSecimiBottomSheet,
-                  borderRadius: AppRadius.inputRadius,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.md,
-                      horizontal: AppSpacing.xl,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: AppRadius.inputRadius,
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.add_location_alt_outlined,
-                          color: AppColors.gradientStart,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Yer Ekle',
-                          style: TextStyle(
-                            color: AppColors.gradientStart,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                YerEkleButton(onTap: _openYerSecimiBottomSheet),
                 const SizedBox(height: 12),
                 if (_entries.isEmpty)
                   const Align(
@@ -424,135 +392,22 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Tahmini Mesafe (km)',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                              ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: _showMesafeInfo,
-                          child: const Icon(
-                            Icons.info_outline,
-                            color: AppColors.gradientStart,
-                            size: 20,
-                          ),
-                        ),
-                      ],
+                NumericSpinnerWidget(
+                  initialValue: _tahminiMesafe,
+                  minValue: 1,
+                  maxValue: 9999,
+                  label: 'Tahmini Mesafe (km)',
+                  labelSuffix: GestureDetector(
+                    onTap: _showMesafeInfo,
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: AppColors.gradientStart,
+                      size: 20,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        GestureDetector(
-                          onTap: _tahminiMesafe > 1
-                              ? () {
-                                  FocusScope.of(context).unfocus();
-                                  _updateMesafe(_tahminiMesafe - 1);
-                                }
-                              : null,
-                          child: Container(
-                            width: 50,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(8),
-                                bottomLeft: Radius.circular(8),
-                              ),
-                              color: AppColors.textOnPrimary,
-                            ),
-                            child: Icon(
-                              Icons.remove,
-                              color: _tahminiMesafe > 1
-                                  ? AppColors.textPrimary
-                                  : Colors.grey.shade300,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 64,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border),
-                            color: AppColors.textOnPrimary,
-                          ),
-                          child: TextField(
-                            controller: _mesafeController,
-                            textAlign: TextAlign.center,
-                            textAlignVertical: TextAlignVertical.center,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(4),
-                            ],
-                            style: const TextStyle(
-                              fontSize: 17,
-                              color: AppColors.textPrimary,
-                            ),
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.only(bottom: 9),
-                            ),
-                            onChanged: (value) {
-                              if (value.isEmpty) return;
-                              final intValue = int.tryParse(value);
-                              if (intValue == null) return;
-                              if (intValue < 1) {
-                                _updateMesafe(1);
-                              } else if (intValue > 9999) {
-                                _updateMesafe(9999);
-                              } else {
-                                _updateMesafe(intValue);
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        GestureDetector(
-                          onTap: _tahminiMesafe < 9999
-                              ? () {
-                                  FocusScope.of(context).unfocus();
-                                  _updateMesafe(_tahminiMesafe + 1);
-                                }
-                              : null,
-                          child: Container(
-                            width: 50,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.border),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(8),
-                                bottomRight: Radius.circular(8),
-                              ),
-                              color: AppColors.textOnPrimary,
-                            ),
-                            child: Icon(
-                              Icons.add,
-                              color: _tahminiMesafe < 9999
-                                  ? AppColors.textPrimary
-                                  : Colors.grey.shade300,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
+                  onValueChanged: (value) {
+                    _updateMesafe(value);
+                  },
                 ),
                 const SizedBox(height: 24),
                 // MEB Toggle

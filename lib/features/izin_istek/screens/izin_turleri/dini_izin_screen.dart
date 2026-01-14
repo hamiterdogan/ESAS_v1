@@ -9,6 +9,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/widgets/guideline_card_with_toggle.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 
 class DiniIzinScreen extends ConsumerStatefulWidget {
   const DiniIzinScreen({super.key});
@@ -99,7 +100,10 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -397,9 +401,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                                     horizontal: 12,
                                   ),
                                   decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: AppColors.border,
-                                    ),
+                                    border: Border.all(color: AppColors.border),
                                     borderRadius: BorderRadius.circular(8),
                                     color: AppColors.textOnPrimary,
                                   ),
@@ -453,7 +455,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Girilmeyen Ders Saati Spinner
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {
@@ -889,4 +891,3 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
     });
   }
 }
-

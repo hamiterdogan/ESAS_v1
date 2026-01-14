@@ -97,7 +97,10 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   const Text(
                     'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: AppColors.textPrimary),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -317,7 +320,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Girilmeyen Ders Saati Spinner
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {
@@ -650,4 +653,3 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
     });
   }
 }
-

@@ -8,7 +8,7 @@ import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.d
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
-import 'package:esas_v1/common/widgets/ders_saati_spinner_widget.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 
 class EgitimUcretleriScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -1239,7 +1239,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              DersSaatiSpinnerWidget(
+                              NumericSpinnerWidget(
                                 label: 'Ödeme Vadesi',
                                 minValue: 1,
                                 maxValue: 999,

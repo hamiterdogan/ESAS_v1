@@ -381,7 +381,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Girilmeyen Ders Saati Spinner
-                  DersSaatiSpinnerWidget(
+                  NumericSpinnerWidget(
                     initialValue: _girileymeyenDersSaati,
                     onValueChanged: (value) {
                       setState(() {
