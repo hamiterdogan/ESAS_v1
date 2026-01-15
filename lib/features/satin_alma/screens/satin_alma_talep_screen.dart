@@ -9,6 +9,7 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
@@ -253,93 +254,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   Future<bool> _showExitConfirmationDialog() async {
-    return await showModalBottomSheet<bool>(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (BuildContext context) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.textOnPrimary,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: AppColors.warning,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Uyarı',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(
-                              color: AppColors.gradientStart,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Vazgeç',
-                            style: TextStyle(
-                              color: AppColors.gradientStart,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.warning,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Tamam',
-                            style: TextStyle(
-                              color: AppColors.textOnPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 60),
-                ],
-              ),
-            );
-          },
-        ) ??
-        false;
+    return AppDialogs.showFormExitConfirm(context);
   }
 
   void _removeFile(int index) {

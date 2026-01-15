@@ -110,8 +110,8 @@ class AracTuruSecimScreen extends ConsumerWidget {
                             children: [
                               Icon(
                                 icon,
-                                color: AppColors.gradientStart,
-                                size: 24,
+                                color: AppColors.primaryLight,
+                                size: 30,
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -120,21 +120,22 @@ class AracTuruSecimScreen extends ConsumerWidget {
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 18,
+                                    color: AppColors.primaryLight,
                                   ),
                                 ),
                               ),
                               const Icon(
                                 Icons.chevron_right,
-                                color: Colors.grey,
+                                color: AppColors.primaryLight,
                               ),
                             ],
                           ),
                         ),
-                        // Çizgi - sağdan ve soldan 8px içerde
+                        // Çizgi - soldan 55px, sağdan 8px içerde
                         Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          margin: const EdgeInsets.only(left: 55, right: 8),
                           height: 1,
-                          color: Colors.grey.shade400,
+                          color: Colors.grey.shade300,
                         ),
                       ],
                     ),

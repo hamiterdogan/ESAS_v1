@@ -23,6 +23,29 @@ class IzinTuruSecimScreen extends ConsumerStatefulWidget {
 class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
   bool _isActionInProgress = false;
 
+  IconData _iconForIzinSebebiId(int? izinSebebiId) {
+    switch (izinSebebiId) {
+      case 1: // Yıllık İzin
+        return Icons.beach_access;
+      case 2: // Evlilik İzni
+        return Icons.card_giftcard;
+      case 3: // Vefat İzni
+        return Icons.spa;
+      case 4: // Hastalık İzni
+        return Icons.medical_services;
+      case 5: // Mazeret İzni
+        return Icons.event_note;
+      case 6: // Dini İzin
+        return Icons.public;
+      case 7: // Doğum İzni
+        return Icons.child_friendly;
+      case 8: // Kurum Görevlendirmesi
+        return Icons.work;
+      default:
+        return Icons.article;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final izinNedenlerAsync = ref.watch(allIzinNedenlerProvider);
@@ -33,7 +56,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
-            'İzin Türü Seçin',
+            'Yeni İzin İsteği',
             style: TextStyle(color: AppColors.textOnPrimary),
           ),
           elevation: 0,
@@ -69,45 +92,46 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
               itemCount: nedenler.length,
               itemBuilder: (context, index) {
                 final neden = nedenler[index];
-                return _buildIzinTuruTile(neden, context);
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        _iconForIzinSebebiId(neden.izinSebebiId),
+                        color: AppColors.primaryLight,
+                        size: 30,
+                      ),
+                      title: Text(
+                        neden.izinAdi,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: AppColors.primaryLight,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      onTap: () => _navigateToIzinScreen(context, neden),
+                    ),
+                    const Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 55,
+                      endIndent: 8,
+                      color: AppColors.border,
+                    ),
+                  ],
+                );
               },
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildIzinTuruTile(IzinNedeni neden, BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            _navigateToIzinScreen(context, neden);
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.textTertiary)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    neden.izinAdi,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-          ),
         ),
       ),
     );

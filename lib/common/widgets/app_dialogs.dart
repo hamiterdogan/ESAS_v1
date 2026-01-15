@@ -5,30 +5,93 @@ class AppDialogs {
   AppDialogs._();
 
   static Future<bool> showFormExitConfirm(BuildContext context) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Değişiklikler Kaybolacak'),
-        content: const Text(
-          'Yaptığınız değişiklikler kaydedilmeyecek. Formdan çıkmak istediğinize emin misiniz?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Vazgeç'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: AppColors.textOnPrimary,
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Çıkış Yap'),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
+    return await showModalBottomSheet<bool>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (BuildContext context) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: AppColors.textOnPrimary,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: AppColors.warning,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Uyarı',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(
+                              color: AppColors.gradientStart,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Vazgeç',
+                            style: TextStyle(
+                              color: AppColors.gradientStart,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.warning,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'Tamam',
+                            style: TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
+            );
+          },
+        ) ??
+        false;
   }
 
   static Future<void> showSuccess(

@@ -50,6 +50,13 @@ class _AracIstekYukEkleScreenState
   int _donusSaat = 9;
   int _donusDakika = 0;
 
+  late final int _initialTahminiMesafe;
+  late final DateTime _initialGidilecekTarih;
+  late final int _initialGidisSaat;
+  late final int _initialGidisDakika;
+  late final int _initialDonusSaat;
+  late final int _initialDonusDakika;
+
   @override
   void dispose() {
     _mesafeController.dispose();
@@ -71,6 +78,47 @@ class _AracIstekYukEkleScreenState
     _aciklamaController = TextEditingController();
     _gidilecekTarih = DateTime.now();
     _syncDonusWithGidis(startHour: _gidisSaat, startMinute: _gidisDakika);
+
+    _initialTahminiMesafe = _tahminiMesafe;
+    _initialGidilecekTarih = _gidilecekTarih!;
+    _initialGidisSaat = _gidisSaat;
+    _initialGidisDakika = _gidisDakika;
+    _initialDonusSaat = _donusSaat;
+    _initialDonusDakika = _donusDakika;
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _hasFormData() {
+    if (_entries.isNotEmpty) return true;
+    if (_tahminiMesafe != _initialTahminiMesafe) return true;
+    if (_gidilecekTarih != null &&
+        !_isSameDate(_gidilecekTarih!, _initialGidilecekTarih)) {
+      return true;
+    }
+    if (_gidisSaat != _initialGidisSaat ||
+        _gidisDakika != _initialGidisDakika) {
+      return true;
+    }
+    if (_donusSaat != _initialDonusSaat ||
+        _donusDakika != _initialDonusDakika) {
+      return true;
+    }
+    if (_tasInacakYukController.text.trim().isNotEmpty) return true;
+    if (_aciklamaController.text.trim().isNotEmpty) return true;
+
+    return false;
+  }
+
+  Future<bool> _confirmExitIfNeeded() async {
+    if (!_hasFormData()) return true;
+    return AppDialogs.showFormExitConfirm(context);
+  }
+
+  Future<bool> _onWillPop() async {
+    return _confirmExitIfNeeded();
   }
 
   void _lockAndUnfocusInputs() {
@@ -325,328 +373,340 @@ class _AracIstekYukEkleScreenState
   @override
   Widget build(BuildContext context) {
     final aracTuru = _getAracTuruName();
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: Text(
-          _getFormattedTitle(aracTuru),
-          style: const TextStyle(color: AppColors.textOnPrimary),
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          title: Text(
+            _getFormattedTitle(aracTuru),
+            style: const TextStyle(color: AppColors.textOnPrimary),
+          ),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
+            onPressed: () async {
+              if (await _confirmExitIfNeeded()) {
+                if (context.mounted) context.pop();
+              }
+            },
+          ),
+          elevation: 0,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => context.pop(),
-        ),
-        elevation: 0,
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Gidilecek Yer Bölümü
-                Text(
-                  'Gidilecek Yer',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
+        body: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Gidilecek Yer Bölümü
+                  Text(
+                    'Gidilecek Yer',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                YerEkleButton(onTap: _openYerSecimiBottomSheet),
-                const SizedBox(height: 12),
-                if (_entries.isEmpty)
-                  const Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Henüz yer eklenmedi.',
-                      style: TextStyle(color: Colors.grey, fontSize: 15),
-                    ),
-                  )
-                else
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.textOnPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.cardShadow,
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: _entries.length,
-                          itemBuilder: (context, index) {
-                            final entry = _entries[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          entry.yer.yerAdi,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w400,
-                                            color: AppColors.textPrimary,
+                  const SizedBox(height: 16),
+                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
+                  const SizedBox(height: 12),
+                  if (_entries.isEmpty)
+                    const Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        'Henüz yer eklenmedi.',
+                        style: TextStyle(color: Colors.grey, fontSize: 15),
+                      ),
+                    )
+                  else
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnPrimary,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.cardShadow,
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _entries.length,
+                            itemBuilder: (context, index) {
+                              final entry = _entries[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            entry.yer.yerAdi,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.textPrimary,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline,
-                                          color: AppColors.textTertiary,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _entries[index].adresController
-                                                .dispose();
-                                            _entries.removeAt(index);
-                                          });
-                                        },
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                        iconSize: 22,
-                                      ),
-                                    ],
-                                  ),
-                                  if (!entry.yer.yerAdi.contains('Eyüboğlu'))
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: 8,
-                                        bottom: 12,
-                                      ),
-                                      child: TextField(
-                                        controller: entry.adresController,
-                                        decoration: InputDecoration(
-                                          hintText: 'Semt ve adres giriniz',
-                                          prefixIcon: const Icon(
-                                            Icons.location_on_outlined,
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            color: AppColors.textTertiary,
                                           ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
+                                          onPressed: () {
+                                            setState(() {
+                                              _entries[index].adresController
+                                                  .dispose();
+                                              _entries.removeAt(index);
+                                            });
+                                          },
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          iconSize: 22,
+                                        ),
+                                      ],
+                                    ),
+                                    if (!entry.yer.yerAdi.contains('Eyüboğlu'))
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 8,
+                                          bottom: 12,
+                                        ),
+                                        child: TextField(
+                                          controller: entry.adresController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Semt ve adres giriniz',
+                                            prefixIcon: const Icon(
+                                              Icons.location_on_outlined,
+                                            ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  const Divider(height: 16, thickness: 0.8),
-                                ],
+                                    const Divider(height: 16, thickness: 0.8),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  NumericSpinnerWidget(
+                    initialValue: _tahminiMesafe,
+                    minValue: 1,
+                    maxValue: 9999,
+                    label: 'Tahmini Mesafe (km)',
+                    labelSuffix: GestureDetector(
+                      onTap: _showMesafeInfo,
+                      child: const Icon(
+                        Icons.info_outline,
+                        color: AppColors.gradientStart,
+                        size: 20,
+                      ),
+                    ),
+                    onValueChanged: (value) {
+                      _updateMesafe(value);
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DatePickerBottomSheetWidget(
+                          label: 'Gidilecek Tarih',
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
                               ),
+                          initialDate: _gidilecekTarih,
+                          minDate: DateTime.now(),
+                          maxDate: DateTime.now().add(
+                            const Duration(days: 365),
+                          ),
+                          onDateChanged: (date) {
+                            setState(() {
+                              _gidilecekTarih = date;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      const Expanded(child: SizedBox()),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TimePickerBottomSheetWidget(
+                          labelStyle: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                              ),
+                          initialHour: _gidisSaat,
+                          initialMinute: _gidisDakika,
+                          minHour: 0,
+                          maxHour: 23,
+                          allowedMinutes: _allowedMinutes,
+                          label: 'Gidiş Saati',
+                          allowAllMinutesAtMaxHour: true,
+                          onTimeChanged: (hour, minute) {
+                            setState(() {
+                              _gidisSaat = hour;
+                              _gidisDakika = minute;
+                              _syncDonusWithGidis(
+                                startHour: hour,
+                                startMinute: minute,
+                              );
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Builder(
+                          builder: (context) {
+                            final minDonus = _computeDonusMin(
+                              _gidisSaat,
+                              _gidisDakika,
+                            );
+                            return TimePickerBottomSheetWidget(
+                              key: ValueKey(
+                                'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
+                              ),
+                              labelStyle: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontSize:
+                                        (Theme.of(
+                                              context,
+                                            ).textTheme.titleSmall?.fontSize ??
+                                            14) +
+                                        1,
+                                  ),
+                              initialHour: _donusSaat,
+                              initialMinute: _donusDakika,
+                              minHour: minDonus.$1,
+                              minMinute: minDonus.$2,
+                              maxHour: 23,
+                              allowedMinutes: _allowedMinutes,
+                              allowAllMinutesAtMaxHour: true,
+                              label: 'Dönüş Saati',
+                              onTimeChanged: (hour, minute) {
+                                setState(() {
+                                  _donusSaat = hour;
+                                  _donusDakika = minute;
+                                });
+                              },
                             );
                           },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                const SizedBox(height: 24),
-                NumericSpinnerWidget(
-                  initialValue: _tahminiMesafe,
-                  minValue: 1,
-                  maxValue: 9999,
-                  label: 'Tahmini Mesafe (km)',
-                  labelSuffix: GestureDetector(
-                    onTap: _showMesafeInfo,
-                    child: const Icon(
-                      Icons.info_outline,
-                      color: AppColors.gradientStart,
-                      size: 20,
-                    ),
-                  ),
-                  onValueChanged: (value) {
-                    _updateMesafe(value);
-                  },
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: DatePickerBottomSheetWidget(
-                        label: 'Gidilecek Tarih',
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        initialDate: _gidilecekTarih,
-                        minDate: DateTime.now(),
-                        maxDate: DateTime.now().add(const Duration(days: 365)),
-                        onDateChanged: (date) {
-                          setState(() {
-                            _gidilecekTarih = date;
-                          });
-                        },
-                      ),
+                  // Taşınacak Yük
+                  Text(
+                    'Taşınacak Yük',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
                     ),
-                    const SizedBox(width: 24),
-                    const Expanded(child: SizedBox()),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TimePickerBottomSheetWidget(
-                        labelStyle: Theme.of(context).textTheme.titleSmall
-                            ?.copyWith(
-                              fontSize:
-                                  (Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall?.fontSize ??
-                                      14) +
-                                  1,
-                            ),
-                        initialHour: _gidisSaat,
-                        initialMinute: _gidisDakika,
-                        minHour: 0,
-                        maxHour: 23,
-                        allowedMinutes: _allowedMinutes,
-                        label: 'Gidiş Saati',
-                        allowAllMinutesAtMaxHour: true,
-                        onTimeChanged: (hour, minute) {
-                          setState(() {
-                            _gidisSaat = hour;
-                            _gidisDakika = minute;
-                            _syncDonusWithGidis(
-                              startHour: hour,
-                              startMinute: minute,
-                            );
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          final minDonus = _computeDonusMin(
-                            _gidisSaat,
-                            _gidisDakika,
-                          );
-                          return TimePickerBottomSheetWidget(
-                            key: ValueKey(
-                              'donus-$_gidisSaat-$_gidisDakika-$_donusSaat-$_donusDakika',
-                            ),
-                            labelStyle: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                ),
-                            initialHour: _donusSaat,
-                            initialMinute: _donusDakika,
-                            minHour: minDonus.$1,
-                            minMinute: minDonus.$2,
-                            maxHour: 23,
-                            allowedMinutes: _allowedMinutes,
-                            allowAllMinutesAtMaxHour: true,
-                            label: 'Dönüş Saati',
-                            onTimeChanged: (hour, minute) {
-                              setState(() {
-                                _donusSaat = hour;
-                                _donusDakika = minute;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Taşınacak Yük
-                Text(
-                  'Taşınacak Yük',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  focusNode: _tasInacakYukFocusNode,
-                  controller: _tasInacakYukController,
-                  maxLines: 1,
-                  decoration: InputDecoration(
-                    hintText: 'Taşınacak yükün detaylarını giriniz',
-                    filled: true,
-                    fillColor: AppColors.textOnPrimary,
-                    border: OutlineInputBorder(
+                  const SizedBox(height: 8),
+                  TextField(
+                    focusNode: _tasInacakYukFocusNode,
+                    controller: _tasInacakYukController,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      hintText: 'Taşınacak yükün detaylarını giriniz',
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      prefixIcon: const Icon(Icons.local_shipping_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  AciklamaFieldWidget(
+                    controller: _aciklamaController,
+                    focusNode: _aciklamaFocusNode,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Gönder Butonu
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    prefixIcon: const Icon(Icons.local_shipping_outlined),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                AciklamaFieldWidget(
-                  controller: _aciklamaController,
-                  focusNode: _aciklamaFocusNode,
-                ),
-                const SizedBox(height: 24),
-
-                // Gönder Butonu
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Gönder',
-                        style: TextStyle(
-                          color: AppColors.textOnPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          'Gönder',
+                          style: TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

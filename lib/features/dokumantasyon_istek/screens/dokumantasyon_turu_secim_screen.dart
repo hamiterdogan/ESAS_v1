@@ -14,7 +14,7 @@ class DokumantasyonTuruSecimScreen extends StatelessWidget {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
-          'Yeni İstek',
+          'Yeni Dokümantasyon İsteği',
           style: TextStyle(color: AppColors.textOnPrimary),
         ),
         elevation: 0,
@@ -36,40 +36,55 @@ class DokumantasyonTuruSecimScreen extends StatelessWidget {
         itemCount: turler.length,
         itemBuilder: (context, index) {
           final tur = turler[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => context.push(tur.routePath),
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.textTertiary),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          tur.label,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                          ),
-                        ),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => context.push(tur.routePath),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
-                    ],
+                      child: Row(
+                        children: [
+                          Icon(
+                            tur.icon,
+                            color: AppColors.primaryLight,
+                            size: 30,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              tur.label,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                color: AppColors.primaryLight,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.primaryLight,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              Container(
+                margin: const EdgeInsets.only(left: 55, right: 8),
+                height: 1,
+                color: Colors.grey.shade300,
+              ),
+            ],
           );
         },
       ),
