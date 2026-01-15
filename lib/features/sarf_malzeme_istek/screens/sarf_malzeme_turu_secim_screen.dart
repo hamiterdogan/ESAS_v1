@@ -60,7 +60,7 @@ class _SarfMalzemeTuruSecimScreenState
         backgroundColor: AppColors.scaffoldBackground,
         appBar: AppBar(
           title: const Text(
-            'Sarf Malzeme Türü Seçin',
+            'Yeni Sarf Malzeme İsteği',
             style: TextStyle(color: AppColors.textOnPrimary),
           ),
           elevation: 0,
@@ -106,37 +106,66 @@ class _SarfMalzemeTuruSecimScreenState
   }
 
   Widget _buildSarfTuruTile(SarfMalzemeTuru tur, BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            _navigateToSarfScreen(context, tur);
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.textTertiary)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    tur.ad,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                    ),
-                  ),
+    // Türe göre ikon belirle
+    IconData icon;
+    final turAdi = tur.ad.toLowerCase();
+    if (turAdi.contains('temizlik')) {
+      icon = Icons.cleaning_services;
+    } else if (turAdi.contains('kırtasiye') || turAdi.contains('kirtasiye')) {
+      icon = Icons.description;
+    } else if (turAdi.contains('promosyon')) {
+      icon = Icons.card_giftcard;
+    } else {
+      icon = Icons.shopping_bag;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                _navigateToSarfScreen(context, tur);
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
+                child: Row(
+                  children: [
+                    Icon(icon, color: AppColors.primaryLight, size: 30),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        tur.ad,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.primaryLight,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
+        Container(
+          margin: const EdgeInsets.only(left: 55, right: 8),
+          height: 1,
+          color: Colors.grey.shade300,
+        ),
+      ],
     );
   }
 

@@ -14,7 +14,7 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         title: const Text(
-          'Teknik Destek Türü Seçin',
+          'Yeni Teknik Destek İsteği',
           style: TextStyle(
             color: AppColors.textOnPrimary,
             fontWeight: FontWeight.w600,
@@ -35,6 +35,7 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
         children: [
           _buildMenuItem(
             context,
+            icon: Icons.home_repair_service,
             title: 'İç Hizmetler Destek',
             onTap: () {
               Navigator.push(
@@ -48,9 +49,10 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1),
+          _buildMenuDivider(),
           _buildMenuItem(
             context,
+            icon: Icons.handyman,
             title: 'Teknik Hizmetler Destek',
             onTap: () {
               Navigator.push(
@@ -64,6 +66,7 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
               );
             },
           ),
+          _buildMenuDivider(),
         ],
       ),
     );
@@ -71,29 +74,44 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
 
   Widget _buildMenuItem(
     BuildContext context, {
+    required IconData icon,
     required String title,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        color: AppColors.textOnPrimary,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+            Icon(icon, color: AppColors.primaryLight, size: 30),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.primaryLight,
+                ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey, size: 24),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.primaryLight,
+              size: 24,
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMenuDivider() {
+    return Container(
+      margin: const EdgeInsets.only(left: 55, right: 8),
+      height: 1,
+      color: Colors.grey.shade300,
     );
   }
 }
