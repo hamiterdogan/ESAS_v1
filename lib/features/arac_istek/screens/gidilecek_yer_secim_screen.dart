@@ -5,7 +5,7 @@ import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
 
 // Arşiv: Bu dosya artık kullanılmıyor.
 // İçerik `gidilecek_yer_secim_screen_sil.dart` dosyasına taşındı.
-// "Binek Araç İsteği" ekranında bottom sheet ile yer seçimi yapılıyor.
+// "Binek Araç İstek" ekranında bottom sheet ile yer seçimi yapılıyor.
 
 class GidilecekYerSecimScreen extends ConsumerStatefulWidget {
   final List<GidilecekYer> initiallySelected;
@@ -26,7 +26,7 @@ class _GidilecekYerSecimScreenState
       appBar: AppBar(title: const Text('Gidilecek Yer Seçimi')),
       body: const Center(
         child: Text(
-          'Bu ekran artık kullanılmıyor.\nYer seçimi "Binek Araç İsteği" ekranında yapılıyor.',
+          'Bu ekran artık kullanılmıyor.\nYer seçimi "Binek Araç İstek" ekranında yapılıyor.',
         ),
       ),
     );

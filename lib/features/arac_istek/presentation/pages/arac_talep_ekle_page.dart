@@ -38,7 +38,7 @@ class AracTalepEklePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: PrimaryAppBar(
-        title: 'Araç İsteği Oluştur',
+        title: 'Araç İstek Oluştur',
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.textOnPrimary),
           onPressed: () async {

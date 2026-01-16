@@ -267,7 +267,7 @@ class _AracIstekYukEkleScreenState
     } else if (aracTuru == 'Otobüs') {
       return 'Otobüs İsteği';
     }
-    return '$aracTuru Araç İsteği';
+    return '$aracTuru Araç İstek';
   }
 
   Future<void> _openYerSecimiBottomSheet() async {

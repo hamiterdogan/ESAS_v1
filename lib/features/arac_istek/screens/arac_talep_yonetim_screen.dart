@@ -8,7 +8,7 @@ import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart'
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 
 /// Araç talep yönetim ekranı.
-/// 
+///
 /// GenericTalepYonetimScreen kullanarak ortak yapıyı uygular.
 /// Filtreleme desteği aktiftir.
 class AracTalepYonetimScreen extends ConsumerWidget {
@@ -21,24 +21,28 @@ class AracTalepYonetimScreen extends ConsumerWidget {
         title: 'Araç İsteklerini Yönet',
         addRoute: '/arac/turu_secim',
         enableFilter: true,
-        devamEdenBuilder: (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-          return _AracTalepListesi(
-            taleplerAsync: ref.watch(aracDevamEdenTaleplerProvider),
-            onRefresh: () => ref.refresh(aracDevamEdenTaleplerProvider.future),
-            helper: helper,
-            filterPredicate: filterPredicate,
-            onDurumlarUpdated: onDurumlarUpdated,
-          );
-        },
-        tamamlananBuilder: (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-          return _AracTalepListesi(
-            taleplerAsync: ref.watch(aracTamamlananTaleplerProvider),
-            onRefresh: () => ref.refresh(aracTamamlananTaleplerProvider.future),
-            helper: helper,
-            filterPredicate: filterPredicate,
-            onDurumlarUpdated: onDurumlarUpdated,
-          );
-        },
+        devamEdenBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _AracTalepListesi(
+                taleplerAsync: ref.watch(aracDevamEdenTaleplerProvider),
+                onRefresh: () =>
+                    ref.refresh(aracDevamEdenTaleplerProvider.future),
+                helper: helper,
+                filterPredicate: filterPredicate,
+                onDurumlarUpdated: onDurumlarUpdated,
+              );
+            },
+        tamamlananBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _AracTalepListesi(
+                taleplerAsync: ref.watch(aracTamamlananTaleplerProvider),
+                onRefresh: () =>
+                    ref.refresh(aracTamamlananTaleplerProvider.future),
+                helper: helper,
+                filterPredicate: filterPredicate,
+                onDurumlarUpdated: onDurumlarUpdated,
+              );
+            },
       ),
     );
   }
@@ -74,7 +78,9 @@ class _AracTalepListesi extends ConsumerWidget {
 
         // Apply filter
         final filtered = filterPredicate != null
-            ? data.talepler.where((t) => filterPredicate!(t.onayDurumu)).toList()
+            ? data.talepler
+                  .where((t) => filterPredicate!(t.onayDurumu))
+                  .toList()
             : data.talepler;
 
         if (filtered.isEmpty) {
@@ -84,39 +90,38 @@ class _AracTalepListesi extends ConsumerWidget {
         }
 
         // Sort by date descending
-        final sorted = [...filtered]..sort((a, b) {
-          final aDate = DateTime.tryParse(a.olusturmaTarihi) ?? DateTime(0);
-          final bDate = DateTime.tryParse(b.olusturmaTarihi) ?? DateTime(0);
-          return bDate.compareTo(aDate);
-        });
+        final sorted = [...filtered]
+          ..sort((a, b) {
+            final aDate = DateTime.tryParse(a.olusturmaTarihi) ?? DateTime(0);
+            final bDate = DateTime.tryParse(b.olusturmaTarihi) ?? DateTime(0);
+            return bDate.compareTo(aDate);
+          });
 
         return RefreshIndicator(
           onRefresh: () => onRefresh().then((_) {}),
           child: ListView.separated(
-            padding: const EdgeInsets.only(left: 8, right: 8, top: 12, bottom: 50),
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 8,
+              top: 12,
+              bottom: 50,
+            ),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 6),
-            itemBuilder: (context, index) => _AracTalepCard(
-              talep: sorted[index],
-              helper: helper,
-            ),
+            itemBuilder: (context, index) =>
+                _AracTalepCard(talep: sorted[index], helper: helper),
           ),
         );
       },
       loading: () => helper.buildLoadingState(),
-      error: (error, stack) => helper.buildErrorState(
-        error: error,
-        onRetry: () => onRefresh(),
-      ),
+      error: (error, stack) =>
+          helper.buildErrorState(error: error, onRetry: () => onRefresh()),
     );
   }
 }
 
 class _AracTalepCard extends ConsumerWidget {
-  const _AracTalepCard({
-    required this.talep,
-    required this.helper,
-  });
+  const _AracTalepCard({required this.talep, required this.helper});
 
   final Talep talep;
   final TalepYonetimHelper helper;
@@ -127,7 +132,8 @@ class _AracTalepCard extends ConsumerWidget {
       onayKayitId: talep.onayKayitId,
       onayDurumu: talep.onayDurumu,
       tarih: talep.olusturmaTarihi,
-      title: 'Araç Türü: ${talep.aracTuru?.isNotEmpty == true ? talep.aracTuru! : "Bilinmiyor"}',
+      title:
+          'Araç Türü: ${talep.aracTuru?.isNotEmpty == true ? talep.aracTuru! : "Bilinmiyor"}',
       onTap: () => context.push('/arac/detay/${talep.onayKayitId}'),
       onDelete: () => _deleteTalep(context, ref),
     );

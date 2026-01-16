@@ -297,7 +297,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     } else if (aracTuru == 'Otobüs') {
       return 'Otobüs İsteği';
     }
-    return '$aracTuru Araç İsteği';
+    return '$aracTuru Araç İstek';
   }
 
   @override

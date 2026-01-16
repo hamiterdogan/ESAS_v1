@@ -126,7 +126,7 @@ class _AracIstekOzetBottomSheetState
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Text(
-                                      'Araç İsteği Detayları',
+                                      'Araç İstek Detayları',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -217,7 +217,7 @@ class _AracIstekOzetBottomSheetState
         children: [
           Expanded(
             child: Text(
-              '${widget.talepTipi} Araç İsteğini Gönder',
+              '${widget.talepTipi} Araç İstek Gönder',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
