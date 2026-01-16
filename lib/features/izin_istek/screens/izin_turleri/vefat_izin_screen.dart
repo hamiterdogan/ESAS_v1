@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
@@ -331,26 +332,14 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                     minCharacters: 30,
                   ),
                   const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Switch(
-                        value: _birGunlukIzin,
-                        onChanged: (value) {
-                          setState(() {
-                            _birGunlukIzin = value;
-                          });
-                        },
-                        activeTrackColor: AppColors.gradientStart.withValues(
-                          alpha: 0.5,
-                        ),
-                        activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                      ),
-                      const Text(
-                        '1 günlük izin',
-                        style: TextStyle(color: AppColors.inputLabelColor),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _birGunlukIzin,
+                    label: '1 günlük izin',
+                    onChanged: (value) {
+                      setState(() {
+                        _birGunlukIzin = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -478,7 +467,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.inputLabelColor,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 8),

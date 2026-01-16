@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 
@@ -70,28 +71,17 @@ class _GidilecekYerSecimScreenState
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Switch(
-                  value: _digerEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _digerEnabled = value;
-                      if (value && _digerAddressControllers.isEmpty) {
-                        _digerAddressControllers.add(TextEditingController());
-                      }
-                    });
-                  },
-                  activeTrackColor: AppColors.gradientStart.withValues(
-                    alpha: 0.5,
-                  ),
-                  activeThumbColor: AppColors.gradientEnd,
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text('Diğer', style: TextStyle(fontSize: 13)),
-                ),
-              ],
+            child: CustomSwitchWidget(
+              value: _digerEnabled,
+              label: 'Diğer',
+              onChanged: (value) {
+                setState(() {
+                  _digerEnabled = value;
+                  if (value && _digerAddressControllers.isEmpty) {
+                    _digerAddressControllers.add(TextEditingController());
+                  }
+                });
+              },
             ),
           ),
           if (_digerEnabled)

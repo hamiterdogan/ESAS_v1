@@ -48,7 +48,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text(appBarTitle, style: const TextStyle(color: AppColors.textOnPrimary)),
+        title: Text(
+          appBarTitle,
+          style: const TextStyle(color: AppColors.textOnPrimary),
+        ),
         centerTitle: true,
         elevation: 0,
         flexibleSpace: Container(
@@ -88,46 +91,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),
         child: Container(
-          height: 62,
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.textPrimary.withValues(alpha: 0.15),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: AppColors.scaffoldBackground,
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Ana Sayfa
-              _buildNavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home,
-                label: 'Ana Sayfa',
-                isSelected: _currentIndex == 0,
-                onTap: () => setState(() => _currentIndex = 0),
-              ),
-              // İsteklerim
-              _buildNavItem(
-                icon: Icons.assignment_outlined,
-                activeIcon: Icons.assignment,
-                label: 'İsteklerim',
-                isSelected: _currentIndex == 1,
-                onTap: () => setState(() => _currentIndex = 1),
-              ),
-              // Gelen Kutusu
-              _buildNavItem(
-                icon: Icons.inbox_outlined,
-                activeIcon: Icons.inbox,
-                label: 'Gelen Kutusu',
-                isSelected: _currentIndex == 2,
-                onTap: () => setState(() => _currentIndex = 2),
-              ),
-            ],
+          child: Container(
+            height: 62,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.textPrimary.withValues(alpha: 0.15),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Ana Sayfa
+                _buildNavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home,
+                  label: 'Ana Sayfa',
+                  isSelected: _currentIndex == 0,
+                  onTap: () => setState(() => _currentIndex = 0),
+                ),
+                // İsteklerim
+                _buildNavItem(
+                  icon: Icons.assignment_outlined,
+                  activeIcon: Icons.assignment,
+                  label: 'İsteklerim',
+                  isSelected: _currentIndex == 1,
+                  onTap: () => setState(() => _currentIndex = 1),
+                ),
+                // Gelen Kutusu
+                _buildNavItem(
+                  icon: Icons.inbox_outlined,
+                  activeIcon: Icons.inbox,
+                  label: 'Gelen Kutusu',
+                  isSelected: _currentIndex == 2,
+                  onTap: () => setState(() => _currentIndex = 2),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -66,7 +66,7 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
-                color: AppColors.primaryLight,
+                color: AppColors.primaryDark,
               ),
               maxLines: 1,
               overflow: TextOverflow.visible,

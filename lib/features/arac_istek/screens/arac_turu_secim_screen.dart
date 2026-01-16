@@ -16,7 +16,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
-          'Yeni Araç İstek',
+          'Yeni Araç İsteği',
           style: TextStyle(color: AppColors.textOnPrimary),
         ),
         elevation: 0,

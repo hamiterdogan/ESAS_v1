@@ -524,19 +524,42 @@ class _PersonelSelectorWidgetState
                                   ),
                                 )
                               else
-                                const SizedBox(width: 64),
-                              const Spacer(),
-                              Text(
-                                _currentFilterPage.isEmpty
-                                    ? 'Filtrele'
-                                    : _getFilterTitle(_currentFilterPage),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(width: 0),
+                              if (_currentFilterPage.isNotEmpty)
+                                const SizedBox(width: 12),
+                              Expanded(
+                                child: Align(
+                                  alignment: _currentFilterPage.isEmpty
+                                      ? Alignment.centerLeft
+                                      : Alignment.center,
+                                  child: Text(
+                                    _currentFilterPage.isEmpty
+                                        ? 'Filtrele'
+                                        : _getFilterTitle(_currentFilterPage),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const Spacer(),
-                              const SizedBox(width: 64),
+                              if (_currentFilterPage.isEmpty)
+                                TextButton(
+                                  onPressed: () => setModalState(() {
+                                    localSelectedGorevYeri.clear();
+                                    localSelectedGorev.clear();
+                                    localSelectedPersonel.clear();
+                                  }),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                  ),
+                                  child: const Text(
+                                    'Tüm filtreleri temizle',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                )
+                              else
+                                const SizedBox(width: 0),
                             ],
                           ),
                         ),
@@ -570,7 +593,9 @@ class _PersonelSelectorWidgetState
 
                           // Ana sayfadayken: seçimleri uygula ve sheet'i kapat.
                           setState(() {
-                            _selectedPersonelIds.addAll(localSelectedPersonel);
+                            _selectedPersonelIds
+                              ..clear()
+                              ..addAll(localSelectedPersonel);
 
                             _selectedGorevYeriIds.clear();
                             _selectedGorevIds.clear();
@@ -801,10 +826,10 @@ class _PersonelSelectorWidgetState
                           });
                         },
                         child: Container(
-                          width: 24,
+                          width: 40,
                           height: 24,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.primary
@@ -820,7 +845,7 @@ class _PersonelSelectorWidgetState
                                   child: Icon(
                                     Icons.check,
                                     color: AppColors.textOnPrimary,
-                                    size: 22,
+                                    size: 18,
                                   ),
                                 )
                               : null,
@@ -940,10 +965,10 @@ class _PersonelSelectorWidgetState
                           });
                         },
                         child: Container(
-                          width: 24,
+                          width: 40,
                           height: 24,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.primary
@@ -959,7 +984,7 @@ class _PersonelSelectorWidgetState
                                   child: Icon(
                                     Icons.check,
                                     color: AppColors.textOnPrimary,
-                                    size: 22,
+                                    size: 18,
                                   ),
                                 )
                               : null,
@@ -1209,19 +1234,8 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                 final isSelected = widget.selectedPersonelIds.contains(
                   kisi.personelId,
                 );
-                return CheckboxListTile(
+                return ListTile(
                   dense: true,
-                  value: isSelected,
-                  onChanged: (val) {
-                    setState(() {
-                      if (val == true) {
-                        widget.selectedPersonelIds.add(kisi.personelId);
-                      } else {
-                        widget.selectedPersonelIds.remove(kisi.personelId);
-                      }
-                    });
-                    widget.onSelectionChanged(widget.selectedPersonelIds);
-                  },
                   title: Text(
                     '${kisi.adi} ${kisi.soyadi}',
                     style: TextStyle(
@@ -1231,7 +1245,43 @@ class _PersonelSearchListState extends State<_PersonelSearchList> {
                           : FontWeight.normal,
                     ),
                   ),
-                  activeColor: AppColors.primary,
+                  trailing: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          widget.selectedPersonelIds.remove(kisi.personelId);
+                        } else {
+                          widget.selectedPersonelIds.add(kisi.personelId);
+                        }
+                      });
+                      widget.onSelectionChanged(widget.selectedPersonelIds);
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.primaryLight,
+                          width: 1.5,
+                        ),
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? Center(
+                              child: Icon(
+                                Icons.check,
+                                color: AppColors.textOnPrimary,
+                                size: 18,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
                 );
               },
             ),

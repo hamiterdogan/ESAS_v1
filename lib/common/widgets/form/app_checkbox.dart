@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/constants/app_spacing.dart';
 
 /// Standart uygulama checkbox widget'ı.
@@ -139,14 +140,19 @@ class AppSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (label == null && labelWidget == null) {
-      return Switch(
+      return CustomSwitchWidget(
         value: value,
+        label: '',
         onChanged: enabled ? onChanged : null,
-        activeTrackColor: AppColors.primary,
-        inactiveThumbColor: AppColors.iconSecondary,
-        inactiveTrackColor: AppColors.borderLight,
+        spacing: 0,
+        compact: true,
       );
     }
+
+    final labelText = [
+      if (label != null) label!,
+      if (subtitle != null) subtitle!,
+    ].join('\n');
 
     return InkWell(
       onTap: enabled ? () => onChanged?.call(!value) : null,
@@ -156,42 +162,11 @@ class AppSwitch extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  labelWidget ??
-                      Text(
-                        label!,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: enabled
-                              ? AppColors.textPrimary
-                              : AppColors.textDisabled,
-                        ),
-                      ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: enabled
-                            ? AppColors.textSecondary
-                            : AppColors.textDisabled,
-                      ),
-                    ),
-                  ],
-                ],
+              child: CustomSwitchWidget(
+                value: value,
+                label: labelText,
+                onChanged: enabled ? onChanged : null,
               ),
-            ),
-            Switch(
-              value: value,
-              onChanged: enabled ? onChanged : null,
-              activeTrackColor: AppColors.primary,
-              inactiveThumbColor: AppColors.iconSecondary,
-              inactiveTrackColor: AppColors.borderLight,
             ),
           ],
         ),

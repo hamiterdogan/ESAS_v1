@@ -169,18 +169,8 @@ class _GenericFilterListPageState<T> extends State<GenericFilterListPage<T>> {
                 final isSelected = widget.selectedItems.contains(item);
                 final label = widget.getItemLabel(item);
 
-                return CheckboxListTile(
+                return ListTile(
                   dense: true,
-                  value: isSelected,
-                  onChanged: (val) {
-                    final newSelection = Set<T>.from(widget.selectedItems);
-                    if (val == true) {
-                      newSelection.add(item);
-                    } else {
-                      newSelection.remove(item);
-                    }
-                    widget.onSelectionChanged(newSelection);
-                  },
                   title: Text(
                     label.isEmpty ? 'Belirsiz' : label,
                     style: TextStyle(
@@ -191,10 +181,51 @@ class _GenericFilterListPageState<T> extends State<GenericFilterListPage<T>> {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  activeColor: AppColors.primary,
-                  checkboxShape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                  trailing: GestureDetector(
+                    onTap: () {
+                      final newSelection = Set<T>.from(widget.selectedItems);
+                      if (isSelected) {
+                        newSelection.remove(item);
+                      } else {
+                        newSelection.add(item);
+                      }
+                      widget.onSelectionChanged(newSelection);
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.primaryLight,
+                          width: 1.5,
+                        ),
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? Center(
+                              child: Icon(
+                                Icons.check,
+                                color: AppColors.textOnPrimary,
+                                size: 18,
+                              ),
+                            )
+                          : null,
+                    ),
                   ),
+                  onTap: () {
+                    final newSelection = Set<T>.from(widget.selectedItems);
+                    if (isSelected) {
+                      newSelection.remove(item);
+                    } else {
+                      newSelection.add(item);
+                    }
+                    widget.onSelectionChanged(newSelection);
+                  },
                 );
               },
             ),
@@ -339,9 +370,30 @@ class SelectableListItem extends StatelessWidget {
           color: isSelected ? AppColors.primary : AppColors.textPrimary,
         ),
       ),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: AppColors.primary)
-          : null,
+      trailing: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 24,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.primaryLight,
+              width: 1.5,
+            ),
+            color: isSelected ? AppColors.primary : Colors.transparent,
+          ),
+          child: isSelected
+              ? Center(
+                  child: Icon(
+                    Icons.check,
+                    color: AppColors.textOnPrimary,
+                    size: 18,
+                  ),
+                )
+              : null,
+        ),
+      ),
       onTap: onTap,
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_kategori_models.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/core/utils/thousands_input_formatter.dart';
@@ -1333,31 +1334,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 const SizedBox(width: 12),
                 // KDV Toggle (White background, Button left, label right)
-                Row(
-                  children: [
-                    Switch(
-                      value: _kdvDahilDegil,
-                      activeThumbColor: AppColors.gradientStart,
-                      inactiveTrackColor: AppColors.textOnPrimary,
-                      onChanged: (v) {
-                        setState(() {
-                          _kdvDahilDegil = v;
-                          if (!v) {
-                            _kdvOrani = 0; // Reset rate if unchecked
-                          }
-                        });
-                        _calculateToplamFiyat();
-                      },
-                    ),
-                    const Text(
-                      'KDV Ekle',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.inputLabelColor,
-                      ),
-                    ),
-                  ],
+                CustomSwitchWidget(
+                  value: _kdvDahilDegil,
+                  label: 'KDV Ekle',
+                  onChanged: (v) {
+                    setState(() {
+                      _kdvDahilDegil = v;
+                      if (!v) {
+                        _kdvOrani = 0; // Reset rate if unchecked
+                      }
+                    });
+                    _calculateToplamFiyat();
+                  },
+                  compact: true,
                 ),
               ],
             ),

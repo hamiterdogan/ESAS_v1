@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
@@ -1597,31 +1598,19 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Row(
-                        children: [
-                          Switch(
-                            value: _vadeli,
-                            activeThumbColor: AppColors.gradientStart,
-                            inactiveTrackColor: AppColors.textOnPrimary,
-                            onChanged: (v) {
-                              FocusScope.of(context).unfocus();
-                              setState(() {
-                                _vadeli = v;
-                                if (!v) {
-                                  _odemeVadesi = 1;
-                                }
-                              });
-                            },
-                          ),
-                          const Text(
-                            'Vadeli',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.inputLabelColor,
-                            ),
-                          ),
-                        ],
+                      CustomSwitchWidget(
+                        value: _vadeli,
+                        label: 'Vadeli',
+                        onChanged: (v) {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            _vadeli = v;
+                            if (!v) {
+                              _odemeVadesi = 1;
+                            }
+                          });
+                        },
+                        compact: true,
                       ),
                     ],
                   ),

@@ -57,7 +57,7 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontSize:
                 (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) + 1,
-            color: AppColors.primaryLight,
+            color: AppColors.primaryDark,
           ),
         ),
         const SizedBox(height: 8),
@@ -69,21 +69,15 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
             hintStyle: TextStyle(color: AppColors.textTertiary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isMinCharactersMet ? AppColors.border : AppColors.error,
-              ),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isMinCharactersMet ? AppColors.border : AppColors.error,
-              ),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isMinCharactersMet ? AppColors.primary : AppColors.error,
-              ),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
             filled: true,
             fillColor: AppColors.textOnPrimary,

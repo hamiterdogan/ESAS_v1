@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 
 /// Yönerge PDF kartı ve onay toggle button widget'ı
@@ -90,31 +91,12 @@ class GuidelineCardWithToggle extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         // Onay Toggle Button
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Switch(
-              value: toggleValue,
-              inactiveTrackColor: AppColors.textOnPrimary,
-              onChanged: onToggleChanged,
-              activeThumbColor: AppColors.textOnPrimary,
-              activeTrackColor: AppColors.gradientStart,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                toggleText,
-                style: TextStyle(
-                  color: AppColors.inputLabelColor,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
+        CustomSwitchWidget(
+          value: toggleValue,
+          label: toggleText,
+          onChanged: onToggleChanged,
         ),
       ],
     );
   }
 }
-

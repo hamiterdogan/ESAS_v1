@@ -6,6 +6,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/constants/app_spacing.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/ogrenci/ogrenci_filter_sheet_full.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
@@ -291,11 +292,11 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   String _getFormattedTitle(String aracTuru) {
     if (aracTuru == 'Yük') {
-      return 'Yük Aracı İsteği';
+      return 'Yük Aracı İstek';
     } else if (aracTuru == 'Minibüs') {
-      return 'Minübüs İsteği';
+      return 'Minibüs İstek';
     } else if (aracTuru == 'Otobüs') {
-      return 'Otobüs İsteği';
+      return 'Otobüs İstek';
     }
     return '$aracTuru Araç İstek';
   }
@@ -357,6 +358,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -479,26 +481,15 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   ),
                   const SizedBox(height: 24),
                   // MEB Toggle
-                  Row(
-                    children: [
-                      Switch(
-                        value: _isMEB,
-                        activeTrackColor: AppColors.gradientStart.withValues(
-                          alpha: 0.5,
-                        ),
-                        activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (value) {
-                          FocusScope.of(context).unfocus();
-                          setState(() {
-                            _isMEB = value;
-                          });
-                        },
-                      ),
-                      const Expanded(
-                        child: Text('MEB', style: TextStyle(fontSize: 14)),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _isMEB,
+                    label: 'MEB',
+                    onChanged: (value) {
+                      FocusScope.of(context).unfocus();
+                      setState(() {
+                        _isMEB = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
                   Row(
@@ -514,6 +505,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primary,
                               ),
                           initialDate: _gidilecekTarih,
                           minDate: DateTime.now(),
@@ -544,6 +536,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primary,
                               ),
                           initialHour: _gidisSaat,
                           initialMinute: _gidisDakika,
@@ -584,6 +577,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.primary,
                                   ),
                               initialHour: _donusSaat,
                               initialMinute: _donusDakika,
@@ -613,6 +607,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -707,6 +702,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -2044,6 +2040,25 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                 }
               }
 
+              String _getFilterTitle(String key) {
+                switch (key) {
+                  case 'okul':
+                    return 'Okul';
+                  case 'seviye':
+                    return 'Seviye';
+                  case 'sinif':
+                    return 'Sınıf';
+                  case 'kulup':
+                    return 'Kulüp';
+                  case 'takim':
+                    return 'Takım';
+                  case 'ogrenci':
+                    return 'Öğrenci';
+                  default:
+                    return 'Filtrele';
+                }
+              }
+
               return Column(
                 children: [
                   Container(
@@ -2069,6 +2084,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                   size: 20,
                                   color: AppColors.gradientStart,
                                 ),
+                                SizedBox(width: 8),
                                 Text(
                                   'Geri',
                                   style: TextStyle(
@@ -2080,14 +2096,23 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                             ),
                           )
                         else
-                          const Text(
-                            'Filtrele',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                          const SizedBox(width: 0),
+                        Expanded(
+                          child: Align(
+                            alignment: _currentFilterPage.isEmpty
+                                ? Alignment.centerLeft
+                                : Alignment.center,
+                            child: Text(
+                              _currentFilterPage.isEmpty
+                                  ? 'Filtrele'
+                                  : _getFilterTitle(_currentFilterPage),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        const Spacer(),
+                        ),
                         // Only show 'Temizle' on main page
                         if (_currentFilterPage.isEmpty)
                           TextButton(
@@ -2114,7 +2139,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                               foregroundColor: AppColors.primary,
                             ),
                             child: const Text('Tüm filtreleri temizle'),
-                          ),
+                          )
+                        else
+                          const SizedBox(width: 0),
                       ],
                     ),
                   ),
@@ -2570,22 +2597,89 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final okul = filtered[index];
                     final isSelected = localSelectedOkul.contains(okul);
-                    return CheckboxListTile(
+                    return ListTile(
                       dense: true,
-                      value: isSelected,
-                      onChanged: (val) {
+                      title: Text(
+                        okul,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          innerSetState(() {
+                            if (isSelected) {
+                              localSelectedOkul.remove(okul);
+                            } else {
+                              localSelectedOkul.add(okul);
+                            }
+                            localSelectedSeviye.clear();
+                            localSelectedSinif.clear();
+                            localSelectedKulup.clear();
+                            localSelectedTakim.clear();
+                          });
+
+                          () async {
+                            await _refreshOgrenciFilterData(
+                              localSelectedOkul: localSelectedOkul,
+                              localSelectedSeviye: localSelectedSeviye,
+                              localSelectedSinif: localSelectedSinif,
+                              localSelectedKulup: localSelectedKulup,
+                              localSelectedTakim: localSelectedTakim,
+                              localSelectedOgrenci: localSelectedOgrenci,
+                              rebuild: innerSetState,
+                              autoSelectAllOgrenci: true,
+                            );
+                          }();
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 18,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      onTap: () {
                         innerSetState(() {
-                          if (val == true) {
-                            localSelectedOkul.add(okul);
-                          } else {
+                          if (isSelected) {
                             localSelectedOkul.remove(okul);
+                          } else {
+                            localSelectedOkul.add(okul);
                           }
                           localSelectedSeviye.clear();
                           localSelectedSinif.clear();
@@ -2606,20 +2700,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           );
                         }();
                       },
-                      title: Text(
-                        okul,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      activeColor: AppColors.primary,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
                     );
                   },
                 ),
@@ -2756,22 +2836,89 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final seviye = filtered[index];
                     final isSelected = localSelectedSeviye.contains(seviye);
-                    return CheckboxListTile(
+                    return ListTile(
                       dense: true,
-                      value: isSelected,
-                      onChanged: (val) {
+                      title: Text(
+                        seviye,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          innerSetState(() {
+                            if (isSelected) {
+                              localSelectedSeviye.remove(seviye);
+                            } else {
+                              localSelectedSeviye.add(seviye);
+                            }
+                            localSelectedSinif.clear();
+                            localSelectedKulup.clear();
+                            localSelectedTakim.clear();
+                          });
+
+                          () async {
+                            await _refreshOgrenciFilterData(
+                              localSelectedOkul: localSelectedOkul,
+                              localSelectedSeviye: localSelectedSeviye,
+                              localSelectedSinif: localSelectedSinif,
+                              localSelectedKulup: localSelectedKulup,
+                              localSelectedTakim: localSelectedTakim,
+                              localSelectedOgrenci: localSelectedOgrenci,
+                              rebuild: innerSetState,
+                              updateSeviyeList: false,
+                              autoSelectAllOgrenci: true,
+                            );
+                          }();
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 18,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      onTap: () {
                         innerSetState(() {
-                          if (val == true) {
-                            localSelectedSeviye.add(seviye);
-                          } else {
+                          if (isSelected) {
                             localSelectedSeviye.remove(seviye);
+                          } else {
+                            localSelectedSeviye.add(seviye);
                           }
                           localSelectedSinif.clear();
                           localSelectedKulup.clear();
@@ -2792,20 +2939,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           );
                         }();
                       },
-                      title: Text(
-                        seviye,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      activeColor: AppColors.primary,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
                     );
                   },
                 ),
@@ -2942,22 +3075,89 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final sinif = filtered[index];
                     final isSelected = localSelectedSinif.contains(sinif);
-                    return CheckboxListTile(
+                    return ListTile(
                       dense: true,
-                      value: isSelected,
-                      onChanged: (val) {
+                      title: Text(
+                        sinif,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          innerSetState(() {
+                            if (isSelected) {
+                              localSelectedSinif.remove(sinif);
+                            } else {
+                              localSelectedSinif.add(sinif);
+                            }
+                            localSelectedKulup.clear();
+                            localSelectedTakim.clear();
+                          });
+
+                          () async {
+                            await _refreshOgrenciFilterData(
+                              localSelectedOkul: localSelectedOkul,
+                              localSelectedSeviye: localSelectedSeviye,
+                              localSelectedSinif: localSelectedSinif,
+                              localSelectedKulup: localSelectedKulup,
+                              localSelectedTakim: localSelectedTakim,
+                              localSelectedOgrenci: localSelectedOgrenci,
+                              rebuild: innerSetState,
+                              updateSeviyeList: false,
+                              updateSinifList: false,
+                              autoSelectAllOgrenci: true,
+                            );
+                          }();
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 18,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      onTap: () {
                         innerSetState(() {
-                          if (val == true) {
-                            localSelectedSinif.add(sinif);
-                          } else {
+                          if (isSelected) {
                             localSelectedSinif.remove(sinif);
+                          } else {
+                            localSelectedSinif.add(sinif);
                           }
                           localSelectedKulup.clear();
                           localSelectedTakim.clear();
@@ -2978,20 +3178,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           );
                         }();
                       },
-                      title: Text(
-                        sinif,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      activeColor: AppColors.primary,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
                     );
                   },
                 ),
@@ -3128,22 +3314,89 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final kulup = filtered[index];
                     final isSelected = localSelectedKulup.contains(kulup);
-                    return CheckboxListTile(
+                    return ListTile(
                       dense: true,
-                      value: isSelected,
-                      onChanged: (val) {
+                      title: Text(
+                        kulup,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          innerSetState(() {
+                            if (isSelected) {
+                              localSelectedKulup.remove(kulup);
+                            } else {
+                              localSelectedKulup.add(kulup);
+                            }
+                            localSelectedTakim.clear();
+                          });
+
+                          () async {
+                            await _refreshOgrenciFilterData(
+                              localSelectedOkul: localSelectedOkul,
+                              localSelectedSeviye: localSelectedSeviye,
+                              localSelectedSinif: localSelectedSinif,
+                              localSelectedKulup: localSelectedKulup,
+                              localSelectedTakim: localSelectedTakim,
+                              localSelectedOgrenci: localSelectedOgrenci,
+                              rebuild: innerSetState,
+                              updateSeviyeList: false,
+                              updateSinifList: false,
+                              updateKulupList: false,
+                              autoSelectAllOgrenci: true,
+                            );
+                          }();
+                        },
+                        child: Container(
+                          width: 40,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 18,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                      onTap: () {
                         innerSetState(() {
-                          if (val == true) {
-                            localSelectedKulup.add(kulup);
-                          } else {
+                          if (isSelected) {
                             localSelectedKulup.remove(kulup);
+                          } else {
+                            localSelectedKulup.add(kulup);
                           }
                           localSelectedTakim.clear();
                         });
@@ -3164,20 +3417,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           );
                         }();
                       },
-                      title: Text(
-                        kulup,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      activeColor: AppColors.primary,
-                      checkboxShape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
                     );
                   },
                 ),
@@ -3306,10 +3545,15 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final takim = filtered[index];
                     final isSelected = localSelectedTakim.contains(takim);
@@ -3452,11 +3696,16 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   controller: scrollController,
                   shrinkWrap: true,
                   padding: const EdgeInsets.fromLTRB(18, 0, 0, 16),
                   itemCount: filtered.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 0.5,
+                    thickness: 0.5,
+                    color: Colors.grey.shade300,
+                  ),
                   itemBuilder: (context, index) {
                     final ogrenci = filtered[index];
                     final isSelected = localSelectedOgrenci.contains(

@@ -1,4 +1,5 @@
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -356,27 +357,14 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     horizontal: 0,
                     vertical: 8,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Ba�kas� ad�na istekte bulunuyorum',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Switch(
-                        value: formState.isBaskasiAdinaBakinlari,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (_) {
-                          ref
-                              .read(izinEkleFormProvider.notifier)
-                              .toggleBaskasiAdinaBakinlari();
-                        },
-                        activeThumbColor: AppColors.primary,
-                      ),
-                    ],
+                  child: CustomSwitchWidget(
+                    value: formState.isBaskasiAdinaBakinlari,
+                    label: 'Ba�kas� ad�na istekte bulunuyorum',
+                    onChanged: (_) {
+                      ref
+                          .read(izinEkleFormProvider.notifier)
+                          .toggleBaskasiAdinaBakinlari();
+                    },
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -700,10 +688,15 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     // 2: Evlilik izni (Evlilik se?ilirse)
     if (nedeniAdi.contains('evlilik') || nedeniAdi.contains('evlen')) {
       final dateTitleStyle =
-          Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ??
-          const TextStyle(fontSize: 19, fontWeight: FontWeight.w700);
+          Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          ) ??
+          const TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryDark,
+          );
 
       return Column(
         children: [
@@ -877,22 +870,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Doktor Raporu Var',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-                  ),
-                  Switch(
-                    value: formState.doktorRaporuVar,
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (_) => ref
-                        .read(izinEkleFormProvider.notifier)
-                        .toggleDoktorRaporuVar(),
-                    activeThumbColor: AppColors.primary,
-                  ),
-                ],
+              child: CustomSwitchWidget(
+                value: formState.doktorRaporuVar,
+                label: 'Doktor Raporu Var',
+                onChanged: (_) => ref
+                    .read(izinEkleFormProvider.notifier)
+                    .toggleDoktorRaporuVar(),
               ),
             ),
           ),
@@ -900,26 +883,16 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Acil',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-                  ),
-                  Switch(
-                    value: formState.hastalikDurumu == 'acil',
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (_) {
-                      ref
-                          .read(izinEkleFormProvider.notifier)
-                          .setHastalikDurumu(
-                            formState.hastalikDurumu == 'acil' ? null : 'acil',
-                          );
-                    },
-                    activeThumbColor: AppColors.primary,
-                  ),
-                ],
+              child: CustomSwitchWidget(
+                value: formState.hastalikDurumu == 'acil',
+                label: 'Acil',
+                onChanged: (_) {
+                  ref
+                      .read(izinEkleFormProvider.notifier)
+                      .setHastalikDurumu(
+                        formState.hastalikDurumu == 'acil' ? null : 'acil',
+                      );
+                },
               ),
             ),
           ),
@@ -1231,24 +1204,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           _buildCard(
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '1 g�nl�k izin',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  Switch(
-                    value: formState.gunlukIzinToggle,
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (_) {
-                      ref
-                          .read(izinEkleFormProvider.notifier)
-                          .toggleGunlukIzin();
-                    },
-                    activeThumbColor: AppColors.primary,
-                  ),
-                ],
+              child: CustomSwitchWidget(
+                value: formState.gunlukIzinToggle,
+                label: '1 g�nl�k izin',
+                onChanged: (_) {
+                  ref.read(izinEkleFormProvider.notifier).toggleGunlukIzin();
+                },
               ),
             ),
           ),
@@ -1540,7 +1501,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1627,28 +1588,12 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
                   const SizedBox(height: 4),
                   Divider(color: AppColors.textTertiary, height: 1),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Okudum, anlad�m, onayl�yorum.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      Switch(
-                        value: formState.diniGunOnay,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (_) => ref
-                            .read(izinEkleFormProvider.notifier)
-                            .toggleDiniGunOnay(),
-                        activeThumbColor: AppColors.primary,
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: formState.diniGunOnay,
+                    label: 'Okudum, anlad�m, onayl�yorum.',
+                    onChanged: (_) => ref
+                        .read(izinEkleFormProvider.notifier)
+                        .toggleDiniGunOnay(),
                   ),
                 ],
               ),
@@ -1772,10 +1717,15 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     IzinEkleFormState formState,
   ) {
     final dateTitleStyle =
-        Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700) ??
-        const TextStyle(fontSize: 19, fontWeight: FontWeight.w700);
+        Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: AppColors.primaryDark,
+        ) ??
+        const TextStyle(
+          fontSize: 19,
+          fontWeight: FontWeight.w700,
+          color: AppColors.primaryDark,
+        );
 
     return _buildCard(
       child: Padding(

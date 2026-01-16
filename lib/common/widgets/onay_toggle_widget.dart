@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 
 class OnayToggleWidget extends ConsumerStatefulWidget {
   final Function(bool) onChanged;
@@ -29,30 +29,16 @@ class _OnayToggleWidgetState extends ConsumerState<OnayToggleWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Switch(
-          value: _value,
-          onChanged: (value) {
-            FocusScope.of(context).unfocus();
-            setState(() {
-              _value = value;
-            });
-            widget.onChanged(value);
-          },
-          activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
-          activeThumbColor: AppColors.gradientEnd,
-          inactiveTrackColor: AppColors.textOnPrimary,
-        ),
-        const SizedBox(width: 5),
-        Expanded(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(widget.label, style: const TextStyle(fontSize: 16)),
-          ),
-        ),
-      ],
+    return CustomSwitchWidget(
+      value: _value,
+      label: widget.label,
+      onChanged: (value) {
+        FocusScope.of(context).unfocus();
+        setState(() {
+          _value = value;
+        });
+        widget.onChanged(value);
+      },
     );
   }
 }

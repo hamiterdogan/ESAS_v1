@@ -261,11 +261,11 @@ class _AracIstekYukEkleScreenState
 
   String _getFormattedTitle(String aracTuru) {
     if (aracTuru == 'Yük') {
-      return 'Yük Aracı İsteği';
+      return 'Yük Aracı İstek';
     } else if (aracTuru == 'Minibüs') {
-      return 'Minübüs İsteği';
+      return 'Minibüs İstek';
     } else if (aracTuru == 'Otobüs') {
-      return 'Otobüs İsteği';
+      return 'Otobüs İstek';
     }
     return '$aracTuru Araç İstek';
   }
@@ -413,6 +413,7 @@ class _AracIstekYukEkleScreenState
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -651,6 +652,7 @@ class _AracIstekYukEkleScreenState
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(height: 8),

@@ -339,28 +339,23 @@ class _OgrenciListFilterPageFullState extends State<OgrenciListFilterPageFull> {
           )
         else
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
               controller: widget.scrollController,
               padding: const EdgeInsets.fromLTRB(12, 0, 0, 16),
               itemCount: filtered.length,
+              separatorBuilder: (_, __) => Divider(
+                height: 0.5,
+                thickness: 0.5,
+                color: Colors.grey.shade300,
+              ),
               itemBuilder: (context, index) {
                 final ogrenci = filtered[index];
                 final numara = '${ogrenci.numara}';
                 final isSelected = widget.selectedIds.contains(numara);
                 final fullName = '${ogrenci.adi} ${ogrenci.soyadi}'.trim();
 
-                return CheckboxListTile(
+                return ListTile(
                   dense: true,
-                  value: isSelected,
-                  onChanged: (val) {
-                    final newSelection = Set<String>.from(widget.selectedIds);
-                    if (val == true) {
-                      newSelection.add(numara);
-                    } else {
-                      newSelection.remove(numara);
-                    }
-                    widget.onSelectionChanged(newSelection);
-                  },
                   title: Text(
                     fullName.isEmpty ? 'Öğrenci $numara' : fullName,
                     style: TextStyle(
@@ -378,10 +373,51 @@ class _OgrenciListFilterPageFullState extends State<OgrenciListFilterPageFull> {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  activeColor: AppColors.primary,
-                  checkboxShape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                  trailing: GestureDetector(
+                    onTap: () {
+                      final newSelection = Set<String>.from(widget.selectedIds);
+                      if (isSelected) {
+                        newSelection.remove(numara);
+                      } else {
+                        newSelection.add(numara);
+                      }
+                      widget.onSelectionChanged(newSelection);
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primary
+                              : AppColors.primaryLight,
+                          width: 1.5,
+                        ),
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
+                      ),
+                      child: isSelected
+                          ? Center(
+                              child: Icon(
+                                Icons.check,
+                                color: AppColors.textOnPrimary,
+                                size: 18,
+                              ),
+                            )
+                          : null,
+                    ),
                   ),
+                  onTap: () {
+                    final newSelection = Set<String>.from(widget.selectedIds);
+                    if (isSelected) {
+                      newSelection.remove(numara);
+                    } else {
+                      newSelection.add(numara);
+                    }
+                    widget.onSelectionChanged(newSelection);
+                  },
                 );
               },
             ),

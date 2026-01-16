@@ -301,7 +301,7 @@ class _TimePickerBottomSheetWidgetState
                   TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
+                    color: AppColors.primary,
                   ),
             ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/features/izin_istek/screens/personel_secim_modal.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 
 class PersonelSecimWidget extends ConsumerStatefulWidget {
@@ -41,42 +42,21 @@ class _PersonelSecimWidgetState extends ConsumerState<PersonelSecimWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Toggle Button
-        Row(
-          children: [
-            Switch(
-              value: _basaksiAdinaIstekte,
-              onChanged: (value) {
-                setState(() {
-                  _basaksiAdinaIstekte = value;
-                  if (!value) {
-                    _secilenPersonel = null;
-                  }
-                });
-                // Filtre sıfırla
-                ref
-                    .read(personelSecimSearchQueryProvider.notifier)
-                    .setQuery('');
-                widget.onToggleChanged?.call(value);
-                widget.onPersonelSelected?.call(
-                  value ? _secilenPersonel : null,
-                );
-              },
-              activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
-              activeThumbColor: AppColors.gradientEnd,
-              inactiveTrackColor: AppColors.textOnPrimary,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Başkası adına istekte bulunuyorum',
-                  style: TextStyle(fontSize: 14, color: AppColors.primaryLight),
-                ),
-              ),
-            ),
-          ],
+        CustomSwitchWidget(
+          value: _basaksiAdinaIstekte,
+          label: 'Başkası adına istekte bulunuyorum',
+          onChanged: (value) {
+            setState(() {
+              _basaksiAdinaIstekte = value;
+              if (!value) {
+                _secilenPersonel = null;
+              }
+            });
+            // Filtre sıfırla
+            ref.read(personelSecimSearchQueryProvider.notifier).setQuery('');
+            widget.onToggleChanged?.call(value);
+            widget.onPersonelSelected?.call(value ? _secilenPersonel : null);
+          },
         ),
         const SizedBox(height: 8),
         // Personel Seçim Widget (toggle aktif olduğunda göster)

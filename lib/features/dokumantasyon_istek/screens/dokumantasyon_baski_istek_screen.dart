@@ -5,6 +5,7 @@ import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokuman_tur_model.dart';
 import 'package:flutter/material.dart';
@@ -993,90 +994,39 @@ class _DokumantasyonBaskiIstekScreenState
                 const SizedBox(height: 24),
 
                 // Renkli Baskı Toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _isRenkliBaski,
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: AppColors.textOnPrimary,
-                      onChanged: (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _isRenkliBaski = value;
-                        });
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Renkli Baskı',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ),
-                  ],
+                CustomSwitchWidget(
+                  value: _isRenkliBaski,
+                  label: 'Renkli Baskı',
+                  onChanged: (value) {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      _isRenkliBaski = value;
+                    });
+                  },
                 ),
 
                 // Arkalı Önlü Baskı Toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _isArkaliOnlu,
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: AppColors.textOnPrimary,
-                      onChanged: (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _isArkaliOnlu = value;
-                        });
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Arkalı Önlü Baskı',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ),
-                  ],
+                CustomSwitchWidget(
+                  value: _isArkaliOnlu,
+                  label: 'Arkalı Önlü Baskı',
+                  onChanged: (value) {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      _isArkaliOnlu = value;
+                    });
+                  },
                 ),
 
                 // Çoğaltılacak kopya elden gönderilecektir Toggle
-                Row(
-                  children: [
-                    Switch(
-                      value: _isKopyaElden,
-                      activeTrackColor: AppColors.gradientStart.withValues(
-                        alpha: 0.5,
-                      ),
-                      activeThumbColor: AppColors.gradientEnd,
-                      inactiveTrackColor: AppColors.textOnPrimary,
-                      onChanged: (value) {
-                        FocusScope.of(context).unfocus();
-                        setState(() {
-                          _isKopyaElden = value;
-                        });
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Çoğaltılacak kopya elden teslim edilecektir',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.primaryLight,
-                        ),
-                      ),
-                    ),
-                  ],
+                CustomSwitchWidget(
+                  value: _isKopyaElden,
+                  label: 'Çoğaltılacak kopya elden teslim edilecektir',
+                  onChanged: (value) {
+                    FocusScope.of(context).unfocus();
+                    setState(() {
+                      _isKopyaElden = value;
+                    });
+                  },
                 ),
                 if (!_isKopyaElden) ...[
                   const SizedBox(height: 24),

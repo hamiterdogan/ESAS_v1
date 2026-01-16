@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
@@ -278,31 +279,19 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                   const SizedBox(height: 24),
 
                   // 1 günlük izin toggle
-                  Row(
-                    children: [
-                      Switch(
-                        value: _birGunlukIzin,
-                        onChanged: (value) {
-                          setState(() {
-                            _birGunlukIzin = value;
-                            // 1 günlük izin aktif edildiğinde bitiş saati 17:30 olsun
-                            if (value) {
-                              _bitisSaat = 17;
-                              _bitisDakika = 30;
-                            }
-                          });
-                        },
-                        activeTrackColor: AppColors.gradientStart.withValues(
-                          alpha: 0.5,
-                        ),
-                        activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                      ),
-                      const Text(
-                        '1 günlük izin',
-                        style: TextStyle(color: AppColors.inputLabelColor),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _birGunlukIzin,
+                    label: '1 günlük izin',
+                    onChanged: (value) {
+                      setState(() {
+                        _birGunlukIzin = value;
+                        // 1 günlük izin aktif edildiğinde bitiş saati 17:30 olsun
+                        if (value) {
+                          _bitisSaat = 17;
+                          _bitisDakika = 30;
+                        }
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -456,35 +445,14 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Acil Toggle
-                  Row(
-                    children: [
-                      Switch(
-                        value: _acil,
-                        activeTrackColor: AppColors.gradientStart.withValues(
-                          alpha: 0.5,
-                        ),
-                        activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (value) {
-                          setState(() {
-                            _acil = value;
-                          });
-                        },
-                      ),
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: const Text(
-                            'Acil',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.inputLabelColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _acil,
+                    label: 'Acil',
+                    onChanged: (value) {
+                      setState(() {
+                        _acil = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
                   // Girilmeyen Ders Saati Spinner
@@ -506,7 +474,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.inputLabelColor,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -543,34 +511,17 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Doktor Raporu Var Toggle
-                  Row(
-                    children: [
-                      Switch(
-                        value: _doktorRaporuVar,
-                        activeTrackColor: AppColors.gradientStart.withValues(
-                          alpha: 0.5,
-                        ),
-                        activeThumbColor: AppColors.gradientEnd,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (value) {
-                          setState(() {
-                            _doktorRaporuVar = value;
-                            if (!value) {
-                              _doktorRaporuFile = null;
-                            }
-                          });
-                        },
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Doktor Raporu Var',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.inputLabelColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _doktorRaporuVar,
+                    label: 'Doktor Raporu Var',
+                    onChanged: (value) {
+                      setState(() {
+                        _doktorRaporuVar = value;
+                        if (!value) {
+                          _doktorRaporuFile = null;
+                        }
+                      });
+                    },
                   ),
 
                   // Doktor Raporu Dosya Yükleme

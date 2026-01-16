@@ -412,7 +412,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.inputLabelColor,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 8),

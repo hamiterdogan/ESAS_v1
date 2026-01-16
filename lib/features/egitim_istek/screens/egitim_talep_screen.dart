@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
@@ -1732,32 +1733,15 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   ),
                   const SizedBox(height: 16),
                   // Onay Toggle Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Switch(
-                        value: _agreeWithDocuments,
-                        inactiveTrackColor: AppColors.textOnPrimary,
-                        onChanged: (value) {
-                          setState(() {
-                            _agreeWithDocuments = value;
-                          });
-                        },
-                        activeThumbColor: AppColors.textOnPrimary,
-                        activeTrackColor: AppColors.gradientStart,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Genelgeyi ve protokolü okudum, anladım, onaylıyorum',
-                          style: TextStyle(
-                            color: AppColors.inputLabelColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+                  CustomSwitchWidget(
+                    value: _agreeWithDocuments,
+                    label:
+                        'Genelgeyi ve protokolü okudum, anladım, onaylıyorum',
+                    onChanged: (value) {
+                      setState(() {
+                        _agreeWithDocuments = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                   DecoratedBox(
