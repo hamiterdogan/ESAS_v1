@@ -747,39 +747,80 @@ class _PersonelSelectorWidgetState
           }),
         ),
         Expanded(
-          child: ListView(
+          child: ListView.separated(
             shrinkWrap: true,
-            children: _gorevYerleri.map((yer) {
+            itemCount: _gorevYerleri.length,
+            separatorBuilder: (context, index) =>
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+            itemBuilder: (context, index) {
+              final yer = _gorevYerleri[index];
               final isSelected = localSelectedGorevYeri.contains(yer.id);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedGorevYeri.add(yer.id);
-                    } else {
-                      localSelectedGorevYeri.remove(yer.id);
-                    }
-                    _syncPersonelSelectionFromFilters(
-                      localSelectedGorevYeri,
-                      localSelectedGorev,
-                      localSelectedPersonel,
-                    );
-                  });
-                },
-                title: Text(
-                  yer.gorevYeriAdi,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Text(
+                          yer.gorevYeriAdi,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: GestureDetector(
+                        onTap: () {
+                          setModalState(() {
+                            if (isSelected) {
+                              localSelectedGorevYeri.remove(yer.id);
+                            } else {
+                              localSelectedGorevYeri.add(yer.id);
+                            }
+                            _syncPersonelSelectionFromFilters(
+                              localSelectedGorevYeri,
+                              localSelectedGorev,
+                              localSelectedPersonel,
+                            );
+                          });
+                        },
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 22,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                activeColor: AppColors.primary,
               );
-            }).toList(),
+            },
           ),
         ),
       ],
@@ -845,39 +886,80 @@ class _PersonelSelectorWidgetState
           }),
         ),
         Expanded(
-          child: ListView(
+          child: ListView.separated(
             shrinkWrap: true,
-            children: filteredGorevler.map((gorev) {
+            itemCount: filteredGorevler.length,
+            separatorBuilder: (context, index) =>
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+            itemBuilder: (context, index) {
+              final gorev = filteredGorevler[index];
               final isSelected = localSelectedGorev.contains(gorev.id);
-              return CheckboxListTile(
-                dense: true,
-                value: isSelected,
-                onChanged: (val) {
-                  setModalState(() {
-                    if (val == true) {
-                      localSelectedGorev.add(gorev.id);
-                    } else {
-                      localSelectedGorev.remove(gorev.id);
-                    }
-                    _syncPersonelSelectionFromFilters(
-                      localSelectedGorevYeri,
-                      localSelectedGorev,
-                      localSelectedPersonel,
-                    );
-                  });
-                },
-                title: Text(
-                  gorev.gorevAdi,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 15),
+                        child: Text(
+                          gorev.gorevAdi,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 15),
+                      child: GestureDetector(
+                        onTap: () {
+                          setModalState(() {
+                            if (isSelected) {
+                              localSelectedGorev.remove(gorev.id);
+                            } else {
+                              localSelectedGorev.add(gorev.id);
+                            }
+                            _syncPersonelSelectionFromFilters(
+                              localSelectedGorevYeri,
+                              localSelectedGorev,
+                              localSelectedPersonel,
+                            );
+                          });
+                        },
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryLight,
+                              width: 1.5,
+                            ),
+                            color: isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Icon(
+                                    Icons.check,
+                                    color: AppColors.textOnPrimary,
+                                    size: 22,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                activeColor: AppColors.primary,
               );
-            }).toList(),
+            },
           ),
         ),
       ],
