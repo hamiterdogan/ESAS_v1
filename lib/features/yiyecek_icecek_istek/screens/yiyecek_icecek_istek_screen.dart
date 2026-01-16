@@ -15,6 +15,7 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_ikr
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_ekle_req.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/widgets/yiyecek_icecek_ozet_bottom_sheet.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 // Add this for Success/Failure checks
 
 class YiyecekIcecekIstekScreen extends ConsumerStatefulWidget {
@@ -48,10 +49,18 @@ class _YiyecekIcecekIstekScreenState
 
   final List<YiyecekIcecekIkramData> _addedIkramlar = [];
 
+  // Initial values for form data tracking
+  late DateTime? _initialSelectedDate;
+  late String? _initialSelectedDonem;
+  late String? _initialSelectedEtkinlik;
+
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
+    _initialSelectedDate = _selectedDate;
+    _initialSelectedDonem = _selectedDonem;
+    _initialSelectedEtkinlik = _selectedEtkinlik;
   }
 
   @override
@@ -85,6 +94,38 @@ class _YiyecekIcecekIstekScreenState
     } else {
       _selectedBinaKodlari.add(binaKodu);
     }
+  }
+
+  bool _isSameDate(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return a == b;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  bool _hasFormData() {
+    // Check if any building is selected
+    if (_selectedBinaKodlari.isNotEmpty) return true;
+    // Check if date is different from initial
+    if (!_isSameDate(_selectedDate, _initialSelectedDate)) return true;
+    // Check if donem is selected
+    if (_selectedDonem != null && _selectedDonem != _initialSelectedDonem)
+      return true;
+    // Check if etkinlik is selected
+    if (_selectedEtkinlik != null &&
+        _selectedEtkinlik != _initialSelectedEtkinlik)
+      return true;
+    // Check if custom etkinlik has text
+    if (_customEtkinlikController.text.trim().isNotEmpty) return true;
+    // Check if ikram yeri has text
+    if (_ikramYeriController.text.trim().isNotEmpty) return true;
+    // Check if aciklama has text
+    if (_aciklamaController.text.trim().isNotEmpty) return true;
+    // Check if any ikram items are added
+    if (_addedIkramlar.isNotEmpty) return true;
+    return false;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return AppDialogs.showFormExitConfirm(context);
   }
 
   String _buildSelectedText(List<SatinAlmaBina> binalar) {
@@ -995,237 +1036,84 @@ class _YiyecekIcecekIstekScreenState
   Widget build(BuildContext context) {
     final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        if (_hasFormData()) {
+          final shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            context.pop();
+          }
+        } else {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
       },
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: AppBar(
-          centerTitle: false,
-          title: const Text(
-            'Yiyecek İçecek İstek',
-            style: TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            centerTitle: false,
+            title: const Text(
+              'Yiyecek İçecek İstek',
+              style: TextStyle(
+                color: AppColors.textOnPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: AppColors.gradientStart,
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () async {
+                if (_hasFormData()) {
+                  final shouldPop = await _showExitConfirmationDialog();
+                  if (shouldPop && context.mounted) {
+                    context.pop();
+                  }
+                } else {
+                  if (context.mounted) {
+                    context.pop();
+                  }
+                }
+              },
             ),
           ),
-          backgroundColor: AppColors.gradientStart,
-          elevation: 0,
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-            onPressed: () => context.pop(),
-          ),
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Okul Seçim Widget
-              Text(
-                'İkramın yapılacağı okul/bina seçiniz',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.inputLabelColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showBinaBottomSheet,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: binalarAsync.when(
-                          data: (binalar) => Text(
-                            _buildSelectedText(binalar),
-                            style: TextStyle(
-                              color: _selectedBinaKodlari.isEmpty
-                                  ? Colors.grey.shade600
-                                  : AppColors.textPrimary,
-                              fontSize: 16,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          loading: () => const Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text('Yükleniyor...'),
-                            ],
-                          ),
-                          error: (err, stack) => const Text(
-                            'Liste alınamadı',
-                            style: TextStyle(color: AppColors.error),
-                          ),
-                        ),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                    ],
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Okul Seçim Widget
+                Text(
+                  'İkramın yapılacağı okul/bina seçiniz',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.inputLabelColor,
                   ),
                 ),
-              ),
-              if (_selectedBinaKodlari.isNotEmpty)
-                binalarAsync.when(
-                  data: (binalar) => TextButton.icon(
-                    onPressed: () => _showSelectedBinalarSheet(binalar),
-                    icon: const Icon(Icons.list),
-                    label: Text(
-                      'Seçilen Okullar (${_selectedBinaKodlari.length})',
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.gradientStart,
-                      padding: EdgeInsets.zero,
-                      alignment: Alignment.centerLeft,
-                    ),
-                  ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
-
-              const SizedBox(height: 16),
-
-              // Etkinlik Tarihi ve Dönem Row
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Etkinlik Tarihi
-                  Expanded(
-                    child: DatePickerBottomSheetWidget(
-                      label: 'Etkinlik Tarihi',
-                      labelStyle: Theme.of(context).textTheme.titleSmall
-                          ?.copyWith(
-                            fontSize:
-                                (Theme.of(
-                                      context,
-                                    ).textTheme.titleSmall?.fontSize ??
-                                    14) +
-                                1,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.inputLabelColor,
-                          ),
-                      initialDate: _selectedDate,
-                      onDateChanged: (date) {
-                        setState(() {
-                          _selectedDate = date;
-                        });
-                      },
-                      placeholder: 'Tarih',
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Dönem
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dönem',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.inputLabelColor,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        GestureDetector(
-                          onTap: _showDonemBottomSheet,
-                          child: Focus(
-                            focusNode: _donemFocusNode,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.textOnPrimary,
-                                border: Border.all(color: AppColors.border),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      _selectedDonem ?? 'Seçiniz',
-                                      style: TextStyle(
-                                        color: _selectedDonem == null
-                                            ? Colors.grey.shade600
-                                            : AppColors.textPrimary,
-                                        fontSize: 16,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.arrow_drop_down,
-                                    color: Colors.grey,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Etkinlik Adı Seçimi
-              Text(
-                'Etkinlik Adı',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.inputLabelColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showEtkinlikBottomSheet,
-                child: Focus(
-                  focusNode: _etkinlikFocusNode,
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _showBinaBottomSheet,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(
@@ -1240,16 +1128,36 @@ class _YiyecekIcecekIstekScreenState
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Flexible(
-                          child: Text(
-                            _selectedEtkinlik ?? 'Seçiniz',
-                            style: TextStyle(
-                              color: _selectedEtkinlik == null
-                                  ? Colors.grey.shade600
-                                  : AppColors.textPrimary,
-                              fontSize: 16,
+                        Expanded(
+                          child: binalarAsync.when(
+                            data: (binalar) => Text(
+                              _buildSelectedText(binalar),
+                              style: TextStyle(
+                                color: _selectedBinaKodlari.isEmpty
+                                    ? Colors.grey.shade600
+                                    : AppColors.textPrimary,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            loading: () => const Row(
+                              children: [
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text('Yükleniyor...'),
+                              ],
+                            ),
+                            error: (err, stack) => const Text(
+                              'Liste alınamadı',
+                              style: TextStyle(color: AppColors.error),
+                            ),
                           ),
                         ),
                         const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -1257,16 +1165,219 @@ class _YiyecekIcecekIstekScreenState
                     ),
                   ),
                 ),
-              ),
+                if (_selectedBinaKodlari.isNotEmpty)
+                  binalarAsync.when(
+                    data: (binalar) => TextButton.icon(
+                      onPressed: () => _showSelectedBinalarSheet(binalar),
+                      icon: const Icon(Icons.list),
+                      label: Text(
+                        'Seçilen Okullar (${_selectedBinaKodlari.length})',
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.gradientStart,
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.centerLeft,
+                      ),
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
 
-              // "Diğer" seçildiyse manuel giriş
-              if (_selectedEtkinlik == 'Diğer') ...[
                 const SizedBox(height: 16),
+
+                // Etkinlik Tarihi ve Dönem Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Etkinlik Tarihi
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        label: 'Etkinlik Tarihi',
+                        labelStyle: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              fontSize:
+                                  (Theme.of(
+                                        context,
+                                      ).textTheme.titleSmall?.fontSize ??
+                                      14) +
+                                  1,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.inputLabelColor,
+                            ),
+                        initialDate: _selectedDate,
+                        onDateChanged: (date) {
+                          setState(() {
+                            _selectedDate = date;
+                          });
+                        },
+                        placeholder: 'Tarih',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Dönem
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dönem',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.inputLabelColor,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          GestureDetector(
+                            onTap: _showDonemBottomSheet,
+                            child: Focus(
+                              focusNode: _donemFocusNode,
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.textOnPrimary,
+                                  border: Border.all(color: AppColors.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        _selectedDonem ?? 'Seçiniz',
+                                        style: TextStyle(
+                                          color: _selectedDonem == null
+                                              ? Colors.grey.shade600
+                                              : AppColors.textPrimary,
+                                          fontSize: 16,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.arrow_drop_down,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Etkinlik Adı Seçimi
+                Text(
+                  'Etkinlik Adı',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.inputLabelColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _showEtkinlikBottomSheet,
+                  child: Focus(
+                    focusNode: _etkinlikFocusNode,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnPrimary,
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              _selectedEtkinlik ?? 'Seçiniz',
+                              style: TextStyle(
+                                color: _selectedEtkinlik == null
+                                    ? Colors.grey.shade600
+                                    : AppColors.textPrimary,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // "Diğer" seçildiyse manuel giriş
+                if (_selectedEtkinlik == 'Diğer') ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _customEtkinlikController,
+                    focusNode: _customEtkinlikFocusNode,
+                    decoration: InputDecoration(
+                      hintText: 'Etkinlik adını yazınız',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: AppColors.border),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 16),
+                // İkram Yapılacak Yer
+                Text(
+                  'İkram Yapılacak Yer',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.inputLabelColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 TextField(
-                  controller: _customEtkinlikController,
-                  focusNode: _customEtkinlikFocusNode,
+                  controller: _ikramYeriController,
+                  focusNode: _ikramYeriFocusNode,
                   decoration: InputDecoration(
-                    hintText: 'Etkinlik adını yazınız',
+                    hintText: 'Bahçe, study vb. belirtiniz',
                     hintStyle: TextStyle(color: Colors.grey.shade400),
                     filled: true,
                     fillColor: AppColors.textOnPrimary,
@@ -1284,301 +1395,271 @@ class _YiyecekIcecekIstekScreenState
                     ),
                   ),
                 ),
-              ],
+                const SizedBox(height: 16),
 
-              const SizedBox(height: 16),
-              // İkram Yapılacak Yer
-              Text(
-                'İkram Yapılacak Yer',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.inputLabelColor,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _ikramYeriController,
-                focusNode: _ikramYeriFocusNode,
-                decoration: InputDecoration(
-                  hintText: 'Bahçe, study vb. belirtiniz',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  filled: true,
-                  fillColor: AppColors.textOnPrimary,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.border),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+                // Eklenen İkramlar Listesi
+                if (_addedIkramlar.isNotEmpty) ...[
+                  ..._addedIkramlar.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final ikram = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Slidable(
+                        key: ValueKey(ikram),
+                        endActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          children: [
+                            CustomSlidableAction(
+                              onPressed: (context) async {
+                                final result =
+                                    await Navigator.push<
+                                      YiyecekIcecekIkramData
+                                    >(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            YiyecekIcecekIkramEkleScreen(
+                                              existingData: ikram,
+                                            ),
+                                      ),
+                                    );
 
-              // Eklenen İkramlar Listesi
-              if (_addedIkramlar.isNotEmpty) ...[
-                ..._addedIkramlar.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final ikram = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Slidable(
-                      key: ValueKey(ikram),
-                      endActionPane: ActionPane(
-                        motion: const ScrollMotion(),
-                        children: [
-                          CustomSlidableAction(
-                            onPressed: (context) async {
-                              final result =
-                                  await Navigator.push<YiyecekIcecekIkramData>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          YiyecekIcecekIkramEkleScreen(
-                                            existingData: ikram,
-                                          ),
+                                if (result != null) {
+                                  setState(() {
+                                    _addedIkramlar[index] = result;
+                                  });
+                                }
+                              },
+                              backgroundColor: AppColors.primary,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    bottomLeft: Radius.circular(12),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.edit,
+                                      size: 24,
+                                      color: AppColors.textOnPrimary,
                                     ),
-                                  );
-
-                              if (result != null) {
-                                setState(() {
-                                  _addedIkramlar[index] = result;
-                                });
-                              }
-                            },
-                            backgroundColor: AppColors.primary,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  bottomLeft: Radius.circular(12),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      'Düzenle',
+                                      style: TextStyle(
+                                        color: AppColors.textOnPrimary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.edit,
-                                    size: 24,
-                                    color: AppColors.textOnPrimary,
+                            ),
+                            CustomSlidableAction(
+                              onPressed: (context) {
+                                setState(() {
+                                  _addedIkramlar.removeAt(index);
+                                });
+                              },
+                              backgroundColor: AppColors.error,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: AppColors.error,
+                                  borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(12),
+                                    bottomRight: Radius.circular(12),
                                   ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    'Düzenle',
-                                    style: TextStyle(
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.delete,
+                                      size: 24,
                                       color: AppColors.textOnPrimary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
                                     ),
-                                    textAlign: TextAlign.center,
+                                    SizedBox(height: 6),
+                                    Text(
+                                      'Sil',
+                                      style: TextStyle(
+                                        color: AppColors.textOnPrimary,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.textOnPrimary,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.shade200.withValues(
+                                  alpha: 0.5,
+                                ),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ikram.secilenIkramlar.join(", "),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${ikram.toplamAdet} kişi',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Text(
+                                    '${ikram.baslangicSaati} - ${ikram.bitisSaati}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey.shade700,
+                                    ),
                                   ),
                                 ],
                               ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 16),
+                ],
+
+                // İkram Ekle Butonu
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: InkWell(
+                    onTap: () async {
+                      final result =
+                          await Navigator.push<YiyecekIcecekIkramData>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const YiyecekIcecekIkramEkleScreen(),
+                            ),
+                          );
+
+                      if (result != null) {
+                        setState(() {
+                          _addedIkramlar.add(result);
+                        });
+                        // Focus on submit button and hide keyboard
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (!context.mounted) return;
+                          FocusScope.of(context).unfocus();
+                          if (_submitFocusNode.canRequestFocus) {
+                            _submitFocusNode.requestFocus();
+                          }
+                        });
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.textOnPrimary,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'İkram Ekle',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.normal,
+                              fontSize: 16,
                             ),
                           ),
-                          CustomSlidableAction(
-                            onPressed: (context) {
-                              setState(() {
-                                _addedIkramlar.removeAt(index);
-                              });
-                            },
-                            backgroundColor: AppColors.error,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                color: AppColors.error,
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(12),
-                                  bottomRight: Radius.circular(12),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              child: const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.delete,
-                                    size: 24,
-                                    color: AppColors.textOnPrimary,
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    'Sil',
-                                    style: TextStyle(
-                                      color: AppColors.textOnPrimary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
+                          const Text(
+                            '+',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w300,
+                              height: 1.0,
                             ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.textOnPrimary,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.shade200.withValues(
-                                alpha: 0.5,
-                              ),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ikram.secilenIkramlar.join(", "),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text(
-                                  '${ikram.toplamAdet} kişi',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                const SizedBox(width: 15),
-                                Text(
-                                  '${ikram.baslangicSaati} - ${ikram.bitisSaati}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    focusNode: _submitFocusNode,
+                    onPressed: _validateAndSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gradientStart,
+                      foregroundColor: AppColors.textOnPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      'Gönder',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  );
-                }),
-                const SizedBox(height: 16),
+                  ),
+                ),
+                const SizedBox(height: 32),
               ],
-
-              // İkram Ekle Butonu
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: InkWell(
-                  onTap: () async {
-                    final result = await Navigator.push<YiyecekIcecekIkramData>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const YiyecekIcecekIkramEkleScreen(),
-                      ),
-                    );
-
-                    if (result != null) {
-                      setState(() {
-                        _addedIkramlar.add(result);
-                      });
-                      // Focus on submit button and hide keyboard
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (!context.mounted) return;
-                        FocusScope.of(context).unfocus();
-                        if (_submitFocusNode.canRequestFocus) {
-                          _submitFocusNode.requestFocus();
-                        }
-                      });
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.textOnPrimary,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'İkram Ekle',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.normal,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const Text(
-                          '+',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w300,
-                            height: 1.0,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              AciklamaFieldWidget(
-                controller: _aciklamaController,
-                focusNode: _aciklamaFocusNode,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  focusNode: _submitFocusNode,
-                  onPressed: _validateAndSubmit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    foregroundColor: AppColors.textOnPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Gönder',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/egitim_istek/screens/egitim_ucretleri_screen.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
@@ -28,6 +29,8 @@ class EgitimTalepScreen extends ConsumerStatefulWidget {
 }
 
 class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
+  late DateTime _initialBaslangicTarihi;
+  late DateTime _initialBitisTarihi;
   late DateTime _baslangicTarihi;
   late DateTime _bitisTarihi;
   int _baslangicSaat = 8;
@@ -104,8 +107,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _baslangicTarihi = DateTime.now();
-    _bitisTarihi = DateTime.now().add(const Duration(days: 7));
+    _initialBaslangicTarihi = DateTime.now();
+    _initialBitisTarihi = DateTime.now().add(const Duration(days: 7));
+    _baslangicTarihi = _initialBaslangicTarihi;
+    _bitisTarihi = _initialBitisTarihi;
     // Eğitim adlarını yükle
     if (!_egitimAdlariYuklendi) {
       _fetchEgitimAdlari();
@@ -275,6 +280,17 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
 
   bool _hasFormData() {
     // Temel form alanlarını kontrol et
+    if (!_isSameDate(_baslangicTarihi, _initialBaslangicTarihi)) return true;
+    if (!_isSameDate(_bitisTarihi, _initialBitisTarihi)) return true;
+    if (_baslangicSaat != 8 || _baslangicDakika != 0) return true;
+    if (_bitisSaat != 17 || _bitisDakika != 30) return true;
+    if (_egitimGun != 0 || _egitimSaat != 1) return true;
+    if (_girileymeyenDersSaati != 0) return true;
+    if (_topluIstekte) return true;
+    if (_online) return true;
+    if (_ucretsiz) return true;
+    if (_egitimYeriYurtDisi) return true;
+    if (_agreeWithDocuments) return true;
     if (_secilenEgitimAdi != null) return true;
     if (_secilenEgitimTuru != null) return true;
     if (_egitimSirketiAdi.isNotEmpty) return true;
@@ -286,6 +302,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     if (_topluIstekte && _selectedPersonelIdsForTopluIstek.isNotEmpty) {
       return true;
     }
+    if (_selectedPersonelIdsForPaylasum.isNotEmpty) return true;
     if (_ozelEgitimAdiController.text.isNotEmpty) return true;
     if (_egitimTeklifIcerikController.text.isNotEmpty) return true;
     if (_selectedFiles.isNotEmpty) return true;
@@ -295,94 +312,12 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     return false;
   }
 
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
   Future<bool> _showExitConfirmationDialog() async {
-    return await showModalBottomSheet<bool>(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (BuildContext context) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.textOnPrimary,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: AppColors.warning,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Uyarı',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Forma girmiş olduğunuz veriler kaybolacaktır. Önceki ekrana dönmek istediğinizden emin misiniz?',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(
-                              color: AppColors.gradientStart,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Vazgeç',
-                            style: TextStyle(
-                              color: AppColors.gradientStart,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.warning,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Tamam',
-                            style: TextStyle(
-                              color: AppColors.textOnPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 60),
-                ],
-              ),
-            );
-          },
-        ) ??
-        false;
+    return AppDialogs.showFormExitConfirm(context);
   }
 
   @override

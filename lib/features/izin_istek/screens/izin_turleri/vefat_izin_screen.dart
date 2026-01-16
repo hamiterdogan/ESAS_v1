@@ -25,6 +25,8 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   final _aciklamaFocusNode = FocusNode();
   final _adresFocusNode = FocusNode();
   final _yakinlikDerecesiFocusNode = FocusNode();
+  DateTime? _initialBaslangicTarihi;
+  DateTime? _initialBitisTarihi;
   DateTime? _baslangicTarihi;
   DateTime? _bitisTarihi;
   int _girileymeyenDersSaati = 0;
@@ -51,8 +53,10 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     super.initState();
     // Varsayılan tarih atamaları
     final today = DateTime.now();
-    _baslangicTarihi = today;
-    _bitisTarihi = _getNextSelectableDay(today);
+    _initialBaslangicTarihi = today;
+    _initialBitisTarihi = _getNextSelectableDay(today);
+    _baslangicTarihi = _initialBaslangicTarihi;
+    _bitisTarihi = _initialBitisTarihi;
 
     // Ekran yüklendikten sonra uyarı dialogunu göster
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -159,12 +163,22 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   }
 
   bool _hasFormData() {
+    if (!_isSameDate(_baslangicTarihi, _initialBaslangicTarihi)) return true;
+    if (!_isSameDate(_bitisTarihi, _initialBitisTarihi)) return true;
+    if (_birGunlukIzin) return true;
+    if (_onay) return true;
+    if (_basaksiAdinaIstekte) return true;
+    if (_secilenPersonel != null) return true;
     if (_aciklamaController.text.isNotEmpty) return true;
     if (_adresController.text.isNotEmpty) return true;
     if (_yakinlikDerecesiController.text.isNotEmpty) return true;
     if (_girileymeyenDersSaati > 0) return true;
-    if (_basaksiAdinaIstekte && _secilenPersonel != null) return true;
     return false;
+  }
+
+  bool _isSameDate(DateTime? a, DateTime? b) {
+    if (a == null || b == null) return a == b;
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   Future<bool> _showExitConfirmationDialog() async {

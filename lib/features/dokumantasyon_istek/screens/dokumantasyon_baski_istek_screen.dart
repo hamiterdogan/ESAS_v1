@@ -19,6 +19,7 @@ import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_
 import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 
 class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
   const DokumantasyonBaskiIstekScreen({super.key});
@@ -30,6 +31,7 @@ class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
 
 class _DokumantasyonBaskiIstekScreenState
     extends ConsumerState<DokumantasyonBaskiIstekScreen> {
+  late DateTime _initialTeslimTarihi;
   late DateTime _teslimTarihi;
   late final TextEditingController _aciklamaController;
 
@@ -85,7 +87,8 @@ class _DokumantasyonBaskiIstekScreenState
   @override
   void initState() {
     super.initState();
-    _teslimTarihi = DateTime.now().add(const Duration(days: 2));
+    _initialTeslimTarihi = DateTime.now().add(const Duration(days: 2));
+    _teslimTarihi = _initialTeslimTarihi;
     _aciklamaController = TextEditingController();
     _dosyaIcerikController = TextEditingController();
     _baskiAdediController = TextEditingController(text: _baskiAdedi.toString());
@@ -106,6 +109,33 @@ class _DokumantasyonBaskiIstekScreenState
     _dosyaIcerikFocusNode.dispose();
     _aciklamaFocusNode.dispose();
     super.dispose();
+  }
+
+  bool _hasFormData() {
+    if (_selectedDokumanTuru != null) return true;
+    if (!_isSameDate(_teslimTarihi, _initialTeslimTarihi)) return true;
+    if (_baskiAdedi != 1) return true;
+    if (_sayfaSayisi != 1) return true;
+    if (_baskiBoyutu != 'A4') return true;
+    if (_isRenkliBaski) return true;
+    if (_isArkaliOnlu) return true;
+    if (_isKopyaElden) return true;
+    if (_selectedOkulKodu.isNotEmpty) return true;
+    if (_selectedSeviye.isNotEmpty) return true;
+    if (_selectedSinif.isNotEmpty) return true;
+    if (_accumulatedClasses.isNotEmpty) return true;
+    if (_dosyaIcerikController.text.trim().isNotEmpty) return true;
+    if (_aciklamaController.text.trim().isNotEmpty) return true;
+    if (_selectedFiles.isNotEmpty) return true;
+    return false;
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return AppDialogs.showFormExitConfirm(context);
   }
 
   // Accumulative class selection (with counts)
@@ -703,325 +733,100 @@ class _DokumantasyonBaskiIstekScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: const Text(
-          'Dokümantasyon Baskı İstek',
-          style: TextStyle(color: AppColors.textOnPrimary),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => context.pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Teslim Tarihi Label Outside for Layout
-              Text(
-                'Teslim edilecek tarih',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  color: AppColors.primaryLight,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Expanded(
-                    child: DatePickerBottomSheetWidget(
-                      // Label is handled externally for alignment purposes
-                      label: null,
-                      initialDate: _teslimTarihi,
-                      minDate: DateTime.now().add(const Duration(days: 2)),
-                      maxDate: DateTime.now().add(const Duration(days: 365)),
-                      onDateChanged: (date) {
-                        setState(() {
-                          _teslimTarihi = date;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  // Placeholder for spacing, similar to A4 Screen if we had an info icon
-                  // Or leave empty if no icon requested here. The user didn't request info icon here.
-                  // But to keep consistency with A4 screen layout (50% width), we need an Expanded empty box or similar.
-                  const Expanded(child: SizedBox()),
-                ],
-              ),
-              const SizedBox(height: 24),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
 
-              // Doküman Türü
-              Text(
-                'Doküman Türü',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  color: AppColors.primaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showDokumanTuruBottomSheet,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _selectedDokumanTuru?.tur ?? 'Seçiniz',
-                        style: TextStyle(
-                          color: _selectedDokumanTuru == null
-                              ? Colors.grey.shade600
-                              : AppColors.textPrimary,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Baskı Adedi & Sayfa Sayısı
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Baskı Adedi',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                                color: AppColors.primaryLight,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSpinnerRow(
-                          _baskiAdedi,
-                          _baskiAdediController,
-                          _updateBaskiAdedi,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sayfa Sayısı',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                                color: AppColors.primaryLight,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildSpinnerRow(
-                          _sayfaSayisi,
-                          _sayfaSayisiController,
-                          _updateSayfaSayisi,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Toplam Sayfa: ${_baskiAdedi * _sayfaSayisi}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryLight,
+        if (_hasFormData()) {
+          final shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            context.pop();
+          }
+        } else {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          title: const Text(
+            'Dokümantasyon Baskı İstek',
+            style: TextStyle(color: AppColors.textOnPrimary),
+          ),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
+            onPressed: () async {
+              if (_hasFormData()) {
+                final shouldPop = await _showExitConfirmationDialog();
+                if (shouldPop && context.mounted) {
+                  context.pop();
+                }
+              } else {
+                if (context.mounted) {
+                  context.pop();
+                }
+              }
+            },
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          ),
+          elevation: 0,
+        ),
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Teslim Tarihi Label Outside for Layout
+                Text(
+                  'Teslim edilecek tarih',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontSize:
-                        (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
                             14) +
-                        2,
+                        1,
+                    color: AppColors.primaryLight,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // Baskı Boyutu
-              Text(
-                'Baskı Boyutu',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  color: AppColors.primaryLight,
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DatePickerBottomSheetWidget(
+                        // Label is handled externally for alignment purposes
+                        label: null,
+                        initialDate: _teslimTarihi,
+                        minDate: DateTime.now().add(const Duration(days: 2)),
+                        maxDate: DateTime.now().add(const Duration(days: 365)),
+                        onDateChanged: (date) {
+                          setState(() {
+                            _teslimTarihi = date;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Placeholder for spacing, similar to A4 Screen if we had an info icon
+                    // Or leave empty if no icon requested here. The user didn't request info icon here.
+                    // But to keep consistency with A4 screen layout (50% width), we need an Expanded empty box or similar.
+                    const Expanded(child: SizedBox()),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _showBaskiBoyutuBottomSheet,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _baskiBoyutu,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              AciklamaFieldWidget(
-                controller: _aciklamaController,
-                focusNode: _aciklamaFocusNode,
-                minCharacters: 15,
-              ),
-              const SizedBox(height: 24),
-
-              // Renkli Baskı Toggle
-              Row(
-                children: [
-                  Switch(
-                    value: _isRenkliBaski,
-                    activeTrackColor: AppColors.gradientStart.withValues(
-                      alpha: 0.5,
-                    ),
-                    activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (value) {
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        _isRenkliBaski = value;
-                      });
-                    },
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Renkli Baskı',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.primaryLight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Arkalı Önlü Baskı Toggle
-              Row(
-                children: [
-                  Switch(
-                    value: _isArkaliOnlu,
-                    activeTrackColor: AppColors.gradientStart.withValues(
-                      alpha: 0.5,
-                    ),
-                    activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (value) {
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        _isArkaliOnlu = value;
-                      });
-                    },
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Arkalı Önlü Baskı',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.primaryLight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Çoğaltılacak kopya elden gönderilecektir Toggle
-              Row(
-                children: [
-                  Switch(
-                    value: _isKopyaElden,
-                    activeTrackColor: AppColors.gradientStart.withValues(
-                      alpha: 0.5,
-                    ),
-                    activeThumbColor: AppColors.gradientEnd,
-                    inactiveTrackColor: AppColors.textOnPrimary,
-                    onChanged: (value) {
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        _isKopyaElden = value;
-                      });
-                    },
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Çoğaltılacak kopya elden teslim edilecektir',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.primaryLight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (!_isKopyaElden) ...[
                 const SizedBox(height: 24),
 
-                // Basılacak Dosya
+                // Doküman Türü
                 Text(
-                  'Basılacak Dosya',
+                  'Doküman Türü',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontSize:
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
@@ -1032,91 +837,115 @@ class _DokumantasyonBaskiIstekScreenState
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: _pickFiles,
+                  onTap: _showDokumanTuruBottomSheet,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.textOnPrimary,
-                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.cloud_upload_outlined,
-                          size: 24,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 2),
                         Text(
-                          'Dosya Seçmek İçin Dokunun',
+                          _selectedDokumanTuru?.tur ?? 'Seçiniz',
                           style: TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
+                            color: _selectedDokumanTuru == null
+                                ? Colors.grey.shade600
+                                : AppColors.textPrimary,
+                            fontSize: 16,
                           ),
                         ),
-                        Text(
-                          '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                        ),
+                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
                       ],
                     ),
                   ),
                 ),
-                if (_selectedFiles.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedFiles.length,
-                    itemBuilder: (context, index) {
-                      final file = _selectedFiles[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.insert_drive_file_outlined,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                file.path.split(Platform.pathSeparator).last,
-                                style: const TextStyle(fontSize: 14),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: AppColors.error,
-                                size: 20,
-                              ),
-                              onPressed: () => _removeFile(index),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
                 const SizedBox(height: 24),
 
-                // Dosyaların içeriğini belirtiniz
+                // Baskı Adedi & Sayfa Sayısı
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Baskı Adedi',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                  color: AppColors.primaryLight,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSpinnerRow(
+                            _baskiAdedi,
+                            _baskiAdediController,
+                            _updateBaskiAdedi,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Sayfa Sayısı',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      (Theme.of(
+                                            context,
+                                          ).textTheme.titleSmall?.fontSize ??
+                                          14) +
+                                      1,
+                                  color: AppColors.primaryLight,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildSpinnerRow(
+                            _sayfaSayisi,
+                            _sayfaSayisiController,
+                            _updateSayfaSayisi,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Toplam Sayfa: ${_baskiAdedi * _sayfaSayisi}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryLight,
+                      fontSize:
+                          (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                              14) +
+                          2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Baskı Boyutu
                 Text(
-                  'Dosyaların İçeriğini Belirtiniz',
+                  'Baskı Boyutu',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontSize:
                         (Theme.of(context).textTheme.titleSmall?.fontSize ??
@@ -1126,130 +955,368 @@ class _DokumantasyonBaskiIstekScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  focusNode: _dosyaIcerikFocusNode,
-                  controller: _dosyaIcerikController,
-                  decoration: InputDecoration(
-                    hintText: 'Dosya içeriği hakkında bilgi veriniz',
-                    contentPadding: const EdgeInsets.all(12),
-                    filled: true,
-                    fillColor: AppColors.textOnPrimary,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: AppColors.textSecondary,
-                        width: 0.5,
-                      ),
+                GestureDetector(
+                  onTap: _showBaskiBoyutuBottomSheet,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
                     ),
-                    focusedBorder: OutlineInputBorder(
+                    decoration: BoxDecoration(
+                      color: AppColors.textOnPrimary,
+                      border: Border.all(color: AppColors.border),
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: AppColors.textSecondary,
-                        width: 0.5,
-                      ),
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: AppColors.textSecondary,
-                        width: 0.5,
-                      ),
-                    ),
-                  ),
-                  maxLines: 1,
-                ),
-              ],
-              const SizedBox(height: 24),
-              // Dokümanın istendiği sınıflar
-              Text(
-                'Dokümanın İstendiği Sınıflar',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontSize:
-                      (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
-                      1,
-                  color: AppColors.primaryLight,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: _openSinifSecimBottomSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary,
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Yeni sınıf ekle',
-                          style: TextStyle(
-                            color: AppColors.textSecondary,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _baskiBoyutu,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
                             fontSize: 16,
-                            fontWeight: FontWeight.w400,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                AciklamaFieldWidget(
+                  controller: _aciklamaController,
+                  focusNode: _aciklamaFocusNode,
+                  minCharacters: 15,
+                ),
+                const SizedBox(height: 24),
+
+                // Renkli Baskı Toggle
+                Row(
+                  children: [
+                    Switch(
+                      value: _isRenkliBaski,
+                      activeTrackColor: AppColors.gradientStart.withValues(
+                        alpha: 0.5,
+                      ),
+                      activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: AppColors.textOnPrimary,
+                      onChanged: (value) {
+                        FocusScope.of(context).unfocus();
+                        setState(() {
+                          _isRenkliBaski = value;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Renkli Baskı',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primaryLight,
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-              TextButton.icon(
-                onPressed: _showSelectedClassesList,
-                icon: const Icon(Icons.list),
-                label: Text(
-                  _accumulatedClasses.isEmpty
-                      ? 'Seçilen Sınıflar'
-                      : 'Seçilen Sınıflar (${_accumulatedClasses.fold<int>(0, (p, c) => p + c.ogrenciSayisi)})',
-                  style: const TextStyle(fontSize: 15),
-                ),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.gradientStart,
-                  padding: EdgeInsets.zero,
-                  alignment: Alignment.centerLeft,
-                ),
-              ),
 
-              const SizedBox(height: 32),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                // Arkalı Önlü Baskı Toggle
+                Row(
+                  children: [
+                    Switch(
+                      value: _isArkaliOnlu,
+                      activeTrackColor: AppColors.gradientStart.withValues(
+                        alpha: 0.5,
+                      ),
+                      activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: AppColors.textOnPrimary,
+                      onChanged: (value) {
+                        FocusScope.of(context).unfocus();
+                        setState(() {
+                          _isArkaliOnlu = value;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Arkalı Önlü Baskı',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primaryLight,
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
+                  ],
+                ),
+
+                // Çoğaltılacak kopya elden gönderilecektir Toggle
+                Row(
+                  children: [
+                    Switch(
+                      value: _isKopyaElden,
+                      activeTrackColor: AppColors.gradientStart.withValues(
+                        alpha: 0.5,
+                      ),
+                      activeThumbColor: AppColors.gradientEnd,
+                      inactiveTrackColor: AppColors.textOnPrimary,
+                      onChanged: (value) {
+                        FocusScope.of(context).unfocus();
+                        setState(() {
+                          _isKopyaElden = value;
+                        });
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'Çoğaltılacak kopya elden teslim edilecektir',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (!_isKopyaElden) ...[
+                  const SizedBox(height: 24),
+
+                  // Basılacak Dosya
+                  Text(
+                    'Basılacak Dosya',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.primaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickFiles,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
                         color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 24,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Dosya Seçmek İçin Dokunun',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedFiles.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _selectedFiles.length,
+                      itemBuilder: (context, index) {
+                        final file = _selectedFiles[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.insert_drive_file_outlined,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  file.path.split(Platform.pathSeparator).last,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: AppColors.error,
+                                  size: 20,
+                                ),
+                                onPressed: () => _removeFile(index),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+
+                  // Dosyaların içeriğini belirtiniz
+                  Text(
+                    'Dosyaların İçeriğini Belirtiniz',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.primaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    focusNode: _dosyaIcerikFocusNode,
+                    controller: _dosyaIcerikController,
+                    decoration: InputDecoration(
+                      hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                      contentPadding: const EdgeInsets.all(12),
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.textSecondary,
+                          width: 0.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.textSecondary,
+                          width: 0.5,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.textSecondary,
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    maxLines: 1,
+                  ),
+                ],
+                const SizedBox(height: 24),
+                // Dokümanın istendiği sınıflar
+                Text(
+                  'Dokümanın İstendiği Sınıflar',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                            14) +
+                        1,
+                    color: AppColors.primaryLight,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: _openSinifSecimBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.textOnPrimary,
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Yeni sınıf ekle',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _showSelectedClassesList,
+                  icon: const Icon(Icons.list),
+                  label: Text(
+                    _accumulatedClasses.isEmpty
+                        ? 'Seçilen Sınıflar'
+                        : 'Seçilen Sınıflar (${_accumulatedClasses.fold<int>(0, (p, c) => p + c.ogrenciSayisi)})',
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.gradientStart,
+                    padding: EdgeInsets.zero,
+                    alignment: Alignment.centerLeft,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Gönder',
+                        style: TextStyle(
+                          color: AppColors.textOnPrimary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 50),
-            ],
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),
@@ -2086,17 +2153,19 @@ class _DokumantasyonBaskiIstekScreenState
                       color: AppColors.primaryLight,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    selectedValue,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gradientStart,
-                      fontWeight: FontWeight.w500,
+                  if (selectedValue != 'Seçiniz') ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      selectedValue,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.gradientStart,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(

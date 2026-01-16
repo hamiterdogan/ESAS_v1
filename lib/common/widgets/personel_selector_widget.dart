@@ -143,7 +143,7 @@ class _PersonelSelectorWidgetState
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      widget.overrideTitle ?? 'Seçilen personelleri listele',
+                      '${widget.overrideTitle ?? 'Seçilen personelleri listele'} (${_selectedPersonelIds.length})',
                       style: const TextStyle(
                         color: AppColors.gradientStart,
                         fontSize: 15,
@@ -164,25 +164,7 @@ class _PersonelSelectorWidgetState
       return 'Personel Seçiniz';
     }
 
-    // Note: _personeller might be empty if we haven't opened the sheet yet.
-    // However, if we preserve selection but data isn't loaded, we can only show count.
-    if (_personeller.isEmpty) {
-      return '${_selectedPersonelIds.length} Personel Seçildi';
-    }
-
-    final selectedNames = _personeller
-        .where((p) => _selectedPersonelIds.contains(p.personelId))
-        .map((p) => '${p.adi} ${p.soyadi}'.trim())
-        .where((name) => name.isNotEmpty)
-        .toList();
-
-    if (selectedNames.isEmpty) {
-      return '${_selectedPersonelIds.length} Personel Seçildi';
-    }
-    if (selectedNames.length <= 2) {
-      return selectedNames.join(', ');
-    }
-    return '${selectedNames.length} Personel Seçildi';
+    return 'Personel ekle';
   }
 
   void _openSecilenPersonelListesiBottomSheet() {
@@ -204,25 +186,46 @@ class _PersonelSelectorWidgetState
   }
 
   void _showSelectedListSheet() {
+    String searchQuery = '';
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
+            final selectedIds = _selectedPersonelIds.toList();
+            final filteredIds = searchQuery.isEmpty
+                ? selectedIds
+                : selectedIds.where((pId) {
+                    final p = _personeller.firstWhere(
+                      (element) => element.personelId == pId,
+                      orElse: () => PersonelItem(
+                        personelId: pId,
+                        adi: 'Personel',
+                        soyadi: '#$pId',
+                        gorevId: null,
+                        gorevYeriId: null,
+                      ),
+                    );
+                    final fullName = '${p.adi} ${p.soyadi}'.toLowerCase();
+                    final idText = '$pId'.toLowerCase();
+                    final q = searchQuery.toLowerCase();
+                    return fullName.contains(q) || idText.contains(q);
+                  }).toList();
             return Container(
               padding: const EdgeInsets.all(16),
-              height: MediaQuery.of(context).size.height * 0.6,
+              height: MediaQuery.of(context).size.height * (2 / 3),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Seçilen Personeller',
-                        style: TextStyle(
+                      Text(
+                        'Seçilen Personeller (${_selectedPersonelIds.length})',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -268,11 +271,28 @@ class _PersonelSelectorWidgetState
                     ],
                   ),
                   const Divider(),
+                  if (_selectedPersonelIds.length > 5)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Personel ara...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          isDense: true,
+                        ),
+                        onChanged: (val) {
+                          setSheetState(() => searchQuery = val);
+                        },
+                      ),
+                    ),
                   Expanded(
                     child: ListView.builder(
-                      itemCount: _selectedPersonelIds.length,
+                      itemCount: filteredIds.length,
                       itemBuilder: (context, index) {
-                        final pId = _selectedPersonelIds.elementAt(index);
+                        final pId = filteredIds[index];
                         final p = _personeller.firstWhere(
                           (element) => element.personelId == pId,
                           orElse: () => PersonelItem(
@@ -374,7 +394,7 @@ class _PersonelSelectorWidgetState
     // Prepare filter state
     final localSelectedGorevYeri = {..._selectedGorevYeriIds};
     final localSelectedGorev = {..._selectedGorevIds};
-    final localSelectedPersonel = {..._selectedPersonelIds};
+    final localSelectedPersonel = <int>{};
     _currentFilterPage = '';
 
     if (!mounted) {
@@ -550,24 +570,14 @@ class _PersonelSelectorWidgetState
 
                           // Ana sayfadayken: seçimleri uygula ve sheet'i kapat.
                           setState(() {
-                            _selectedGorevYeriIds
-                              ..clear()
-                              ..addAll(localSelectedGorevYeri);
+                            _selectedPersonelIds.addAll(localSelectedPersonel);
 
-                            _selectedGorevIds
-                              ..clear()
-                              ..addAll(localSelectedGorev);
-
-                            _selectedPersonelIds
-                              ..clear()
-                              ..addAll(localSelectedPersonel);
+                            _selectedGorevYeriIds.clear();
+                            _selectedGorevIds.clear();
                           });
 
                           widget.onSelectionChanged(_selectedPersonelIds);
-                          widget.onFilterChanged?.call(
-                            _selectedGorevYeriIds,
-                            _selectedGorevIds,
-                          );
+                          widget.onFilterChanged?.call(<int>{}, <int>{});
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(

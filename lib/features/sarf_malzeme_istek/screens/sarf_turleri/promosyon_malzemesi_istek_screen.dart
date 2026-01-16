@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
@@ -1069,560 +1070,616 @@ class _PromosyonMalzemesiIstekScreenState
     super.dispose();
   }
 
+  bool _hasFormData() {
+    if (_selectedBinaKodlari.isNotEmpty) return true;
+    if (_aciklamaController.text.trim().isNotEmpty) return true;
+    if (_urunler.isNotEmpty) return true;
+    if (_selectedFiles.isNotEmpty) return true;
+    if (_fiyatTeklifIcerikController.text.trim().isNotEmpty) return true;
+    return false;
+  }
+
+  Future<bool> _showExitConfirmationDialog() async {
+    return AppDialogs.showFormExitConfirm(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFEEF1F5),
-      appBar: AppBar(
-        title: const Text(
-          'Promosyon Malzemesi İstek',
-          style: TextStyle(color: Colors.white),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        if (_hasFormData()) {
+          final shouldPop = await _showExitConfirmationDialog();
+          if (shouldPop && context.mounted) {
+            context.pop();
+          }
+        } else {
+          if (context.mounted) {
+            context.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFEEF1F5),
+        appBar: AppBar(
+          title: const Text(
+            'Promosyon Malzemesi İstek',
+            style: TextStyle(color: Colors.white),
+          ),
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () async {
+              if (_hasFormData()) {
+                final shouldPop = await _showExitConfirmationDialog();
+                if (shouldPop && context.mounted) {
+                  context.pop();
+                }
+              } else {
+                if (context.mounted) {
+                  context.pop();
+                }
+              }
+            },
+          ),
         ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Satın Alma İsteğinde Bulunulan Okullar',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.inputLabelColor,
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Satın Alma İsteğinde Bulunulan Okullar',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _showBinaBottomSheet,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: binalarAsync.when(
-                            data: (binalar) => Text(
-                              _buildSelectedText(binalar),
-                              style: TextStyle(
-                                color: _selectedBinaKodlari.isEmpty
-                                    ? Colors.grey.shade600
-                                    : Colors.black,
-                                fontSize: 16,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                            loading: () => const Row(
-                              children: [
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _showBinaBottomSheet,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: binalarAsync.when(
+                              data: (binalar) => Text(
+                                _buildSelectedText(binalar),
+                                style: TextStyle(
+                                  color: _selectedBinaKodlari.isEmpty
+                                      ? Colors.grey.shade600
+                                      : Colors.black,
+                                  fontSize: 16,
                                 ),
-                                SizedBox(width: 8),
-                                Text('Yükleniyor...'),
-                              ],
-                            ),
-                            error: (err, stack) => const Text(
-                              'Liste alınamadı',
-                              style: TextStyle(color: Colors.red),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                              loading: () => const Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text('Yükleniyor...'),
+                                ],
+                              ),
+                              error: (err, stack) => const Text(
+                                'Liste alınamadı',
+                                style: TextStyle(color: Colors.red),
+                              ),
                             ),
                           ),
+                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedBinaKodlari.isNotEmpty)
+                    binalarAsync.when(
+                      data: (binalar) => TextButton.icon(
+                        onPressed: () => _showSelectedBinalarSheet(binalar),
+                        icon: const Icon(Icons.list),
+                        label: Text(
+                          'Seçilen Okullar (${_selectedBinaKodlari.length})',
+                          style: const TextStyle(fontSize: 15),
                         ),
-                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                      ],
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.gradientStart,
+                          padding: EdgeInsets.zero,
+                          alignment: Alignment.centerLeft,
+                        ),
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  const SizedBox(height: 16),
+                  KeyedSubtree(
+                    key: _aciklamaKey,
+                    child: AciklamaFieldWidget(
+                      controller: _aciklamaController,
+                      focusNode: _aciklamaFocusNode,
+                      labelText: 'Açıklama',
                     ),
                   ),
-                ),
-                if (_selectedBinaKodlari.isNotEmpty)
-                  binalarAsync.when(
-                    data: (binalar) => TextButton.icon(
-                      onPressed: () => _showSelectedBinalarSheet(binalar),
-                      icon: const Icon(Icons.list),
-                      label: Text(
-                        'Seçilen Okullar (${_selectedBinaKodlari.length})',
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.gradientStart,
-                        padding: EdgeInsets.zero,
-                        alignment: Alignment.centerLeft,
-                      ),
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-                const SizedBox(height: 16),
-                KeyedSubtree(
-                  key: _aciklamaKey,
-                  child: AciklamaFieldWidget(
-                    controller: _aciklamaController,
-                    focusNode: _aciklamaFocusNode,
-                    labelText: 'Açıklama',
-                  ),
-                ),
-                const SizedBox(height: 24),
-                if (_urunler.isNotEmpty) ...[
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _urunler.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final urun = _urunler[index];
-                      return SizedBox(
-                        width: double.infinity,
-                        child: Slidable(
-                          key: ValueKey(index),
-                          endActionPane: ActionPane(
-                            motion: const ScrollMotion(),
-                            children: [
-                              CustomSlidableAction(
-                                onPressed: (_) {
-                                  Navigator.push<SatinAlmaUrunBilgisi>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          SarfMalzemeUrunEkleScreen(
-                                            initialBilgi: urun,
-                                            talepTuru: 'Promosyon',
-                                          ),
+                  const SizedBox(height: 24),
+                  if (_urunler.isNotEmpty) ...[
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _urunler.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final urun = _urunler[index];
+                        return SizedBox(
+                          width: double.infinity,
+                          child: Slidable(
+                            key: ValueKey(index),
+                            endActionPane: ActionPane(
+                              motion: const ScrollMotion(),
+                              children: [
+                                CustomSlidableAction(
+                                  onPressed: (_) {
+                                    Navigator.push<SatinAlmaUrunBilgisi>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            SarfMalzemeUrunEkleScreen(
+                                              initialBilgi: urun,
+                                              talepTuru: 'Promosyon',
+                                            ),
+                                      ),
+                                    ).then((result) {
+                                      if (result != null) {
+                                        setState(() {
+                                          _urunler[index] = result;
+                                        });
+                                      }
+                                    });
+                                  },
+                                  backgroundColor: Colors.blue,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(12),
+                                        bottomLeft: Radius.circular(12),
+                                      ),
                                     ),
-                                  ).then((result) {
-                                    if (result != null) {
-                                      setState(() {
-                                        _urunler[index] = result;
-                                      });
-                                    }
-                                  });
-                                },
-                                backgroundColor: Colors.blue,
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Colors.blue,
-                                    borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(12),
-                                      bottomLeft: Radius.circular(12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
                                     ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.edit,
-                                        size: 36,
-                                        color: Colors.white,
-                                      ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        'Düzenle',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              CustomSlidableAction(
-                                onPressed: (_) => _deleteUrun(index),
-                                backgroundColor: Colors.red,
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(12),
-                                      bottomRight: Radius.circular(12),
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.delete,
-                                        size: 36,
-                                        color: Colors.white,
-                                      ),
-                                      SizedBox(height: 6),
-                                      Text(
-                                        'Sil',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          child: Builder(
-                            builder: (builderContext) => GestureDetector(
-                              onTap: () {
-                                final slidable = Slidable.of(builderContext);
-                                final isClosed =
-                                    slidable?.actionPaneType.value ==
-                                    ActionPaneType.none;
-
-                                if (!isClosed) {
-                                  slidable?.close();
-                                  return;
-                                }
-                              },
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Card(
-                                  elevation: 2,
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    child: const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Builder(
-                                          builder: (context) {
-                                            final anaKategori =
-                                                (urun.anaKategori ?? '').trim();
-                                            final altKategori =
-                                                (urun.altKategori ?? '').trim();
-                                            final urunDetay =
-                                                (urun.urunDetay ?? '').trim();
-
-                                            final miktar = urun.miktar ?? 0;
-                                            final birim =
-                                                ((urun.olcuBirimi ?? '')
-                                                            .trim()
-                                                            .isNotEmpty
-                                                        ? urun.olcuBirimi
-                                                        : urun.olcuBirimiKisaltma)
-                                                    ?.trim();
-
-                                            String line3 =
-                                                '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
-
-                                            // Display logic based on user request:
-                                            // "Ürün Alt Kategorisi" (Bold)
-                                            // "Ürün Detayı" (Font +1 -> 15)
-                                            // "Miktar Birim" (Font +1 -> 15)
-
-                                            // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
-                                            final titleText =
-                                                altKategori.isNotEmpty
-                                                ? altKategori
-                                                : anaKategori;
-                                            // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
-
-                                            return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  titleText,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                if (urunDetay.isNotEmpty) ...[
-                                                  const SizedBox(height: 6),
-                                                  Text(
-                                                    urunDetay,
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          15, // +1px as requested
-                                                      color:
-                                                          Colors.grey.shade800,
-                                                    ),
-                                                  ),
-                                                ],
-                                                const SizedBox(height: 6),
-                                                Text(
-                                                  line3,
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        15, // +1px as requested
-                                                    color: Colors.grey.shade700,
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
+                                        Icon(
+                                          Icons.edit,
+                                          size: 36,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Düzenle',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          textAlign: TextAlign.center,
                                         ),
                                       ],
                                     ),
                                   ),
                                 ),
+                                CustomSlidableAction(
+                                  onPressed: (_) => _deleteUrun(index),
+                                  backgroundColor: Colors.red,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      borderRadius: BorderRadius.only(
+                                        topRight: Radius.circular(12),
+                                        bottomRight: Radius.circular(12),
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                    ),
+                                    child: const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.delete,
+                                          size: 36,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Sil',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            child: Builder(
+                              builder: (builderContext) => GestureDetector(
+                                onTap: () {
+                                  final slidable = Slidable.of(builderContext);
+                                  final isClosed =
+                                      slidable?.actionPaneType.value ==
+                                      ActionPaneType.none;
+
+                                  if (!isClosed) {
+                                    slidable?.close();
+                                    return;
+                                  }
+                                },
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Card(
+                                    elevation: 2,
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Builder(
+                                            builder: (context) {
+                                              final anaKategori =
+                                                  (urun.anaKategori ?? '')
+                                                      .trim();
+                                              final altKategori =
+                                                  (urun.altKategori ?? '')
+                                                      .trim();
+                                              final urunDetay =
+                                                  (urun.urunDetay ?? '').trim();
+
+                                              final miktar = urun.miktar ?? 0;
+                                              final birim =
+                                                  ((urun.olcuBirimi ?? '')
+                                                              .trim()
+                                                              .isNotEmpty
+                                                          ? urun.olcuBirimi
+                                                          : urun.olcuBirimiKisaltma)
+                                                      ?.trim();
+
+                                              String line3 =
+                                                  '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
+
+                                              // Display logic based on user request:
+                                              // "Ürün Alt Kategorisi" (Bold)
+                                              // "Ürün Detayı" (Font +1 -> 15)
+                                              // "Miktar Birim" (Font +1 -> 15)
+
+                                              // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
+                                              final titleText =
+                                                  altKategori.isNotEmpty
+                                                  ? altKategori
+                                                  : anaKategori;
+                                              // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
+
+                                              return Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    titleText,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                  if (urunDetay.isNotEmpty) ...[
+                                                    const SizedBox(height: 6),
+                                                    Text(
+                                                      urunDetay,
+                                                      style: TextStyle(
+                                                        fontSize:
+                                                            15, // +1px as requested
+                                                        color: Colors
+                                                            .grey
+                                                            .shade800,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  const SizedBox(height: 6),
+                                                  Text(
+                                                    line3,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          15, // +1px as requested
+                                                      color:
+                                                          Colors.grey.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: () async {
-                      final result = await Navigator.push<SatinAlmaUrunBilgisi>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SarfMalzemeUrunEkleScreen(
-                            talepTuru: 'Promosyon',
-                          ),
-                        ),
-                      );
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final result =
+                            await Navigator.push<SatinAlmaUrunBilgisi>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SarfMalzemeUrunEkleScreen(
+                                      talepTuru: 'Promosyon',
+                                    ),
+                              ),
+                            );
 
-                      if (!mounted) return;
+                        if (!mounted) return;
 
-                      if (result != null) {
-                        setState(() {
-                          _urunler.add(result);
+                        if (result != null) {
+                          setState(() {
+                            _urunler.add(result);
+                          });
+                        }
+
+                        // After returning, scroll to submit button and unfocus
+                        // ignore: use_build_context_synchronously
+                        FocusScope.of(context).unfocus();
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          _scrollToWidget(_gonderButtonKey);
                         });
-                      }
-
-                      // After returning, scroll to submit button and unfocus
-                      // ignore: use_build_context_synchronously
-                      FocusScope.of(context).unfocus();
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        _scrollToWidget(_gonderButtonKey);
-                      });
-                    },
-                    icon: const Icon(
-                      Icons.add,
-                      color: AppColors.gradientStart,
-                      size: 28,
-                    ),
-                    label: const Text(
-                      'Ürün Ekle',
-                      style: TextStyle(
+                      },
+                      icon: const Icon(
+                        Icons.add,
                         color: AppColors.gradientStart,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        size: 28,
                       ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      alignment: Alignment.centerLeft,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Fiyat Teklifi / Sözleşme Ekle
-                Text(
-                  'Dosya / Fotoğraf Yükle',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.inputLabelColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _pickFiles,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.cloud_upload_outlined,
-                          size: 24,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Dosya Seçmek İçin Dokunun',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 13,
-                          ),
-                        ),
-                        Text(
-                          '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (_selectedFiles.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedFiles.length,
-                    itemBuilder: (context, index) {
-                      final file = _selectedFiles[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.insert_drive_file_outlined,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                file.name,
-                                style: const TextStyle(fontSize: 14),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.red,
-                                size: 20,
-                              ),
-                              onPressed: () => _removeFile(index),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Text(
-                  'Dosyaların İçeriğini Belirtiniz',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.inputLabelColor,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _fiyatTeklifIcerikController,
-                  maxLines: 1,
-                  decoration: InputDecoration(
-                    hintText: 'Dosyaların içeriğini belirtiniz.',
-                    hintStyle: TextStyle(color: Colors.grey.shade400),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: AppColors.gradientStart,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.all(12),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                DecoratedBox(
-                  key: _gonderButtonKey,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Gönder',
+                      label: const Text(
+                        'Ürün Ekle',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.gradientStart,
+                          fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 16,
+                        ),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        alignment: Alignment.centerLeft,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Fiyat Teklifi / Sözleşme Ekle
+                  Text(
+                    'Dosya / Fotoğraf Yükle',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickFiles,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.cloud_upload_outlined,
+                            size: 24,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Dosya Seçmek İçin Dokunun',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_selectedFiles.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _selectedFiles.length,
+                      itemBuilder: (context, index) {
+                        final file = _selectedFiles[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.insert_drive_file_outlined,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  file.name,
+                                  style: const TextStyle(fontSize: 14),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                onPressed: () => _removeFile(index),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  Text(
+                    'Dosyaların İçeriğini Belirtiniz',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _fiyatTeklifIcerikController,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      hintText: 'Dosyaların içeriğini belirtiniz.',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  DecoratedBox(
+                    key: _gonderButtonKey,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Gönder',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 50),
-              ],
+                  const SizedBox(height: 50),
+                ],
+              ),
             ),
           ),
         ),

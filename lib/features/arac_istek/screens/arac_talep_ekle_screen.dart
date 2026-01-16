@@ -7,6 +7,7 @@ import 'package:esas_v1/core/constants/app_spacing.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/common/widgets/ogrenci/ogrenci_filter_sheet_full.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -784,13 +785,37 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         alignment: Alignment.centerLeft,
                         child: TextButton(
                           onPressed: _openSecilenOgrenciListesiBottomSheet,
-                          child: Text(
-                            'Seçilen öğrencileri listele',
-                            style: TextStyle(
-                              color: AppColors.gradientStart,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            alignment: Alignment.centerLeft,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.list,
+                                color: AppColors.gradientStart,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Seçilen öğrencileri listele',
+                                style: TextStyle(
+                                  color: AppColors.gradientStart,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '(${_selectedOgrenciIds.length})',
+                                style: TextStyle(
+                                  color: AppColors.gradientStart,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1247,25 +1272,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       return 'Öğrenci seçiniz';
     }
 
-    // _ogrenciList içinde aynı numara birden fazla kez gelebiliyor.
-    // Sayımı her zaman seçili Set üzerinden (unique numara) yap.
-    if (_selectedOgrenciIds.length > 2) {
-      return '${_selectedOgrenciIds.length} öğrenci seçildi';
-    }
-
-    final Map<String, String> numaraToName = {};
-    for (final o in _ogrenciList) {
-      final numara = '${o.numara}';
-      if (!_selectedOgrenciIds.contains(numara)) continue;
-      numaraToName.putIfAbsent(numara, () => '${o.adi} ${o.soyadi}'.trim());
-    }
-
-    final names = numaraToName.values.where((n) => n.isNotEmpty).toList();
-    if (names.length == _selectedOgrenciIds.length && names.length <= 2) {
-      return names.join(', ');
-    }
-
-    return '${_selectedOgrenciIds.length} öğrenci seçildi';
+    return 'Öğrenci ekle';
   }
 
   String _buildAracIstekNedeniSummary() {
@@ -1558,18 +1565,39 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     _lockAndUnfocusInputs();
     setState(() => _isActionInProgress = true);
 
+    String searchQuery = '';
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
+          initialChildSize: 0.67,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
           expand: false,
           builder: (context, scrollController) {
             return StatefulBuilder(
               builder: (context, setModalState) {
+                final selectedIds = _selectedOgrenciIds.toList();
+                final filteredIds = searchQuery.isEmpty
+                    ? selectedIds
+                    : selectedIds.where((ogrenciNumara) {
+                        final ogrenci = _ogrenciList.firstWhere(
+                          (o) => '${o.numara}' == ogrenciNumara,
+                          orElse: () => FilterOgrenciItem(
+                            okulKodu: '',
+                            sinif: '',
+                            numara: -1,
+                            adi: 'Bilinmeyen',
+                            soyadi: 'Öğrenci',
+                          ),
+                        );
+                        final fullName = '${ogrenci.adi} ${ogrenci.soyadi}'
+                            .toLowerCase();
+                        final q = searchQuery.toLowerCase();
+                        return fullName.contains(q) ||
+                            ogrenciNumara.toLowerCase().contains(q);
+                      }).toList();
                 return Container(
                   decoration: const BoxDecoration(
                     color: AppColors.textOnPrimary,
@@ -1587,7 +1615,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Seçilen Öğrenciler',
+                              'Seçilen Öğrenciler (${_selectedOgrenciIds.length})',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
@@ -1640,13 +1668,29 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        if (_selectedOgrenciIds.length > 5)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Öğrenci ara...',
+                                prefixIcon: const Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                isDense: true,
+                              ),
+                              onChanged: (val) {
+                                setModalState(() => searchQuery = val);
+                              },
+                            ),
+                          ),
                         Expanded(
                           child: ListView.builder(
                             controller: scrollController,
-                            itemCount: _selectedOgrenciIds.length,
+                            itemCount: filteredIds.length,
                             itemBuilder: (context, index) {
-                              final ogrenciNumara = _selectedOgrenciIds
-                                  .elementAt(index);
+                              final ogrenciNumara = filteredIds[index];
                               final ogrenci = _ogrenciList.firstWhere(
                                 (o) => '${o.numara}' == ogrenciNumara,
                                 orElse: () => FilterOgrenciItem(
@@ -1856,7 +1900,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
       if (!mounted) return;
       BrandedLoadingDialog.hide(context);
-      final localSelectedOgrenci = {..._selectedOgrenciIds};
+      final localSelectedOgrenci = <String>{};
 
       // Temp set for detail pages (Discard logic)
       final Set<String> tempSelectedItems = {};
@@ -1882,78 +1926,46 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           builder: (context, scrollController) => StatefulBuilder(
             builder: (context, setModalState) {
               Widget buildMain() {
-                return ListView(
-                  controller: scrollController,
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildFilterMainItem(
-                      title: 'Okul',
-                      selectedValue: _summaryForOkul(localSelectedOkul),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                return OgrenciFilterMainMenuFull(
+                  state: OgrenciFilterStateFull(
+                    selectedOkulKodu: localSelectedOkul,
+                    selectedSeviye: localSelectedSeviye,
+                    selectedSinif: localSelectedSinif,
+                    selectedKulup: localSelectedKulup,
+                    selectedTakim: localSelectedTakim,
+                    selectedOgrenciIds: localSelectedOgrenci,
+                    okulKoduList: _okulKoduList,
+                    seviyeList: _seviyeList,
+                    sinifList: _sinifList,
+                    kulupList: _kulupList,
+                    takimList: _takimList,
+                    ogrenciList: _ogrenciList,
+                  ),
+                  scrollController: scrollController,
+                  onPageSelected: (page) {
+                    tempSelectedItems.clear();
+                    switch (page) {
+                      case 'okul':
                         tempSelectedItems.addAll(localSelectedOkul);
-                        setModalState(() => _currentFilterPage = 'okul');
-                      },
-                    ),
-                    _buildFilterMainItem(
-                      title: 'Seviye',
-                      selectedValue: _summaryForSeviye(localSelectedSeviye),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                        break;
+                      case 'seviye':
                         tempSelectedItems.addAll(localSelectedSeviye);
-                        setModalState(() => _currentFilterPage = 'seviye');
-                      },
-                    ),
-                    _buildFilterMainItem(
-                      title: 'Sınıf',
-                      selectedValue: _summaryForSinif(localSelectedSinif),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                        break;
+                      case 'sinif':
                         tempSelectedItems.addAll(localSelectedSinif);
-                        setModalState(() => _currentFilterPage = 'sinif');
-                      },
-                    ),
-                    _buildFilterMainItem(
-                      title: 'Kulüp',
-                      selectedValue: _summaryForKulup(localSelectedKulup),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                        break;
+                      case 'kulup':
                         tempSelectedItems.addAll(localSelectedKulup);
-                        setModalState(() => _currentFilterPage = 'kulup');
-                      },
-                    ),
-                    _buildFilterMainItem(
-                      title: 'Takım',
-                      selectedValue: _summaryForTakim(localSelectedTakim),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                        break;
+                      case 'takim':
                         tempSelectedItems.addAll(localSelectedTakim);
-                        setModalState(() => _currentFilterPage = 'takim');
-                      },
-                    ),
-                    _buildFilterMainItem(
-                      title: 'Öğrenci',
-                      selectedValue: _summaryForOgrenci(localSelectedOgrenci),
-                      onTap: () {
-                        tempSelectedItems.clear();
+                        break;
+                      case 'ogrenci':
                         tempSelectedItems.addAll(localSelectedOgrenci);
-                        setModalState(() => _currentFilterPage = 'ogrenci');
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                      child: Text(
-                        'Seçilen öğrenci sayısı: ${localSelectedOgrenci.length}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: localSelectedOgrenci.isEmpty
-                              ? AppColors.error
-                              : AppColors.gradientStart,
-                        ),
-                      ),
-                    ),
-                  ],
+                        break;
+                    }
+                    setModalState(() => _currentFilterPage = page);
+                  },
                 );
               }
 
@@ -2015,10 +2027,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       localSelectedOgrenci,
                     );
                   case 'ogrenci':
-                    return _buildOgrenciFilterPage(
-                      setModalState,
-                      scrollController,
-                      tempSelectedItems,
+                    return OgrenciListFilterPageFull(
+                      ogrenciList: _ogrenciList,
+                      selectedIds: tempSelectedItems,
+                      scrollController: scrollController,
+                      onSelectionChanged: (newSelection) {
+                        setModalState(() {
+                          tempSelectedItems
+                            ..clear()
+                            ..addAll(newSelection);
+                        });
+                      },
                     );
                   default:
                     return buildMain();
@@ -2114,26 +2133,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           onPressed: () async {
                             if (_currentFilterPage.isEmpty) {
                               setState(() {
-                                // Filtre seçimlerini state'e kaydet
-                                _selectedOkulKodu
-                                  ..clear()
-                                  ..addAll(localSelectedOkul);
-                                _selectedSeviye
-                                  ..clear()
-                                  ..addAll(localSelectedSeviye);
-                                _selectedSinif
-                                  ..clear()
-                                  ..addAll(localSelectedSinif);
-                                _selectedKulup
-                                  ..clear()
-                                  ..addAll(localSelectedKulup);
-                                _selectedTakim
-                                  ..clear()
-                                  ..addAll(localSelectedTakim);
-                                // Öğrenci seçimini kaydet
-                                _selectedOgrenciIds
-                                  ..clear()
-                                  ..addAll(localSelectedOgrenci);
+                                // Öğrenci seçimini mevcut listeye ekle
+                                _selectedOgrenciIds.addAll(
+                                  localSelectedOgrenci,
+                                );
+
+                                // Filtreleri sıfırla
+                                _selectedOkulKodu.clear();
+                                _selectedSeviye.clear();
+                                _selectedSinif.clear();
+                                _selectedKulup.clear();
+                                _selectedTakim.clear();
                               });
                               FocusScope.of(context).unfocus();
                               Navigator.pop(context);
