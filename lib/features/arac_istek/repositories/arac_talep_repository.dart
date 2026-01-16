@@ -19,7 +19,7 @@ abstract class AracTalepRepository {
 
   Future<Result<List<GidilecekYer>>> gidilecekYerleriGetir();
 
-  /// Yeni araç talebi oluştur
+  /// Yeni araç isteği oluştur
   Future<Result<void>> aracIstekEkle(AracIstekEkleReq request);
 
   /// Araç istek nedenleri dropdown'ı için verileri getir
@@ -75,7 +75,7 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
 
       if (response.statusCode == 200) {
         final data = TalepYonetimResponse.fromJson(response.data);
-        AppLogger.info('${data.talepler.length} araç talebi geldi', tag: _tag);
+        AppLogger.info('${data.talepler.length} araç isteği geldi', tag: _tag);
         return Success(data);
       }
 

@@ -20,7 +20,7 @@ class AracTalepEklePage extends ConsumerWidget {
       if (next.isSuccess) {
         AppDialogs.showSuccess(
           context,
-          'Araç talebiniz başarıyla oluşturuldu.',
+          'Araç isteiniz başarıyla oluşturuldu.',
           onOk: () {
             Navigator.pop(context);
           },
@@ -38,7 +38,7 @@ class AracTalepEklePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: PrimaryAppBar(
-        title: 'Araç Talebi Oluştur',
+        title: 'Araç İsteği Oluştur',
         leading: IconButton(
           icon: const Icon(Icons.close, color: AppColors.textOnPrimary),
           onPressed: () async {

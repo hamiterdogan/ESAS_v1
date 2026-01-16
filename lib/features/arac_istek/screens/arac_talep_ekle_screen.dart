@@ -297,7 +297,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     } else if (aracTuru == 'Otobüs') {
       return 'Otobüs İsteği';
     }
-    return '$aracTuru Araç Talebi';
+    return '$aracTuru Araç İsteği';
   }
 
   @override
@@ -946,7 +946,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         },
         onSuccess: () {
           if (!mounted) return;
-          _showStatusBottomSheet('Araç talebi gönderildi', isError: false);
+          _showStatusBottomSheet('Araç isteği gönderildi', isError: false);
         },
         onError: (error) {
           if (!mounted) return;
@@ -1261,7 +1261,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       case Success():
         return;
       case Failure(:final message):
-        throw Exception('Araç talebi gönderilemedi: $message');
+        throw Exception('Araç isteği gönderilemedi: $message');
       case Loading():
         throw Exception('Yükleniyor');
     }

@@ -136,7 +136,7 @@ class _AracTalepCard extends ConsumerWidget {
   Future<void> _deleteTalep(BuildContext context, WidgetRef ref) async {
     final shouldDelete = await helper.showDeleteConfirmDialog(
       title: 'Talebi Sil',
-      content: 'Bu araç talebini silmek istediğinize emin misiniz?',
+      content: 'Bu araç isteğini silmek istediğinize emin misiniz?',
     );
     if (shouldDelete != true) return;
 
