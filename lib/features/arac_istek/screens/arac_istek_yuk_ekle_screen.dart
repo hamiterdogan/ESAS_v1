@@ -501,6 +501,7 @@ class _AracIstekYukEkleScreenState
                                             hintText: 'Semt ve adres giriniz',
                                             prefixIcon: const Icon(
                                               Icons.location_on_outlined,
+                                              color: AppColors.primaryDark,
                                             ),
                                             border: OutlineInputBorder(
                                               borderRadius:
@@ -670,7 +671,10 @@ class _AracIstekYukEkleScreenState
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      prefixIcon: const Icon(Icons.local_shipping_outlined),
+                      prefixIcon: const Icon(
+                        Icons.local_shipping_outlined,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
