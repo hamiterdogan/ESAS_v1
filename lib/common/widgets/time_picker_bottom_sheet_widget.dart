@@ -320,7 +320,7 @@ class _TimePickerBottomSheetWidgetState
                 Icon(
                   Icons.access_time,
                   size: 24,
-                  color: AppColors.textSecondary,
+                  color: AppColors.primaryDark,
                 ),
                 const SizedBox(width: 12),
                 Text(

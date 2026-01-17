@@ -35,7 +35,7 @@ class YerEkleButton extends StatelessWidget {
             ),
             Icon(
               Icons.add_location_alt_outlined,
-              color: AppColors.textPrimary,
+              color: AppColors.primaryDark,
               size: 24,
             ),
           ],
