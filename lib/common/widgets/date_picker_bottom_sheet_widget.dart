@@ -427,7 +427,7 @@ class _DatePickerBottomSheetWidgetState
                 const Icon(
                   Icons.calendar_today,
                   size: 18,
-                  color: AppColors.primary,
+                  color: AppColors.primaryDark,
                 ),
                 const SizedBox(width: 8),
                 Expanded(

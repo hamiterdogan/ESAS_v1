@@ -317,11 +317,7 @@ class _TimePickerBottomSheetWidgetState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.access_time,
-                  size: 24,
-                  color: AppColors.primaryDark,
-                ),
+                Icon(Icons.access_time, size: 24, color: AppColors.primaryDark),
                 const SizedBox(width: 12),
                 Text(
                   _formatTime(),
