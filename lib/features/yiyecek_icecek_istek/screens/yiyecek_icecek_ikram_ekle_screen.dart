@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_ikram_data.dart';
 import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
 
@@ -21,8 +22,6 @@ class _YiyecekIcecekIkramEkleScreenState
     extends ConsumerState<YiyecekIcecekIkramEkleScreen> {
   int _kurumIciAdet = 0;
   int _kurumDisiAdet = 0;
-  late final TextEditingController _kurumIciController;
-  late final TextEditingController _kurumDisiController;
   late final TextEditingController _toplamController;
   final TextEditingController _ikramSecinizController = TextEditingController();
   final FocusNode _ikramFocusNode = FocusNode();
@@ -69,10 +68,6 @@ class _YiyecekIcecekIkramEkleScreenState
       }
     }
 
-    _kurumIciController = TextEditingController(text: _kurumIciAdet.toString());
-    _kurumDisiController = TextEditingController(
-      text: _kurumDisiAdet.toString(),
-    );
     _toplamController = TextEditingController(
       text: '${_kurumIciAdet + _kurumDisiAdet} kişi',
     );
@@ -80,8 +75,6 @@ class _YiyecekIcecekIkramEkleScreenState
 
   @override
   void dispose() {
-    _kurumIciController.dispose();
-    _kurumDisiController.dispose();
     _toplamController.dispose();
     _ikramSecinizController.dispose();
     _ikramFocusNode.dispose();
@@ -100,10 +93,6 @@ class _YiyecekIcecekIkramEkleScreenState
     if (value < 0 || value > 9999) return;
     setState(() {
       _kurumIciAdet = value;
-      _kurumIciController.text = value.toString();
-      _kurumIciController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _kurumIciController.text.length),
-      );
       _updateToplam();
     });
   }
@@ -113,109 +102,8 @@ class _YiyecekIcecekIkramEkleScreenState
     if (value < 0 || value > 9999) return;
     setState(() {
       _kurumDisiAdet = value;
-      _kurumDisiController.text = value.toString();
-      _kurumDisiController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _kurumDisiController.text.length),
-      );
       _updateToplam();
     });
-  }
-
-  Widget _buildSpinnerRow(
-    int value,
-    TextEditingController controller,
-    Function(int) onUpdate, {
-    FocusNode? focusNode,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: value > 0 ? () => onUpdate(value - 1) : null,
-          child: Container(
-            width: 44,
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-              color: AppColors.textOnPrimary,
-            ),
-            child: Icon(
-              Icons.remove,
-              color: value > 0 ? AppColors.textPrimary : Colors.grey.shade300,
-              size: 24,
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Container(
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              color: AppColors.textOnPrimary,
-            ),
-            child: TextField(
-              focusNode: focusNode,
-              controller: controller,
-              textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(4),
-              ],
-              style: const TextStyle(
-                fontSize: 17,
-                color: AppColors.textPrimary,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.only(bottom: 9),
-              ),
-              onChanged: (val) {
-                if (val.isEmpty) return;
-                final intValue = int.tryParse(val);
-                if (intValue == null) return;
-                if (intValue < 0) {
-                  onUpdate(0);
-                } else if (intValue > 9999) {
-                  onUpdate(9999);
-                } else {
-                  onUpdate(intValue);
-                }
-              },
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        GestureDetector(
-          onTap: value < 9999 ? () => onUpdate(value + 1) : null,
-          child: Container(
-            width: 44,
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(8),
-                bottomRight: Radius.circular(8),
-              ),
-              color: AppColors.textOnPrimary,
-            ),
-            child: Icon(
-              Icons.add,
-              color: value < 9999
-                  ? AppColors.textPrimary
-                  : Colors.grey.shade300,
-              size: 24,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _buildIkramSelection() {
@@ -681,57 +569,24 @@ class _YiyecekIcecekIkramEkleScreenState
                 Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kurum İçi',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                  color: AppColors.inputLabelColor,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSpinnerRow(
-                            _kurumIciAdet,
-                            _kurumIciController,
-                            _updateKurumIciAdet,
-                            focusNode: _kurumIciFocusNode,
-                          ),
-                        ],
+                      child: NumericSpinnerWidget(
+                        label: 'Kurum İçi',
+                        initialValue: _kurumIciAdet,
+                        minValue: 0,
+                        maxValue: 9999,
+                        compact: true,
+                        onValueChanged: _updateKurumIciAdet,
                       ),
                     ),
                     const SizedBox(width: 24),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kurum Dışı',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                  color: AppColors.inputLabelColor,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSpinnerRow(
-                            _kurumDisiAdet,
-                            _kurumDisiController,
-                            _updateKurumDisiAdet,
-                          ),
-                        ],
+                      child: NumericSpinnerWidget(
+                        label: 'Kurum Dışı',
+                        initialValue: _kurumDisiAdet,
+                        minValue: 0,
+                        maxValue: 9999,
+                        compact: true,
+                        onValueChanged: _updateKurumDisiAdet,
                       ),
                     ),
                   ],

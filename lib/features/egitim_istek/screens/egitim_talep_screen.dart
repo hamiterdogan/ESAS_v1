@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/duration_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
@@ -162,115 +165,166 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       );
 
       if (result != null) {
-        final existingNames = _selectedFiles.map((f) => f.name).toSet();
-        final newFiles = <PlatformFile>[];
-        final duplicateNames = <String>[];
-
-        for (final file in result.files) {
-          if (existingNames.contains(file.name)) {
-            duplicateNames.add(file.name);
-          } else {
-            newFiles.add(file);
-          }
-        }
-
-        setState(() {
-          _selectedFiles.addAll(newFiles);
-        });
-
-        if (duplicateNames.isNotEmpty && mounted) {
-          // 🔒 Enhanced focus control
-          _egitimTeklifIcerikFocusNode.canRequestFocus = false;
-          _ozelEgitimAdiFocusNode.canRequestFocus = false;
-          FocusScope.of(context).unfocus();
-
-          // 🔒 Critical: Wait 1 frame for focus state to settle
-          await Future.delayed(Duration.zero);
-
-          if (!mounted) return;
-
-          await showModalBottomSheet(
-            context: context,
-            builder: (context) => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 24,
-                left: 24,
-                right: 24,
-                bottom: 60,
-              ),
-              decoration: const BoxDecoration(
-                color: AppColors.textOnPrimary,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.border,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: AppColors.warning,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Bu dosyayı daha önce eklediniz',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    duplicateNames.join(', '),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.gradientStart,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Tamam',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textOnPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
+        await _handlePickedFiles(result.files);
       }
     } catch (e) {
       if (mounted) {
         _showStatusBottomSheet('Dosya seçimi başarısız: $e', isError: true);
       }
     }
+  }
+
+  Future<void> _pickFromCamera() async {
+    FocusScope.of(context).unfocus();
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.camera);
+      if (image == null) return;
+
+      final file = File(image.path);
+      final size = await file.length();
+      final name = image.path.split(Platform.pathSeparator).last;
+      await _handlePickedFiles([
+        PlatformFile(name: name, size: size, path: image.path),
+      ]);
+    } catch (e) {
+      if (mounted) {
+        _showStatusBottomSheet('Fotoğraf seçimi başarısız: $e', isError: true);
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    FocusScope.of(context).unfocus();
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      final file = File(image.path);
+      final size = await file.length();
+      final name = image.path.split(Platform.pathSeparator).last;
+      await _handlePickedFiles([
+        PlatformFile(name: name, size: size, path: image.path),
+      ]);
+    } catch (e) {
+      if (mounted) {
+        _showStatusBottomSheet('Fotoğraf seçimi başarısız: $e', isError: true);
+      }
+    }
+  }
+
+  Future<void> _handlePickedFiles(List<PlatformFile> pickedFiles) async {
+    if (pickedFiles.isEmpty) return;
+
+    final existingNames = _selectedFiles.map((f) => f.name).toSet();
+    final newFiles = <PlatformFile>[];
+    final duplicateNames = <String>[];
+
+    for (final file in pickedFiles) {
+      if (existingNames.contains(file.name)) {
+        duplicateNames.add(file.name);
+      } else {
+        newFiles.add(file);
+      }
+    }
+
+    if (newFiles.isNotEmpty) {
+      setState(() {
+        _selectedFiles.addAll(newFiles);
+      });
+    }
+
+    if (duplicateNames.isNotEmpty && mounted) {
+      await _showDuplicateFilesBottomSheet(duplicateNames);
+    }
+  }
+
+  Future<void> _showDuplicateFilesBottomSheet(
+    List<String> duplicateNames,
+  ) async {
+    // 🔒 Enhanced focus control
+    _egitimTeklifIcerikFocusNode.canRequestFocus = false;
+    _ozelEgitimAdiFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+
+    // 🔒 Critical: Wait 1 frame for focus state to settle
+    await Future.delayed(Duration.zero);
+
+    if (!mounted) return;
+
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(
+          top: 24,
+          left: 24,
+          right: 24,
+          bottom: 60,
+        ),
+        decoration: const BoxDecoration(
+          color: AppColors.textOnPrimary,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.warning,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Bu dosyayı daha önce eklediniz',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              duplicateNames.join(', '),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientStart,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Tamam',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textOnPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _removeFile(int index) {
@@ -475,6 +529,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primaryDark,
                               ),
                           initialHour: _baslangicSaat,
                           initialMinute: _baslangicDakika,
@@ -501,6 +556,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primaryDark,
                               ),
                           initialHour: _bitisSaat,
                           initialMinute: _bitisDakika,
@@ -1480,104 +1536,16 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Eğitim Teklif Dosya / Fotoğraf Yükle',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize:
-                              (Theme.of(
-                                    context,
-                                  ).textTheme.titleSmall?.fontSize ??
-                                  14) +
-                              1,
-                          color: AppColors.inputLabelColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: _pickFiles,
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.textOnPrimary,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.cloud_upload_outlined,
-                                size: 24,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Dosya Seçmek İçin Dokunun',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              Text(
-                                '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
-                                style: TextStyle(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (_selectedFiles.isNotEmpty) ...[
-                        const SizedBox(height: 12),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _selectedFiles.length,
-                          itemBuilder: (context, index) {
-                            final file = _selectedFiles[index];
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.insert_drive_file_outlined,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      file.name,
-                                      style: const TextStyle(fontSize: 14),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: AppColors.error,
-                                      size: 20,
-                                    ),
-                                    onPressed: () => _removeFile(index),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ],
+                  FilePhotoUploadWidget<PlatformFile>(
+                    title: 'Eğitim Teklif Dosya / Fotoğraf Yükle',
+                    buttonText: 'Dosya/Fotoğraf Yükle',
+                    files: _selectedFiles,
+                    fileNameBuilder: (file) => file.name,
+                    onRemoveFile: _removeFile,
+                    onPickCamera: _pickFromCamera,
+                    onPickGallery: _pickFromGallery,
+                    onPickFile: _pickFiles,
+                    titleColor: AppColors.inputLabelColor,
                   ),
                   const SizedBox(height: 24),
                   Column(
@@ -1985,7 +1953,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.45,
+          height: MediaQuery.of(context).size.height * 0.45 + 40,
           decoration: const BoxDecoration(
             color: AppColors.textOnPrimary,
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -2023,7 +1991,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 60),
                         itemCount: _egitimTurleri.length,
                         separatorBuilder: (context, index) => Divider(
                           height: 1,

@@ -588,6 +588,12 @@ class _EgitimIstekDetayScreenState
     bool isLast = false,
     bool multiLine = true,
   }) {
+    // Determine label color based on label text
+    final bool isTimeLabel = label.contains('Saati');
+    final labelColor = isTimeLabel
+        ? AppColors.primaryDark
+        : AppColors.textSecondary;
+
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: Column(
@@ -596,10 +602,10 @@ class _EgitimIstekDetayScreenState
           if (multiLine) ...[
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
+                color: labelColor,
               ),
             ),
             const SizedBox(height: 4),
@@ -617,10 +623,10 @@ class _EgitimIstekDetayScreenState
               children: [
                 Text(
                   '$label: ',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
+                    color: labelColor,
                   ),
                 ),
                 Expanded(

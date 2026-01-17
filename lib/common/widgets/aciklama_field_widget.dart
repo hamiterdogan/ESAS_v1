@@ -69,18 +69,18 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
             hintStyle: TextStyle(color: AppColors.textTertiary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.primary),
+              borderSide: BorderSide.none,
             ),
             filled: true,
-            fillColor: AppColors.textOnPrimary,
+            fillColor: Colors.white,
           ),
           minLines: widget.minLines,
           maxLines: widget.maxLines,

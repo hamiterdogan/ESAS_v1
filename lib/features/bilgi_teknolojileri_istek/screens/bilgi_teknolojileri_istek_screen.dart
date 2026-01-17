@@ -15,6 +15,7 @@ import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 
 class BilgiTeknolojileriIstekScreen extends ConsumerStatefulWidget {
   final String destekTuru;
@@ -311,65 +312,6 @@ class _BilgiTeknolojileriIstekScreenState
               },
             );
           },
-        );
-      },
-    );
-  }
-
-  Future<void> _showFilePickerOptions() async {
-    FocusScope.of(context).unfocus();
-
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.textOnPrimary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.camera_alt,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text('Kamera'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickFromCamera();
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.photo_library,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text('Galeri'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickFromGallery();
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(
-                    Icons.insert_drive_file,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text('Dosya Yükle'),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _pickFiles();
-                  },
-                ),
-              ],
-            ),
-          ),
         );
       },
     );
@@ -744,92 +686,17 @@ class _BilgiTeknolojileriIstekScreenState
                 const SizedBox(height: 24),
 
                 // Dosya/Fotoğraf Yükle
-                Text(
-                  'Dosya/Fotoğraf Yükle',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.primaryLight,
-                  ),
+                FilePhotoUploadWidget<File>(
+                  title: 'Dosya/Fotoğraf Yükle',
+                  buttonText: 'Dosya/Fotoğraf Yükle',
+                  files: _selectedFiles,
+                  fileNameBuilder: (file) =>
+                      file.path.split(Platform.pathSeparator).last,
+                  onRemoveFile: _removeFile,
+                  onPickCamera: _pickFromCamera,
+                  onPickGallery: _pickFromGallery,
+                  onPickFile: _pickFiles,
                 ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _showFilePickerOptions,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.textOnPrimary,
-                      foregroundColor: AppColors.textPrimary,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                        horizontal: 16,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: const BorderSide(color: AppColors.border),
-                      ),
-                      elevation: 0,
-                    ),
-                    icon: const Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 24,
-                    ),
-                    label: const Text(
-                      'Dosya/Fotoğraf Yükle',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                if (_selectedFiles.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _selectedFiles.length,
-                    itemBuilder: (context, index) {
-                      final file = _selectedFiles[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.insert_drive_file_outlined,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                file.path.split(Platform.pathSeparator).last,
-                                style: const TextStyle(fontSize: 14),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: AppColors.error,
-                                size: 20,
-                              ),
-                              onPressed: () => _removeFile(index),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
 
                 const SizedBox(height: 24),
 

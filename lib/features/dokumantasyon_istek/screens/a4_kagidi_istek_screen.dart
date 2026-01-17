@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -24,7 +25,6 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
   late DateTime _initialTeslimTarihi;
   late DateTime _teslimTarihi;
   int _paketAdedi = 1;
-  late final TextEditingController _paketController;
   late final TextEditingController _aciklamaController;
 
   @override
@@ -32,26 +32,13 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
     super.initState();
     _initialTeslimTarihi = DateTime.now().add(const Duration(days: 2));
     _teslimTarihi = _initialTeslimTarihi;
-    _paketController = TextEditingController(text: _paketAdedi.toString());
     _aciklamaController = TextEditingController();
   }
 
   @override
   void dispose() {
-    _paketController.dispose();
     _aciklamaController.dispose();
     super.dispose();
-  }
-
-  void _updatePaketAdedi(int value) {
-    if (value < 1 || value > 9999) return;
-    setState(() {
-      _paketAdedi = value;
-      _paketController.text = value.toString();
-      _paketController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _paketController.text.length),
-      );
-    });
   }
 
   bool _hasFormData() {
@@ -274,15 +261,30 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Teslim edilecek tarih',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.primaryLight,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'Teslim edilecek tarih',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: _showDateInfo,
+                        child: Icon(
+                          Icons.info_outline,
+                          color: AppColors.primaryDark,
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -303,127 +305,19 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                            onPressed: _showDateInfo,
-                            icon: const Icon(
-                              Icons.info_outline,
-                              color: Colors.grey,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    'Paket Adedi',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.primaryLight,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: _paketAdedi > 1
-                            ? () => _updatePaketAdedi(_paketAdedi - 1)
-                            : null,
-                        child: Container(
-                          width: 50,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(8),
-                              bottomLeft: Radius.circular(8),
-                            ),
-                            color: AppColors.textOnPrimary,
-                          ),
-                          child: Icon(
-                            Icons.remove,
-                            color: _paketAdedi > 1
-                                ? AppColors.textPrimary
-                                : Colors.grey.shade300,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 64,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.border),
-                          color: AppColors.textOnPrimary,
-                        ),
-                        child: TextField(
-                          controller: _paketController,
-                          textAlign: TextAlign.center,
-                          textAlignVertical: TextAlignVertical.center,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(4),
-                          ],
-                          style: const TextStyle(
-                            fontSize: 17,
-                            color: AppColors.textPrimary,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.only(bottom: 9),
-                          ),
-                          onChanged: (value) {
-                            if (value.isEmpty) return;
-                            final intValue = int.tryParse(value);
-                            if (intValue == null) return;
-                            if (intValue < 1) {
-                              _updatePaketAdedi(1);
-                            } else if (intValue > 9999) {
-                              _updatePaketAdedi(9999);
-                            } else {
-                              _updatePaketAdedi(intValue);
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: _paketAdedi < 9999
-                            ? () => _updatePaketAdedi(_paketAdedi + 1)
-                            : null,
-                        child: Container(
-                          width: 50,
-                          height: 46,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.border),
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
-                            ),
-                            color: AppColors.textOnPrimary,
-                          ),
-                          child: Icon(
-                            Icons.add,
-                            color: _paketAdedi < 9999
-                                ? AppColors.textPrimary
-                                : Colors.grey.shade300,
-                            size: 24,
-                          ),
-                        ),
-                      ),
-                    ],
+                  NumericSpinnerWidget(
+                    initialValue: _paketAdedi,
+                    minValue: 1,
+                    maxValue: 9999,
+                    label: 'Paket Adedi',
+                    onValueChanged: (value) {
+                      setState(() {
+                        _paketAdedi = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 24),
                   AciklamaFieldWidget(controller: _aciklamaController),

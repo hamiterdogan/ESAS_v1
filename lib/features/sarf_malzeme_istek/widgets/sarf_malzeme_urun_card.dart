@@ -680,6 +680,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.primaryDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -726,6 +727,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.primaryDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -779,6 +781,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.primaryDark,
               ),
             ),
             const SizedBox(height: 8),
@@ -834,6 +837,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                 fontSize:
                     (Theme.of(context).textTheme.titleSmall?.fontSize ?? 14) +
                     1,
+                color: AppColors.primaryDark,
               ),
             ),
             const SizedBox(height: 8),

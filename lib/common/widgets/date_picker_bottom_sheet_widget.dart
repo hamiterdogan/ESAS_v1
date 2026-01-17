@@ -409,7 +409,7 @@ class _DatePickerBottomSheetWidgetState
                   const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: AppColors.primaryDark,
                   ),
             ),
           ),

@@ -394,7 +394,7 @@ class _PersonelSelectorWidgetState
     // Prepare filter state
     final localSelectedGorevYeri = {..._selectedGorevYeriIds};
     final localSelectedGorev = {..._selectedGorevIds};
-    final localSelectedPersonel = <int>{};
+    final localSelectedPersonel = {..._selectedPersonelIds};
     _currentFilterPage = '';
 
     if (!mounted) {
@@ -593,9 +593,7 @@ class _PersonelSelectorWidgetState
 
                           // Ana sayfadayken: seçimleri uygula ve sheet'i kapat.
                           setState(() {
-                            _selectedPersonelIds
-                              ..clear()
-                              ..addAll(localSelectedPersonel);
+                            _selectedPersonelIds.addAll(localSelectedPersonel);
 
                             _selectedGorevYeriIds.clear();
                             _selectedGorevIds.clear();

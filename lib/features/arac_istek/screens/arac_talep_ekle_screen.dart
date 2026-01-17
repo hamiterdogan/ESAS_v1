@@ -358,7 +358,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -505,7 +505,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
-                                color: AppColors.primary,
+                                color: AppColors.primaryDark,
                               ),
                           initialDate: _gidilecekTarih,
                           minDate: DateTime.now(),
@@ -536,7 +536,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
-                                color: AppColors.primary,
+                                color: AppColors.primaryDark,
                               ),
                           initialHour: _gidisSaat,
                           initialMinute: _gidisDakika,
@@ -577,7 +577,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
-                                    color: AppColors.primary,
+                                    color: AppColors.primaryDark,
                                   ),
                               initialHour: _donusSaat,
                               initialMinute: _donusDakika,
@@ -607,7 +607,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -702,7 +702,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 12),

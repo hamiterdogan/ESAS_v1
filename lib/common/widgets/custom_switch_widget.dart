@@ -24,6 +24,12 @@ class CustomSwitchWidget extends StatelessWidget {
       style: const TextStyle(fontSize: 14, color: AppColors.inputLabelColor),
     );
 
+    final fittedLabel = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: labelText,
+    );
+
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
@@ -35,7 +41,7 @@ class CustomSwitchWidget extends StatelessWidget {
           inactiveTrackColor: AppColors.textOnPrimary,
         ),
         SizedBox(width: spacing),
-        if (compact) labelText else Expanded(child: labelText),
+        if (compact) fittedLabel else Expanded(child: fittedLabel),
       ],
     );
   }

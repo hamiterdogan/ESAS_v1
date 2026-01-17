@@ -2033,21 +2033,23 @@ class _DokumantasyonBaskiIstekScreenState
               },
             ),
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 controller: scrollController,
                 itemCount: filtered.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Colors.grey.shade300),
                 itemBuilder: (context, index) {
                   final item = filtered[index];
                   final isSelected = localSelectedOkul.contains(item);
-                  return CheckboxListTile(
-                    dense: true,
-                    value: isSelected,
-                    onChanged: (val) {
+                  return _buildFilterSelectionRow(
+                    title: item,
+                    selected: isSelected,
+                    onToggle: () {
                       innerSetState(() {
-                        if (val == true) {
-                          localSelectedOkul.add(item);
-                        } else {
+                        if (isSelected) {
                           localSelectedOkul.remove(item);
+                        } else {
+                          localSelectedOkul.add(item);
                         }
                       });
 
@@ -2059,8 +2061,6 @@ class _DokumantasyonBaskiIstekScreenState
                         onUpdateCount: onUpdateCount,
                       );
                     },
-                    title: Text(item),
-                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2119,21 +2119,23 @@ class _DokumantasyonBaskiIstekScreenState
               },
             ),
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 controller: scrollController,
                 itemCount: _seviyeList.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Colors.grey.shade300),
                 itemBuilder: (context, index) {
                   final item = _seviyeList[index];
                   final isSelected = localSelectedSeviye.contains(item);
-                  return CheckboxListTile(
-                    dense: true,
-                    value: isSelected,
-                    onChanged: (val) {
+                  return _buildFilterSelectionRow(
+                    title: item,
+                    selected: isSelected,
+                    onToggle: () {
                       innerSetState(() {
-                        if (val == true) {
-                          localSelectedSeviye.add(item);
-                        } else {
+                        if (isSelected) {
                           localSelectedSeviye.remove(item);
+                        } else {
+                          localSelectedSeviye.add(item);
                         }
                       });
 
@@ -2145,8 +2147,6 @@ class _DokumantasyonBaskiIstekScreenState
                         onUpdateCount: onUpdateCount,
                       );
                     },
-                    title: Text(item),
-                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2234,21 +2234,23 @@ class _DokumantasyonBaskiIstekScreenState
               },
             ),
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 controller: scrollController,
                 itemCount: filtered.length,
+                separatorBuilder: (context, index) =>
+                    Divider(height: 1, color: Colors.grey.shade300),
                 itemBuilder: (context, index) {
                   final item = filtered[index];
                   final isSelected = localSelectedSinif.contains(item);
-                  return CheckboxListTile(
-                    dense: true,
-                    value: isSelected,
-                    onChanged: (val) {
+                  return _buildFilterSelectionRow(
+                    title: item,
+                    selected: isSelected,
+                    onToggle: () {
                       innerSetState(() {
-                        if (val == true) {
-                          localSelectedSinif.add(item);
-                        } else {
+                        if (isSelected) {
                           localSelectedSinif.remove(item);
+                        } else {
+                          localSelectedSinif.add(item);
                         }
                       });
 
@@ -2260,8 +2262,6 @@ class _DokumantasyonBaskiIstekScreenState
                         onUpdateCount: onUpdateCount,
                       );
                     },
-                    title: Text(item),
-                    activeColor: AppColors.primary,
                   );
                 },
               ),
@@ -2293,6 +2293,48 @@ class _DokumantasyonBaskiIstekScreenState
             child: const Text('Tümü', style: TextStyle(fontSize: 16)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSelectionRow({
+    required String title,
+    required bool selected,
+    required VoidCallback onToggle,
+  }) {
+    return InkWell(
+      onTap: onToggle,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+        child: Row(
+          children: [
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
+            const SizedBox(width: 12),
+            Container(
+              width: 40,
+              height: 24,
+              decoration: BoxDecoration(
+                color: selected ? AppColors.primaryDark : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: selected
+                      ? AppColors.primaryDark
+                      : Colors.grey.shade300,
+                  width: 1.5,
+                ),
+              ),
+              child: selected
+                  ? const Center(
+                      child: Icon(
+                        Icons.check,
+                        size: 16,
+                        color: AppColors.textOnPrimary,
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        ),
       ),
     );
   }

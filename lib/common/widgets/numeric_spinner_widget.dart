@@ -10,6 +10,7 @@ class NumericSpinnerWidget extends ConsumerStatefulWidget {
   final int maxValue;
   final String label;
   final Widget? labelSuffix;
+  final bool compact;
 
   const NumericSpinnerWidget({
     super.key,
@@ -19,6 +20,7 @@ class NumericSpinnerWidget extends ConsumerStatefulWidget {
     this.maxValue = 99,
     this.label = 'Girilmeyen Toplam Ders Saati',
     this.labelSuffix,
+    this.compact = false,
   });
 
   @override
@@ -55,6 +57,12 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final double buttonSize = widget.compact ? 40 : 50;
+    final double inputWidth = widget.compact ? 56 : 80;
+    final double fieldHeight = widget.compact ? 40 : 46;
+    final double rowGap = widget.compact ? 6 : 12;
+    final double valueFontSize = widget.compact ? 16 : 18;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -78,137 +86,135 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
           ],
         ),
         const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              // Minus Button
-              GestureDetector(
-                onTap: _value > widget.minValue
-                    ? () {
-                        FocusScope.of(context).unfocus();
-                        _updateValue(_value - 1);
-                      }
-                    : null,
-                child: Container(
-                  width: 50,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      bottomLeft: Radius.circular(8),
-                    ),
-                    color: AppColors.textOnPrimary,
-                  ),
-                  child: Icon(
-                    Icons.remove,
-                    color: _value > widget.minValue
-                        ? AppColors.primaryDark
-                        : AppColors.border,
-                    size: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Value Input
-              SizedBox(
-                width: 80,
-                height: 46,
-                child: TextField(
-                  controller: _controller,
-                  textAlign: TextAlign.center,
-                  textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(1),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(1),
-                      borderSide: const BorderSide(color: AppColors.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(1),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryLight,
-                        width: 2,
-                      ),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.textOnPrimary,
-                  ),
-                  onChanged: (value) {
-                    if (value.isEmpty) return;
-                    final intValue = int.tryParse(value);
-                    if (intValue != null) {
-                      // maxValue'den fazla girilirse otomatik maxValue yap
-                      if (intValue > widget.maxValue) {
-                        setState(() {
-                          _value = widget.maxValue;
-                          _controller.text = widget.maxValue.toString();
-                          _controller.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _controller.text.length),
-                          );
-                          widget.onValueChanged(_value);
-                        });
-                      } else if (intValue < widget.minValue) {
-                        setState(() {
-                          _value = widget.minValue;
-                          _controller.text = widget.minValue.toString();
-                          _controller.selection = TextSelection.fromPosition(
-                            TextPosition(offset: _controller.text.length),
-                          );
-                          widget.onValueChanged(_value);
-                        });
-                      } else {
-                        _updateValue(intValue);
-                      }
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Minus Button
+            GestureDetector(
+              onTap: _value > widget.minValue
+                  ? () {
+                      FocusScope.of(context).unfocus();
+                      _updateValue(_value - 1);
                     }
-                  },
+                  : null,
+              child: Container(
+                width: buttonSize,
+                height: fieldHeight,
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    bottomLeft: Radius.circular(8),
+                  ),
+                  color: AppColors.textOnPrimary,
+                ),
+                child: Icon(
+                  Icons.remove,
+                  color: _value > widget.minValue
+                      ? AppColors.primaryDark
+                      : AppColors.border,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
-              // Plus Button
-              GestureDetector(
-                onTap: _value < widget.maxValue
-                    ? () {
-                        FocusScope.of(context).unfocus();
-                        _updateValue(_value + 1);
-                      }
-                    : null,
-                child: Container(
-                  width: 50,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
+            ),
+            SizedBox(width: rowGap),
+            // Value Input
+            SizedBox(
+              width: inputWidth,
+              height: fieldHeight,
+              child: TextField(
+                controller: _controller,
+                textAlign: TextAlign.center,
+                textAlignVertical: TextAlignVertical.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: TextStyle(
+                  fontSize: valueFontSize,
+                  color: AppColors.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(1),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryLight,
+                      width: 2,
                     ),
-                    color: AppColors.textOnPrimary,
                   ),
-                  child: Icon(
-                    Icons.add,
-                    color: _value < widget.maxValue
-                        ? AppColors.primaryDark
-                        : AppColors.border,
-                    size: 24,
+                  filled: true,
+                  fillColor: AppColors.textOnPrimary,
+                ),
+                onChanged: (value) {
+                  if (value.isEmpty) return;
+                  final intValue = int.tryParse(value);
+                  if (intValue != null) {
+                    // maxValue'den fazla girilirse otomatik maxValue yap
+                    if (intValue > widget.maxValue) {
+                      setState(() {
+                        _value = widget.maxValue;
+                        _controller.text = widget.maxValue.toString();
+                        _controller.selection = TextSelection.fromPosition(
+                          TextPosition(offset: _controller.text.length),
+                        );
+                        widget.onValueChanged(_value);
+                      });
+                    } else if (intValue < widget.minValue) {
+                      setState(() {
+                        _value = widget.minValue;
+                        _controller.text = widget.minValue.toString();
+                        _controller.selection = TextSelection.fromPosition(
+                          TextPosition(offset: _controller.text.length),
+                        );
+                        widget.onValueChanged(_value);
+                      });
+                    } else {
+                      _updateValue(intValue);
+                    }
+                  }
+                },
+              ),
+            ),
+            SizedBox(width: rowGap),
+            // Plus Button
+            GestureDetector(
+              onTap: _value < widget.maxValue
+                  ? () {
+                      FocusScope.of(context).unfocus();
+                      _updateValue(_value + 1);
+                    }
+                  : null,
+              child: Container(
+                width: buttonSize,
+                height: fieldHeight,
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(8),
+                    bottomRight: Radius.circular(8),
                   ),
+                  color: AppColors.textOnPrimary,
+                ),
+                child: Icon(
+                  Icons.add,
+                  color: _value < widget.maxValue
+                      ? AppColors.primaryDark
+                      : AppColors.border,
+                  size: 24,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

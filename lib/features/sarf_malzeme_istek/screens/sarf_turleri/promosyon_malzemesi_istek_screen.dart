@@ -1,15 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_turleri/sarf_malzeme_urun_ekle_screen.dart';
@@ -542,104 +546,7 @@ class _PromosyonMalzemesiIstekScreenState
       );
 
       if (result != null) {
-        final existingNames = _selectedFiles.map((f) => f.name).toSet();
-        final newFiles = <PlatformFile>[];
-        final duplicateNames = <String>[];
-
-        for (final file in result.files) {
-          if (existingNames.contains(file.name)) {
-            duplicateNames.add(file.name);
-          } else {
-            newFiles.add(file);
-          }
-        }
-
-        setState(() {
-          _selectedFiles.addAll(newFiles);
-        });
-
-        if (duplicateNames.isNotEmpty && mounted) {
-          await showModalBottomSheet(
-            context: context,
-            builder: (context) => Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 24,
-                left: 24,
-                right: 24,
-                bottom: 60,
-              ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Bu dosyayı daha önce eklediniz',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    duplicateNames.join(', '),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Tamam',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-          _unlockInputsAfterSheet();
-        }
+        await _handlePickedFiles(result.files);
       }
     } catch (e) {
       if (mounted) {
@@ -648,6 +555,161 @@ class _PromosyonMalzemesiIstekScreenState
         ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
       }
     }
+  }
+
+  Future<void> _pickFromCamera() async {
+    _lockAndUnfocusInputs();
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.camera);
+      if (image == null) return;
+
+      final file = File(image.path);
+      final size = await file.length();
+      final name = image.path.split(Platform.pathSeparator).last;
+      await _handlePickedFiles([
+        PlatformFile(name: name, size: size, path: image.path),
+      ]);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    _lockAndUnfocusInputs();
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery);
+      if (image == null) return;
+
+      final file = File(image.path);
+      final size = await file.length();
+      final name = image.path.split(Platform.pathSeparator).last;
+      await _handlePickedFiles([
+        PlatformFile(name: name, size: size, path: image.path),
+      ]);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handlePickedFiles(List<PlatformFile> pickedFiles) async {
+    if (pickedFiles.isEmpty) return;
+
+    final existingNames = _selectedFiles.map((f) => f.name).toSet();
+    final newFiles = <PlatformFile>[];
+    final duplicateNames = <String>[];
+
+    for (final file in pickedFiles) {
+      if (existingNames.contains(file.name)) {
+        duplicateNames.add(file.name);
+      } else {
+        newFiles.add(file);
+      }
+    }
+
+    if (newFiles.isNotEmpty) {
+      setState(() {
+        _selectedFiles.addAll(newFiles);
+      });
+    }
+
+    if (duplicateNames.isNotEmpty && mounted) {
+      await _showDuplicateFilesBottomSheet(duplicateNames);
+    }
+  }
+
+  Future<void> _showDuplicateFilesBottomSheet(
+    List<String> duplicateNames,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(
+          top: 24,
+          left: 24,
+          right: 24,
+          bottom: 60,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Bu dosyayı daha önce eklediniz',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              duplicateNames.join(', '),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Tamam',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    _unlockInputsAfterSheet();
   }
 
   void _deleteUrun(int index) {
@@ -881,29 +943,22 @@ class _PromosyonMalzemesiIstekScreenState
                                         ),
                                       ),
                                     )
-                                  : ListView.builder(
+                                  : ListView.separated(
                                       itemCount: filteredBinalar.length,
+                                      separatorBuilder: (_, __) => Divider(
+                                        height: 1,
+                                        color: Colors.grey.shade300,
+                                        indent: 20,
+                                        endIndent: 20,
+                                      ),
                                       itemBuilder: (context, index) {
                                         final item = filteredBinalar[index];
                                         final isSelected = _selectedBinaKodlari
                                             .contains(item.binaKodu);
-                                        return CheckboxListTile(
-                                          dense: true,
-                                          title: Text(
-                                            item.binaAdi,
-                                            style: TextStyle(
-                                              fontSize:
-                                                  (Theme.of(context)
-                                                          .textTheme
-                                                          .titleMedium
-                                                          ?.fontSize ??
-                                                      16) +
-                                                  2,
-                                            ),
-                                          ),
-                                          value: isSelected,
-                                          activeColor: AppColors.gradientStart,
-                                          onChanged: (_) {
+                                        return OkulSecimListItem(
+                                          title: item.binaAdi,
+                                          isSelected: isSelected,
+                                          onTap: () {
                                             setState(
                                               () => _toggleSelection(
                                                 item.binaKodu,
@@ -1143,89 +1198,13 @@ class _PromosyonMalzemesiIstekScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Satın Alma İsteğinde Bulunulan Okullar',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.inputLabelColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
+                  OkulSecimWidget(
+                    binalarAsync: binalarAsync,
+                    selectedBinaKodlari: _selectedBinaKodlari,
+                    selectedTextBuilder: _buildSelectedText,
                     onTap: _showBinaBottomSheet,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: binalarAsync.when(
-                              data: (binalar) => Text(
-                                _buildSelectedText(binalar),
-                                style: TextStyle(
-                                  color: _selectedBinaKodlari.isEmpty
-                                      ? Colors.grey.shade600
-                                      : Colors.black,
-                                  fontSize: 16,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              loading: () => const Row(
-                                children: [
-                                  SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text('Yükleniyor...'),
-                                ],
-                              ),
-                              error: (err, stack) => const Text(
-                                'Liste alınamadı',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                        ],
-                      ),
-                    ),
+                    onShowSelected: _showSelectedBinalarSheet,
                   ),
-                  if (_selectedBinaKodlari.isNotEmpty)
-                    binalarAsync.when(
-                      data: (binalar) => TextButton.icon(
-                        onPressed: () => _showSelectedBinalarSheet(binalar),
-                        icon: const Icon(Icons.list),
-                        label: Text(
-                          'Seçilen Okullar (${_selectedBinaKodlari.length})',
-                          style: const TextStyle(fontSize: 15),
-                        ),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.gradientStart,
-                          padding: EdgeInsets.zero,
-                          alignment: Alignment.centerLeft,
-                        ),
-                      ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
-                    ),
-                  const SizedBox(height: 16),
                   KeyedSubtree(
                     key: _aciklamaKey,
                     child: AciklamaFieldWidget(
@@ -1459,10 +1438,10 @@ class _PromosyonMalzemesiIstekScreenState
                     ),
                     const SizedBox(height: 16),
                   ],
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () async {
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
+                      onTap: () async {
                         final result =
                             await Navigator.push<SatinAlmaUrunBilgisi>(
                               context,
@@ -1489,127 +1468,57 @@ class _PromosyonMalzemesiIstekScreenState
                           _scrollToWidget(_gonderButtonKey);
                         });
                       },
-                      icon: const Icon(
-                        Icons.add,
-                        color: AppColors.gradientStart,
-                        size: 28,
-                      ),
-                      label: const Text(
-                        'Ürün Ekle',
-                        style: TextStyle(
-                          color: AppColors.gradientStart,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      style: TextButton.styleFrom(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.symmetric(
-                          vertical: 8,
                           horizontal: 16,
+                          vertical: 12,
                         ),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
+                        decoration: BoxDecoration(
+                          color: AppColors.textOnPrimary,
                           borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(color: Colors.grey.shade300),
+                          border: Border.all(color: AppColors.border),
                         ),
-                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Ürün Ekle',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Text(
+                              '+',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w300,
+                                height: 1.0,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   // Fiyat Teklifi / Sözleşme Ekle
-                  Text(
-                    'Dosya / Fotoğraf Yükle',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.inputLabelColor,
-                    ),
+                  FilePhotoUploadWidget<PlatformFile>(
+                    title: 'Dosya / Fotoğraf Yükle',
+                    buttonText: 'Dosya/Fotoğraf Yükle',
+                    files: _selectedFiles,
+                    fileNameBuilder: (file) => file.name,
+                    onRemoveFile: _removeFile,
+                    onPickCamera: _pickFromCamera,
+                    onPickGallery: _pickFromGallery,
+                    onPickFile: _pickFiles,
+                    titleColor: AppColors.inputLabelColor,
                   ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickFiles,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 24,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Dosya Seçmek İçin Dokunun',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_selectedFiles.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _selectedFiles.length,
-                      itemBuilder: (context, index) {
-                        final file = _selectedFiles[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.insert_drive_file_outlined,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  file.name,
-                                  style: const TextStyle(fontSize: 14),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
-                                onPressed: () => _removeFile(index),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ],
                   const SizedBox(height: 16),
                   Text(
                     'Dosyaların İçeriğini Belirtiniz',

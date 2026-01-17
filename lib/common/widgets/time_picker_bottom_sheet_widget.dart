@@ -297,12 +297,12 @@ class _TimePickerBottomSheetWidgetState
             child: Text(
               widget.label!,
               style:
-                  widget.labelStyle ??
-                  TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primary,
-                  ),
+                  (widget.labelStyle ??
+                          const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ))
+                      .copyWith(color: AppColors.primaryDark),
             ),
           ),
         GestureDetector(

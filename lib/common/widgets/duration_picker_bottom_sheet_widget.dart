@@ -273,7 +273,7 @@ class _DurationPickerBottomSheetWidgetState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.schedule, size: 24, color: AppColors.textSecondary),
+                Icon(Icons.schedule, size: 24, color: AppColors.primaryDark),
                 const SizedBox(width: 12),
                 Text(
                   _formatDuration(),
