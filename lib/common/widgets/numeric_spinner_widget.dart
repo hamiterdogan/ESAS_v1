@@ -104,7 +104,7 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                   child: Icon(
                     Icons.remove,
                     color: _value > widget.minValue
-                        ? AppColors.textPrimary
+                        ? AppColors.primaryDark
                         : AppColors.border,
                     size: 24,
                   ),
@@ -201,7 +201,7 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                   child: Icon(
                     Icons.add,
                     color: _value < widget.maxValue
-                        ? AppColors.textPrimary
+                        ? AppColors.primaryDark
                         : AppColors.border,
                     size: 24,
                   ),
