@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
@@ -44,8 +47,6 @@ class _DokumantasyonBaskiIstekScreenState
   // Baskı Adedi & Sayfa Sayısı
   int _baskiAdedi = 1;
   int _sayfaSayisi = 1;
-  late final TextEditingController _baskiAdediController;
-  late final TextEditingController _sayfaSayisiController;
 
   // Baskı Boyutu
   String _baskiBoyutu = 'A4'; // Default A4
@@ -92,10 +93,6 @@ class _DokumantasyonBaskiIstekScreenState
     _teslimTarihi = _initialTeslimTarihi;
     _aciklamaController = TextEditingController();
     _dosyaIcerikController = TextEditingController();
-    _baskiAdediController = TextEditingController(text: _baskiAdedi.toString());
-    _sayfaSayisiController = TextEditingController(
-      text: _sayfaSayisi.toString(),
-    );
 
     _fetchDokumanTurleri();
     _fetchBaskiBoyutlari();
@@ -105,8 +102,6 @@ class _DokumantasyonBaskiIstekScreenState
   void dispose() {
     _aciklamaController.dispose();
     _dosyaIcerikController.dispose();
-    _baskiAdediController.dispose();
-    _sayfaSayisiController.dispose();
     _dosyaIcerikFocusNode.dispose();
     _aciklamaFocusNode.dispose();
     super.dispose();
@@ -368,6 +363,46 @@ class _DokumantasyonBaskiIstekScreenState
     }
   }
 
+  Future<void> _pickFromCamera() async {
+    FocusScope.of(context).unfocus();
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.camera);
+      if (image != null) {
+        setState(() {
+          _selectedFiles.add(File(image.path));
+        });
+      }
+    } catch (e) {
+      debugPrint('Kamera seçiminde hata: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Kamera seçimi başarısız: $e')));
+      }
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    FocusScope.of(context).unfocus();
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedFiles.add(File(image.path));
+        });
+      }
+    } catch (e) {
+      debugPrint('Galeri seçiminde hata: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Galeri seçimi başarısız: $e')));
+      }
+    }
+  }
+
   void _removeFile(int index) {
     setState(() {
       _selectedFiles.removeAt(index);
@@ -375,26 +410,14 @@ class _DokumantasyonBaskiIstekScreenState
   }
 
   void _updateBaskiAdedi(int value) {
-    FocusScope.of(context).unfocus();
-    if (value < 1 || value > 9999) return;
     setState(() {
       _baskiAdedi = value;
-      _baskiAdediController.text = value.toString();
-      _baskiAdediController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _baskiAdediController.text.length),
-      );
     });
   }
 
   void _updateSayfaSayisi(int value) {
-    FocusScope.of(context).unfocus();
-    if (value < 1 || value > 9999) return;
     setState(() {
       _sayfaSayisi = value;
-      _sayfaSayisiController.text = value.toString();
-      _sayfaSayisiController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _sayfaSayisiController.text.length),
-      );
     });
   }
 
@@ -873,56 +896,32 @@ class _DokumantasyonBaskiIstekScreenState
                 Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Baskı Adedi',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                  color: AppColors.primaryLight,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSpinnerRow(
-                            _baskiAdedi,
-                            _baskiAdediController,
-                            _updateBaskiAdedi,
-                          ),
-                        ],
+                      child: NumericSpinnerWidget(
+                        initialValue: _baskiAdedi,
+                        minValue: 1,
+                        maxValue: 9999,
+                        label: 'Baskı Adedi',
+                        compact: true,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _baskiAdedi = value;
+                          });
+                        },
                       ),
                     ),
                     const SizedBox(width: 24),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Sayfa Sayısı',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      (Theme.of(
-                                            context,
-                                          ).textTheme.titleSmall?.fontSize ??
-                                          14) +
-                                      1,
-                                  color: AppColors.primaryLight,
-                                ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildSpinnerRow(
-                            _sayfaSayisi,
-                            _sayfaSayisiController,
-                            _updateSayfaSayisi,
-                          ),
-                        ],
+                      child: NumericSpinnerWidget(
+                        initialValue: _sayfaSayisi,
+                        minValue: 1,
+                        maxValue: 9999,
+                        label: 'Sayfa Sayısı',
+                        compact: true,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _sayfaSayisi = value;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -1031,99 +1030,17 @@ class _DokumantasyonBaskiIstekScreenState
                 if (!_isKopyaElden) ...[
                   const SizedBox(height: 24),
 
-                  // Basılacak Dosya
-                  Text(
-                    'Basılacak Dosya',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.primaryLight,
-                    ),
+                  FilePhotoUploadWidget<File>(
+                    title: 'Basılacak Dosya',
+                    buttonText: 'Dosya/Fotoğraf Yükle',
+                    files: _selectedFiles,
+                    fileNameBuilder: (file) =>
+                        file.path.split(Platform.pathSeparator).last,
+                    onRemoveFile: _removeFile,
+                    onPickCamera: _pickFromCamera,
+                    onPickGallery: _pickFromGallery,
+                    onPickFile: _pickFiles,
                   ),
-                  const SizedBox(height: 8),
-                  GestureDetector(
-                    onTap: _pickFiles,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.textOnPrimary,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            size: 24,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Dosya Seçmek İçin Dokunun',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            '(pdf, jpg, jpeg, png, doc, docx, xls, xlsx)',
-                            style: TextStyle(
-                              color: Colors.grey.shade400,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (_selectedFiles.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _selectedFiles.length,
-                      itemBuilder: (context, index) {
-                        final file = _selectedFiles[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.insert_drive_file_outlined,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  file.path.split(Platform.pathSeparator).last,
-                                  style: const TextStyle(fontSize: 14),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: AppColors.error,
-                                  size: 20,
-                                ),
-                                onPressed: () => _removeFile(index),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ],
                   const SizedBox(height: 24),
 
                   // Dosyaların içeriğini belirtiniz
@@ -1145,27 +1062,18 @@ class _DokumantasyonBaskiIstekScreenState
                       hintText: 'Dosya içeriği hakkında bilgi veriniz',
                       contentPadding: const EdgeInsets.all(12),
                       filled: true,
-                      fillColor: AppColors.textOnPrimary,
+                      fillColor: Colors.white,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: AppColors.textSecondary,
-                          width: 0.5,
-                        ),
+                        borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: AppColors.textSecondary,
-                          width: 0.5,
-                        ),
+                        borderSide: BorderSide.none,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: AppColors.textSecondary,
-                          width: 0.5,
-                        ),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                     maxLines: 1,
@@ -1270,101 +1178,6 @@ class _DokumantasyonBaskiIstekScreenState
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildSpinnerRow(
-    int value,
-    TextEditingController controller,
-    Function(int) onUpdate,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: value > 1 ? () => onUpdate(value - 1) : null,
-          child: Container(
-            width: 44, // Slightly smaller to fit 2 in row? Or just 50 as before
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                bottomLeft: Radius.circular(8),
-              ),
-              color: AppColors.textOnPrimary,
-            ),
-            child: Icon(
-              Icons.remove,
-              color: value > 1 ? AppColors.textPrimary : Colors.grey.shade300,
-              size: 24,
-            ),
-          ),
-        ),
-        const SizedBox(width: 4), // Small gap
-        Expanded(
-          child: Container(
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              color: AppColors.textOnPrimary,
-            ),
-            child: TextField(
-              controller: controller,
-              textAlign: TextAlign.center,
-              textAlignVertical: TextAlignVertical.center,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(4),
-              ],
-              style: const TextStyle(
-                fontSize: 17,
-                color: AppColors.textPrimary,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.only(bottom: 9),
-              ),
-              onChanged: (val) {
-                if (val.isEmpty) return;
-                final intValue = int.tryParse(val);
-                if (intValue == null) return;
-                if (intValue < 1) {
-                  onUpdate(1);
-                } else if (intValue > 9999) {
-                  onUpdate(9999);
-                } else {
-                  onUpdate(intValue);
-                }
-              },
-            ),
-          ),
-        ),
-        const SizedBox(width: 4),
-        GestureDetector(
-          onTap: value < 9999 ? () => onUpdate(value + 1) : null,
-          child: Container(
-            width: 44,
-            height: 46,
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(8),
-                bottomRight: Radius.circular(8),
-              ),
-              color: AppColors.textOnPrimary,
-            ),
-            child: Icon(
-              Icons.add,
-              color: value < 9999
-                  ? AppColors.textPrimary
-                  : Colors.grey.shade300,
-              size: 24,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
