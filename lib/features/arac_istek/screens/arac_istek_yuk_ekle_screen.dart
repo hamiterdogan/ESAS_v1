@@ -413,7 +413,7 @@ class _AracIstekYukEkleScreenState
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -551,6 +551,7 @@ class _AracIstekYukEkleScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primaryDark,
                               ),
                           initialDate: _gidilecekTarih,
                           minDate: DateTime.now(),
@@ -581,6 +582,7 @@ class _AracIstekYukEkleScreenState
                                         ).textTheme.titleSmall?.fontSize ??
                                         14) +
                                     1,
+                                color: AppColors.primaryDark,
                               ),
                           initialHour: _gidisSaat,
                           initialMinute: _gidisDakika,
@@ -621,6 +623,7 @@ class _AracIstekYukEkleScreenState
                                             ).textTheme.titleSmall?.fontSize ??
                                             14) +
                                         1,
+                                    color: AppColors.primaryDark,
                                   ),
                               initialHour: _donusSaat,
                               initialMinute: _donusDakika,
@@ -652,7 +655,7 @@ class _AracIstekYukEkleScreenState
                           (Theme.of(context).textTheme.titleSmall?.fontSize ??
                               14) +
                           1,
-                      color: AppColors.primary,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 8),
