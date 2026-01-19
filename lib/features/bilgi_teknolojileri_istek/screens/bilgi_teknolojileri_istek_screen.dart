@@ -16,6 +16,7 @@ import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
+import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 
 class BilgiTeknolojileriIstekScreen extends ConsumerStatefulWidget {
   final String destekTuru;
@@ -184,134 +185,210 @@ class _BilgiTeknolojileriIstekScreenState
 
   Future<void> _showBinaBottomSheet() async {
     FocusScope.of(context).unfocus();
-
     await showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.textOnPrimary,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return Consumer(
-          builder: (context, ref, _) {
-            final binalarAsync = ref.watch(satinAlmaBinalarProvider);
+        return SafeArea(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final asyncBinalar = ref.watch(satinAlmaBinalarProvider);
+              return asyncBinalar.when(
+                loading: () => const SizedBox(
+                  height: 240,
+                  child: Center(child: BrandedLoadingIndicator(size: 64)),
+                ),
+                error: (error, stack) => SizedBox(
+                  height: 240,
+                  child: Center(
+                    child: Text(
+                      'Bina listesi alınamadı',
+                      style: TextStyle(color: Colors.red.shade600),
+                    ),
+                  ),
+                ),
+                data: (binalar) {
+                  return StatefulBuilder(
+                    builder: (modalCtx, setModalState) {
+                      final searchQuery = _searchBinaController.text
+                          .toLowerCase();
+                      final filteredBinalar = searchQuery.isEmpty
+                          ? binalar
+                          : binalar
+                                .where(
+                                  (b) => b.binaAdi.toLowerCase().contains(
+                                    searchQuery,
+                                  ),
+                                )
+                                .toList();
 
-            return binalarAsync.when(
-              loading: () => const SizedBox(
-                height: 300,
-                child: Center(child: BrandedLoadingIndicator(size: 80)),
-              ),
-              error: (error, stack) => SizedBox(
-                height: 300,
-                child: Center(child: Text('Hata: $error')),
-              ),
-              data: (binalar) {
-                return StatefulBuilder(
-                  builder: (context, setModalState) {
-                    final filteredBinalar = _searchBinaController.text.isEmpty
-                        ? binalar
-                        : binalar
-                              .where(
-                                (b) => b.binaAdi.toLowerCase().contains(
-                                  _searchBinaController.text.toLowerCase(),
-                                ),
-                              )
-                              .toList();
-
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom,
-                      ),
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.75,
-                        padding: const EdgeInsets.all(16),
+                      return SizedBox(
+                        height: MediaQuery.of(ctx).size.height * 0.65,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Okul Seçiniz',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              child: Text(
+                                'Okul Seçiniz',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize:
+                                          (Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.fontSize ??
+                                              16) +
+                                          1,
+                                      color: AppColors.inputLabelColor,
+                                    ),
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: _searchBinaController,
-                              decoration: InputDecoration(
-                                hintText: 'Okul ara...',
-                                prefixIcon: const Icon(Icons.search),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                              child: TextField(
+                                controller: _searchBinaController,
+                                onChanged: (_) {
+                                  setModalState(() {});
+                                },
+                                decoration: InputDecoration(
+                                  hintText: 'Okul adı ile ara...',
+                                  prefixIcon: const Icon(Icons.search),
+                                  suffixIcon:
+                                      _searchBinaController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            _searchBinaController.clear();
+                                            setModalState(() {});
+                                          },
+                                        )
+                                      : null,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
-                              onChanged: (_) => setModalState(() {}),
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    setState(
-                                      () => _selectedBinaKodlari.clear(),
-                                    );
-                                    setModalState(() {});
-                                  },
-                                  child: const Text('Temizle'),
-                                ),
-                                const SizedBox(width: 8),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(
-                                      () => _selectedBinaKodlari.addAll(
-                                        filteredBinalar.map((e) => e.binaKodu),
-                                      ),
-                                    );
-                                    setModalState(() {});
-                                  },
-                                  child: const Text('Tümünü seç'),
-                                ),
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(
+                                        () => _selectedBinaKodlari.clear(),
+                                      );
+                                      setModalState(() {});
+                                    },
+                                    child: const Text(
+                                      'Temizle',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(
+                                        () => _selectedBinaKodlari.addAll(
+                                          filteredBinalar.map(
+                                            (e) => e.binaKodu,
+                                          ),
+                                        ),
+                                      );
+                                      setModalState(() {});
+                                    },
+                                    child: const Text(
+                                      'Tümünü seç',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                             Expanded(
                               child: filteredBinalar.isEmpty
-                                  ? const Center(
-                                      child: Text('Eşleşen okul bulunamadı'),
+                                  ? Center(
+                                      child: Text(
+                                        'Eşleşen okul bulunamadı',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 14,
+                                        ),
+                                      ),
                                     )
-                                  : ListView.builder(
+                                  : ListView.separated(
                                       itemCount: filteredBinalar.length,
+                                      separatorBuilder: (_, __) => Divider(
+                                        height: 1,
+                                        color: Colors.grey.shade300,
+                                        indent: 20,
+                                        endIndent: 20,
+                                      ),
                                       itemBuilder: (context, index) {
                                         final item = filteredBinalar[index];
                                         final isSelected = _selectedBinaKodlari
                                             .contains(item.binaKodu);
-                                        return CheckboxListTile(
-                                          title: Text(item.binaAdi),
-                                          value: isSelected,
-                                          onChanged: (_) {
-                                            _toggleSelection(item.binaKodu);
+                                        return OkulSecimListItem(
+                                          title: item.binaAdi,
+                                          isSelected: isSelected,
+                                          onTap: () {
+                                            setState(
+                                              () => _toggleSelection(
+                                                item.binaKodu,
+                                              ),
+                                            );
                                             setModalState(() {});
                                           },
                                         );
                                       },
                                     ),
                             ),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text('Tamam'),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.gradientStart,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                  ),
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text(
+                                    'Tamam',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          },
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -382,55 +459,17 @@ class _BilgiTeknolojileriIstekScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // İsteğin Yapılacağı Okul/Bina Seçiniz
-                Text(
-                  'İsteğin Yapılacağı Okul/Bina Seçiniz*',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.primaryLight,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                InkWell(
-                  focusNode: _okulFocusNode,
-                  onTap: _showBinaBottomSheet,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.textOnPrimary,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _buildSelectedText(),
-                            style: TextStyle(
-                              color: _selectedBinaKodlari.isEmpty
-                                  ? AppColors.textSecondary
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.normal,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_drop_down,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
-                    ),
-                  ),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final binalarAsync = ref.watch(satinAlmaBinalarProvider);
+                    return OkulSecimWidget(
+                      binalarAsync: binalarAsync,
+                      selectedBinaKodlari: _selectedBinaKodlari,
+                      selectedTextBuilder: (_) => _buildSelectedText(),
+                      onTap: _showBinaBottomSheet,
+                      title: 'İsteğin Yapılacağı Okul/Bina Seçiniz*',
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
 

@@ -26,6 +26,7 @@ import 'package:esas_v1/features/satin_alma/widgets/satin_alma_ozet_bottom_sheet
 import 'package:intl/intl.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
 import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
+import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -601,7 +602,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _lockAndUnfocusInputs();
     await showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.textOnPrimary,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -621,7 +622,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   child: Center(
                     child: Text(
                       'Bina listesi alınamadı',
-                      style: TextStyle(color: AppColors.error),
+                      style: TextStyle(color: Colors.red.shade600),
                     ),
                   ),
                 ),
@@ -738,34 +739,27 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                       child: Text(
                                         'Eşleşen okul bulunamadı',
                                         style: TextStyle(
-                                          color: AppColors.textSecondary,
+                                          color: Colors.grey.shade600,
                                           fontSize: 14,
                                         ),
                                       ),
                                     )
-                                  : ListView.builder(
+                                  : ListView.separated(
                                       itemCount: filteredBinalar.length,
+                                      separatorBuilder: (_, __) => Divider(
+                                        height: 1,
+                                        color: Colors.grey.shade300,
+                                        indent: 20,
+                                        endIndent: 20,
+                                      ),
                                       itemBuilder: (context, index) {
                                         final item = filteredBinalar[index];
                                         final isSelected = _selectedBinaKodlari
                                             .contains(item.binaKodu);
-                                        return CheckboxListTile(
-                                          dense: true,
-                                          title: Text(
-                                            item.binaAdi,
-                                            style: TextStyle(
-                                              fontSize:
-                                                  (Theme.of(context)
-                                                          .textTheme
-                                                          .titleMedium
-                                                          ?.fontSize ??
-                                                      16) +
-                                                  2,
-                                            ),
-                                          ),
-                                          value: isSelected,
-                                          activeColor: AppColors.gradientStart,
-                                          onChanged: (_) {
+                                        return OkulSecimListItem(
+                                          title: item.binaAdi,
+                                          isSelected: isSelected,
+                                          onTap: () {
                                             setState(
                                               () => _toggleSelection(
                                                 item.binaKodu,
@@ -784,7 +778,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.gradientStart,
-                                    foregroundColor: AppColors.textOnPrimary,
+                                    foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
