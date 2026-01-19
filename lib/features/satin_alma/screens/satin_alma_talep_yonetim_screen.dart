@@ -6,12 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/generic_talep_yonetim_screen.dart';
+import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 
 /// Satın Alma talep yönetim ekranı.
-/// 
+///
 /// GenericTalepYonetimScreen kullanarak ortak yapıyı uygular.
 /// Filtreleme desteği ve kategori cache'leme içerir.
 class SatinAlmaTalepYonetimScreen extends ConsumerStatefulWidget {
@@ -29,6 +30,21 @@ class _SatinAlmaTalepYonetimScreenState
   final Map<int, String> _altKategoriAdlari = {};
   bool _anaKategoriYuklendi = false;
   final Set<int> _yuklenenAltAnaIds = {};
+
+  String _selectedDuration = 'Tümü';
+  final Set<String> _selectedRequestTypes = {};
+  final Set<String> _selectedStatuses = {};
+
+  List<String> _availableRequestTypes = [];
+  List<String> _availableStatuses = [];
+
+  final List<String> _durationOptions = const [
+    'Tümü',
+    '1 Hafta',
+    '1 Ay',
+    '3 Ay',
+    '1 Yıl',
+  ];
 
   @override
   void initState() {
@@ -54,7 +70,9 @@ class _SatinAlmaTalepYonetimScreenState
     final toLoad = anaIds.where((id) => !_yuklenenAltAnaIds.contains(id));
     for (final anaId in toLoad) {
       try {
-        final liste = await ref.read(satinAlmaAltKategorilerProvider(anaId).future);
+        final liste = await ref.read(
+          satinAlmaAltKategorilerProvider(anaId).future,
+        );
         if (!mounted) return;
         setState(() {
           for (final alt in liste) {
@@ -84,11 +102,62 @@ class _SatinAlmaTalepYonetimScreenState
   }
 
   String _getKategoriLabel(SatinAlmaTalep talep) {
-    final kategori = _anaKategoriAdlari[talep.satinAlmaAnaKategoriId]?.trim() ??
+    final kategori =
+        _anaKategoriAdlari[talep.satinAlmaAnaKategoriId]?.trim() ??
         talep.urunKategori.trim();
-    final altKategori = _altKategoriAdlari[talep.satinAlmaAltKategoriId]?.trim() ??
+    final altKategori =
+        _altKategoriAdlari[talep.satinAlmaAltKategoriId]?.trim() ??
         talep.urunAltKategori.trim();
     return [kategori, altKategori].where((e) => e.isNotEmpty).join(' - ');
+  }
+
+  void _updateAvailableStatuses(List<String> statuses) {
+    final normalized = statuses.toSet().toList()..sort();
+    if (normalized.toString() != _availableStatuses.toString()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _availableStatuses = normalized);
+      });
+    }
+  }
+
+  void _updateAvailableRequestTypes(List<String> types) {
+    final normalized = types.toSet().toList()..sort();
+    if (normalized.toString() != _availableRequestTypes.toString()) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _availableRequestTypes = normalized);
+      });
+    }
+  }
+
+  void _showFilterBottomSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => TalepFilterBottomSheet(
+        durationOptions: _durationOptions,
+        initialSelectedDuration: _selectedDuration,
+        requestTypeOptions: _availableRequestTypes,
+        initialSelectedRequestTypes: _selectedRequestTypes,
+        requestTypeTitle: 'Kategori',
+        requestTypeEmptyLabel: 'Henüz kategori bilgisi yok',
+        statusOptions: _availableStatuses,
+        initialSelectedStatuses: _selectedStatuses,
+        onApply: (selections) {
+          setState(() {
+            _selectedDuration = selections.selectedDuration;
+            _selectedRequestTypes
+              ..clear()
+              ..addAll(selections.selectedRequestTypes);
+            _selectedStatuses
+              ..clear()
+              ..addAll(selections.selectedStatuses);
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -98,30 +167,43 @@ class _SatinAlmaTalepYonetimScreenState
         title: 'Satın Alma İsteklerini Yönet',
         addRoute: '/satin_alma/ekle',
         enableFilter: true,
-        devamEdenBuilder: (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-          return _SatinAlmaTalepListesi(
-            taleplerAsync: ref.watch(satinAlmaDevamEdenTaleplerProvider),
-            onRefresh: () => ref.refresh(satinAlmaDevamEdenTaleplerProvider.future),
-            helper: helper,
-            filterPredicate: filterPredicate,
-            onDurumlarUpdated: onDurumlarUpdated,
-            onItemsLoaded: _primeKategoriAdlari,
-            getKategoriLabel: _getKategoriLabel,
-            tamamlanan: false,
-          );
-        },
-        tamamlananBuilder: (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-          return _SatinAlmaTalepListesi(
-            taleplerAsync: ref.watch(satinAlmaTamamlananTaleplerProvider),
-            onRefresh: () => ref.refresh(satinAlmaTamamlananTaleplerProvider.future),
-            helper: helper,
-            filterPredicate: filterPredicate,
-            onDurumlarUpdated: onDurumlarUpdated,
-            onItemsLoaded: _primeKategoriAdlari,
-            getKategoriLabel: _getKategoriLabel,
-            tamamlanan: true,
-          );
-        },
+        onFilterTap: _showFilterBottomSheet,
+        devamEdenBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _SatinAlmaTalepListesi(
+                taleplerAsync: ref.watch(satinAlmaDevamEdenTaleplerProvider),
+                onRefresh: () =>
+                    ref.refresh(satinAlmaDevamEdenTaleplerProvider.future),
+                helper: helper,
+                applyFilters: false,
+                selectedDuration: _selectedDuration,
+                selectedRequestTypes: _selectedRequestTypes,
+                selectedStatuses: _selectedStatuses,
+                onDurumlarUpdated: _updateAvailableStatuses,
+                onRequestTypesUpdated: _updateAvailableRequestTypes,
+                onItemsLoaded: _primeKategoriAdlari,
+                getKategoriLabel: _getKategoriLabel,
+                tamamlanan: false,
+              );
+            },
+        tamamlananBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+              return _SatinAlmaTalepListesi(
+                taleplerAsync: ref.watch(satinAlmaTamamlananTaleplerProvider),
+                onRefresh: () =>
+                    ref.refresh(satinAlmaTamamlananTaleplerProvider.future),
+                helper: helper,
+                applyFilters: true,
+                selectedDuration: _selectedDuration,
+                selectedRequestTypes: _selectedRequestTypes,
+                selectedStatuses: _selectedStatuses,
+                onDurumlarUpdated: _updateAvailableStatuses,
+                onRequestTypesUpdated: _updateAvailableRequestTypes,
+                onItemsLoaded: _primeKategoriAdlari,
+                getKategoriLabel: _getKategoriLabel,
+                tamamlanan: true,
+              );
+            },
       ),
     );
   }
@@ -134,19 +216,64 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
     required this.helper,
     required this.getKategoriLabel,
     required this.tamamlanan,
-    this.filterPredicate,
+    required this.applyFilters,
+    required this.selectedDuration,
+    required this.selectedRequestTypes,
+    required this.selectedStatuses,
     this.onDurumlarUpdated,
+    this.onRequestTypesUpdated,
     this.onItemsLoaded,
   });
 
   final AsyncValue<List<SatinAlmaTalep>> taleplerAsync;
   final Future<List<SatinAlmaTalep>> Function() onRefresh;
   final TalepYonetimHelper helper;
-  final bool Function(String durum)? filterPredicate;
+  final bool applyFilters;
+  final String selectedDuration;
+  final Set<String> selectedRequestTypes;
+  final Set<String> selectedStatuses;
   final void Function(List<String> durumlar)? onDurumlarUpdated;
+  final void Function(List<String> requestTypes)? onRequestTypesUpdated;
   final void Function(List<SatinAlmaTalep> items)? onItemsLoaded;
   final String Function(SatinAlmaTalep talep) getKategoriLabel;
   final bool tamamlanan;
+
+  bool _sureFiltresindenGeciyorMu(String olusturmaTarihi) {
+    if (selectedDuration == 'Tümü') return true;
+
+    try {
+      final tarih = DateTime.parse(olusturmaTarihi);
+      final simdi = DateTime.now();
+      final fark = simdi.difference(tarih);
+
+      switch (selectedDuration) {
+        case '1 Hafta':
+          return fark.inDays <= 7;
+        case '1 Ay':
+          return fark.inDays <= 30;
+        case '3 Ay':
+          return fark.inDays <= 90;
+        case '1 Yıl':
+          return fark.inDays <= 365;
+        default:
+          return true;
+      }
+    } catch (e) {
+      return true;
+    }
+  }
+
+  bool _istekTuruFiltresindenGeciyorMu(String kategoriLabel) {
+    if (selectedRequestTypes.isEmpty) return true;
+    final value = kategoriLabel.toLowerCase();
+    return selectedRequestTypes.any((tur) => value.contains(tur.toLowerCase()));
+  }
+
+  bool _talepDurumuFiltresindenGeciyorMu(String onayDurumu) {
+    if (selectedStatuses.isEmpty) return true;
+    final value = onayDurumu.toLowerCase();
+    return selectedStatuses.any((durum) => value.contains(durum.toLowerCase()));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -156,7 +283,7 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
         onItemsLoaded?.call(items);
 
         // Update available durumlar for filter
-        if (onDurumlarUpdated != null) {
+        if (applyFilters && onDurumlarUpdated != null) {
           final durumlar = items
               .map((t) => t.onayDurumu)
               .where((d) => d.isNotEmpty)
@@ -164,9 +291,29 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
           onDurumlarUpdated!(durumlar);
         }
 
+        if (applyFilters && onRequestTypesUpdated != null) {
+          final types = items
+              .map(getKategoriLabel)
+              .where((t) => t.isNotEmpty)
+              .toList();
+          onRequestTypesUpdated!(types);
+        }
+
         // Apply filter
-        final filtered = filterPredicate != null
-            ? items.where((t) => filterPredicate!(t.onayDurumu)).toList()
+        final filtered = applyFilters
+            ? items.where((item) {
+                final surePassed = _sureFiltresindenGeciyorMu(
+                  item.olusturmaTarihi,
+                );
+                final kategoriLabel = getKategoriLabel(item);
+                final typePassed = _istekTuruFiltresindenGeciyorMu(
+                  kategoriLabel,
+                );
+                final statusPassed = _talepDurumuFiltresindenGeciyorMu(
+                  item.onayDurumu,
+                );
+                return surePassed && typePassed && statusPassed;
+              }).toList()
             : items;
 
         if (filtered.isEmpty) {
@@ -176,19 +323,25 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
         }
 
         // Sort by date descending
-        final sorted = [...filtered]..sort((a, b) {
-          final aDate = DateTime.tryParse(a.olusturmaTarihi);
-          final bDate = DateTime.tryParse(b.olusturmaTarihi);
-          if (aDate == null && bDate == null) return 0;
-          if (aDate == null) return 1;
-          if (bDate == null) return -1;
-          return bDate.compareTo(aDate);
-        });
+        final sorted = [...filtered]
+          ..sort((a, b) {
+            final aDate = DateTime.tryParse(a.olusturmaTarihi);
+            final bDate = DateTime.tryParse(b.olusturmaTarihi);
+            if (aDate == null && bDate == null) return 0;
+            if (aDate == null) return 1;
+            if (bDate == null) return -1;
+            return bDate.compareTo(aDate);
+          });
 
         return RefreshIndicator(
           onRefresh: () => onRefresh().then((_) {}),
           child: ListView.separated(
-            padding: const EdgeInsets.only(left: 8, right: 8, top: 12, bottom: 50),
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 8,
+              top: 12,
+              bottom: 50,
+            ),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 2),
             itemBuilder: (context, index) => _SatinAlmaTalepCard(
@@ -201,10 +354,8 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
         );
       },
       loading: () => helper.buildLoadingState(),
-      error: (error, stack) => helper.buildErrorState(
-        error: error,
-        onRetry: () => onRefresh(),
-      ),
+      error: (error, stack) =>
+          helper.buildErrorState(error: error, onRetry: () => onRefresh()),
     );
   }
 }
@@ -224,8 +375,8 @@ class _SatinAlmaTalepCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDeleteAvailable = !tamamlanan && 
-        talep.onayDurumu.toLowerCase().contains('onay bekliyor');
+    final isDeleteAvailable =
+        !tamamlanan && talep.onayDurumu.toLowerCase().contains('onay bekliyor');
 
     return GenericTalepCard(
       onayKayitId: talep.onayKayitId,

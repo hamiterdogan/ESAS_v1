@@ -111,20 +111,70 @@ class _GenericTalepYonetimScreenState<T>
                       ],
                     ),
                     const SizedBox(height: 8),
-                    ..._availableDurumlar.map(
-                      (durum) => CheckboxListTile(
-                        value: tempSelected.contains(durum),
-                        activeColor: AppColors.gradientStart,
-                        title: Text(durum.isEmpty ? 'Belirsiz' : durum),
-                        onChanged: (value) {
-                          modalSetState(() {
-                            if (value == true) {
-                              tempSelected.add(durum);
-                            } else {
-                              tempSelected.remove(durum);
-                            }
-                          });
-                          setState(() => _selectedDurumlar = {...tempSelected});
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: _availableDurumlar.length,
+                        separatorBuilder: (context, index) =>
+                            Divider(height: 1, color: Colors.grey.shade300),
+                        itemBuilder: (context, index) {
+                          final durum = _availableDurumlar[index];
+                          final isSelected = tempSelected.contains(durum);
+                          return InkWell(
+                            onTap: () {
+                              modalSetState(() {
+                                if (isSelected) {
+                                  tempSelected.remove(durum);
+                                } else {
+                                  tempSelected.add(durum);
+                                }
+                              });
+                              setState(
+                                () => _selectedDurumlar = {...tempSelected},
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      durum.isEmpty ? 'Belirsiz' : durum,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    width: 40,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.gradientStart
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppColors.gradientStart
+                                            : Colors.grey.shade300,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: isSelected
+                                        ? const Center(
+                                            child: Icon(
+                                              Icons.check,
+                                              size: 16,
+                                              color: AppColors.textOnPrimary,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ),
@@ -145,7 +195,7 @@ class _GenericTalepYonetimScreenState<T>
       return [
         CommonAppBarActionButton(
           label: 'Filtrele',
-          onTap: _showFilterBottomSheet,
+          onTap: widget.config.onFilterTap ?? _showFilterBottomSheet,
         ),
         ...?widget.config.appBarActions,
       ];
@@ -225,6 +275,7 @@ class TalepYonetimConfig<T> {
     this.fabLabel,
     this.emptyMessage,
     this.enableFilter = false,
+    this.onFilterTap,
   });
 
   /// AppBar başlığı
@@ -267,6 +318,9 @@ class TalepYonetimConfig<T> {
 
   /// Tamamlanan tab için filtreleme aktif mi
   final bool enableFilter;
+
+  /// Filtre butonu tıklaması (opsiyonel)
+  final VoidCallback? onFilterTap;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -235,9 +235,13 @@ class _YiyecekIcecekIkramEkleScreenState
                           data: (ikramTurleri) {
                             return StatefulBuilder(
                               builder: (context, setSheetState) {
-                                return ListView.builder(
+                                return ListView.separated(
                                   controller: scrollController,
                                   itemCount: ikramTurleri.length,
+                                  separatorBuilder: (context, index) => Divider(
+                                    height: 1,
+                                    color: Colors.grey.shade300,
+                                  ),
                                   itemBuilder: (context, index) {
                                     final ikram = ikramTurleri[index];
                                     final isSelected = _selectedIkramlar
@@ -246,16 +250,13 @@ class _YiyecekIcecekIkramEkleScreenState
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        CheckboxListTile(
-                                          title: Text(ikram),
-                                          value: isSelected,
-                                          activeColor: AppColors.gradientStart,
-                                          onChanged: (bool? value) {
+                                        InkWell(
+                                          onTap: () {
                                             setSheetState(() {
-                                              if (value == true) {
-                                                _selectedIkramlar.add(ikram);
-                                              } else {
+                                              if (isSelected) {
                                                 _selectedIkramlar.remove(ikram);
+                                              } else {
+                                                _selectedIkramlar.add(ikram);
                                               }
                                               // Clear error if user changes selection (optional, but good UX)
                                               if (currentError != null) {
@@ -265,6 +266,58 @@ class _YiyecekIcecekIkramEkleScreenState
                                             // Update main screen as well
                                             setState(() {});
                                           },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 20,
+                                              vertical: 12,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    ikram,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Container(
+                                                  width: 40,
+                                                  height: 24,
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? AppColors
+                                                              .gradientStart
+                                                        : Colors.transparent,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          16,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: isSelected
+                                                          ? AppColors
+                                                                .gradientStart
+                                                          : Colors
+                                                                .grey
+                                                                .shade300,
+                                                      width: 1.5,
+                                                    ),
+                                                  ),
+                                                  child: isSelected
+                                                      ? const Center(
+                                                          child: Icon(
+                                                            Icons.check,
+                                                            size: 16,
+                                                            color: AppColors
+                                                                .textOnPrimary,
+                                                          ),
+                                                        )
+                                                      : null,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                         if (ikram == 'Diğer' && isSelected)
                                           Padding(

@@ -8,6 +8,7 @@ import 'package:esas_v1/features/izin_istek/screens/izin_turu_secim_screen.dart'
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
+import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 
 class IzinListeScreen extends ConsumerStatefulWidget {
   const IzinListeScreen({super.key});
@@ -187,9 +188,6 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
     '1 Yıl',
   ];
 
-  // Filtre sayfası durumu - null = ana liste, 'sure' = süre sayfası, vb.
-  String? _currentFilterPage;
-
   // AppBar'dan çağrılacak public metodlar
   void showSiralamaBottomSheetPublic() {
     _showSiralamaBottomSheet(context);
@@ -329,426 +327,32 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
 
   // Tüm filtre seçeneklerini gösteren BottomSheet - Multi-page
   void _showFilterOptionsBottomSheet() {
-    setState(() => _currentFilterPage = null);
-
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          margin: const EdgeInsets.only(top: 20),
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height - 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.textTertiary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    if (_currentFilterPage != null)
-                      InkWell(
-                        onTap: () {
-                          setModalState(() => _currentFilterPage = null);
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.arrow_back, size: 20),
-                            SizedBox(width: 8),
-                            Text('Geri', style: TextStyle(fontSize: 16)),
-                          ],
-                        ),
-                      )
-                    else
-                      const SizedBox(width: 64),
-                    const Spacer(),
-                    Text(
-                      _currentFilterPage == null
-                          ? 'Filtrele'
-                          : _getFilterTitle(_currentFilterPage!),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    const SizedBox(width: 64),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    final offsetAnimation =
-                        Tween<Offset>(
-                          begin: const Offset(1.0, 0),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          ),
-                        );
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-                  child: _currentFilterPage == null
-                      ? _buildFilterMainPage(setModalState)
-                      : _buildFilterDetailPage(
-                          _currentFilterPage!,
-                          setModalState,
-                        ),
-                ),
-              ),
-              if (_currentFilterPage == null)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: 50,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {});
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Uygula',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.textOnPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              if (_currentFilterPage != null)
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    right: 16,
-                    top: 16,
-                    bottom: 50,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setModalState(() {
-                          _currentFilterPage = null;
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Tamam',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: AppColors.textOnPrimary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getFilterTitle(String key) {
-    switch (key) {
-      case 'sure':
-        return 'Süre';
-      case 'izinTuru':
-        return 'İzin Türü';
-      case 'talepDurumu':
-        return 'Talep Durumu';
-      default:
-        return 'Filtre';
-    }
-  }
-
-  Widget _buildFilterMainPage(StateSetter setModalState) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildFilterMainItem(
-            title: 'Süre',
-            selectedValue: _selectedSure,
-            onTap: () => setModalState(() => _currentFilterPage = 'sure'),
-          ),
-          _buildFilterMainItem(
-            title: 'İzin Türü',
-            selectedValue: _selectedIzinTurleri.isEmpty
-                ? 'Tümü'
-                : _selectedIzinTurleri.join(', '),
-            onTap: () => setModalState(() => _currentFilterPage = 'izinTuru'),
-          ),
-          if (widget.tip == 1)
-            _buildFilterMainItem(
-              title: 'Talep Durumu',
-              selectedValue: _selectedTalepDurumlari.isEmpty
-                  ? 'Tümü'
-                  : _selectedTalepDurumlari.join(', '),
-              onTap: () =>
-                  setModalState(() => _currentFilterPage = 'talepDurumu'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterMainItem({
-    required String title,
-    required String selectedValue,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  if (selectedValue != 'Tümü') ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      selectedValue,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterDetailPage(String filterType, StateSetter setModalState) {
-    switch (filterType) {
-      case 'sure':
-        return _buildSureFilterDetailPage(setModalState);
-      case 'izinTuru':
-        return _buildIzinTuruFilterDetailPage(setModalState);
-      case 'talepDurumu':
-        return _buildTalepDurumuFilterDetailPage(setModalState);
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildSureFilterDetailPage(StateSetter setModalState) {
-    return SingleChildScrollView(
-      child: Column(
-        children: _sureSecenekleri
-            .map(
-              (secenek) => ListTile(
-                dense: true,
-                title: Text(
-                  secenek,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: secenek == _selectedSure
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: secenek == _selectedSure
-                        ? AppColors.primary
-                        : AppColors.textPrimary87,
-                  ),
-                ),
-                trailing: secenek == _selectedSure
-                    ? const Icon(
-                        Icons.check,
-                        color: AppColors.primary,
-                        size: 22,
-                      )
-                    : null,
-                onTap: () {
-                  setModalState(() => _selectedSure = secenek);
-                },
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildIzinTuruFilterDetailPage(StateSetter setModalState) {
-    if (_mevcutIzinTurleri.isEmpty) {
-      return const Center(child: Text('Henüz izin türü bilgisi yok'));
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          if (_selectedIzinTurleri.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () =>
-                      setModalState(() => _selectedIzinTurleri.clear()),
-                  child: const Text(
-                    'Temizle',
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ),
-              ),
-            ),
-          ..._mevcutIzinTurleri.map(
-            (tur) => CheckboxListTile(
-              dense: true,
-              title: Text(
-                tur,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: _selectedIzinTurleri.contains(tur)
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  color: _selectedIzinTurleri.contains(tur)
-                      ? AppColors.primary
-                      : AppColors.textPrimary87,
-                ),
-              ),
-              value: _selectedIzinTurleri.contains(tur),
-              activeColor: AppColors.primary,
-              checkboxShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
-              onChanged: (bool? value) {
-                setModalState(() {
-                  if (value == true) {
-                    _selectedIzinTurleri.add(tur);
-                  } else {
-                    _selectedIzinTurleri.remove(tur);
-                  }
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTalepDurumuFilterDetailPage(StateSetter setModalState) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          if (_selectedTalepDurumlari.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () =>
-                      setModalState(() => _selectedTalepDurumlari.clear()),
-                  child: const Text(
-                    'Temizle',
-                    style: TextStyle(color: AppColors.primary),
-                  ),
-                ),
-              ),
-            ),
-          ..._talepDurumuSecenekleri.map(
-            (secenek) => CheckboxListTile(
-              dense: true,
-              title: Text(
-                secenek,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: _selectedTalepDurumlari.contains(secenek)
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                  color: _selectedTalepDurumlari.contains(secenek)
-                      ? AppColors.primary
-                      : AppColors.textPrimary87,
-                ),
-              ),
-              value: _selectedTalepDurumlari.contains(secenek),
-              activeColor: AppColors.primary,
-              checkboxShape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-              side: BorderSide(color: AppColors.textTertiary, width: 1.5),
-              onChanged: (bool? value) {
-                setModalState(() {
-                  if (value == true) {
-                    _selectedTalepDurumlari.add(secenek);
-                  } else {
-                    _selectedTalepDurumlari.remove(secenek);
-                  }
-                });
-              },
-            ),
-          ),
-        ],
+      builder: (context) => TalepFilterBottomSheet(
+        durationOptions: _sureSecenekleri,
+        initialSelectedDuration: _selectedSure,
+        requestTypeOptions: _mevcutIzinTurleri,
+        initialSelectedRequestTypes: _selectedIzinTurleri,
+        requestTypeTitle: 'İzin Türü',
+        statusOptions: _talepDurumuSecenekleri,
+        initialSelectedStatuses: _selectedTalepDurumlari,
+        showStatusSection: widget.tip == 1,
+        onApply: (selections) {
+          setState(() {
+            _selectedSure = selections.selectedDuration;
+            _selectedIzinTurleri
+              ..clear()
+              ..addAll(selections.selectedRequestTypes);
+            _selectedTalepDurumlari
+              ..clear()
+              ..addAll(selections.selectedStatuses);
+          });
+        },
       ),
     );
   }
