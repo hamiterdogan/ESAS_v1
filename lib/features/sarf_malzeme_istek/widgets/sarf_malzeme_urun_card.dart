@@ -72,8 +72,8 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     }
   }
 
-  SatinAlmaUrunBilgisi? getData() {
-    if (!validateForm()) return null;
+  Future<SatinAlmaUrunBilgisi?> getData() async {
+    if (!await validateForm()) return null;
 
     return SatinAlmaUrunBilgisi(
       anaKategori: _selectedAnaKategori?.kategori,
@@ -101,21 +101,33 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     );
   }
 
-  bool validateForm() {
+  Future<bool> validateForm() async {
     if (_selectedAnaKategori == null) {
-      _showErrorBottomSheet('Ürün kategorisi seçiniz');
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Ürün kategorisi seçiniz',
+      );
       return false;
     }
     if (_selectedAltKategori == null) {
-      _showErrorBottomSheet('Alt kategorisi seçiniz');
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Alt kategorisi seçiniz',
+      );
       return false;
     }
     if (_urunDetayController.text.isEmpty) {
-      _showErrorBottomSheet('Ürün detay bilgisi giriniz');
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Ürün detay bilgisi giriniz',
+      );
       return false;
     }
     if (_selectedOlcuBirim == null) {
-      _showErrorBottomSheet('Birim seçiniz');
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Birim seçiniz',
+      );
       return false;
     }
     return true;
@@ -128,94 +140,6 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
     _miktarController.dispose();
     _aciklamaController.dispose();
     super.dispose();
-  }
-
-  void _showErrorBottomSheet(String message) async {
-    _urunDetayFocusNode.canRequestFocus = false;
-    _urunDetayFocusNode.unfocus();
-    FocusScope.of(context).unfocus();
-
-    await Future.delayed(Duration.zero);
-
-    if (!mounted) return;
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.textOnPrimary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 50,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: AppColors.warning,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Uyarı',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.bodyMedium?.fontSize ??
-                            14) +
-                        3,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.gradientStart,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Tamam',
-                      style: TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).unfocus();
-      _urunDetayFocusNode.canRequestFocus = true;
-    });
   }
 
   Future<void> _showAnaKategoriBottomSheet() async {

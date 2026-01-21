@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -20,6 +21,8 @@ import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_turleri/sarf_ma
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_ekle_req.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 
 class KirtasiyeMalzemesiIstekScreen extends ConsumerStatefulWidget {
   const KirtasiyeMalzemesiIstekScreen({super.key});
@@ -44,57 +47,7 @@ class _KirtasiyeMalzemesiIstekScreenState
 
   Future<void> _scrollToWidget(GlobalKey key) async {
     final context = key.currentContext;
-    if (context != null) {
-      await Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _lockAndUnfocusInputs() {
-    _aciklamaFocusNode.canRequestFocus = false;
-    _aciklamaFocusNode.unfocus();
-    FocusScope.of(context).unfocus();
-  }
-
-  void _unlockInputsAfterSheet() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).unfocus();
-      _aciklamaFocusNode.canRequestFocus = true;
-    });
-  }
-
-  void _toggleSelection(String binaKodu) {
-    if (_selectedBinaKodlari.contains(binaKodu)) {
-      _selectedBinaKodlari.remove(binaKodu);
-    } else {
-      _selectedBinaKodlari.add(binaKodu);
-    }
-  }
-
-  String _buildSelectedText(List<SatinAlmaBina> binalar) {
-    final selectedNames = binalar
-        .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
-        .map((b) => b.binaAdi)
-        .toList();
-
-    if (selectedNames.isEmpty) return 'Okul seçiniz';
-    if (selectedNames.length <= 2) {
-      return selectedNames.join(', ');
-    }
-    return '${selectedNames.length} okul seçildi';
-  }
-
-  void _removeFile(int index) {
-    setState(() {
-      _selectedFiles.removeAt(index);
-    });
-  }
-
-  Future<void> _submitForm() async {
-    // 1. Validate 'Açıklama' (Description) field
+    if (context == null) return;
     if (_aciklamaController.text.trim().isEmpty) {
       FocusScope.of(context).unfocus();
       // Get keyContext before async gap
@@ -104,70 +57,17 @@ class _KirtasiyeMalzemesiIstekScreenState
       // Ensure widget is visible if possible
       if (keyContext != null) {
         await Scrollable.ensureVisible(
-          keyContext, // ignore: use_build_context_synchronously
+          keyContext,
           duration: const Duration(milliseconds: 450),
           curve: Curves.easeInOut,
         );
       }
 
       if (!mounted) return;
-      if (mounted) {
-        await showModalBottomSheet(
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          builder: (context) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Lütfen bir açıklama giriniz.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.gradientStart,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Tamam',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-
-        // After closing sheet, focus key
-        if (mounted) {
-          _aciklamaFocusNode.canRequestFocus = true;
-          FocusScope.of(context).requestFocus(_aciklamaFocusNode);
-        }
-      }
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen bir açıklama giriniz.',
+      );
       return;
     }
 
@@ -256,7 +156,7 @@ class _KirtasiyeMalzemesiIstekScreenState
         if (mounted) {
           FocusScope.of(context).unfocus();
           Future.delayed(const Duration(milliseconds: 300), () {
-            _scrollToWidget(_gonderButtonKey);
+            _scrollToKey(_gonderButtonKey);
           });
         }
       } // End if (mounted)
@@ -340,9 +240,10 @@ class _KirtasiyeMalzemesiIstekScreenState
 
         if (result is Failure) {
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Hata: ${result.message}')));
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Hata: ${result.message}',
+          );
           return;
         }
       },
@@ -396,17 +297,18 @@ class _KirtasiyeMalzemesiIstekScreenState
             ),
           );
           // Navigate to management screen
-          if (mounted) {
+          if (mounted && context.mounted) {
             ref.invalidate(sarfMalzemeDevamEdenTaleplerProvider);
             context.go('/sarf_malzeme_istek');
           }
         }
       },
-      onError: (error) {
+      onError: (error) async {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Hata: $error')));
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Hata: $error',
+          );
         }
       },
     );
@@ -419,10 +321,20 @@ class _KirtasiyeMalzemesiIstekScreenState
 
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted) {
-          _scrollToWidget(_gonderButtonKey);
+          _scrollToKey(_gonderButtonKey);
         }
       });
     }
+  }
+
+  Future<void> _scrollToKey(GlobalKey key) async {
+    final context = key.currentContext;
+    if (context == null) return;
+    await Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeInOut,
+    );
   }
 
   List<SatinAlmaOzetItem> _buildOzetItems(
@@ -527,6 +439,39 @@ class _KirtasiyeMalzemesiIstekScreenState
     return items;
   }
 
+  void _lockAndUnfocusInputs() {
+    FocusScope.of(context).unfocus();
+  }
+
+  void _unlockInputsAfterSheet() {}
+
+  void _toggleSelection(String binaKodu) {
+    if (_selectedBinaKodlari.contains(binaKodu)) {
+      _selectedBinaKodlari.remove(binaKodu);
+    } else {
+      _selectedBinaKodlari.add(binaKodu);
+    }
+  }
+
+  String _buildSelectedText(List<SatinAlmaBina> binalar) {
+    if (_selectedBinaKodlari.isEmpty) return 'Okul Seçiniz';
+    final selected = binalar
+        .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
+        .map((b) => b.binaAdi)
+        .join(', ');
+    return _selectedBinaKodlari.length == binalar.length
+        ? 'Tüm Okullar'
+        : selected.isEmpty
+        ? 'Okul Seçiniz'
+        : selected;
+  }
+
+  void _removeFile(int index) {}
+
+  Future<void> _submitForm() async {
+    await _scrollToWidget(_gonderButtonKey);
+  }
+
   Future<void> _pickFiles() async {
     _lockAndUnfocusInputs();
     try {
@@ -550,9 +495,10 @@ class _KirtasiyeMalzemesiIstekScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Dosya seçimi başarısız: $e',
+        );
       }
     }
   }
@@ -572,8 +518,9 @@ class _KirtasiyeMalzemesiIstekScreenState
       ]);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Fotoğraf seçimi başarısız: $e',
         );
       }
     }
@@ -594,8 +541,9 @@ class _KirtasiyeMalzemesiIstekScreenState
       ]);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Fotoğraf seçimi başarısız: $e',
         );
       }
     }
@@ -1465,7 +1413,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                         // ignore: use_build_context_synchronously
                         FocusScope.of(context).unfocus();
                         Future.delayed(const Duration(milliseconds: 300), () {
-                          _scrollToWidget(_gonderButtonKey);
+                          _scrollToKey(_gonderButtonKey);
                         });
                       },
                       borderRadius: BorderRadius.circular(8),
@@ -1557,34 +1505,11 @@ class _KirtasiyeMalzemesiIstekScreenState
                     ),
                   ),
                   const SizedBox(height: 32),
-                  DecoratedBox(
-                    key: _gonderButtonKey,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Gönder',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
+                  GonderButtonWidget(
+                    buttonKey: _gonderButtonKey,
+                    onPressed: _submitForm,
+                    padding: 14.0,
+                    borderRadius: 8.0,
                   ),
                   const SizedBox(height: 50),
                 ],

@@ -10,6 +10,7 @@ class OkulSecimWidget extends StatelessWidget {
   final VoidCallback onTap;
   final void Function(List<SatinAlmaBina> binalar)? onShowSelected;
   final String title;
+  final bool isMultiSelect;
 
   const OkulSecimWidget({
     super.key,
@@ -19,6 +20,7 @@ class OkulSecimWidget extends StatelessWidget {
     required this.onTap,
     this.onShowSelected,
     this.title = 'Satın Alma İsteğinde Bulunulan Okullar',
+    this.isMultiSelect = true,
   });
 
   @override
@@ -83,7 +85,7 @@ class OkulSecimWidget extends StatelessWidget {
             ),
           ),
         ),
-        if (selectedBinaKodlari.isNotEmpty)
+        if (isMultiSelect && selectedBinaKodlari.isNotEmpty)
           binalarAsync.when(
             data: (binalar) => TextButton.icon(
               onPressed: onShowSelected == null

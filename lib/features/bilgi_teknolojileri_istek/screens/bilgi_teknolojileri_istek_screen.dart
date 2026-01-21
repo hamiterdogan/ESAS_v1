@@ -8,8 +8,13 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolojileri_hizmet_ekle_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/bilgi_teknolojileri_hizmet_data.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_talep_models.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
@@ -17,6 +22,9 @@ import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
+import 'package:esas_v1/common/index.dart';
 
 class BilgiTeknolojileriIstekScreen extends ConsumerStatefulWidget {
   final String destekTuru;
@@ -39,6 +47,7 @@ class _BilgiTeknolojileriIstekScreenState
   final TextEditingController _dosyaIcerikController = TextEditingController();
   final FocusNode _dosyaIcerikFocusNode = FocusNode();
   final List<BilgiTeknolojileriHizmetData> _addedHizmetler = [];
+  final bool _isMultiSelect = false;
 
   // Yeni eklenen field'lar
   final Set<String> _selectedBinaKodlari = <String>{};
@@ -170,17 +179,209 @@ class _BilgiTeknolojileriIstekScreenState
       if (_selectedBinaKodlari.contains(binaKodu)) {
         _selectedBinaKodlari.remove(binaKodu);
       } else {
-        _selectedBinaKodlari.add(binaKodu);
+        if (!_isMultiSelect) {
+          _selectedBinaKodlari
+            ..clear()
+            ..add(binaKodu);
+        } else {
+          _selectedBinaKodlari.add(binaKodu);
+        }
       }
     });
   }
 
-  String _buildSelectedText() {
+  String _buildSelectedText(List<SatinAlmaBina> binalar) {
     if (_selectedBinaKodlari.isEmpty) return 'Okul seçiniz';
-    if (_selectedBinaKodlari.length <= 2) {
+    if (_isMultiSelect) {
       return '${_selectedBinaKodlari.length} okul seçildi';
     }
-    return '${_selectedBinaKodlari.length} okul seçildi';
+
+    SatinAlmaBina? selected;
+    for (final bina in binalar) {
+      if (_selectedBinaKodlari.contains(bina.binaKodu)) {
+        selected = bina;
+        break;
+      }
+    }
+    return selected?.binaAdi ?? 'Okul seçildi';
+  }
+
+  String _resolveSelectedBinaName() {
+    if (_selectedBinaKodlari.isEmpty) return '';
+    final selectedKodu = _selectedBinaKodlari.first;
+    final asyncBinalar = ref.read(satinAlmaBinalarProvider);
+    return asyncBinalar.maybeWhen(
+      data: (binalar) {
+        if (binalar.isEmpty) return selectedKodu;
+        final matched = binalar.firstWhere(
+          (bina) => bina.binaKodu == selectedKodu,
+          orElse: () => binalar.first,
+        );
+        return matched.binaAdi;
+      },
+      orElse: () => selectedKodu,
+    );
+  }
+
+  Future<void> _validateAndSubmit() async {
+    if (_selectedBinaKodlari.isEmpty) {
+      _showWarningBottomSheet(
+        'İsteğin yapılacağı okul/bina seçimi gerekmektedir.',
+      );
+      return;
+    }
+
+    if (_aciklamaController.text.trim().isEmpty) {
+      _showWarningBottomSheet('İstek açıklaması gerekmektedir.');
+      return;
+    }
+
+    if (_addedHizmetler.isEmpty) {
+      _showWarningBottomSheet('En az bir hizmet eklemesi gerekmektedir.');
+      return;
+    }
+
+    await _submitFormToApi();
+  }
+
+  Future<void> _submitFormToApi() async {
+    if (!mounted) return;
+
+    try {
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierLabel: 'loading',
+        barrierColor: Colors.transparent,
+        pageBuilder: (_, __, ___) =>
+            const BrandedLoadingOverlay(indicatorSize: 64, strokeWidth: 6),
+      );
+
+      final hizmetler = _addedHizmetler
+          .map(
+            (h) => HizmetItem(
+              hizmetKategori: h.kategori,
+              hizmetDetay: h.hizmetDetayi,
+            ),
+          )
+          .toList();
+
+      final request = TeknikDestekTalepEkleRequest(
+        personelId: 0,
+        bina: _resolveSelectedBinaName(),
+        hizmetTuru: 'Bilgi Teknolojileri',
+        aciklama: _aciklamaController.text.trim(),
+        sonTarih: _selectedDate ?? DateTime.now(),
+        hizmetler: hizmetler,
+      );
+
+      final repository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+      final result = await repository.teknikDestekTalepEkle(request);
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      if (result is Success) {
+        final response =
+            (result as Success<TeknikDestekTalepEkleResponse>).data;
+
+        if (response.basarili) {
+          if (_selectedFiles.isNotEmpty) {
+            await _uploadFiles(response.onayKayitId);
+          }
+
+          if (mounted) {
+            await IstekBasariliWidget.goster(
+              context: context,
+              message: response.mesaj.isNotEmpty
+                  ? response.mesaj
+                  : '${widget.baslik} isteğiniz oluşturulmuştur.',
+              onConfirm: () async {
+                if (widget.destekTuru == 'bilgiTek') {
+                  ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
+                  ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+                  if (!context.mounted) return;
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  if (!context.mounted) return;
+                  context.go('/bilgi_teknolojileri');
+                  return;
+                }
+
+                if (!context.mounted) return;
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                if (!context.mounted) return;
+                context.go('/teknik_destek');
+              },
+            );
+            if (mounted) {
+              _resetForm();
+            }
+          }
+        } else {
+          if (mounted) {
+            _showWarningBottomSheet(response.mesaj);
+          }
+        }
+      } else if (result is Failure) {
+        final error =
+            (result as Failure<TeknikDestekTalepEkleResponse>).message;
+        if (mounted) {
+          _showWarningBottomSheet('İstek gönderilemedi: $error');
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      _showWarningBottomSheet('Beklenmeyen hata: $e');
+    }
+  }
+
+  Future<void> _uploadFiles(int onayKayitId) async {
+    if (!mounted) return;
+
+    try {
+      final filesToUpload = _selectedFiles
+          .map(
+            (file) => (file.path, file.path.split(Platform.pathSeparator).last),
+          )
+          .toList();
+
+      final repository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+      final result = await repository.dosyaYukle(
+        onayKayitId: onayKayitId,
+        onayTipi: 'TeknikDestek',
+        files: filesToUpload,
+        dosyaAciklama: _dosyaIcerikController.text.trim().isNotEmpty
+            ? _dosyaIcerikController.text.trim()
+            : 'Teknik destek talebine ait dosya',
+      );
+
+      if (result is! Success) {
+        if (mounted) {
+          final error = (result as Failure).message;
+          _showWarningBottomSheet(
+            'Dosyalar yüklenemedi: $error\nTalep başarılı olsa da dosyalar yüklenememiş olabilir.',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showWarningBottomSheet('Dosyalar yüklenirken hata oluştu: $e');
+      }
+    }
+  }
+
+  void _resetForm() {
+    _selectedBinaKodlari.clear();
+    _aciklamaController.clear();
+    _addedHizmetler.clear();
+    _selectedFiles.clear();
+    _dosyaIcerikController.clear();
+    setState(() {});
+  }
+
+  Future<void> _showWarningBottomSheet(String message) async {
+    await ValidationUyariWidget.goster(context: context, message: message);
   }
 
   Future<void> _showBinaBottomSheet() async {
@@ -200,7 +401,10 @@ class _BilgiTeknolojileriIstekScreenState
               return asyncBinalar.when(
                 loading: () => const SizedBox(
                   height: 240,
-                  child: Center(child: BrandedLoadingIndicator(size: 64)),
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 64,
+                    strokeWidth: 6,
+                  ),
                 ),
                 error: (error, stack) => SizedBox(
                   height: 240,
@@ -296,23 +500,25 @@ class _BilgiTeknolojileriIstekScreenState
                                       style: TextStyle(fontSize: 15),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(
-                                        () => _selectedBinaKodlari.addAll(
-                                          filteredBinalar.map(
-                                            (e) => e.binaKodu,
+                                  if (_isMultiSelect) ...[
+                                    const SizedBox(width: 8),
+                                    TextButton(
+                                      onPressed: () {
+                                        setState(
+                                          () => _selectedBinaKodlari.addAll(
+                                            filteredBinalar.map(
+                                              (e) => e.binaKodu,
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                      setModalState(() {});
-                                    },
-                                    child: const Text(
-                                      'Tümünü seç',
-                                      style: TextStyle(fontSize: 15),
+                                        );
+                                        setModalState(() {});
+                                      },
+                                      child: const Text(
+                                        'Tümünü seç',
+                                        style: TextStyle(fontSize: 15),
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -465,9 +671,10 @@ class _BilgiTeknolojileriIstekScreenState
                     return OkulSecimWidget(
                       binalarAsync: binalarAsync,
                       selectedBinaKodlari: _selectedBinaKodlari,
-                      selectedTextBuilder: (_) => _buildSelectedText(),
+                      selectedTextBuilder: _buildSelectedText,
                       onTap: _showBinaBottomSheet,
                       title: 'İsteğin Yapılacağı Okul/Bina Seçiniz*',
+                      isMultiSelect: _isMultiSelect,
                     );
                   },
                 ),
@@ -483,7 +690,7 @@ class _BilgiTeknolojileriIstekScreenState
                         1,
                     color: AppColors.primaryLight,
                   ),
-                  initialDate: _selectedDate,
+                  initialDate: _selectedDate ?? DateTime.now(),
                   minDate: DateTime.now(),
                   maxDate: DateTime.now().add(const Duration(days: 365)),
                   onDateChanged: (date) {
@@ -780,24 +987,14 @@ class _BilgiTeknolojileriIstekScreenState
           bottomNavigationBar: SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    foregroundColor: AppColors.textOnPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    // TODO: API'ye gönder
-                  },
-                  child: const Text(
-                    'Gönder',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+              child: GonderButtonWidget(
+                onPressed: _validateAndSubmit,
+                padding: 14.0,
+                borderRadius: 8.0,
+                textStyle: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay_model.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -29,49 +31,56 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
   Widget build(BuildContext context) {
     final izinDetayAsync = ref.watch(izinIstekDetayProvider(widget.talepId));
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'İzin Talep Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: izinDetayAsync.when(
-        data: (detay) => _buildContent(context, detay),
-        loading: () => _buildLoading(),
-        error: (error, stack) => _buildError(context, error),
-      ),
+    final isLoading = izinDetayAsync.isLoading;
+    final body = izinDetayAsync.when(
+      data: (detay) => _buildContent(context, detay),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
     );
-  }
 
-  Widget _buildLoading() {
-    return const Center(
-      child: SizedBox(
-        width: 32,
-        height: 32,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.5,
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+    return Stack(
+      children: [
+        Scaffold(
+          resizeToAvoidBottomInset: true,
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'İzin İstek Detayı (${widget.talepId})',
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  context.go('/izin_istek');
+                }
+              },
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            ),
+            elevation: 0,
+          ),
+          body: body,
         ),
-      ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
     );
   }
 
@@ -306,29 +315,43 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
       widgets.add(
         Padding(
           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Ad Soyad
-              Text(
-                personel.personelAdi,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Ad Soyad
+                Text(
+                  personel.personelAdi,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              // Görev Yeri ve Görevi
-              Text(
-                '${personel.gorevYeri} - ${personel.gorevi}',
-                style: const TextStyle(fontSize: 15, color: AppColors.textTertiary),
-              ),
-              if (!isLast) ...[
-                const SizedBox(height: 10),
-                Container(height: 1, color: AppColors.border),
+                const SizedBox(height: 4),
+                // Görevi
+                Text(
+                  personel.gorevi,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                // Görev Yeri
+                Text(
+                  personel.gorevYeri,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                if (!isLast) ...[
+                  const SizedBox(height: 10),
+                  Container(height: 1, color: AppColors.border),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );

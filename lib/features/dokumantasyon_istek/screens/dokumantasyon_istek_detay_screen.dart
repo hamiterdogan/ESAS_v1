@@ -45,7 +45,7 @@ class _DokumantasyonIstekDetayScreenState
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            'Dokümantasyon Detay (${widget.talepId})',
+            'Dokümantasyon İstek Detayı (${widget.talepId})',
             style: const TextStyle(
               color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
@@ -57,7 +57,14 @@ class _DokumantasyonIstekDetayScreenState
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            final router = GoRouter.of(context);
+            if (router.canPop()) {
+              router.pop();
+            } else {
+              context.go('/dokumantasyon_istek');
+            }
+          },
           constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         ),
         elevation: 0,
@@ -222,6 +229,7 @@ class _DokumantasyonIstekDetayScreenState
               isExpanded: _bildirimExpanded,
               onTap: () =>
                   setState(() => _bildirimExpanded = !_bildirimExpanded),
+              childLeftPadding: 30,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: _buildBildirimContent(onayDurumu),
@@ -707,7 +715,15 @@ class _DokumantasyonIstekDetayScreenState
 
   List<Widget> _buildBildirimContent(OnayDurumuResponse onayDurumu) {
     if (onayDurumu.bildirimGidecekler.isEmpty) {
-      return [const Text('Bildirim bilgisi bulunamadı')];
+      return [
+        const Padding(
+          padding: EdgeInsets.all(8),
+          child: Text(
+            'Bildirim gidecek kişi bulunmuyor',
+            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
+          ),
+        ),
+      ];
     }
 
     return [
@@ -724,19 +740,30 @@ class _DokumantasyonIstekDetayScreenState
               Text(
                 personel.personelAdi,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                '${personel.gorevYeri} - ${personel.gorevi}',
+                personel.gorevi,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   color: AppColors.textTertiary,
                 ),
               ),
+              Text(
+                personel.gorevYeri,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+              if (!isLast) ...[
+                const SizedBox(height: 10),
+                Container(height: 1, color: AppColors.border),
+              ],
             ],
           ),
         );
@@ -750,6 +777,7 @@ class _DokumantasyonIstekDetayScreenState
     required bool isExpanded,
     required VoidCallback onTap,
     required Widget child,
+    double childLeftPadding = 16,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -825,6 +853,7 @@ class _DokumantasyonIstekDetayScreenState
             child: isExpanded
                 ? Column(
                     key: const ValueKey('expanded'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Divider(
                         height: 1,
@@ -832,7 +861,12 @@ class _DokumantasyonIstekDetayScreenState
                         color: AppColors.borderLight,
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        padding: EdgeInsets.fromLTRB(
+                          childLeftPadding,
+                          12,
+                          16,
+                          16,
+                        ),
                         child: child,
                       ),
                     ],

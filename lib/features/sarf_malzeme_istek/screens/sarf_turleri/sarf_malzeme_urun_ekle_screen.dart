@@ -33,7 +33,10 @@ class _SarfMalzemeUrunEkleScreenState
           alignment: Alignment.centerLeft,
           child: Text(
             'Ürün Ekle',
-            style: TextStyle(color: AppColors.textOnPrimary, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: AppColors.textOnPrimary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         backgroundColor: AppColors.primary,
@@ -71,11 +74,14 @@ class _SarfMalzemeUrunEkleScreenState
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
                 if (!mounted) return;
-                final bilgi = _cardKey.currentState?.getData();
+                final ctx = context;
+                final bilgi = await _cardKey.currentState?.getData();
+                if (!mounted) return;
                 if (bilgi != null) {
-                  Navigator.pop<SatinAlmaUrunBilgisi>(context, bilgi);
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop<SatinAlmaUrunBilgisi>(ctx, bilgi);
                 }
               },
               child: const Text(

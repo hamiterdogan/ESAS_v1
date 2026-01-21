@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
@@ -450,7 +452,13 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingDokumanTurleri)
-                const Center(child: BrandedLoadingIndicator(size: 48))
+                const SizedBox(
+                  height: 120,
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 48,
+                    strokeWidth: 6,
+                  ),
+                )
               else if (_dokumanTurleri.isEmpty)
                 const Center(child: Text('Doküman türü bulunamadı'))
               else
@@ -526,7 +534,13 @@ class _DokumantasyonBaskiIstekScreenState
               ),
               const SizedBox(height: 16),
               if (_isLoadingBaskiBoyutlari)
-                const Center(child: BrandedLoadingIndicator(size: 48))
+                const SizedBox(
+                  height: 120,
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 48,
+                    strokeWidth: 6,
+                  ),
+                )
               else if (_baskiBoyutlari.isEmpty)
                 const Center(child: Text('Baskı boyutu bulunamadı'))
               else
@@ -743,10 +757,19 @@ class _DokumantasyonBaskiIstekScreenState
           throw Exception(result.message);
         }
       },
-      onSuccess: () {
-        ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
-        _showStatusBottomSheet(
-          'Dokümantasyon baskı isteği başarıyla gönderildi',
+      onSuccess: () async {
+        if (!mounted) return;
+        await IstekBasariliWidget.goster(
+          context: context,
+          message: 'Dokümantasyon baskı isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
+            ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+            ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
+            context.go('/dokumantasyon_istek');
+          },
         );
       },
       onError: (error) {
@@ -1144,32 +1167,14 @@ class _DokumantasyonBaskiIstekScreenState
                 ),
 
                 const SizedBox(height: 32),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Gönder',
-                        style: TextStyle(
-                          color: AppColors.textOnPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                GonderButtonWidget(
+                  onPressed: _submit,
+                  padding: 14.0,
+                  borderRadius: 8.0,
+                  textStyle: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 50),

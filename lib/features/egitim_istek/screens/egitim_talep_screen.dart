@@ -169,7 +169,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showStatusBottomSheet('Dosya seçimi başarısız: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Dosya seçimi başarısız: $e',
+        );
       }
     }
   }
@@ -189,7 +192,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ]);
     } catch (e) {
       if (mounted) {
-        _showStatusBottomSheet('Fotoğraf seçimi başarısız: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Fotoğraf seçimi başarısız: $e',
+        );
       }
     }
   }
@@ -209,7 +215,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ]);
     } catch (e) {
       if (mounted) {
-        _showStatusBottomSheet('Fotoğraf seçimi başarısız: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Fotoğraf seçimi başarısız: $e',
+        );
       }
     }
   }
@@ -2078,7 +2087,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         error: e,
       );
       if (mounted) {
-        _showStatusBottomSheet('Eğitim adları yüklenemedi: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Eğitim adları yüklenemedi: $e',
+        );
       }
     }
   }
@@ -2113,7 +2125,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         error: e,
       );
       if (mounted) {
-        _showStatusBottomSheet('Eğitim türleri yüklenemedi: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Eğitim türleri yüklenemedi: $e',
+        );
       }
     }
   }
@@ -2146,7 +2161,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         error: e,
       );
       if (mounted) {
-        _showStatusBottomSheet('Şehirler yüklenemedi: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Şehirler yüklenemedi: $e',
+        );
       }
     }
   }
@@ -3073,13 +3091,17 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           throw Exception(result.message);
         }
       },
-      onSuccess: () {
-        _showStatusBottomSheet(
-          'Eğitim isteği başarılı bir şekilde oluşturuldu',
-          isError: false,
-          onOk: () {
+      onSuccess: () async {
+        if (!mounted) return;
+        await IstekBasariliWidget.goster(
+          context: context,
+          message: 'Eğitim isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
             ref.invalidate(egitimDevamEdenTaleplerProvider);
             ref.invalidate(egitimTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
             context.go('/egitim_istek');
           },
         );

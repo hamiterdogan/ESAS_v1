@@ -4,11 +4,149 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 class IzinDetayScreen extends ConsumerWidget {
   final int izinId;
 
   const IzinDetayScreen({super.key, required this.izinId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final detayAsync = ref.watch(izinDetayProvider(izinId));
+
+    final isLoading = detayAsync.isLoading;
+
+    final body = detayAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text('Hata: $error'),
+          ],
+        ),
+      ),
+      data: (detay) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Personel Bilgileri
+              _buildSection('Personel Bilgileri', [
+                _buildRow('Ad Soyad', detay.personelAdi ?? 'N/A'),
+                _buildRow('Personel ID', detay.personelId.toString()),
+              ]),
+              const SizedBox(height: 24),
+
+              // İzin Bilgileri
+              _buildSection('İzin Bilgileri', [
+                _buildRow('İzin Sebebi', detay.izinSebebiAd ?? 'N/A'),
+                _buildRow(
+                  'Başlangıç Tarihi',
+                  detay.baslangicTarih != null
+                      ? DateFormat('dd/MM/yyyy').format(detay.baslangicTarih!)
+                      : 'N/A',
+                ),
+                _buildRow(
+                  'Bitiş Tarihi',
+                  detay.bitisTarih != null
+                      ? DateFormat('dd/MM/yyyy').format(detay.bitisTarih!)
+                      : 'N/A',
+                ),
+              ]),
+              const SizedBox(height: 24),
+
+              // Açıklama
+              const Text(
+                'Açıklama',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.textTertiary,
+                ),
+                child: Text(
+                  detay.aciklama ?? 'Açıklama yok',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Onay Durumu
+              _buildSection('Onay Durumu', [
+                _buildRow('Durum', detay.onayDurumu ?? 'Bekleniyor'),
+                if (detay.onayanPersonel != null)
+                  _buildRow('Onayan Personel', detay.onayanPersonel!),
+                if (detay.onaySebebi != null)
+                  _buildRow('Onay Sebebi', detay.onaySebebi!),
+              ]),
+              const SizedBox(height: 32),
+
+              // Sil Butonu
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => _silIstekDialog(context, ref),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'İzin İsteğini Sil',
+                    style: TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'İzin İstek Detayı',
+              style: TextStyle(color: AppColors.textOnPrimary),
+            ),
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () => context.go('/izin_istek'),
+            ),
+          ),
+          body: body,
+        ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
+    );
+  }
 
   void _silIstekDialog(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -30,148 +168,12 @@ class IzinDetayScreen extends ConsumerWidget {
               context.pop(); // Dialog'u kapat
               context.go('/izin/liste'); // Talep listesine git
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('İzin isteği başarıyla silindi'),
-                  backgroundColor: AppColors.success,
-                ),
+                const SnackBar(content: Text('İzin isteği silindi')),
               );
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Sil'),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final detayAsyncValue = ref.watch(izinDetayProvider(izinId));
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'İzin İstek Detayı',
-          style: TextStyle(color: AppColors.textOnPrimary),
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => context.go('/izin_istek'),
-        ),
-      ),
-      body: detayAsyncValue.when(
-        loading: () => const Center(
-          child: SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          ),
-        ),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-              const SizedBox(height: 16),
-              Text('Hata: $error'),
-            ],
-          ),
-        ),
-        data: (detay) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Personel Bilgileri
-                _buildSection('Personel Bilgileri', [
-                  _buildRow('Ad Soyad', detay.personelAdi ?? 'N/A'),
-                  _buildRow('Personel ID', detay.personelId.toString()),
-                ]),
-                const SizedBox(height: 24),
-
-                // İzin Bilgileri
-                _buildSection('İzin Bilgileri', [
-                  _buildRow('İzin Sebebi', detay.izinSebebiAd ?? 'N/A'),
-                  _buildRow(
-                    'Başlangıç Tarihi',
-                    detay.baslangicTarih != null
-                        ? DateFormat('dd/MM/yyyy').format(detay.baslangicTarih!)
-                        : 'N/A',
-                  ),
-                  _buildRow(
-                    'Bitiş Tarihi',
-                    detay.bitisTarih != null
-                        ? DateFormat('dd/MM/yyyy').format(detay.bitisTarih!)
-                        : 'N/A',
-                  ),
-                ]),
-                const SizedBox(height: 24),
-
-                // Açıklama
-                const Text(
-                  'Açıklama',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
-                    color: AppColors.textTertiary,
-                  ),
-                  child: Text(
-                    detay.aciklama ?? 'Açıklama yok',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Onay Durumu
-                _buildSection('Onay Durumu', [
-                  _buildRow('Durum', detay.onayDurumu ?? 'Bekleniyor'),
-                  if (detay.onayanPersonel != null)
-                    _buildRow('Onayan Personel', detay.onayanPersonel!),
-                  if (detay.onaySebebi != null)
-                    _buildRow('Onay Sebebi', detay.onaySebebi!),
-                ]),
-                const SizedBox(height: 32),
-
-                // Sil Butonu
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () => _silIstekDialog(context, ref),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'İzin İsteğini Sil',
-                      style: TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }

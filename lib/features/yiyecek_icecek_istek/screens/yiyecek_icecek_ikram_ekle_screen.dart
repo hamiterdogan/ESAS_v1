@@ -7,6 +7,7 @@ import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 
 class YiyecekIcecekIkramEkleScreen extends ConsumerStatefulWidget {
   final YiyecekIcecekIkramData? existingData;
@@ -516,66 +517,6 @@ class _YiyecekIcecekIkramEkleScreenState
     );
   }
 
-  Future<void> _showWarningBottomSheet(String message) async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
-          decoration: const BoxDecoration(
-            color: AppColors.textOnPrimary,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: AppColors.error,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tamam',
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -821,32 +762,22 @@ class _YiyecekIcecekIkramEkleScreenState
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {
+              onPressed: () async {
                 // 1. Katılımcı sayısı kontrolü
                 if (_kurumIciAdet + _kurumDisiAdet == 0) {
-                  _showWarningBottomSheet(
-                    "Lütfen katılımcı sayılarını belirtiniz",
-                  ).then((_) {
-                    // Warning kapandıktan sonra focuslan
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (_kurumIciFocusNode.canRequestFocus) {
-                        _kurumIciFocusNode.requestFocus();
-                      }
-                    });
-                  });
+                  await ValidationUyariWidget.goster(
+                    context: context,
+                    message: "Lütfen katılımcı sayılarını belirtiniz",
+                  );
                   return;
                 }
 
                 // 2. İkram seçimi kontrolü
                 if (_selectedIkramlar.isEmpty) {
-                  _showWarningBottomSheet("Lütfen ikram seçiniz").then((_) {
-                    // Warning kapandıktan sonra focuslan
-                    Future.delayed(const Duration(milliseconds: 300), () {
-                      if (_ikramSecimiFocusNode.canRequestFocus) {
-                        _ikramSecimiFocusNode.requestFocus();
-                      }
-                    });
-                  });
+                  await ValidationUyariWidget.goster(
+                    context: context,
+                    message: "Lütfen ikram seçiniz",
+                  );
                   return;
                 }
 

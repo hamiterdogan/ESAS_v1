@@ -7,6 +7,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -27,6 +28,8 @@ import 'package:intl/intl.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
 import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -615,7 +618,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               return asyncBinalar.when(
                 loading: () => const SizedBox(
                   height: 240,
-                  child: Center(child: BrandedLoadingIndicator(size: 64)),
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 64,
+                    strokeWidth: 6,
+                  ),
                 ),
                 error: (error, stack) => SizedBox(
                   height: 240,
@@ -1750,32 +1756,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     maxLines: 1,
                   ),
                   const SizedBox(height: 32),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Gönder',
-                          style: TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                  GonderButtonWidget(
+                    onPressed: _submitForm,
+                    padding: 14.0,
+                    borderRadius: 8.0,
+                    textStyle: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 50),
@@ -1960,9 +1948,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       FocusScope.of(context).unfocus();
       await Future.delayed(Duration.zero);
       await _scrollToWidget(_alimAmaciKey);
-      await _showStatusBottomSheet(
-        'Lütfen alımın amacını belirtiniz.',
-        isError: true,
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen alımın amacını belirtiniz.',
       );
 
       if (mounted) {
@@ -1975,60 +1963,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     if (_urunler.isEmpty) {
       FocusScope.of(context).unfocus();
       // Show warning bottom sheet first
-      await showModalBottomSheet<void>(
+      await ValidationUyariWidget.goster(
         context: context,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        builder: (BuildContext statusContext) {
-          return Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              color: AppColors.textOnPrimary,
-            ),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  size: 64,
-                  color: AppColors.warning,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Lütfen en az 1 ürün ekleyiniz.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(statusContext);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.gradientStart,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Tamam',
-                      style: TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+        message: 'Lütfen en az 1 ürün ekleyiniz.',
       );
 
       // After warning is dismissed, navigate to Ürün Ekle
@@ -2053,13 +1990,16 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
     final phoneError = _validatePhone(_saticiTelefonController.text);
     if (phoneError != null) {
-      _showStatusBottomSheet(phoneError, isError: true);
+      await ValidationUyariWidget.goster(context: context, message: phoneError);
       return;
     }
 
     final websiteError = _validateWebsite(_webSitesiController.text);
     if (websiteError != null) {
-      _showStatusBottomSheet(websiteError, isError: true);
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: websiteError,
+      );
       return;
     }
 
@@ -2148,97 +2088,37 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
             }
           }
         },
-        onSuccess: () {
-          // Liste ekranına dön ve verileri tazele
-          ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
-          ref.invalidate(satinAlmaTamamlananTaleplerProvider);
-          context.go('/satin_alma');
+        onSuccess: () async {
+          if (!mounted) return;
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: 'Satın alma isteğiniz oluşturulmuştur.',
+            onConfirm: () async {
+              ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
+              ref.invalidate(satinAlmaTamamlananTaleplerProvider);
+              if (!context.mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              if (!context.mounted) return;
+              context.go('/satin_alma');
+            },
+          );
         },
-        onError: (error) {
-          _showStatusBottomSheet('Hata: $error', isError: true);
+        onError: (error) async {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Hata: $error',
+          );
         },
       );
 
       _unlockInputsAfterSheet();
     } catch (e) {
       if (mounted) {
-        _showStatusBottomSheet('Beklenmeyen hata: $e', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Beklenmeyen hata: $e',
+        );
       }
     }
-  }
-
-  Future<void> _showStatusBottomSheet(
-    String message, {
-    bool isError = false,
-  }) async {
-    if (!mounted) return;
-    _lockAndUnfocusInputs();
-    await showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext statusContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: AppColors.textOnPrimary,
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                size: 64,
-                color: isError ? AppColors.error : AppColors.success,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(statusContext);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Tamam',
-                      style: TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
-        );
-      },
-    );
-    _unlockInputsAfterSheet();
   }
 }

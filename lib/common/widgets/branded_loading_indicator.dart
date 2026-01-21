@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,47 @@ class BrandedLoadingIndicator extends StatefulWidget {
   @override
   State<BrandedLoadingIndicator> createState() =>
       _BrandedLoadingIndicatorState();
+}
+
+class BrandedLoadingOverlay extends StatelessWidget {
+  final double blurSigma;
+  final Color overlayColor;
+  final double indicatorSize;
+  final double strokeWidth;
+  final String logoAssetPath;
+
+  const BrandedLoadingOverlay({
+    super.key,
+    this.blurSigma = 6,
+    this.overlayColor = const Color(0x66FFFFFF),
+    this.indicatorSize = 96,
+    this.strokeWidth = 8,
+    this.logoAssetPath = BrandedLoadingIndicator.defaultLogoAssetPath,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AbsorbPointer(
+      absorbing: true,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+              child: Container(color: overlayColor),
+            ),
+          ),
+          Center(
+            child: BrandedLoadingIndicator(
+              size: indicatorSize,
+              strokeWidth: strokeWidth,
+              logoAssetPath: logoAssetPath,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>

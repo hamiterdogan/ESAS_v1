@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/egitim_istek/models/egitim_istek_detay_model.dart';
@@ -32,35 +33,55 @@ class _EgitimIstekDetayScreenState
     final detayAsync = ref.watch(egitimIstekDetayProvider(widget.talepId));
     final personelAsync = ref.watch(personelBilgiProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Eğitim İstek Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+    final isLoading = detayAsync.isLoading;
+    final body = detayAsync.when(
+      data: (detay) => _buildContent(context, detay, personelAsync),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Eğitim İstek Detayı (${widget.talepId})',
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  context.go('/egitim_istek');
+                }
+              },
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            ),
+            elevation: 0,
           ),
+          body: body,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: detayAsync.when(
-        data: (detay) => _buildContent(context, detay, personelAsync),
-        loading: () => _buildLoading(),
-        error: (error, stack) => _buildError(context, error),
-      ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
     );
   }
 
@@ -178,16 +199,6 @@ class _EgitimIstekDetayScreenState
             _buildBildirimGideceklerAccordion(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Center(
-      child: SizedBox(
-        width: 153,
-        height: 153,
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
       ),
     );
   }
@@ -1101,30 +1112,40 @@ class _EgitimIstekDetayScreenState
       widgets.add(
         Padding(
           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                personel.personelAdi,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  personel.personelAdi,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${personel.gorevYeri} - ${personel.gorevi}',
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: AppColors.textTertiary,
+                const SizedBox(height: 4),
+                Text(
+                  personel.gorevi,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
                 ),
-              ),
-              if (!isLast) ...[
-                const SizedBox(height: 10),
-                Container(height: 1, color: AppColors.border),
+                Text(
+                  personel.gorevYeri,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                if (!isLast) ...[
+                  const SizedBox(height: 10),
+                  Container(height: 1, color: AppColors.border),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       );

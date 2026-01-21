@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -16,6 +17,9 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_ekle_
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/widgets/yiyecek_icecek_ozet_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 // Add this for Success/Failure checks
 
 class YiyecekIcecekIstekScreen extends ConsumerStatefulWidget {
@@ -301,7 +305,7 @@ class _YiyecekIcecekIstekScreenState
     _lockAndUnfocusInputs();
     await showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.textOnPrimary,
+      backgroundColor: Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -321,7 +325,7 @@ class _YiyecekIcecekIstekScreenState
                   child: Center(
                     child: Text(
                       'Bina listesi alınamadı',
-                      style: TextStyle(color: AppColors.error),
+                      style: TextStyle(color: Colors.red.shade600),
                     ),
                   ),
                 ),
@@ -359,6 +363,7 @@ class _YiyecekIcecekIstekScreenState
                                                   ?.fontSize ??
                                               16) +
                                           1,
+                                      color: AppColors.inputLabelColor,
                                     ),
                               ),
                             ),
@@ -370,10 +375,7 @@ class _YiyecekIcecekIstekScreenState
                                   setModalState(() {});
                                 },
                                 decoration: InputDecoration(
-                                  hintText: 'Okul adı ile ara',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey.shade400,
-                                  ),
+                                  hintText: 'Okul adı ile ara...',
                                   prefixIcon: const Icon(Icons.search),
                                   suffixIcon:
                                       _searchBinaController.text.isNotEmpty
@@ -438,34 +440,27 @@ class _YiyecekIcecekIstekScreenState
                                       child: Text(
                                         'Eşleşen okul bulunamadı',
                                         style: TextStyle(
-                                          color: AppColors.textSecondary,
+                                          color: Colors.grey.shade600,
                                           fontSize: 14,
                                         ),
                                       ),
                                     )
-                                  : ListView.builder(
+                                  : ListView.separated(
                                       itemCount: filteredBinalar.length,
+                                      separatorBuilder: (_, __) => Divider(
+                                        height: 1,
+                                        color: Colors.grey.shade300,
+                                        indent: 20,
+                                        endIndent: 20,
+                                      ),
                                       itemBuilder: (context, index) {
                                         final item = filteredBinalar[index];
                                         final isSelected = _selectedBinaKodlari
                                             .contains(item.binaKodu);
-                                        return CheckboxListTile(
-                                          dense: true,
-                                          title: Text(
-                                            item.binaAdi,
-                                            style: TextStyle(
-                                              fontSize:
-                                                  (Theme.of(context)
-                                                          .textTheme
-                                                          .titleMedium
-                                                          ?.fontSize ??
-                                                      16) +
-                                                  2,
-                                            ),
-                                          ),
-                                          value: isSelected,
-                                          activeColor: AppColors.gradientStart,
-                                          onChanged: (_) {
+                                        return OkulSecimListItem(
+                                          title: item.binaAdi,
+                                          isSelected: isSelected,
+                                          onTap: () {
                                             setState(
                                               () => _toggleSelection(
                                                 item.binaKodu,
@@ -484,7 +479,7 @@ class _YiyecekIcecekIstekScreenState
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.gradientStart,
-                                    foregroundColor: AppColors.textOnPrimary,
+                                    foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -623,161 +618,81 @@ class _YiyecekIcecekIstekScreenState
     _unlockInputsAfterSheet();
   }
 
-  Future<void> _showWarningBottomSheet(String message) async {
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
-          decoration: const BoxDecoration(
-            color: AppColors.textOnPrimary,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: AppColors.error,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Tamam',
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _validateAndSubmit() {
+  Future<void> _validateAndSubmit() async {
     // 1. Dönem Kontrolü
     if (_selectedDonem == null) {
-      _showWarningBottomSheet("Lütfen dönem seçiniz").then((_) {
-        // Warning kapandıktan sonra focuslan
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (_donemFocusNode.canRequestFocus) {
-            _donemFocusNode.requestFocus();
-          }
-        });
-      });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen dönem seçiniz",
+      );
       return;
     }
 
     // 2. Etkinlik Adı Kontrolü
     if (_selectedEtkinlik == null) {
-      _showWarningBottomSheet("Lütfen etkinlik adını seçiniz").then((_) {
-        // Warning kapandıktan sonra focuslan
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (_etkinlikFocusNode.canRequestFocus) {
-            _etkinlikFocusNode.requestFocus();
-          }
-        });
-      });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen etkinlik adını seçiniz",
+      );
       return;
     }
 
     // 3. Etkinlik Adı "Diğer" ise input kontrolü
     if (_selectedEtkinlik == 'Diğer' &&
         _customEtkinlikController.text.trim().isEmpty) {
-      _showWarningBottomSheet("Lütfen etkinlik adını giriniz").then((_) {
-        // Warning kapandıktan sonra input'a focusla
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (_customEtkinlikFocusNode.canRequestFocus) {
-            _customEtkinlikFocusNode.requestFocus();
-          }
-        });
-      });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen etkinlik adını giriniz",
+      );
       return;
     }
 
     // 4. İkram Yapılacak Yer Kontrolü
     if (_ikramYeriController.text.trim().isEmpty) {
-      _showWarningBottomSheet("Lütfen ikram yapılak yer bilgisi giriniz").then((
-        _,
-      ) {
-        // Warning kapandıktan sonra input'a focusla
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (_ikramYeriFocusNode.canRequestFocus) {
-            _ikramYeriFocusNode.requestFocus();
-          }
-        });
-      });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen ikram yapılak yer bilgisi giriniz",
+      );
       return;
     }
 
     // 5. Açıklama Kontrolü
     if (_aciklamaController.text.trim().isEmpty) {
-      _showWarningBottomSheet("Lütfen açıklama giriniz").then((_) {
-        // Warning kapandıktan sonra input'a focusla
-        Future.delayed(const Duration(milliseconds: 300), () {
-          if (_aciklamaFocusNode.canRequestFocus) {
-            _aciklamaFocusNode.requestFocus();
-          }
-        });
-      });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen açıklama giriniz",
+      );
       return;
     }
 
     // 6. En az bir ikram kontrolü
     // 6. En az bir ikram kontrolü
     if (_addedIkramlar.isEmpty) {
-      _showWarningBottomSheet("Lütfen ikram bilgisi giriniz").then((_) {
-        if (!mounted) return;
-        // İkram eklenmemişse direkt ikram ekle sayfasına yönlendir
-        Navigator.push<YiyecekIcecekIkramData>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const YiyecekIcecekIkramEkleScreen(),
-          ),
-        ).then((result) {
-          if (result != null) {
-            setState(() {
-              _addedIkramlar.add(result);
-            });
-            // Focus on submit button and hide keyboard
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (!mounted) return;
-              FocusScope.of(context).unfocus(); // Ensure keyboard is gone
-              if (_submitFocusNode.canRequestFocus) {
-                _submitFocusNode.requestFocus();
-              }
-            });
-          }
-        });
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: "Lütfen ikram bilgisi giriniz",
+      );
+      if (!mounted) return;
+      // İkram eklenmemişse direkt ikram ekle sayfasına yönlendir
+      Navigator.push<YiyecekIcecekIkramData>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const YiyecekIcecekIkramEkleScreen(),
+        ),
+      ).then((result) {
+        if (result != null) {
+          setState(() {
+            _addedIkramlar.add(result);
+          });
+          // Focus on submit button and hide keyboard
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (!mounted) return;
+            FocusScope.of(context).unfocus(); // Ensure keyboard is gone
+            if (_submitFocusNode.canRequestFocus) {
+              _submitFocusNode.requestFocus();
+            }
+          });
+        }
       });
       return;
     }
@@ -924,23 +839,20 @@ class _YiyecekIcecekIstekScreenState
         // Since existing repository method matches what we expect (exception on failure), we can just call it.
         await repo.yiyecekIstekEkle(req);
       },
-      onSuccess: () {
-        // Navigate back
-        if (mounted) {
-          Navigator.pop(context); // Close screen
-          _showStatusBottomSheet(
-            'İstek başarıyla oluşturuldu',
-            onSuccess: true,
-          ); // Show success on previous screen? Or just pop and show?
-          // Actual flow:
-          // 1. User is on Create form.
-          // 2. Clicks Submit -> Summary Sheet opens.
-          // 3. Clicks Send -> Success.
-          // 4. We should close Summary Sheet (handled by wrapper) AND Close Create Form.
-          // Logic in SatinAlma: context.go('/satin_alma') which replaces stack.
-          // Here we probably want to go back to list.
-          context.pop(); // Pop Create Screen
-        }
+      onSuccess: () async {
+        if (!mounted) return;
+        await IstekBasariliWidget.goster(
+          context: context,
+          message: 'Yiyecek içecek isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
+            ref.invalidate(yiyecekIstekDevamEdenTaleplerProvider);
+            ref.invalidate(yiyecekIstekTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
+            context.go('/yiyecek_icecek_istek');
+          },
+        );
       },
       onError: (error) {
         _showStatusBottomSheet(error, isError: true);
@@ -1635,29 +1547,17 @@ class _YiyecekIcecekIstekScreenState
                   focusNode: _aciklamaFocusNode,
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    focusNode: _submitFocusNode,
-                    onPressed: _validateAndSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.gradientStart,
-                      foregroundColor: AppColors.textOnPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                GonderButtonWidget(
+                  onPressed: () => _validateAndSubmit(),
+                  padding: 14.0,
+                  borderRadius: 8.0,
+                  textStyle: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 50),
               ],
             ),
           ),

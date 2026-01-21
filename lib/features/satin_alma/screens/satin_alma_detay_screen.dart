@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -35,35 +36,55 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     final detayAsync = ref.watch(satinAlmaDetayProvider(widget.talepId));
     final personelAsync = ref.watch(personelBilgiProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Satın Alma İstek Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+    final isLoading = detayAsync.isLoading;
+    final body = detayAsync.when(
+      data: (detay) => _buildContent(context, detay, personelAsync),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Satın Alma İstek Detayı (${widget.talepId})',
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  context.go('/satin_alma');
+                }
+              },
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            ),
+            elevation: 0,
           ),
+          body: body,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: detayAsync.when(
-        data: (detay) => _buildContent(context, detay, personelAsync),
-        loading: () => _buildLoading(),
-        error: (error, stack) => _buildError(context, error),
-      ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
     );
   }
 
@@ -141,21 +162,6 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             _buildBildirimGideceklerAccordion(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: Container(
-        width: 175,
-        height: 175,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.textOnPrimary.withValues(alpha: 0.05),
-        ),
-        alignment: Alignment.center,
-        child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
       ),
     );
   }
@@ -343,7 +349,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.textTertiary,
+                color: AppColors.scaffoldBackground,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.border),
               ),
@@ -785,53 +791,42 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person_outline,
-                color: AppColors.primary,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    personelAdi,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+        Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      personelAdi,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    gorevYeri,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                    const SizedBox(height: 2),
+                    Text(
+                      gorevi,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    gorevi,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textTertiary,
+                    Text(
+                      gorevYeri,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textTertiary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (!isLast) ...[
           const SizedBox(height: 12),

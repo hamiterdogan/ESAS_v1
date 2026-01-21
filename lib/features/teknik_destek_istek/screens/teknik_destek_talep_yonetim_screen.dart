@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/generic_talep_yonetim_screen.dart';
 import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 
 /// Teknik Destek talep yönetim ekranı.
 ///
@@ -72,29 +78,364 @@ class _TeknikDeskekTalepYonetimScreenState
         onFilterTap: _showFilterBottomSheet,
         devamEdenBuilder:
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
-                _PlaceholderContent(
+                _TeknikDestekTalepListesi(
+                  taleplerAsync: ref.watch(
+                    teknikDestekDevamEdenTaleplerProvider,
+                  ),
+                  onRefresh: () =>
+                      ref.refresh(teknikDestekDevamEdenTaleplerProvider.future),
                   helper: helper,
-                  message: 'Devam eden teknik destek talepleri',
                 ),
         tamamlananBuilder:
-            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
-                _PlaceholderContent(
-                  helper: helper,
-                  message: 'Tamamlanan teknik destek talepleri',
-                ),
+            (
+              ctx,
+              ref,
+              helper, {
+              filterPredicate,
+              onDurumlarUpdated,
+            }) => _TeknikDestekTalepListesi(
+              taleplerAsync: ref.watch(teknikDestekTamamlananTaleplerProvider),
+              onRefresh: () =>
+                  ref.refresh(teknikDestekTamamlananTaleplerProvider.future),
+              helper: helper,
+            ),
       ),
     );
   }
 }
 
-class _PlaceholderContent extends StatelessWidget {
-  const _PlaceholderContent({required this.helper, required this.message});
+class _TeknikDestekTalepListesi extends ConsumerWidget {
+  const _TeknikDestekTalepListesi({
+    required this.taleplerAsync,
+    required this.onRefresh,
+    required this.helper,
+  });
 
+  final AsyncValue<TalepYonetimResponse> taleplerAsync;
+  final Future<TalepYonetimResponse> Function() onRefresh;
   final TalepYonetimHelper helper;
-  final String message;
 
   @override
-  Widget build(BuildContext context) {
-    return helper.buildEmptyState(message: message, onRefresh: () async {});
+  Widget build(BuildContext context, WidgetRef ref) {
+    return taleplerAsync.when(
+      data: (data) {
+        if (data.talepler.isEmpty) {
+          return helper.buildEmptyState(
+            onRefresh: () => onRefresh().then((_) {}),
+          );
+        }
+
+        final filtered = data.talepler.where((talep) {
+          final hizmetTuru = talep.hizmetTuru?.toLowerCase().trim() ?? '';
+          return hizmetTuru == 'teknik hizmetler' ||
+              hizmetTuru == 'iç hizmetler' ||
+              hizmetTuru == 'ic hizmetler';
+        }).toList();
+
+        if (filtered.isEmpty) {
+          return helper.buildEmptyState(
+            onRefresh: () => onRefresh().then((_) {}),
+          );
+        }
+
+        final sorted = [...filtered]
+          ..sort((a, b) {
+            final aDate = DateTime.tryParse(a.olusturmaTarihi) ?? DateTime(0);
+            final bDate = DateTime.tryParse(b.olusturmaTarihi) ?? DateTime(0);
+            return bDate.compareTo(aDate);
+          });
+
+        return RefreshIndicator(
+          onRefresh: () => onRefresh().then((_) {}),
+          child: ListView.separated(
+            padding: const EdgeInsets.only(
+              left: 8,
+              right: 8,
+              top: 12,
+              bottom: 50,
+            ),
+            itemCount: sorted.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 6),
+            itemBuilder: (context, index) =>
+                _TeknikDestekTalepCard(talep: sorted[index], helper: helper),
+          ),
+        );
+      },
+      loading: () => helper.buildLoadingState(),
+      error: (error, stack) =>
+          helper.buildErrorState(error: error, onRetry: () => onRefresh()),
+    );
+  }
+}
+
+class _TeknikDestekTalepCard extends ConsumerWidget {
+  const _TeknikDestekTalepCard({required this.talep, required this.helper});
+
+  final Talep talep;
+  final TalepYonetimHelper helper;
+
+  Color _getStatusColor(String status) {
+    final normalizedStatus = status.toLowerCase().trim();
+    if (normalizedStatus.contains('devam') ||
+        normalizedStatus.contains('bekleme')) {
+      return const Color(0xFFFFA500); // Orange for ongoing
+    } else if (normalizedStatus.contains('onaylandi') ||
+        normalizedStatus.contains('tamamland') ||
+        normalizedStatus.contains('uygun')) {
+      return const Color(0xFF4CAF50); // Green for approved/completed
+    } else if (normalizedStatus.contains('reddedildi')) {
+      return const Color(0xFFF44336); // Red for rejected
+    }
+    return const Color(0xFF9E9E9E); // Grey default
+  }
+
+  String _getStatusText(String status) {
+    final normalizedStatus = status.toLowerCase().trim();
+    if (normalizedStatus.contains('devam') ||
+        normalizedStatus.contains('bekleme')) {
+      return 'Devam Ediyor';
+    } else if (normalizedStatus.contains('reddedildi')) {
+      return 'Reddedildi';
+    } else if (normalizedStatus.contains('tamamland') ||
+        normalizedStatus.contains('onaylandi') ||
+        normalizedStatus.contains('uygun')) {
+      return 'Tamamlandı';
+    }
+    return status;
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}.${date.month}.${date.year}';
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statusColor = _getStatusColor(talep.onayDurumu);
+    final statusText = _getStatusText(talep.onayDurumu);
+    final formattedDate = _formatDate(talep.olusturmaTarihi);
+
+    final hizmetTuru =
+        talep.hizmetTuru?.trim() ?? talep.actionAdi?.trim() ?? 'Teknik Destek';
+    final aciklama = talep.aciklama ?? '';
+
+    final isDeleteAvailable =
+        talep.onayDurumu.toLowerCase().contains('devam') ||
+        talep.onayDurumu.toLowerCase().contains('bekleme');
+
+    final cardWidget = Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      const TextSpan(
+                        text: 'Süreç No: ',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${talep.onayKayitId}',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  hizmetTuru,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF212121),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (aciklama.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      aciklama,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF666666),
+                      ),
+                    ),
+                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      formattedDate,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF212121),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            statusColor == const Color(0xFFFFA500)
+                                ? Icons.schedule
+                                : statusColor == const Color(0xFF4CAF50)
+                                ? Icons.check_circle
+                                : Icons.cancel,
+                            size: 14,
+                            color: statusColor,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (!isDeleteAvailable) {
+      return cardWidget;
+    }
+
+    return Slidable(
+      key: ValueKey(talep.onayKayitId),
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          CustomSlidableAction(
+            onPressed: (_) => _deleteTalep(context, ref),
+            backgroundColor: AppColors.error,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.delete, size: 36, color: AppColors.textOnPrimary),
+                  SizedBox(height: 6),
+                  Text(
+                    'Talebi Sil',
+                    style: TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: cardWidget,
+    );
+  }
+
+  Future<void> _deleteTalep(BuildContext context, WidgetRef ref) async {
+    final shouldDelete = await _showDeleteConfirmDialog(context);
+    if (shouldDelete != true) return;
+
+    try {
+      final repo = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+      final result = await repo.deleteTalep(id: talep.onayKayitId);
+
+      if (!context.mounted) return;
+
+      if (result is Success) {
+        ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
+        ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+        helper.showInfoBottomSheet('Talep başarıyla silindi');
+      } else if (result is Failure) {
+        helper.showInfoBottomSheet('Hata: ${result.message}', isError: true);
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      helper.showInfoBottomSheet('Hata: $e', isError: true);
+    }
+  }
+
+  Future<bool?> _showDeleteConfirmDialog(BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Talebi Sil'),
+        content: const Text(
+          'Bu teknik destek talebini silmek istediğinize emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Sil', style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
   }
 }

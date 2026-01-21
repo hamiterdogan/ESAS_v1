@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -38,36 +39,56 @@ class _SarfMalzemeDetayScreenState
     final personelAsync = ref.watch(personelBilgiProvider);
     final binalarAsync = ref.watch(satinAlmaBinalarProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Sarf Malzeme İstek Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+    final isLoading = detayAsync.isLoading;
+    final body = detayAsync.when(
+      data: (detay) =>
+          _buildContent(context, detay, personelAsync, binalarAsync),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Sarf Malzeme İstek Detayı (${widget.talepId})',
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  context.go('/sarf_malzeme_istek');
+                }
+              },
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            ),
+            elevation: 0,
           ),
+          body: body,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: detayAsync.when(
-        data: (detay) =>
-            _buildContent(context, detay, personelAsync, binalarAsync),
-        loading: () => _buildLoading(),
-        error: (error, stack) => _buildError(context, error),
-      ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
     );
   }
 
@@ -147,21 +168,6 @@ class _SarfMalzemeDetayScreenState
             _buildBildirimGideceklerAccordion(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: Container(
-        width: 175,
-        height: 175,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.textOnPrimary.withValues(alpha: 0.05),
-        ),
-        alignment: Alignment.center,
-        child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
       ),
     );
   }
@@ -335,7 +341,7 @@ class _SarfMalzemeDetayScreenState
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.textTertiary, // Very light background
+                color: AppColors.scaffoldBackground,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.border),
               ),
@@ -740,44 +746,41 @@ class _SarfMalzemeDetayScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person_outline,
-                color: AppColors.primary,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    personelAdi,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+        Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      personelAdi,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '$gorevi - $gorevYeri',
-                    style: TextStyle(
-                      color: AppColors.textTertiary,
-                      fontSize: 13,
+                    const SizedBox(height: 2),
+                    Text(
+                      gorevi,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
+                    Text(
+                      gorevYeri,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (!isLast) const Divider(height: 24),
       ],
@@ -785,99 +788,291 @@ class _SarfMalzemeDetayScreenState
   }
 
   List<Widget> _buildOnaySureciContent(OnayDurumuResponse onayDurumu) {
-    if (onayDurumu.onayVerecekler.isEmpty) {
-      return [
-        const Text(
-          'Onay süreci bilgisi bulunmamaktadır.',
-          style: TextStyle(color: AppColors.textPrimary),
-        ),
-      ];
-    }
+    final List<Widget> widgets = [];
+    widgets.add(
+      _buildTalepEdenCard(
+        personelAdi: onayDurumu.talepEdenPerAdi,
+        gorevYeri: onayDurumu.talepEdenPerGorevYeri,
+        gorevi: onayDurumu.talepEdenPerGorev,
+        tarih: onayDurumu.talepEdenTarih,
+        isLast: onayDurumu.onayVerecekler.isEmpty,
+      ),
+    );
 
-    return onayDurumu.onayVerecekler.asMap().entries.map((entry) {
-      final index = entry.key;
-      final personel = entry.value;
-      final isLast = index == onayDurumu.onayVerecekler.length - 1;
+    for (int i = 0; i < onayDurumu.onayVerecekler.length; i++) {
+      final personel = onayDurumu.onayVerecekler[i];
+      IconData icon;
+      Color iconColor;
 
-      // Determine colors based on approval status
-      Color statusColor;
-      if (personel.onayDurumu == 'Onaylandı') {
-        statusColor = AppColors.success;
-      } else if (personel.onayDurumu == 'Reddedildi') {
-        statusColor = AppColors.error;
+      if (personel.onay == true) {
+        icon = Icons.check_circle;
+        iconColor = AppColors.success;
+      } else if (personel.onay == false) {
+        icon = Icons.cancel;
+        iconColor = AppColors.error;
+      } else if (personel.geriGonderildi) {
+        icon = Icons.replay;
+        iconColor = AppColors.warning;
       } else {
-        statusColor = AppColors.warning;
+        icon = Icons.hourglass_empty;
+        iconColor = AppColors.warning;
       }
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  personel.onayDurumu == 'Onaylandı'
-                      ? Icons.check_circle
-                      : personel.onayDurumu == 'Reddedildi'
-                      ? Icons.cancel
-                      : Icons.hourglass_top,
-                  color: statusColor,
-                  size: 22,
-                ),
+      widgets.add(
+        _buildOnaySureciCard(
+          personelAdi: personel.personelAdi,
+          gorevYeri: personel.gorevYeri,
+          gorevi: personel.gorevi,
+          tarih: personel.islemTarihi,
+          durum: personel.onayDurumu,
+          aciklama: personel.aciklama,
+          icon: icon,
+          iconColor: iconColor,
+          isFirst: false,
+          isLast: i == onayDurumu.onayVerecekler.length - 1,
+        ),
+      );
+    }
+    return widgets;
+  }
+
+  Widget _buildTalepEdenCard({
+    required String personelAdi,
+    required String gorevYeri,
+    required String gorevi,
+    DateTime? tarih,
+    required bool isLast,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.gradientStart.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: Icon(
+                Icons.person_add_alt_1,
+                color: AppColors.gradientStart,
+                size: 22,
+              ),
+            ),
+            if (!isLast)
+              Container(width: 2, height: 70, color: AppColors.textTertiary),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  personelAdi,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.gradientStart.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.add_task,
+                        size: 18,
+                        color: AppColors.gradientStart,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Talep Oluşturuldu',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  gorevYeri,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  gorevi,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                if (tarih != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 18,
+                        color: AppColors.textTertiary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOnaySureciCard({
+    required String personelAdi,
+    required String gorevYeri,
+    required String gorevi,
+    DateTime? tarih,
+    required String durum,
+    String? aciklama,
+    required IconData icon,
+    required Color iconColor,
+    required bool isFirst,
+    required bool isLast,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            if (!isLast)
+              Container(width: 2, height: 80, color: AppColors.textTertiary),
+          ],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
                     Text(
-                      personel.personelAdi,
+                      personelAdi,
                       style: const TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    if (personel.gorevi.isNotEmpty)
-                      Text(
-                        '${personel.gorevi} - ${personel.gorevYeri}',
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '($durum)',
                         style: TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: 13,
+                          fontSize: 14,
+                          color: iconColor,
+                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                    const SizedBox(height: 4),
-                    Text(
-                      personel.onayDurumu,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (personel.islemTarihi != null)
-                      Text(
-                        DateFormat(
-                          'dd.MM.yyyy HH:mm',
-                        ).format(personel.islemTarihi!),
-                        style: TextStyle(
-                          color: AppColors.textTertiary,
-                          fontSize: 12,
-                        ),
-                      ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  gorevYeri,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  gorevi,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                if (aciklama != null && aciklama.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.textTertiary,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(
+                      aciklama,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+                if (tarih != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: AppColors.textTertiary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ),
-          if (!isLast) const Divider(height: 24),
-        ],
-      );
-    }).toList();
+        ),
+      ],
+    );
   }
 }

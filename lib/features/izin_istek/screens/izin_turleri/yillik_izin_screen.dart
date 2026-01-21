@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/izin_istek/widgets/guideline_card_with_toggle.dart';
 
@@ -468,36 +470,15 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: _onay
-                          ? AppColors.primaryGradient
-                          : LinearGradient(
-                              colors: [
-                                AppColors.gradientStart.withValues(alpha: 0.2),
-                                AppColors.gradientEnd.withValues(alpha: 0.2),
-                              ],
-                            ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ElevatedButton(
-                      onPressed: _onay ? _submitForm : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Gönder',
-                        style: TextStyle(
-                          color: AppColors.textOnPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                  GonderButtonWidget(
+                    onPressed: _onay ? _submitForm : null,
+                    enabled: _onay,
+                    padding: 14.0,
+                    borderRadius: 8.0,
+                    textStyle: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -512,7 +493,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
   Future<void> _submitForm() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_baslangicTarihi == null) {
-        _showStatusBottomSheet('Başlangıç tarihi seçiniz', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Başlangıç tarihi seçiniz',
+        );
         return;
       }
 
@@ -527,7 +511,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         bitisDakikaValue = 30;
       } else {
         if (_bitisTarihi == null) {
-          _showStatusBottomSheet('Bitiş tarihi seçiniz', isError: true);
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Bitiş tarihi seçiniz',
+          );
           return;
         }
         bitisTarih = _bitisTarihi!;
@@ -537,9 +524,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
 
       // Açıklama minimum 30 karakter kontrolü
       if (_aciklamaController.text.length < 30) {
-        _showStatusBottomSheet(
-          'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
         );
         _aciklamaFocusNode.requestFocus();
         return;
@@ -550,9 +537,9 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         setState(() {
           _adresHatali = true;
         });
-        _showStatusBottomSheet(
-          'Lütfen izin süresince bulunacağınız adresi giriniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen izin süresince bulunacağınız adresi giriniz',
         );
         _adresFocusNode.requestFocus();
         return;
@@ -560,9 +547,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
 
       // Başlangıç tarihi bitiş tarihinden sonra olamaz
       if (_baslangicTarihi!.isAfter(bitisTarih)) {
-        _showStatusBottomSheet(
-          'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message:
+              'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
         );
         return;
       }
@@ -571,9 +559,10 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
       if ((_birGunlukIzin || _baslangicTarihi == _bitisTarihi) &&
           _baslangicSaat == _bitisSaat &&
           _baslangicDakika == _bitisDakika) {
-        _showStatusBottomSheet(
-          'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message:
+              'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
         );
         return;
       }
@@ -654,108 +643,41 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               }
               // Yıllık izin için uyarı popup'ı kaldırıldı, mesaj başarı ekranına eklendi
             },
-            onSuccess: () {
+            onSuccess: () async {
               const infoMessage =
                   'Yıllık izin talebiniz onaylandıktan sonra lütfen izin formunu ıslak imzalı ve onaylanmış olarak İnsan Kaynakları departmanına iletiniz.';
-              _showStatusBottomSheet(
-                'Yıllık izin talebi başarıyla gönderildi!\n\n$infoMessage',
-                isError: false,
+              if (!mounted) return;
+              await IstekBasariliWidget.goster(
+                context: context,
+                message:
+                    'Yıllık izin isteğiniz oluşturulmuştur.\n\n$infoMessage',
+                onConfirm: () async {
+                  ref.invalidate(devamEdenIsteklerimProvider);
+                  ref.invalidate(tamamlananIsteklerimProvider);
+                  if (!context.mounted) return;
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  if (!context.mounted) return;
+                  context.go('/izin_istek');
+                },
               );
             },
-            onError: (error) {
-              _showStatusBottomSheet('Hata: $error', isError: true);
+            onError: (error) async {
+              await ValidationUyariWidget.goster(
+                context: context,
+                message: 'Hata: $error',
+              );
             },
           );
         }
       } catch (e) {
         if (mounted) {
-          _showStatusBottomSheet('Hata oluştu: $e', isError: true);
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Hata oluştu: $e',
+          );
         }
       }
     }
-  }
-
-  void _showStatusBottomSheet(String message, {bool isError = false}) async {
-    // 🔴 KRİTİK: BottomSheet açmadan önce tüm focus'ları kapat
-    _aciklamaFocusNode.unfocus();
-    _adresFocusNode.unfocus();
-    FocusScope.of(context).unfocus();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext statusContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: AppColors.textOnPrimary,
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                size: 64,
-                color: isError ? AppColors.error : AppColors.success,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(statusContext);
-                  // Başarı durumunda İzin Taleplerini Yönet ekranına git
-                  if (!isError) {
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        // Tüm önceki ekranları temizleyip doğrudan İzin Taleplerini Yönet'e git
-                        Navigator.of(
-                          context,
-                        ).popUntil((route) => route.isFirst);
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (mounted) {
-                            context.go('/izin_istek');
-                          }
-                        });
-                      }
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gradientEnd,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Tamam',
-                  style: TextStyle(color: AppColors.textOnPrimary),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
-        );
-      },
-    );
-
-    // 🔒 BottomSheet kapandıktan sonra garanti için tekrar unfocus
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        FocusScope.of(context).unfocus();
-      }
-    });
   }
 
   String _formatDate(DateTime date) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_detay_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
@@ -30,35 +31,55 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     final detayAsync = ref.watch(aracIstekDetayProvider(widget.talepId));
     final personelAsync = ref.watch(personelBilgiProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Araç İstek Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+    final isLoading = detayAsync.isLoading;
+    final body = detayAsync.when(
+      data: (detay) => _buildContent(context, detay, personelAsync),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          appBar: AppBar(
+            title: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Araç İstek Detayı (${widget.talepId})',
+                style: const TextStyle(
+                  color: AppColors.textOnPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.textOnPrimary,
+              ),
+              onPressed: () {
+                final router = GoRouter.of(context);
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  context.go('/arac_istek');
+                }
+              },
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            ),
+            elevation: 0,
           ),
+          body: body,
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: detayAsync.when(
-        data: (detay) => _buildContent(context, detay, personelAsync),
-        loading: () => _buildLoading(),
-        error: (error, stack) => _buildError(context, error),
-      ),
+        if (isLoading) const BrandedLoadingOverlay(),
+      ],
     );
   }
 
@@ -138,16 +159,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             _buildBildirimGideceklerAccordion(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Center(
-      child: SizedBox(
-        width: 153,
-        height: 153,
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
       ),
     );
   }
@@ -305,6 +316,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
     required bool isExpanded,
     required VoidCallback onTap,
     required Widget child,
+    bool showLeading = true,
+    double childLeftPadding = 16,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -319,9 +332,10 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
-            leading: Icon(icon, color: AppColors.primary),
+            leading: showLeading ? Icon(icon, color: AppColors.primary) : null,
             title: Text(
               title,
               style: const TextStyle(
@@ -339,7 +353,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
           if (isExpanded) const Divider(height: 1, color: AppColors.border),
           if (isExpanded)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.fromLTRB(childLeftPadding, 12, 16, 12),
               child: child,
             ),
         ],
@@ -826,6 +840,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: _buildBildirimGideceklerContent(onayDurumu),
         ),
+        showLeading: false,
+        childLeftPadding: 30,
       ),
       loading: () => _buildAccordion(
         icon: Icons.notifications_outlined,
@@ -846,6 +862,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             ),
           ),
         ),
+        showLeading: false,
+        childLeftPadding: 30,
       ),
       error: (error, _) => _buildAccordion(
         icon: Icons.notifications_outlined,
@@ -863,6 +881,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             style: TextStyle(color: AppColors.error, fontSize: 15),
           ),
         ),
+        showLeading: false,
+        childLeftPadding: 30,
       ),
     );
   }
@@ -883,16 +903,23 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
               Text(
                 personel.personelAdi,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                '${personel.gorevYeri} - ${personel.gorevi}',
+                personel.gorevi,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+              Text(
+                personel.gorevYeri,
+                style: const TextStyle(
+                  fontSize: 16,
                   color: AppColors.textTertiary,
                 ),
               ),

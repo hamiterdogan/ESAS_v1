@@ -1,4 +1,5 @@
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,11 @@ import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart'
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_ekle_personel_secim_screen.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_turu_secim_screen.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
+import 'package:esas_v1/core/models/result.dart';
+import 'package:go_router/go_router.dart';
 
 class IzinEkleFormState {
   final DateTime baslangicTarihi;
@@ -1851,33 +1856,23 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     FocusNode hastalikYazinizFocusNode,
     FocusNode diniGunAciklamaFocusNode,
   ) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: () => _izinEkle(
-          context,
-          ref,
-          formState,
-          aciklamaFocusNode,
-          adresFocusNode,
-          esAdiFocusNode,
-          hastalikYazinizFocusNode,
-          diniGunAciklamaFocusNode,
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Gönder',
-          style: TextStyle(
-            color: AppColors.textOnPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+    return GonderButtonWidget(
+      onPressed: () => _izinEkle(
+        context,
+        ref,
+        formState,
+        aciklamaFocusNode,
+        adresFocusNode,
+        esAdiFocusNode,
+        hastalikYazinizFocusNode,
+        diniGunAciklamaFocusNode,
+      ),
+      padding: 14.0,
+      borderRadius: 8.0,
+      textStyle: const TextStyle(
+        color: AppColors.textOnPrimary,
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
       ),
     );
   }
@@ -1921,64 +1916,69 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     final nedeniAdi = formState.secilenNedeni?.izinNedeni.toLowerCase() ?? '';
 
     if (formState.secilenSebebiId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('L�tfen izin sebebi se�iniz')),
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen izin sebebi seçiniz',
       );
       return;
     }
 
-    // Dini g�n izni i�in �zel validasyon
+    // Dini gün izni için özel validasyon
     if (nedeniAdi.contains('dini')) {
       if (formState.diniGunAciklama.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L�tfen a��klama giriniz')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen açıklama giriniz',
         );
         _requestFocusNextFrame(context, diniGunAciklamaFocusNode);
         return;
       }
     }
-    // Hastal�k izni i�in �zel validasyon
-    else if (nedeniAdi.contains('hastal�k') || nedeniAdi.contains('hastalik')) {
+    // Hastalık izni için özel validasyon
+    else if (nedeniAdi.contains('hastalık') || nedeniAdi.contains('hastalik')) {
       if (formState.hastalikiYaziniz.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L�tfen hastal���n�z� yaz�n�z')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen hastalığınızı yazınız',
         );
         _requestFocusNextFrame(context, hastalikYazinizFocusNode);
         return;
       }
     }
-    // Evlilik izni i�in �zel validasyon
+    // Evlilik izni için özel validasyon
     else if (nedeniAdi.contains('evlilik')) {
       if (formState.esAdi.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L�tfen e� ad�n� giriniz')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen eş adını giriniz',
         );
         _requestFocusNextFrame(context, esAdiFocusNode);
         return;
       }
       if (formState.aciklama.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L�tfen a��klama giriniz')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen açıklama giriniz',
         );
         _requestFocusNextFrame(context, aciklamaFocusNode);
         return;
       }
     }
-    // Mazeret ve di�er izin t�rleri i�in validasyon
+    // Mazeret ve diğer izin türleri için validasyon
     else {
       if (formState.aciklama.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('L�tfen a��klama giriniz')),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen açıklama giriniz',
         );
         _requestFocusNextFrame(context, aciklamaFocusNode);
         return;
       }
-      // Mazeret izni i�in adres kontrol�
+      // Mazeret izni için adres kontrolü
       if (formState.izindeBulunacagiAdres.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('L�tfen izinde bulunaca��n�z adresi giriniz'),
-          ),
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen izinde bulunacağınız adresi giriniz',
         );
         _requestFocusNextFrame(context, adresFocusNode);
         return;
@@ -1986,10 +1986,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
     }
 
     if (formState.bitisTarihi.isBefore(formState.baslangicTarihi)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Biti� tarihi ba�lang�� tarihinden sonra olmal�d�r'),
-        ),
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Bitiş tarihi başlangıç tarihinden sonra olmalıdır',
       );
       return;
     }
@@ -2006,19 +2005,32 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         izindeBulunacagiAdres: formState.izindeBulunacagiAdres.trim(),
         baskaPersonelId: formState.secilenPersonel?.personelId,
       );
-      ref.read(izinIstekRepositoryProvider).izinIstekEkle(request);
+      final result = await ref
+          .read(izinIstekRepositoryProvider)
+          .izinIstekEkle(request);
 
-      // Provider'ları yenile
-      ref.invalidate(devamEdenIsteklerimProvider);
-      ref.invalidate(tamamlananIsteklerimProvider);
+      if (result case Failure(:final message)) {
+        if (!mounted) return;
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Hata: $message',
+        );
+        return;
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('İzin isteği başarıyla oluşturuldu'),
-          backgroundColor: AppColors.success,
-        ),
+      if (!mounted) return;
+      await IstekBasariliWidget.goster(
+        context: context,
+        message: 'İzin isteğiniz oluşturulmuştur.',
+        onConfirm: () async {
+          ref.invalidate(devamEdenIsteklerimProvider);
+          ref.invalidate(tamamlananIsteklerimProvider);
+          if (!context.mounted) return;
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          if (!context.mounted) return;
+          context.go('/izin_istek');
+        },
       );
-      Navigator.pop(context);
     } catch (e) {
       if (mounted) setState(() => _isActionInProgress = false);
     }

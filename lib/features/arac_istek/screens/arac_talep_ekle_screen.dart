@@ -13,6 +13,7 @@ import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 
 class AracTalepEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -826,32 +827,14 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Gönder',
-                          style: TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                  GonderButtonWidget(
+                    onPressed: _submitForm,
+                    padding: 14.0,
+                    borderRadius: 8.0,
+                    textStyle: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -863,38 +846,38 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
 
     try {
       // Basit validasyonlar
       if (_entries.isEmpty) {
-        _showStatusBottomSheet(
-          'Lütfen en az 1 gidilecek yer ekleyiniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 1 gidilecek yer ekleyiniz',
         );
         return;
       }
       if (_gidilecekTarih == null) {
-        _showStatusBottomSheet(
-          'Lütfen gidilecek tarihi seçiniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen gidilecek tarihi seçiniz',
         );
         return;
       }
       if (_selectedAracIstekNedeniId == null) {
-        _showStatusBottomSheet(
-          'Lütfen araç istek nedenini seçiniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen araç istek nedenini seçiniz',
         );
         return;
       }
       if (_selectedAracIstekNedeniId == -1 &&
           (_customAracIstekNedeniController.text.trim().isEmpty)) {
-        _showStatusBottomSheet(
-          'Lütfen diğer istek nedenini giriniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen diğer istek nedenini giriniz',
         );
         _customAracIstekNedeniFocusNode.requestFocus();
         return;
@@ -902,9 +885,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
       // Açıklama minimum 15 karakter kontrolü
       if (_aciklamaController.text.length < 15) {
-        _showStatusBottomSheet(
-          'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
-          isError: true,
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
         );
         _aciklamaFocusNode.requestFocus();
         return;
@@ -913,16 +896,19 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       final yolcuSayisi =
           _selectedPersonelIds.length + _selectedOgrenciIds.length;
       if (yolcuSayisi <= 0) {
-        _showStatusBottomSheet('Lütfen en az 1 yolcu seçiniz', isError: true);
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 1 yolcu seçiniz',
+        );
         return;
       }
 
       for (final entry in _entries) {
         if (!entry.yer.yerAdi.contains('Eyüboğlu') &&
             entry.adresController.text.trim().isEmpty) {
-          _showStatusBottomSheet(
-            'Lütfen yer için semt/adres giriniz',
-            isError: true,
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen yer için semt/adres giriniz',
           );
           entry.focusNode.requestFocus();
           return;
@@ -940,9 +926,20 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         onGonder: () async {
           await _sendAracIstek(request);
         },
-        onSuccess: () {
+        onSuccess: () async {
           if (!mounted) return;
-          _showStatusBottomSheet('Araç isteği gönderildi', isError: false);
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: 'Araç isteğiniz oluşturulmuştur.',
+            onConfirm: () async {
+              ref.invalidate(aracDevamEdenTaleplerProvider);
+              ref.invalidate(aracTamamlananTaleplerProvider);
+              if (!context.mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              if (!context.mounted) return;
+              context.go('/arac_istek');
+            },
+          );
         },
         onError: (error) {
           if (!mounted) return;

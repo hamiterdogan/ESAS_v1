@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
@@ -117,9 +119,20 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
           throw Exception(result.message);
         }
       },
-      onSuccess: () {
-        ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
-        _showStatusBottomSheet('A4 kağıdı isteği başarıyla gönderildi');
+      onSuccess: () async {
+        if (!mounted) return;
+        await IstekBasariliWidget.goster(
+          context: context,
+          message: 'A4 kağıdı isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
+            ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+            ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
+            context.go('/dokumantasyon_istek');
+          },
+        );
       },
       onError: (error) {
         _showStatusBottomSheet(error, isError: true);
@@ -224,32 +237,14 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
           ),
           bottomNavigationBar: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 50),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Gönder',
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+            child: GonderButtonWidget(
+              onPressed: _submit,
+              padding: 14.0,
+              borderRadius: 8.0,
+              textStyle: const TextStyle(
+                color: AppColors.textOnPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),

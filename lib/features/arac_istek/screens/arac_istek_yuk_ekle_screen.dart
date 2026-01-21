@@ -762,9 +762,20 @@ class _AracIstekYukEkleScreenState
       onGonder: () async {
         await _sendAracIstek(req);
       },
-      onSuccess: () {
+      onSuccess: () async {
         if (!mounted) return;
-        _showStatusBottomSheet('Talep başarıyla gönderildi', isError: false);
+        await IstekBasariliWidget.goster(
+          context: context,
+          message: 'Araç isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
+            ref.invalidate(aracDevamEdenTaleplerProvider);
+            ref.invalidate(aracTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
+            context.go('/arac_istek');
+          },
+        );
       },
       onError: (error) {
         if (!mounted) return;

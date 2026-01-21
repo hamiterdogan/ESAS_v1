@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/common/widgets/primary_app_bar.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/theme/app_dimens.dart';
 import 'package:esas_v1/features/arac_istek/presentation/providers/arac_talep_providers.dart';
+import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart'
+    as arac_list_providers;
 import 'package:esas_v1/features/arac_istek/presentation/widgets/route_selection_widget.dart';
 import 'package:esas_v1/features/arac_istek/presentation/widgets/date_time_selection_widget.dart';
 import 'package:esas_v1/features/arac_istek/presentation/widgets/passenger_selection_widget.dart';
 import 'package:esas_v1/features/arac_istek/presentation/widgets/reason_and_description_widget.dart';
+import 'package:go_router/go_router.dart';
 
 class AracTalepEklePage extends ConsumerWidget {
   const AracTalepEklePage({super.key});
@@ -18,11 +22,16 @@ class AracTalepEklePage extends ConsumerWidget {
     // Listen for Success/Error
     ref.listen(aracTalepFormProvider, (previous, next) {
       if (next.isSuccess) {
-        AppDialogs.showSuccess(
-          context,
-          'Araç isteiniz başarıyla oluşturuldu.',
-          onOk: () {
-            Navigator.pop(context);
+        IstekBasariliWidget.goster(
+          context: context,
+          message: 'Araç isteğiniz oluşturulmuştur.',
+          onConfirm: () async {
+            ref.invalidate(arac_list_providers.aracDevamEdenTaleplerProvider);
+            ref.invalidate(arac_list_providers.aracTamamlananTaleplerProvider);
+            if (!context.mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            if (!context.mounted) return;
+            context.go('/arac_istek');
           },
         );
       }

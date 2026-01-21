@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import '../../personel/screens/personel_secim_screen.dart';
 
@@ -278,19 +279,15 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  height: 56,
-                  child: _GradientButton(
-                    onPressed: _submit,
-                    enabled: _kvkkOnay,
-                    child: const Text(
-                      'Gönder',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
+                GonderButtonWidget(
+                  onPressed: _submit,
+                  enabled: _kvkkOnay,
+                  padding: 14.0,
+                  borderRadius: 8.0,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textOnPrimary,
                   ),
                 ),
               ],
@@ -510,48 +507,6 @@ class _GradientAppBar extends ConsumerWidget implements PreferredSizeWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GradientButton extends ConsumerWidget {
-  final Widget child;
-  final VoidCallback? onPressed;
-  final bool enabled;
-  const _GradientButton({
-    required this.child,
-    required this.onPressed,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: enabled
-            ? AppColors.primaryGradient
-            : LinearGradient(
-                colors: [
-                  AppColors.gradientStart.withValues(alpha: 0.2),
-                  AppColors.gradientEnd.withValues(alpha: 0.2),
-                ],
-              ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ElevatedButton(
-        onPressed: enabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: DefaultTextStyle(
-          style: const TextStyle(color: AppColors.textOnPrimary),
-          child: child,
         ),
       ),
     );

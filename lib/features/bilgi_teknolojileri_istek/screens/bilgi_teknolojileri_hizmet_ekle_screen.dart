@@ -119,7 +119,10 @@ class _BilgiTeknolojileriHizmetEkleScreenState
               return asyncKategoriler.when(
                 loading: () => const SizedBox(
                   height: 240,
-                  child: Center(child: BrandedLoadingIndicator(size: 64)),
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 64,
+                    strokeWidth: 6,
+                  ),
                 ),
                 error: (error, stack) => SizedBox(
                   height: 240,
