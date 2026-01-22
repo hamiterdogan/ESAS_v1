@@ -494,9 +494,13 @@ class _EgitimIstekDetayScreenState
   }) {
     final widgets = <Widget>[];
 
-    for (int i = 0; i < personeller.length; i++) {
-      final personel = personeller[i];
-      final isLast = i == personeller.length - 1;
+    // Personelleri isim sırasında sırala
+    final sortedPersoneller = List<EgitimIstekPersonelItem>.from(personeller)
+      ..sort((a, b) => a.adiSoyadi.compareTo(b.adiSoyadi));
+
+    for (int i = 0; i < sortedPersoneller.length; i++) {
+      final personel = sortedPersoneller[i];
+      final isLast = i == sortedPersoneller.length - 1;
 
       widgets.add(
         Padding(
@@ -504,6 +508,7 @@ class _EgitimIstekDetayScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // İsim (bold)
               Text(
                 personel.adiSoyadi.isNotEmpty ? personel.adiSoyadi : '-',
                 style: const TextStyle(
@@ -513,8 +518,18 @@ class _EgitimIstekDetayScreenState
                 ),
               ),
               const SizedBox(height: 4),
+              // Görevi
               Text(
-                '${personel.gorevYeri} - ${personel.gorevi}',
+                personel.gorevi.isNotEmpty ? personel.gorevi : '-',
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              // Görev yeri
+              Text(
+                personel.gorevYeri.isNotEmpty ? personel.gorevYeri : '-',
                 style: const TextStyle(
                   fontSize: 15,
                   color: AppColors.textTertiary,

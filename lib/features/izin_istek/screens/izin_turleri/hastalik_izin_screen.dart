@@ -458,7 +458,16 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                                   _baslangicTarihi == _bitisTarihi)
                               ? _baslangicSaat
                               : 8,
-                          minMinute: 0,
+                          minMinute:
+                              (_birGunlukIzin ||
+                                  _baslangicTarihi == _bitisTarihi)
+                              ? _baslangicDakika
+                              : 0,
+                          minGapMinutes:
+                              (_birGunlukIzin ||
+                                  _baslangicTarihi == _bitisTarihi)
+                              ? 30
+                              : 0,
                           maxHour: 17,
                           allowAllMinutesAtMaxHour: true,
                           allowedMinutes: const [0, 30],

@@ -26,7 +26,7 @@ class YerEkleButton extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Yer Ekle',
+              'Gidilecek Yer Ekle',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.normal,

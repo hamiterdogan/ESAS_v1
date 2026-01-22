@@ -274,12 +274,21 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  hizmetTuru,
-                  style: const TextStyle(
+                const Text(
+                  'Hizmet Türü',
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF212121),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hizmetTuru,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF666666),
                   ),
                 ),
                 const SizedBox(height: 8),

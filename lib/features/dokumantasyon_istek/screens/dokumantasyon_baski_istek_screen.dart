@@ -136,6 +136,19 @@ class _DokumantasyonBaskiIstekScreenState
     return AppDialogs.showFormExitConfirm(context);
   }
 
+  void _showTeslimTarihiInfo() {
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    InfoBottomSheet.show(
+      context,
+      title: 'Teslim Edilecek Tarih',
+      message: 'En erken 2 iş günü sonrasını seçmelisiniz',
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
+  }
+
   // Accumulative class selection (with counts)
   final List<_SelectedClass> _accumulatedClasses = [];
 
@@ -463,9 +476,14 @@ class _DokumantasyonBaskiIstekScreenState
                 const Center(child: Text('Doküman türü bulunamadı'))
               else
                 Flexible(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: _dokumanTurleri.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: Colors.grey.shade300,
+                    ),
                     itemBuilder: (context, index) {
                       final item = _dokumanTurleri[index];
                       return ListTile(
@@ -545,9 +563,14 @@ class _DokumantasyonBaskiIstekScreenState
                 const Center(child: Text('Baskı boyutu bulunamadı'))
               else
                 Flexible(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: _baskiBoyutlari.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: Colors.grey.shade300,
+                    ),
                     itemBuilder: (context, index) {
                       final item = _baskiBoyutlari[index];
                       return ListTile(
@@ -746,6 +769,7 @@ class _DokumantasyonBaskiIstekScreenState
       title: 'Dokümantasyon Baskı İstek',
       summaryItems: summaryItems,
       showRequestData: true,
+      cancelButtonLabel: 'Düzenle',
       onConfirm: () async {
         final repo = ref.read(dokumantasyonIstekRepositoryProvider);
         final result = await repo.dokumantasyonBaskiIstekEkle(
@@ -835,15 +859,33 @@ class _DokumantasyonBaskiIstekScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Teslim Tarihi Label Outside for Layout
-                Text(
-                  'Teslim edilecek tarih',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.primaryLight,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Teslim edilecek tarih',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
+                        color: AppColors.primaryLight,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.info_outline,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      onPressed: _showTeslimTarihiInfo,
+                      constraints: const BoxConstraints(
+                        minHeight: 24,
+                        minWidth: 24,
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -863,9 +905,6 @@ class _DokumantasyonBaskiIstekScreenState
                       ),
                     ),
                     const SizedBox(width: 24),
-                    // Placeholder for spacing, similar to A4 Screen if we had an info icon
-                    // Or leave empty if no icon requested here. The user didn't request info icon here.
-                    // But to keep consistency with A4 screen layout (50% width), we need an Expanded empty box or similar.
                     const Expanded(child: SizedBox()),
                   ],
                 ),

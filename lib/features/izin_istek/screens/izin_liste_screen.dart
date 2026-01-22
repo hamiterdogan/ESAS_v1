@@ -9,6 +9,7 @@ import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 class IzinListeScreen extends ConsumerStatefulWidget {
   const IzinListeScreen({super.key});
@@ -364,7 +365,13 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
         : ref.watch(onaylananTaleplerProvider);
 
     return asyncValue.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: SizedBox(
+          width: 153,
+          height: 153,
+          child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+        ),
+      ),
       error: (error, stack) => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

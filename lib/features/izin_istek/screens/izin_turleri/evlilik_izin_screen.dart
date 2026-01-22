@@ -356,42 +356,31 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
-                    focusNode: _esAdiFocusNode,
-                    controller: _esAdiController,
-                    decoration: InputDecoration(
-                      hintText: 'Lütfen eşinizin adını giriniz.',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: _esAdiHatali ? AppColors.error : Colors.grey,
-                          width: _esAdiHatali ? 2 : 1,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: TextFormField(
+                      focusNode: _esAdiFocusNode,
+                      controller: _esAdiController,
+                      decoration: InputDecoration(
+                        hintText: 'Lütfen eşinizin adını giriniz.',
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: true,
+                        fillColor: AppColors.textOnPrimary,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: _esAdiHatali
-                              ? AppColors.error
-                              : AppColors.gradientEnd,
-                          width: 2,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.textOnPrimary,
+                      onChanged: (value) {
+                        if (_esAdiHatali && value.isNotEmpty) {
+                          setState(() {
+                            _esAdiHatali = false;
+                          });
+                        }
+                      },
                     ),
-                    minLines: 3,
-                    maxLines: 5,
-                    onChanged: (value) {
-                      if (_esAdiHatali && value.isNotEmpty) {
-                        setState(() {
-                          _esAdiHatali = false;
-                        });
-                      }
-                    },
                   ),
                   const SizedBox(height: 24),
 

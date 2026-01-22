@@ -221,7 +221,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Icon
-              const Icon(Icons.exit_to_app, color: AppColors.error, size: 60),
+              const Icon(Icons.exit_to_app, color: AppColors.error, size: 49),
               const SizedBox(height: 16),
 
               // Message
@@ -229,7 +229,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 'Uygulamadan çıkmak istediğinize emin misiniz?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 19,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),

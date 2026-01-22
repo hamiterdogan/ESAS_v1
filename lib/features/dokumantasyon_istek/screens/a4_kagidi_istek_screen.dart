@@ -62,9 +62,9 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
     FocusScope.of(context).unfocus();
 
     // Açıklama validation
-    if (_aciklamaController.text.length < 30) {
+    if (_aciklamaController.text.length < 15) {
       _showStatusBottomSheet(
-        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+        'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
         isError: true,
       );
       return;
@@ -103,6 +103,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
       title: 'A4 Kağıdı İstek',
       summaryItems: summaryItems,
       showRequestData: false,
+      cancelButtonLabel: 'Düzenle',
       onConfirm: () async {
         // API Call
         final repo = ref.read(dokumantasyonIstekRepositoryProvider);

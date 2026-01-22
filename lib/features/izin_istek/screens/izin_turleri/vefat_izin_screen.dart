@@ -22,10 +22,8 @@ class VefatIzinScreen extends ConsumerStatefulWidget {
 
 class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _aciklamaController = TextEditingController();
   final _adresController = TextEditingController();
   final _yakinlikDerecesiController = TextEditingController();
-  final _aciklamaFocusNode = FocusNode();
   final _adresFocusNode = FocusNode();
   final _yakinlikDerecesiFocusNode = FocusNode();
   DateTime? _initialBaslangicTarihi;
@@ -156,10 +154,8 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
 
   @override
   void dispose() {
-    _aciklamaController.dispose();
     _adresController.dispose();
     _yakinlikDerecesiController.dispose();
-    _aciklamaFocusNode.dispose();
     _adresFocusNode.dispose();
     _yakinlikDerecesiFocusNode.dispose();
     super.dispose();
@@ -172,7 +168,6 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
     if (_onay) return true;
     if (_basaksiAdinaIstekte) return true;
     if (_secilenPersonel != null) return true;
-    if (_aciklamaController.text.isNotEmpty) return true;
     if (_adresController.text.isNotEmpty) return true;
     if (_yakinlikDerecesiController.text.isNotEmpty) return true;
     if (_girileymeyenDersSaati > 0) return true;
@@ -328,10 +323,46 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                     },
                   ),
                   const SizedBox(height: 10),
-                  AciklamaFieldWidget(
-                    controller: _aciklamaController,
-                    focusNode: _aciklamaFocusNode,
-                    minCharacters: 30,
+                  const SizedBox(height: 24),
+                  Text(
+                    'Vefat Edenin Yakınlık Derecesi',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    focusNode: _yakinlikDerecesiFocusNode,
+                    controller: _yakinlikDerecesiController,
+                    decoration: InputDecoration(
+                      hintText:
+                          'Lütfen vefat edenin yakınlık derecesini giriniz.',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                    ),
+                    onChanged: (value) {
+                      if (_yakinlikDerecesiHatali && value.isNotEmpty) {
+                        setState(() {
+                          _yakinlikDerecesiHatali = false;
+                        });
+                      }
+                    },
                   ),
                   const SizedBox(height: 24),
                   CustomSwitchWidget(
@@ -410,47 +441,6 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                               ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Vefat Edenin Yakınlık Derecesi',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.inputLabelColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    focusNode: _yakinlikDerecesiFocusNode,
-                    controller: _yakinlikDerecesiController,
-                    decoration: InputDecoration(
-                      hintText:
-                          'Lütfen vefat edenin yakınlık derecesini giriniz.',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: AppColors.textOnPrimary,
-                    ),
-                    onChanged: (value) {
-                      if (_yakinlikDerecesiHatali && value.isNotEmpty) {
-                        setState(() {
-                          _yakinlikDerecesiHatali = false;
-                        });
-                      }
-                    },
                   ),
                   const SizedBox(height: 24),
                   NumericSpinnerWidget(
@@ -556,16 +546,6 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
         return;
       }
 
-      // Açıklama minimum 30 karakter kontrolü
-      if (_aciklamaController.text.length < 30) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-        );
-        _aciklamaFocusNode.requestFocus();
-        return;
-      }
-
       // Yakınlık derecesi boş kontrolü
       if (_yakinlikDerecesiController.text.isEmpty) {
         setState(() {
@@ -616,7 +596,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           izinSebebiId: izinSebebiId,
           izinBaslangicTarihi: _baslangicTarihi!,
           izinBitisTarihi: _bitisTarihi!,
-          aciklama: _aciklamaController.text,
+          aciklama: '',
           izindeBulunacagiAdres: _adresController.text,
           izinBaslangicSaat: 0,
           izinBaslangicDakika: 0,
@@ -631,7 +611,6 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
         if (mounted) {
           final ozetItems = [
             IzinOzetItem(label: 'İzin Türü', value: 'Vefat'),
-            IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
               value: _formatDate(_baslangicTarihi!),

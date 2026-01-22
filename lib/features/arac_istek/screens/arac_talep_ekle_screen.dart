@@ -14,6 +14,7 @@ import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 
 class AracTalepEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -77,6 +78,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   List<String> _initialOkulKoduList = [];
   List<String> _initialSeviyeList = [];
   List<String> _initialSinifList = [];
+  List<FilterOgrenciItem> _initialOgrenciList = [];
   List<String> _kulupList = [];
   List<String> _takimList = [];
   List<FilterOgrenciItem> _ogrenciList = [];
@@ -363,8 +365,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
-                  const SizedBox(height: 12),
                   if (_entries.isEmpty)
                     const Align(
                       alignment: Alignment.topLeft,
@@ -462,6 +462,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         ],
                       ),
                     ),
+                  const SizedBox(height: 12),
+                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
                   const SizedBox(height: 24),
                   NumericSpinnerWidget(
                     initialValue: _tahminiMesafe,
@@ -819,7 +821,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   const SizedBox(height: 32),
                   Text(
-                    'Toplam yolcu sayısı: ${_selectedPersonelIds.length + _selectedOgrenciIds.length}',
+                    'Toplam yolcu sayısı: ${_getYolcuSayisi()}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -890,16 +892,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
         );
         _aciklamaFocusNode.requestFocus();
-        return;
-      }
-
-      final yolcuSayisi =
-          _selectedPersonelIds.length + _selectedOgrenciIds.length;
-      if (yolcuSayisi <= 0) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen en az 1 yolcu seçiniz',
-        );
         return;
       }
 
@@ -1027,8 +1019,40 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     return lines.join('\n');
   }
 
+  int _getYolcuSayisi() {
+    final count = _selectedPersonelIds.length + _selectedOgrenciIds.length;
+    return count == 0 ? 1 : count;
+  }
+
   String _buildSelectedPersonelSummaryForOzet() {
-    if (_selectedPersonelIds.isEmpty) return '-';
+    if (_selectedPersonelIds.isEmpty) {
+      // Hiç personel seçilmemişse, dolduran personeli göster
+      try {
+        final personelAsync = ref.read(personelBilgiProvider);
+        if (personelAsync.hasValue && personelAsync.value != null) {
+          final personel = personelAsync.value!;
+          final name = personel.adSoyad.trim();
+          return name.isEmpty ? '-' : name;
+        }
+      } catch (_) {
+        // Provider'dan alınamazsa _personeller'den almayı dene
+      }
+
+      // Fallback: _personeller'den current personeli al
+      final currentPersonelId = ref.read(currentPersonelIdProvider);
+      final current = _personeller.firstWhere(
+        (p) => p.personelId == currentPersonelId,
+        orElse: () => PersonelItem(
+          personelId: currentPersonelId,
+          adi: '',
+          soyadi: '',
+          gorevId: null,
+          gorevYeriId: null,
+        ),
+      );
+      final name = '${current.adi} ${current.soyadi}'.trim();
+      return name.isEmpty ? '-' : name;
+    }
     if (_selectedPersonelIds.length > 2) {
       return '${_selectedPersonelIds.length} personel';
     }
@@ -1082,9 +1106,24 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       for (final gy in _gorevYerleri) gy.id: gy.gorevYeriAdi,
     };
 
+    final hasSelectedYolcu =
+        _selectedPersonelIds.isNotEmpty || _selectedOgrenciIds.isNotEmpty;
     final selectedPersonel = _personeller
         .where((p) => _selectedPersonelIds.contains(p.personelId))
         .toList();
+    if (!hasSelectedYolcu) {
+      final fallback = _personeller.firstWhere(
+        (p) => p.personelId == currentPersonelId,
+        orElse: () => PersonelItem(
+          personelId: currentPersonelId,
+          adi: '',
+          soyadi: '',
+          gorevId: null,
+          gorevYeriId: null,
+        ),
+      );
+      selectedPersonel.add(fallback);
+    }
     final yolcuPersonelSatir = selectedPersonel
         .map(
           (p) => AracIstekYolcuPersonelSatir(
@@ -1161,7 +1200,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       yolcuDepartmanId: yolcuDepartmanId,
       okullarSatir: okullarSatir,
       gidilecekYerSatir: gidilecekYerSatir,
-      yolcuSayisi: _selectedPersonelIds.length + _selectedOgrenciIds.length,
+      yolcuSayisi: _getYolcuSayisi(),
       mesafe: _tahminiMesafe,
       istekNedeni: istekNedeni,
       istekNedeniDiger: istekNedeniDiger,
@@ -1816,6 +1855,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               _initialOkulKoduList = data.okulKodu;
               _initialSeviyeList = data.seviye;
               _initialSinifList = data.sinif;
+              _initialOgrenciList = data.ogrenci;
               _okulKoduList = _initialOkulKoduList;
               _seviyeList = _initialSeviyeList;
               _sinifList = _initialSinifList;
@@ -1881,6 +1921,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
             _okulKoduList = _initialOkulKoduList;
             _seviyeList = _initialSeviyeList;
             _sinifList = _initialSinifList;
+            _ogrenciList = _initialOgrenciList;
           });
         }
       }
@@ -1893,7 +1934,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
       if (!mounted) return;
       BrandedLoadingDialog.hide(context);
-      final localSelectedOgrenci = <String>{};
+      final localSelectedOgrenci = {..._selectedOgrenciIds};
 
       // Temp set for detail pages (Discard logic)
       final Set<String> tempSelectedItems = {};
@@ -2451,7 +2492,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
         if (autoSelectAllOgrenci) {
           if (filtersEmpty) {
-            localSelectedOgrenci.clear();
+            localSelectedOgrenci.retainAll(validOgrenciNums);
           } else {
             localSelectedOgrenci
               ..clear()

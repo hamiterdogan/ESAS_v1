@@ -367,7 +367,7 @@ class _OgrenciListFilterPageFullState extends State<OgrenciListFilterPageFull> {
                     ),
                   ),
                   subtitle: Text(
-                    'No: $numara - ${ogrenci.sinif}',
+                    '${ogrenci.okulKodu}  ${ogrenci.sinif} - No: $numara',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,

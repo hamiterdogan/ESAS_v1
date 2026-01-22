@@ -10,6 +10,7 @@ class TimePickerBottomSheetWidget extends ConsumerStatefulWidget {
   final int minHour;
   final int maxHour;
   final int minMinute;
+  final int minGapMinutes;
   final List<int> allowedMinutes;
   final Function(int hour, int minute) onTimeChanged;
   final String? label;
@@ -23,6 +24,7 @@ class TimePickerBottomSheetWidget extends ConsumerStatefulWidget {
     this.minHour = 8,
     this.maxHour = 18,
     this.minMinute = 0,
+    this.minGapMinutes = 0,
     this.allowedMinutes = const [0, 30],
     required this.onTimeChanged,
     this.label,
@@ -40,20 +42,62 @@ class _TimePickerBottomSheetWidgetState
   late int _selectedHour;
   late int _selectedMinute;
 
+  List<int> _sortedAllowedMinutes() {
+    if (widget.allowedMinutes.isEmpty) {
+      return const [0];
+    }
+    final minutes = List<int>.from(widget.allowedMinutes)..sort();
+    return minutes;
+  }
+
+  (int, int) _effectiveMinTime() {
+    if (widget.minGapMinutes <= 0) {
+      return (widget.minHour, widget.minMinute);
+    }
+
+    final allowed = _sortedAllowedMinutes();
+    final baseTotal = widget.minHour * 60 + widget.minMinute;
+    final targetTotal = baseTotal + widget.minGapMinutes;
+    int hour = targetTotal ~/ 60;
+    int minute = targetTotal % 60;
+
+    int? nextMinute;
+    for (final m in allowed) {
+      if (m >= minute) {
+        nextMinute = m;
+        break;
+      }
+    }
+
+    if (nextMinute == null) {
+      hour += 1;
+      minute = allowed.first;
+    } else {
+      minute = nextMinute;
+    }
+
+    if (hour > widget.maxHour) {
+      hour = widget.maxHour;
+      minute = allowed.last;
+    }
+
+    return (hour, minute);
+  }
+
+  int _normalizeMinute(int hour, int minute) {
+    final minutes = _getAvailableMinutes(hour);
+    if (minutes.contains(minute)) {
+      return minute;
+    }
+    return minutes.first;
+  }
+
   @override
   void initState() {
     super.initState();
-    _selectedHour = widget.initialHour.clamp(widget.minHour, widget.maxHour);
-    // initialMinute allowedMinutes içinde değilse, en yakın geçerli değeri bul
-    if (widget.allowedMinutes.contains(widget.initialMinute)) {
-      _selectedMinute = widget.initialMinute;
-    } else {
-      // 30 için 30, diğer değerler için ilk geçerli dakikayı kullan
-      _selectedMinute = widget.allowedMinutes.firstWhere(
-        (m) => m >= widget.initialMinute,
-        orElse: () => widget.allowedMinutes.last,
-      );
-    }
+    final minTime = _effectiveMinTime();
+    _selectedHour = widget.initialHour.clamp(minTime.$1, widget.maxHour);
+    _selectedMinute = _normalizeMinute(_selectedHour, widget.initialMinute);
 
     // Widget oluşturulduğunda gösterilen değeri parent'a bildir
     // Bu sayede ekranda gösterilen değer ile state her zaman senkron olur
@@ -70,14 +114,16 @@ class _TimePickerBottomSheetWidgetState
     super.didUpdateWidget(oldWidget);
     // Her zaman yeni değerleri uygula
     setState(() {
-      _selectedHour = widget.initialHour.clamp(widget.minHour, widget.maxHour);
-      if (widget.allowedMinutes.contains(widget.initialMinute)) {
-        _selectedMinute = widget.initialMinute;
-      } else {
-        _selectedMinute = widget.allowedMinutes.firstWhere(
-          (m) => m >= widget.initialMinute,
-          orElse: () => widget.allowedMinutes.last,
-        );
+      final minTime = _effectiveMinTime();
+      _selectedHour = widget.initialHour.clamp(minTime.$1, widget.maxHour);
+      _selectedMinute = _normalizeMinute(_selectedHour, widget.initialMinute);
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_selectedHour != widget.initialHour ||
+          _selectedMinute != widget.initialMinute) {
+        widget.onTimeChanged(_selectedHour, _selectedMinute);
       }
     });
   }
@@ -91,7 +137,9 @@ class _TimePickerBottomSheetWidgetState
     FocusScope.of(context).unfocus();
 
     int tempHour = _selectedHour;
-    int tempMinute = _selectedMinute;
+    int tempMinute = _normalizeMinute(tempHour, _selectedMinute);
+    final minTime = _effectiveMinTime();
+    final minHour = minTime.$1;
 
     await showModalBottomSheet(
       context: context,
@@ -136,18 +184,22 @@ class _TimePickerBottomSheetWidgetState
                         SizedBox(
                           width: 80,
                           child: _buildSpinner(
-                            itemCount: widget.maxHour - widget.minHour + 1,
-                            initialItem: tempHour - widget.minHour,
+                            itemCount: widget.maxHour - minHour + 1,
+                            initialItem: tempHour - minHour,
                             onSelectedItemChanged: (index) {
                               setModalState(() {
-                                tempHour = widget.minHour + index;
+                                tempHour = minHour + index;
+                                tempMinute = _normalizeMinute(
+                                  tempHour,
+                                  tempMinute,
+                                );
                               });
                             },
                             itemBuilder: (index) {
-                              final hour = widget.minHour + index;
+                              final hour = minHour + index;
                               return hour.toString().padLeft(2, '0');
                             },
-                            selectedIndex: tempHour - widget.minHour,
+                            selectedIndex: tempHour - minHour,
                           ),
                         ),
                         // Colon
@@ -253,14 +305,18 @@ class _TimePickerBottomSheetWidgetState
   }
 
   List<int> _getAvailableMinutes(int hour) {
+    final minTime = _effectiveMinTime();
+    final minHour = minTime.$1;
+    final minMinute = minTime.$2;
+
     // maxHour'da sadece 00 dakikası göster (allowAllMinutesAtMaxHour true değilse)
     if (hour == widget.maxHour && !widget.allowAllMinutesAtMaxHour) {
       return [0];
     }
-    if (hour == widget.minHour && widget.minMinute > 0) {
-      // When same hour as minHour and minMinute is set, only show minutes >= minMinute
+    if (hour == minHour && minMinute > 0) {
+      // When same hour as effective min time, only show minutes >= minMinute
       final filtered = widget.allowedMinutes
-          .where((minute) => minute >= widget.minMinute)
+          .where((minute) => minute >= minMinute)
           .toList();
       // Eğer filtrelenmiş liste boşsa, en azından son dakikayı göster
       if (filtered.isEmpty) {

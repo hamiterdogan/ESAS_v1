@@ -601,7 +601,13 @@ class _PersonelSelectorWidgetState
 
                           widget.onSelectionChanged(_selectedPersonelIds);
                           widget.onFilterChanged?.call(<int>{}, <int>{});
-                          Navigator.pop(context);
+                          final navigator = Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          );
+                          if (navigator.canPop()) {
+                            navigator.pop();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,

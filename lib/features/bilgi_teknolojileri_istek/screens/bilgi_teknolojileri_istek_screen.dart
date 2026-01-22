@@ -14,6 +14,7 @@ import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/bilgi_teknoloj
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_talep_models.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/widgets/teknik_destek_ozet_bottom_sheet.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -241,10 +242,123 @@ class _BilgiTeknolojileriIstekScreenState
       return;
     }
 
-    await _submitFormToApi();
+    // Build request and show özet
+    await _showOzetAndSubmit();
   }
 
-  Future<void> _submitFormToApi() async {
+  Future<void> _showOzetAndSubmit() async {
+    if (!mounted) return;
+
+    // Prepare request
+    final hizmetler = _addedHizmetler
+        .map(
+          (h) => HizmetItem(
+            hizmetKategori: h.kategori,
+            hizmetDetay: h.hizmetDetayi,
+          ),
+        )
+        .toList();
+
+    final request = TeknikDestekTalepEkleRequest(
+      personelId: 0,
+      bina: _resolveSelectedBinaName(),
+      hizmetTuru: _resolveHizmetTuruForRequest(),
+      aciklama: _aciklamaController.text.trim(),
+      sonTarih: _selectedDate ?? DateTime.now(),
+      hizmetler: hizmetler,
+    );
+
+    // Prepare özet items
+    final ozetItems = <TeknikDestekOzetItem>[
+      TeknikDestekOzetItem(
+        label: 'Okul/Bina',
+        value: _resolveSelectedBinaName(),
+        multiLine: false,
+      ),
+      TeknikDestekOzetItem(
+        label: 'Hizmet Türü',
+        value: _resolveHizmetTuruForRequest(),
+        multiLine: false,
+      ),
+      TeknikDestekOzetItem(
+        label: 'İstenen Son Çözüm Tarihi',
+        value: _formatDate(_selectedDate ?? DateTime.now()),
+        multiLine: false,
+      ),
+      TeknikDestekOzetItem(
+        label: 'Açıklama',
+        value: _aciklamaController.text.trim(),
+      ),
+      ..._addedHizmetler.asMap().entries.map(
+        (entry) => TeknikDestekOzetItem(
+          label: 'Hizmet ${entry.key + 1}',
+          value: '${entry.value.kategori}\n${entry.value.hizmetDetayi}',
+          multiLine: true,
+        ),
+      ),
+      if (_selectedFiles.isNotEmpty)
+        TeknikDestekOzetItem(
+          label: 'Dosya Sayısı',
+          value: '${_selectedFiles.length} dosya',
+          multiLine: false,
+        ),
+      if (_dosyaIcerikController.text.trim().isNotEmpty)
+        TeknikDestekOzetItem(
+          label: 'Dosyaların İçeriği',
+          value: _dosyaIcerikController.text.trim(),
+        ),
+    ];
+
+    // Show özet bottom sheet
+    if (mounted) {
+      await showTeknikDestekOzetBottomSheet(
+        context: context,
+        request: request,
+        talepTipi: widget.baslik,
+        ozetItems: ozetItems,
+        onGonder: () async {
+          await _submitFormToApi(request);
+        },
+        onSuccess: () async {
+          if (!mounted) return;
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: '${widget.baslik} isteğiniz oluşturulmuştur.',
+            onConfirm: () async {
+              if (widget.destekTuru == 'bilgiTek') {
+                ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
+                ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+                if (!context.mounted) return;
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                if (!context.mounted) return;
+                context.go('/bilgi_teknolojileri');
+                return;
+              }
+
+              if (!context.mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              if (!context.mounted) return;
+              context.go('/teknik_destek');
+            },
+          );
+          if (mounted) {
+            _resetForm();
+          }
+        },
+        onError: (error) {
+          if (mounted) {
+            _showWarningBottomSheet(error);
+          }
+        },
+      );
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  Future<void> _submitFormToApi(TeknikDestekTalepEkleRequest request) async {
     if (!mounted) return;
 
     try {
@@ -255,24 +369,6 @@ class _BilgiTeknolojileriIstekScreenState
         barrierColor: Colors.transparent,
         pageBuilder: (_, __, ___) =>
             const BrandedLoadingOverlay(indicatorSize: 64, strokeWidth: 6),
-      );
-
-      final hizmetler = _addedHizmetler
-          .map(
-            (h) => HizmetItem(
-              hizmetKategori: h.kategori,
-              hizmetDetay: h.hizmetDetayi,
-            ),
-          )
-          .toList();
-
-      final request = TeknikDestekTalepEkleRequest(
-        personelId: 0,
-        bina: _resolveSelectedBinaName(),
-        hizmetTuru: 'Bilgi Teknolojileri',
-        aciklama: _aciklamaController.text.trim(),
-        sonTarih: _selectedDate ?? DateTime.now(),
-        hizmetler: hizmetler,
       );
 
       final repository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
@@ -289,50 +385,34 @@ class _BilgiTeknolojileriIstekScreenState
           if (_selectedFiles.isNotEmpty) {
             await _uploadFiles(response.onayKayitId);
           }
-
-          if (mounted) {
-            await IstekBasariliWidget.goster(
-              context: context,
-              message: response.mesaj.isNotEmpty
-                  ? response.mesaj
-                  : '${widget.baslik} isteğiniz oluşturulmuştur.',
-              onConfirm: () async {
-                if (widget.destekTuru == 'bilgiTek') {
-                  ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
-                  ref.invalidate(teknikDestekTamamlananTaleplerProvider);
-                  if (!context.mounted) return;
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                  if (!context.mounted) return;
-                  context.go('/bilgi_teknolojileri');
-                  return;
-                }
-
-                if (!context.mounted) return;
-                Navigator.of(context).popUntil((route) => route.isFirst);
-                if (!context.mounted) return;
-                context.go('/teknik_destek');
-              },
-            );
-            if (mounted) {
-              _resetForm();
-            }
-          }
         } else {
-          if (mounted) {
-            _showWarningBottomSheet(response.mesaj);
-          }
+          throw Exception(response.mesaj);
         }
       } else if (result is Failure) {
         final error =
             (result as Failure<TeknikDestekTalepEkleResponse>).message;
-        if (mounted) {
-          _showWarningBottomSheet('İstek gönderilemedi: $error');
-        }
+        throw Exception('İstek gönderilemedi: $error');
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
-      _showWarningBottomSheet('Beklenmeyen hata: $e');
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      throw Exception(errorMessage);
+    }
+  }
+
+  String _resolveHizmetTuruForRequest() {
+    switch (widget.destekTuru) {
+      case 'teknik':
+        return 'Teknik Hizmetler';
+      case 'icHizmet':
+        return 'İç Hizmetler';
+      case 'bilgiTek':
+      default:
+        return 'Bilgi Teknolojileri';
     }
   }
 

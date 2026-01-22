@@ -417,8 +417,6 @@ class _AracIstekYukEkleScreenState
                     ),
                   ),
                   const SizedBox(height: 16),
-                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
-                  const SizedBox(height: 12),
                   if (_entries.isEmpty)
                     const Align(
                       alignment: Alignment.topLeft,
@@ -519,6 +517,8 @@ class _AracIstekYukEkleScreenState
                         ],
                       ),
                     ),
+                  const SizedBox(height: 12),
+                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
                   const SizedBox(height: 24),
                   NumericSpinnerWidget(
                     initialValue: _tahminiMesafe,

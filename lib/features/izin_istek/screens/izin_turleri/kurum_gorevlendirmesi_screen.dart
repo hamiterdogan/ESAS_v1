@@ -356,6 +356,8 @@ class _KurumGorevlendirmesiIzinScreenState
                           allowedMinutes: const [0, 30],
                           label: 'Başlangıç Saati',
                           onTimeChanged: (hour, minute) {
+                            // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                            FocusScope.of(context).unfocus();
                             setState(() {
                               _baslangicSaat = hour;
                               _baslangicDakika = minute;
@@ -376,7 +378,16 @@ class _KurumGorevlendirmesiIzinScreenState
                                   _baslangicTarihi == _bitisTarihi)
                               ? _baslangicSaat
                               : 8,
-                          minMinute: 0,
+                          minMinute:
+                              (_birGunlukIzin ||
+                                  _baslangicTarihi == _bitisTarihi)
+                              ? _baslangicDakika
+                              : 0,
+                          minGapMinutes:
+                              (_birGunlukIzin ||
+                                  _baslangicTarihi == _bitisTarihi)
+                              ? 30
+                              : 0,
                           maxHour: 17,
                           allowAllMinutesAtMaxHour: true,
                           allowedMinutes: const [0, 30],
@@ -392,6 +403,8 @@ class _KurumGorevlendirmesiIzinScreenState
                                 color: AppColors.inputLabelColor,
                               ),
                           onTimeChanged: (hour, minute) {
+                            // 🔴 KRİTİK: Saat değiştiğinde klavyeyi kapat
+                            FocusScope.of(context).unfocus();
                             setState(() {
                               _bitisSaat = hour;
                               _bitisDakika = minute;
