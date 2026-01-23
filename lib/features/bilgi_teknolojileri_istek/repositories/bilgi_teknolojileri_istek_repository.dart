@@ -5,6 +5,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_talep_models.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_detay_model.dart';
 
 class BilgiTeknolojileriIstekRepository {
   BilgiTeknolojileriIstekRepository(this._dio);
@@ -67,6 +68,30 @@ class BilgiTeknolojileriIstekRepository {
 
       if (response.statusCode == 200) {
         return Success(TeknikDestekTalepEkleResponse.fromJson(response.data));
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  Future<Result<TeknikDestekDetayResponse>> teknikDestekDetayGetir({
+    required int id,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/TeknikDestek/TeknikDestekDetay',
+        data: {'id': id},
+        options: Options(contentType: 'application/json'),
+      );
+
+      if (response.statusCode == 200) {
+        return Success(TeknikDestekDetayResponse.fromJson(response.data));
       }
 
       return Failure('Hata: ${response.statusCode}');

@@ -494,7 +494,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             child: SizedBox(
               width: 80,
               height: 80,
-              child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
+              child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
             ),
           ),
         ),
@@ -858,7 +858,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             child: SizedBox(
               width: 80,
               height: 80,
-              child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
+              child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
             ),
           ),
         ),

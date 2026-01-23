@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_karti.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 /// Gelen Kutusu tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class GelenKutusuContent extends ConsumerStatefulWidget {
@@ -1094,7 +1095,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         : ref.watch(tamamlananGelenKutusuProvider);
 
     return asyncValue.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+      ),
       error: (error, stack) => RefreshIndicator(
         onRefresh: () async {
           if (widget.tip == 2) {

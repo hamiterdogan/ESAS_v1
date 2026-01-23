@@ -315,6 +315,13 @@ class _SarfMalzemeTalepCard extends ConsumerWidget {
                           color: AppColors.primary,
                         ),
                       ),
+                      const Spacer(),
+                      Transform.translate(
+                        offset: const Offset(38, 0),
+                        child: TalepYonetimHelper.buildStatusBadge(
+                          talep.onayDurumu,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

@@ -359,6 +359,7 @@ class GenericTalepCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tarihStr = TalepYonetimHelper.formatDate(tarih);
     final statusColor = TalepYonetimHelper.getStatusColor(onayDurumu);
+    final statusText = TalepYonetimHelper.getStatusText(onayDurumu);
 
     final card = Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -398,6 +399,47 @@ class GenericTalepCard extends StatelessWidget {
                           color: AppColors.primary,
                         ),
                       ),
+                      const Spacer(),
+                      Transform.translate(
+                        offset: Offset(showChevron ? 38 : 0, 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                TalepYonetimHelper.getStatusIcon(onayDurumu),
+                                size: 16,
+                                color: statusColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    statusText.isEmpty
+                                        ? 'Durum Bilinmiyor'
+                                        : statusText,
+                                    style: TextStyle(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   if (title != null) ...[
@@ -430,59 +472,15 @@ class GenericTalepCard extends StatelessWidget {
                     extraInfo!,
                   ],
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          tarihStr,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              TalepYonetimHelper.getStatusIcon(onayDurumu),
-                              size: 16,
-                              color: statusColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Flexible(
-                              child: Text(
-                                onayDurumu.isEmpty
-                                    ? 'Durum Bilinmiyor'
-                                    : onayDurumu,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Text(
+                    tarihStr,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ],
               ),

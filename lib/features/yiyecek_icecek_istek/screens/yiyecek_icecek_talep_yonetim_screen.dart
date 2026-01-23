@@ -315,6 +315,7 @@ class _YiyecekIcecekTalepCard extends ConsumerWidget {
                     ),
                   ],
                 ),
+                TalepYonetimHelper.buildStatusBadge(talep.onayDurumu),
               ],
             ),
             const SizedBox(height: 8),
@@ -337,41 +338,35 @@ class _YiyecekIcecekTalepCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text.rich(
+            Text.rich(
+              TextSpan(
+                children: [
                   TextSpan(
-                    children: [
-                      TextSpan(
-                        text: tarihStr,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const TextSpan(
-                        text: ' - ',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextSpan(
-                        text: talep.donem,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
+                    text: tarihStr,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                TalepYonetimHelper.buildStatusBadge(talep.onayDurumu),
-              ],
+                  const TextSpan(
+                    text: ' - ',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextSpan(
+                    text: talep.donem,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

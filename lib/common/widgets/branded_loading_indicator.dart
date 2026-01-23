@@ -9,12 +9,18 @@ class BrandedLoadingIndicator extends StatefulWidget {
   final double size;
   final double strokeWidth;
   final String logoAssetPath;
+  final bool showOverlay;
+  final double blurSigma;
+  final Color overlayColor;
 
   const BrandedLoadingIndicator({
     super.key,
     this.size = 72,
     this.strokeWidth = 4,
     this.logoAssetPath = defaultLogoAssetPath,
+    this.showOverlay = true,
+    this.blurSigma = 6,
+    this.overlayColor = const Color(0x66FFFFFF),
   });
 
   @override
@@ -33,8 +39,8 @@ class BrandedLoadingOverlay extends StatelessWidget {
     super.key,
     this.blurSigma = 6,
     this.overlayColor = const Color(0x66FFFFFF),
-    this.indicatorSize = 96,
-    this.strokeWidth = 8,
+    this.indicatorSize = 153,
+    this.strokeWidth = 24,
     this.logoAssetPath = BrandedLoadingIndicator.defaultLogoAssetPath,
   });
 
@@ -55,6 +61,7 @@ class BrandedLoadingOverlay extends StatelessWidget {
               size: indicatorSize,
               strokeWidth: strokeWidth,
               logoAssetPath: logoAssetPath,
+              showOverlay: false,
             ),
           ),
         ],
@@ -91,7 +98,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
     // The previous implementation used size * 0.8.
     final logoSize = ((widget.size * 0.55).clamp(16, widget.size)).toDouble();
 
-    return SizedBox(
+    final indicator = SizedBox(
       width: widget.size,
       height: widget.size,
       child: Stack(
@@ -136,6 +143,28 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
               ),
             ),
           ),
+        ],
+      ),
+    );
+
+    if (!widget.showOverlay) {
+      return indicator;
+    }
+
+    return AbsorbPointer(
+      absorbing: true,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: widget.blurSigma,
+                sigmaY: widget.blurSigma,
+              ),
+              child: Container(color: widget.overlayColor),
+            ),
+          ),
+          Center(child: indicator),
         ],
       ),
     );

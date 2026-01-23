@@ -65,7 +65,12 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
               ),
             ),
           ),
-          backgroundColor: AppColors.primary,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
+            ),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
             onPressed: () => context.go('/'),
@@ -118,35 +123,58 @@ class _IzinListeScreenState extends ConsumerState<IzinListeScreen>
             _IzinTalepleriListesi(key: _tamamlananKey, tip: 1), // Tamamlanan
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const IzinTuruSecimScreen(),
-              ),
-            );
-            if (mounted) {
-              ref.invalidate(onayBekleyenTaleplerProvider);
-              ref.invalidate(onaylananTaleplerProvider);
-            }
-          },
-          backgroundColor: AppColors.primary,
-          icon: Container(
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 15),
+          child: Container(
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.textOnPrimary.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
+              color: AppColors.scaffoldBackground,
+              borderRadius: BorderRadius.circular(45),
             ),
-            padding: const EdgeInsets.all(6),
-            child: const Icon(
-              Icons.add,
-              color: AppColors.textOnPrimary,
-              size: 24,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const IzinTuruSecimScreen(),
+                    ),
+                  );
+                  if (mounted) {
+                    ref.invalidate(onayBekleyenTaleplerProvider);
+                    ref.invalidate(onaylananTaleplerProvider);
+                  }
+                },
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                focusElevation: 0,
+                hoverElevation: 0,
+                highlightElevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                icon: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.textOnPrimary.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: const Icon(
+                    Icons.add,
+                    color: AppColors.textOnPrimary,
+                    size: 24,
+                  ),
+                ),
+                label: const Text(
+                  'Yeni İstek',
+                  style: TextStyle(color: AppColors.textOnPrimary),
+                ),
+              ),
             ),
-          ),
-          label: const Text(
-            'Yeni İstek',
-            style: TextStyle(color: AppColors.textOnPrimary),
           ),
         ),
       ),
@@ -558,12 +586,13 @@ class _IzinTalepKarti extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusText = talep.onayDurumu;
+    final rawStatus = talep.onayDurumu;
+    final statusText = _mapStatusText(rawStatus);
 
     Color statusColor;
     IconData statusIcon;
 
-    switch (statusText.toLowerCase()) {
+    switch (rawStatus.toLowerCase()) {
       case 'onaylandı':
         statusColor = AppColors.success;
         statusIcon = Icons.check_circle;
@@ -590,7 +619,9 @@ class _IzinTalepKarti extends StatelessWidget {
         ? talep.izinTuru
         : 'İzin Türü Bilinmiyor';
 
-    final isDeleteAvailable = statusText.toLowerCase() == 'onay bekliyor';
+    final isDeleteAvailable =
+        rawStatus.toLowerCase().contains('onay bekliyor') ||
+        rawStatus.toLowerCase().contains('bekliyor');
 
     return Slidable(
       key: ValueKey(talep.onayKayitId),
@@ -702,6 +733,45 @@ class _IzinTalepKarti extends StatelessWidget {
                                   color: AppColors.primary,
                                 ),
                               ),
+                              const Spacer(),
+                              Transform.translate(
+                                offset: const Offset(30, 0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        statusIcon,
+                                        size: 18,
+                                        color: statusColor,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            statusText,
+                                            style: TextStyle(
+                                              color: statusColor,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 4),
@@ -714,47 +784,13 @@ class _IzinTalepKarti extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                tarihStr,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      statusIcon,
-                                      size: 18,
-                                      color: statusColor,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      statusText,
-                                      style: TextStyle(
-                                        color: statusColor,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                          Text(
+                            tarihStr,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ],
                       ),
@@ -772,5 +808,15 @@ class _IzinTalepKarti extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _mapStatusText(String status) {
+    final lower = status.toLowerCase();
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor')) {
+      return 'Devam Ediyor';
+    }
+    return status;
   }
 }

@@ -638,7 +638,7 @@ class _SarfMalzemeDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
+            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
           ),
         ),
       ),
@@ -713,7 +713,7 @@ class _SarfMalzemeDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 80, strokeWidth: 6),
+            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
           ),
         ),
       ),

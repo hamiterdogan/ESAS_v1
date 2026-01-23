@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/talep/screens/widgets/talep_karti.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 /// İsteklerim tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class IsteklerimContent extends ConsumerStatefulWidget {
@@ -740,7 +741,9 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
         : ref.watch(tamamlananIsteklerimProvider);
 
     return asyncValue.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(
+        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+      ),
       error: (error, stack) => RefreshIndicator(
         onRefresh: () async {
           if (widget.tip == 0) {

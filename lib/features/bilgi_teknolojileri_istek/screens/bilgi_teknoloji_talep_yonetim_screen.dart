@@ -8,6 +8,7 @@ import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 
 /// Bilgi Teknoloji talep yönetim ekranı.
@@ -77,16 +78,6 @@ class _BilgiTeknolojiBilgiTalepYonetimScreenState
         enableFilter: true,
         onFilterTap: _showFilterBottomSheet,
         devamEdenBuilder:
-            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
-                _TeknikDestekTalepListesi(
-                  taleplerAsync: ref.watch(
-                    teknikDestekDevamEdenTaleplerProvider,
-                  ),
-                  onRefresh: () =>
-                      ref.refresh(teknikDestekDevamEdenTaleplerProvider.future),
-                  helper: helper,
-                ),
-        tamamlananBuilder:
             (
               ctx,
               ref,
@@ -94,11 +85,22 @@ class _BilgiTeknolojiBilgiTalepYonetimScreenState
               filterPredicate,
               onDurumlarUpdated,
             }) => _TeknikDestekTalepListesi(
-              taleplerAsync: ref.watch(teknikDestekTamamlananTaleplerProvider),
+              taleplerAsync: ref.watch(bilgiTeknolojiDevamEdenTaleplerProvider),
               onRefresh: () =>
-                  ref.refresh(teknikDestekTamamlananTaleplerProvider.future),
+                  ref.refresh(bilgiTeknolojiDevamEdenTaleplerProvider.future),
               helper: helper,
             ),
+        tamamlananBuilder:
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
+                _TeknikDestekTalepListesi(
+                  taleplerAsync: ref.watch(
+                    bilgiTeknolojiTamamlananTaleplerProvider,
+                  ),
+                  onRefresh: () => ref.refresh(
+                    bilgiTeknolojiTamamlananTaleplerProvider.future,
+                  ),
+                  helper: helper,
+                ),
       ),
     );
   }
@@ -164,7 +166,9 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
   Color _getStatusColor(String status) {
     final normalizedStatus = status.toLowerCase().trim();
     if (normalizedStatus.contains('devam') ||
-        normalizedStatus.contains('bekleme')) {
+        normalizedStatus.contains('bekleme') ||
+        normalizedStatus.contains('bekliyor') ||
+        normalizedStatus.contains('onay bekliyor')) {
       return const Color(0xFFFFA500); // Orange for "Onay Bekliyor"
     } else if (normalizedStatus.contains('onaylandi') ||
         normalizedStatus.contains('uygun')) {
@@ -177,7 +181,10 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
 
   String _getStatusText(String status) {
     final normalizedStatus = status.toLowerCase().trim();
-    if (normalizedStatus.contains('devam')) {
+    if (normalizedStatus.contains('devam') ||
+        normalizedStatus.contains('bekleme') ||
+        normalizedStatus.contains('bekliyor') ||
+        normalizedStatus.contains('onay bekliyor')) {
       return 'Devam Ediyor';
     } else if (normalizedStatus.contains('tamamland')) {
       return 'Tamamlandı';
@@ -231,7 +238,15 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    TeknikDestekDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -240,27 +255,75 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Süreç No
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      const TextSpan(
-                        text: 'Süreç No: ',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF212121),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'Süreç No: ',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF212121),
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${talep.onayKayitId}',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      TextSpan(
-                        text: '${talep.onayKayitId}',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryDark,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              statusColor == const Color(0xFFFFA500)
+                                  ? Icons.schedule
+                                  : statusColor == const Color(0xFF4CAF50)
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              size: 14,
+                              color: statusColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  statusText,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
 
@@ -290,52 +353,14 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
                     ),
                   ),
 
-                // Tarih + Status Badge
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      formattedDate,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF212121),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            statusColor == const Color(0xFFFFA500)
-                                ? Icons.schedule
-                                : statusColor == const Color(0xFF4CAF50)
-                                ? Icons.check_circle
-                                : Icons.cancel,
-                            size: 14,
-                            color: statusColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: statusColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                // Tarih
+                Text(
+                  formattedDate,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF212121),
+                  ),
                 ),
               ],
             ),
@@ -400,8 +425,8 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
       if (!context.mounted) return;
 
       if (result is Success) {
-        ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
-        ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+        ref.invalidate(bilgiTeknolojiDevamEdenTaleplerProvider);
+        ref.invalidate(bilgiTeknolojiTamamlananTaleplerProvider);
         helper.showInfoBottomSheet('Talep başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet('Hata: ${result.message}', isError: true);
@@ -418,7 +443,7 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Talebi Sil'),
         content: const Text(
-          'Bu teknik destek talebini silmek istediğinize emin misiniz?',
+          'Bu bilgi teknolojileri talebini silmek istediğinize emin misiniz?',
         ),
         actions: [
           TextButton(

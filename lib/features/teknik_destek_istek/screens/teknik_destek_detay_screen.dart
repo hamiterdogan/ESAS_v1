@@ -2,36 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
-import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_istek_detay_model.dart';
-import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
+import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:esas_v1/core/screens/image_viewer_screen.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_detay_model.dart';
+import 'package:esas_v1/features/teknik_destek_istek/providers/teknik_destek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
-import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 
-class YiyecekIcecekDetayScreen extends ConsumerStatefulWidget {
+class TeknikDestekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
 
-  const YiyecekIcecekDetayScreen({super.key, required this.talepId});
+  const TeknikDestekDetayScreen({super.key, required this.talepId});
 
   @override
-  ConsumerState<YiyecekIcecekDetayScreen> createState() =>
-      _YiyecekIcecekDetayScreenState();
+  ConsumerState<TeknikDestekDetayScreen> createState() =>
+      _TeknikDestekDetayScreenState();
 }
 
-class _YiyecekIcecekDetayScreenState
-    extends ConsumerState<YiyecekIcecekDetayScreen> {
+class _TeknikDestekDetayScreenState
+    extends ConsumerState<TeknikDestekDetayScreen> {
   bool _personelBilgileriExpanded = true;
-  bool _yiyecekIcecekDetaylariExpanded = true;
-  bool _ikramBilgileriExpanded = true;
+  bool _teknikDestekDetaylariExpanded = true;
+  bool _hizmetBilgileriExpanded = true;
   bool _onaySureciExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
   @override
   Widget build(BuildContext context) {
-    final detayAsync = ref.watch(yiyecekIstekDetayProvider(widget.talepId));
+    final detayAsync = ref.watch(teknikDestekDetayProvider(widget.talepId));
     final personelAsync = ref.watch(personelBilgiProvider);
+
+    final titleText = detayAsync.maybeWhen(
+      data: (detay) => _buildDetayTitle(detay.hizmetTuru),
+      orElse: () => _buildDetayTitle(null),
+    );
 
     final isLoading = detayAsync.isLoading;
     final body = detayAsync.when(
@@ -49,7 +57,7 @@ class _YiyecekIcecekDetayScreenState
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: Text(
-                'Yiyecek İçecek İstek Detayı (${widget.talepId})',
+                titleText,
                 style: const TextStyle(
                   color: AppColors.textOnPrimary,
                   fontWeight: FontWeight.w600,
@@ -71,7 +79,7 @@ class _YiyecekIcecekDetayScreenState
                 if (router.canPop()) {
                   router.pop();
                 } else {
-                  context.go('/yiyecek_icecek_istek');
+                  context.go('/teknik_destek');
                 }
               },
               constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
@@ -85,16 +93,24 @@ class _YiyecekIcecekDetayScreenState
     );
   }
 
+  String _buildDetayTitle(String? hizmetTuru) {
+    final normalized = (hizmetTuru ?? '').trim();
+    final prefix = normalized.isNotEmpty ? normalized : 'Teknik Destek';
+    return '$prefix İstek Detayı (${widget.talepId})';
+  }
+
   Widget _buildContent(
     BuildContext context,
-    YiyecekIcecekIstekDetayRes detay,
+    TeknikDestekDetayResponse detay,
     AsyncValue<PersonelBilgiResponse> personelAsync,
   ) {
-    // API returns empty details for staff sometimes, fallback to logged in user info if matching or just show from detail
-    // Actually the detail response has adSoyad, gorevYeri etc. Use those first.
-    final adSoyad = detay.adSoyad.isNotEmpty ? detay.adSoyad : '-';
-    final gorevYeri = detay.gorevYeri.isNotEmpty ? detay.gorevYeri : '-';
-    final gorevi = detay.gorevi.isNotEmpty ? detay.gorevi : '-';
+    final resolvedAdSoyad = _resolveAdSoyad(detay, personelAsync);
+    final resolvedGorevYeri = detay.gorevYeri.isNotEmpty
+        ? detay.gorevYeri
+        : (personelAsync.value?.gorevYeri ?? '-');
+    final resolvedGorevi = detay.gorevi.isNotEmpty
+        ? detay.gorevi
+        : (personelAsync.value?.gorev ?? '-');
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -119,31 +135,40 @@ class _YiyecekIcecekDetayScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildInfoRow('Ad Soyad', adSoyad),
-                  _buildInfoRow('Görev Yeri', gorevYeri),
-                  _buildInfoRow('Görevi', gorevi, isLast: true),
+                  _buildInfoRow(
+                    'Ad Soyad',
+                    resolvedAdSoyad.isNotEmpty ? resolvedAdSoyad : '-',
+                  ),
+                  _buildInfoRow(
+                    'Görev Yeri',
+                    resolvedGorevYeri.isNotEmpty ? resolvedGorevYeri : '-',
+                  ),
+                  _buildInfoRow(
+                    'Görevi',
+                    resolvedGorevi.isNotEmpty ? resolvedGorevi : '-',
+                    isLast: true,
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
             _buildAccordion(
-              icon:
-                  Icons.restaurant_menu, // Appropriate icon for Food & Beverage
-              title: 'Yiyecek İçecek İstek Detayları',
-              isExpanded: _yiyecekIcecekDetaylariExpanded,
+              icon: Icons.build_outlined,
+              title: 'Teknik Destek İstek Detayları',
+              isExpanded: _teknikDestekDetaylariExpanded,
               onTap: () {
                 setState(() {
-                  _yiyecekIcecekDetaylariExpanded =
-                      !_yiyecekIcecekDetaylariExpanded;
+                  _teknikDestekDetaylariExpanded =
+                      !_teknikDestekDetaylariExpanded;
                 });
               },
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildIstekDetayRows(detay),
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _buildTeknikDestekDetayRows(detay),
               ),
             ),
             const SizedBox(height: 16),
-            _buildIkramBilgileriAccordion(detay),
+            _buildHizmetBilgileriAccordion(detay),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
             const SizedBox(height: 16),
@@ -152,6 +177,16 @@ class _YiyecekIcecekDetayScreenState
         ),
       ),
     );
+  }
+
+  String _resolveAdSoyad(
+    TeknikDestekDetayResponse detay,
+    AsyncValue<PersonelBilgiResponse> personelAsync,
+  ) {
+    if (detay.adSoyad.isNotEmpty) return detay.adSoyad;
+    final combined = '${detay.ad} ${detay.soyad}'.trim();
+    if (combined.isNotEmpty) return combined;
+    return personelAsync.value?.adSoyad ?? '-';
   }
 
   Widget _buildError(BuildContext context, Object error) {
@@ -171,7 +206,8 @@ class _YiyecekIcecekDetayScreenState
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                ref.invalidate(yiyecekIstekDetayProvider(widget.talepId));
+                ref.invalidate(teknikDestekDetayProvider(widget.talepId));
+                ref.invalidate(personelBilgiProvider);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
@@ -185,36 +221,32 @@ class _YiyecekIcecekDetayScreenState
     );
   }
 
-  List<Widget> _buildIstekDetayRows(YiyecekIcecekIstekDetayRes detay) {
+  List<Widget> _buildTeknikDestekDetayRows(TeknikDestekDetayResponse detay) {
     final rows = <Widget>[];
     final items = <MapEntry<String, String>>[];
 
-    items.add(MapEntry('Etkinlik Adı', detay.etkinlikAdi));
-    if (detay.etkinlikAdiDiger != null && detay.etkinlikAdiDiger!.isNotEmpty) {
-      items.add(MapEntry('Etkinlik Adı (Diğer)', detay.etkinlikAdiDiger!));
-    }
-
-    // Format Date
-    String tarihStr = detay.etkinlikTarihi;
-    try {
-      final date = DateTime.tryParse(detay.etkinlikTarihi);
-      if (date != null) {
-        tarihStr = DateFormat('dd.MM.yyyy').format(date);
-      }
-    } catch (_) {}
-    items.add(MapEntry('Etkinlik Tarihi', tarihStr));
-
-    items.add(MapEntry('Dönem', detay.donem));
-    items.add(MapEntry('İkram Yeri', detay.ikramYeri));
-    items.add(MapEntry('Alınan Yer', detay.alinanYer));
+    items.add(MapEntry('Bina', detay.bina));
+    items.add(MapEntry('Hizmet Türü', detay.hizmetTuru));
+    items.add(MapEntry('Son Tarih', _formatDate(detay.sonTarih)));
     items.add(MapEntry('Açıklama', detay.aciklama));
+
+    if (detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty) {
+      items.add(MapEntry('Dosya Açıklama', detay.dosyaAciklama!));
+    }
 
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
-      final isLast = i == items.length - 1;
+      final isLast =
+          i == items.length - 1 &&
+          (detay.dosyaAdi == null || detay.dosyaAdi!.isEmpty);
 
-      // Assumption: Description might be long
-      final multiLine = item.key == 'Açıklama' || item.key == 'İkram Yeri';
+      final multiLineFields = [
+        'Açıklama',
+        'Dosya Açıklama',
+        'Bina',
+        'Hizmet Türü',
+      ];
+      final multiLine = multiLineFields.contains(item.key);
 
       rows.add(
         _buildInfoRow(
@@ -226,24 +258,46 @@ class _YiyecekIcecekDetayScreenState
       );
     }
 
+    if (detay.dosyaAdi != null && detay.dosyaAdi!.isNotEmpty) {
+      final dosyaListesi = detay.dosyaAdi!
+          .split('|')
+          .map((f) => f.trim())
+          .toList();
+
+      for (int i = 0; i < dosyaListesi.length; i++) {
+        final fileName = dosyaListesi[i];
+        if (fileName.isNotEmpty) {
+          rows.add(
+            _buildClickableFileRow(
+              dosyaListesi.length > 1
+                  ? 'Yüklenen Dosya ${i + 1}'
+                  : 'Yüklenen Dosya',
+              fileName,
+              isLast: i == dosyaListesi.length - 1,
+            ),
+          );
+        }
+      }
+    }
+
     return rows;
   }
 
-  Widget _buildIkramBilgileriAccordion(YiyecekIcecekIstekDetayRes detay) {
-    if (detay.ikramSatir.isEmpty) {
+  Widget _buildHizmetBilgileriAccordion(TeknikDestekDetayResponse detay) {
+    if (detay.hizmetler.isEmpty) {
       return _buildAccordion(
-        icon: Icons.local_cafe_outlined, // Icon for Treats
-        title: 'İkram Bilgileri',
-        isExpanded: _ikramBilgileriExpanded,
+        icon: Icons.list_alt_outlined,
+        title: 'Hizmet Bilgileri',
+        isExpanded: _hizmetBilgileriExpanded,
         onTap: () {
           setState(() {
-            _ikramBilgileriExpanded = !_ikramBilgileriExpanded;
+            _hizmetBilgileriExpanded = !_hizmetBilgileriExpanded;
           });
         },
         child: const Padding(
           padding: EdgeInsets.symmetric(vertical: 12),
           child: Text(
-            'İkram bilgisi bulunamadı',
+            'Hizmet bilgisi yüklenmedi',
             style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
         ),
@@ -251,46 +305,27 @@ class _YiyecekIcecekDetayScreenState
     }
 
     return _buildAccordion(
-      icon: Icons.local_cafe_outlined,
-      title: 'İkram Bilgileri',
-      isExpanded: _ikramBilgileriExpanded,
+      icon: Icons.list_alt_outlined,
+      title: 'Hizmet Bilgileri',
+      isExpanded: _hizmetBilgileriExpanded,
       onTap: () {
         setState(() {
-          _ikramBilgileriExpanded = !_ikramBilgileriExpanded;
+          _hizmetBilgileriExpanded = !_hizmetBilgileriExpanded;
         });
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: detay.ikramSatir.asMap().entries.map((entry) {
+        children: detay.hizmetler.asMap().entries.map((entry) {
           final index = entry.key;
-          final ikram = entry.value;
-          final isLast = index == detay.ikramSatir.length - 1;
+          final hizmet = entry.value;
+          final isLast = index == detay.hizmetler.length - 1;
 
-          // Construct Treat String
-          final List<String> treats = [];
-          if (ikram.cay) treats.add('Çay');
-          if (ikram.kahve) treats.add('Kahve');
-          if (ikram.mesrubat) treats.add('Meşrubat');
-          if (ikram.kasarliSimit) treats.add('Kaşarlı Simit');
-          if (ikram.kruvasan) treats.add('Kruvasan');
-          if (ikram.kurabiye) treats.add('Kurabiye');
-          if (ikram.ogleYemegi) treats.add('Öğle Yemeği');
-          if (ikram.kokteyl) treats.add('Kokteyl');
-          if (ikram.aksamYemegi) treats.add('Akşam Yemeği');
-          if (ikram.kumanya) treats.add('Kumanya');
-          if (ikram.diger && ikram.digerIkram != null) {
-            treats.add('Diğer (${ikram.digerIkram})');
-          }
-          final treatStr = treats.join(', ');
-
-          // Format Time
-          String timeRange = '${ikram.baslangicSaati} - ${ikram.bitisSaati}';
-          try {
-            // Basic formatting if needed, assuming HH:mm:ss from API
-            final start = ikram.baslangicSaati.substring(0, 5);
-            final end = ikram.bitisSaati.substring(0, 5);
-            timeRange = '$start - $end';
-          } catch (_) {}
+          final kategori = hizmet.hizmetKategori.isNotEmpty
+              ? hizmet.hizmetKategori
+              : '-';
+          final detayStr = hizmet.hizmetDetay.isNotEmpty
+              ? hizmet.hizmetDetay
+              : '-';
 
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
@@ -304,68 +339,21 @@ class _YiyecekIcecekDetayScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Saat Aralığı Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.gradientStart.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.gradientStart,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          timeRange,
-                          style: const TextStyle(
-                            color: AppColors.gradientStart,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    kategori,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 12),
-
-                  // İkramlar
-                  _buildInnerRow('İkramlar', treatStr),
-
                   const SizedBox(height: 8),
-                  const Divider(height: 1, color: AppColors.border),
-                  const SizedBox(height: 8),
-
-                  // Katılımcı Sayıları (Grid like structure)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildCountColumn(
-                          'Kurum İçi',
-                          ikram.kiKatilimci,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildCountColumn(
-                          'Kurum Dışı',
-                          ikram.kdKatilimci,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildCountColumn(
-                          'Toplam',
-                          ikram.toplamKatilimci,
-                          isTotal: true,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    detayStr,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -373,51 +361,6 @@ class _YiyecekIcecekDetayScreenState
           );
         }).toList(),
       ),
-    );
-  }
-
-  Widget _buildInnerRow(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value.isEmpty ? '-' : value,
-          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCountColumn(String label, int count, {bool isTotal = false}) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isTotal ? AppColors.gradientStart : AppColors.textTertiary,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '$count',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isTotal ? AppColors.gradientStart : AppColors.textPrimary,
-          ),
-        ),
-      ],
     );
   }
 
@@ -434,13 +377,14 @@ class _YiyecekIcecekDetayScreenState
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: AppColors.cardShadow,
+            color: AppColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
             leading: Icon(icon, color: AppColors.primary),
@@ -532,8 +476,103 @@ class _YiyecekIcecekDetayScreenState
     );
   }
 
+  Widget _buildClickableFileRow(
+    String label,
+    String fileName, {
+    bool isLast = false,
+  }) {
+    const String baseUrl =
+        'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
+    final String fileUrl = '$baseUrl$fileName';
+
+    final displayFileName = fileName.contains('_')
+        ? fileName.substring(fileName.indexOf('_') + 1)
+        : fileName;
+
+    final extension = fileName.toLowerCase().split('.').last;
+    final isPdf = extension == 'pdf';
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () async {
+              final lowerFileName = fileName.toLowerCase();
+              final isImage =
+                  lowerFileName.endsWith('.png') ||
+                  lowerFileName.endsWith('.jpg') ||
+                  lowerFileName.endsWith('.jpeg') ||
+                  lowerFileName.endsWith('.bmp');
+
+              if (isPdf) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PdfViewerScreen(title: fileName, pdfUrl: fileUrl),
+                  ),
+                );
+              } else if (isImage) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ImageViewerScreen(title: fileName, imageUrl: fileUrl),
+                  ),
+                );
+              } else {
+                final uri = Uri.parse(fileUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              }
+            },
+            child: Row(
+              children: [
+                Icon(
+                  isPdf ? Icons.picture_as_pdf : Icons.image_outlined,
+                  size: 20,
+                  color: AppColors.gradientStart,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    displayFileName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.gradientStart,
+                      decoration: TextDecoration.underline,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!isLast) ...[
+            const SizedBox(height: 10),
+            Container(height: 1, color: AppColors.border),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildOnaySureciAccordion() {
-    const onayTipi = 'Yiyecek İçecek İstek';
+    const onayTipi = 'Teknik Destek';
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
     );
@@ -586,6 +625,131 @@ class _YiyecekIcecekDetayScreenState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBildirimGideceklerAccordion() {
+    const onayTipi = 'Teknik Destek';
+    final onayDurumuAsync = ref.watch(
+      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
+    );
+
+    return onayDurumuAsync.when(
+      data: (onayDurumu) => _buildAccordion(
+        icon: Icons.notifications_outlined,
+        title: 'Bildirim Gidecekler',
+        isExpanded: _bildirimGideceklerExpanded,
+        onTap: () {
+          setState(() {
+            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
+          });
+        },
+        child: onayDurumu.bildirimGidecekler.isEmpty
+            ? const Text(
+                'Bildirim gidecek personel bulunmamaktadır.',
+                style: TextStyle(color: AppColors.textPrimary),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: onayDurumu.bildirimGidecekler.asMap().entries.map((
+                  entry,
+                ) {
+                  final index = entry.key;
+                  final p = entry.value;
+                  final isLast =
+                      index == onayDurumu.bildirimGidecekler.length - 1;
+                  return _buildBildirimPersonelCard(
+                    personelAdi: p.personelAdi,
+                    gorevYeri: p.gorevYeri,
+                    gorevi: p.gorevi,
+                    isLast: isLast,
+                  );
+                }).toList(),
+              ),
+      ),
+      loading: () => _buildAccordion(
+        icon: Icons.notifications_outlined,
+        title: 'Bildirim Gidecekler',
+        isExpanded: _bildirimGideceklerExpanded,
+        onTap: () {
+          setState(() {
+            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
+          });
+        },
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          ),
+        ),
+      ),
+      error: (error, _) => _buildAccordion(
+        icon: Icons.notifications_outlined,
+        title: 'Bildirim Gidecekler',
+        isExpanded: _bildirimGideceklerExpanded,
+        onTap: () {
+          setState(() {
+            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
+          });
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            'Bildirim gidecekler yüklenemedi',
+            style: TextStyle(color: AppColors.error),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBildirimPersonelCard({
+    required String personelAdi,
+    required String gorevYeri,
+    required String gorevi,
+    required bool isLast,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 30),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      personelAdi,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      gorevi,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      gorevYeri,
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isLast) const Divider(height: 24),
+      ],
     );
   }
 
@@ -878,133 +1042,13 @@ class _YiyecekIcecekDetayScreenState
     );
   }
 
-  Widget _buildBildirimGideceklerAccordion() {
-    const onayTipi = 'Yiyecek İçecek İstek';
-    final onayDurumuAsync = ref.watch(
-      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
-    );
-
-    return onayDurumuAsync.when(
-      data: (onayDurumu) => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: onayDurumu.bildirimGidecekler.isEmpty
-            ? const Text(
-                'Bildirim gidecek personel bulunmamaktadır.',
-                style: TextStyle(color: AppColors.textPrimary),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: onayDurumu.bildirimGidecekler.asMap().entries.map((
-                  entry,
-                ) {
-                  final index = entry.key;
-                  final p = entry.value;
-                  final isLast =
-                      index == onayDurumu.bildirimGidecekler.length - 1;
-                  return _buildBildirimPersonelCard(
-                    personelAdi: p.personelAdi,
-                    gorevYeri: p.gorevYeri,
-                    gorevi: p.gorevi,
-                    isLast: isLast,
-                  );
-                }).toList(),
-              ),
-      ),
-      loading: () => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        ),
-      ),
-      error: (error, _) => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Bildirim gidecekler yüklenemedi',
-            style: TextStyle(color: AppColors.error),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBildirimPersonelCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    required bool isLast,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 30),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      personelAdi,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      gorevi,
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      gorevYeri,
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!isLast) ...[
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-        ] else
-          const SizedBox(height: 4),
-      ],
-    );
+  String _formatDate(String dateString) {
+    if (dateString.isEmpty) return '-';
+    try {
+      final date = DateTime.parse(dateString);
+      return DateFormat('dd.MM.yyyy').format(date);
+    } catch (_) {
+      return dateString;
+    }
   }
 }

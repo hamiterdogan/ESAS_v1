@@ -6,6 +6,9 @@ import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_detay_screen.dart';
+import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
 
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
@@ -23,9 +26,14 @@ class TalepKarti extends StatelessWidget {
   }
 
   Color _getOnayDurumuRengi(String durum) {
-    switch (durum.toLowerCase()) {
-      case 'onay bekliyor':
-        return AppColors.warning;
+    final lower = durum.toLowerCase();
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor') ||
+        lower.contains('devam')) {
+      return AppColors.warning;
+    }
+    switch (lower) {
       case 'onaylandı':
         return AppColors.success;
       case 'reddedildi':
@@ -36,9 +44,14 @@ class TalepKarti extends StatelessWidget {
   }
 
   IconData _getOnayDurumuIkonu(String durum) {
-    switch (durum.toLowerCase()) {
-      case 'onay bekliyor':
-        return Icons.schedule;
+    final lower = durum.toLowerCase();
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor') ||
+        lower.contains('devam')) {
+      return Icons.schedule;
+    }
+    switch (lower) {
       case 'onaylandı':
         return Icons.check_circle;
       case 'reddedildi':
@@ -46,6 +59,16 @@ class TalepKarti extends StatelessWidget {
       default:
         return Icons.info;
     }
+  }
+
+  String _getOnayDurumuText(String durum) {
+    final lower = durum.toLowerCase();
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor')) {
+      return 'Devam Ediyor';
+    }
+    return durum;
   }
 
   @override
@@ -109,101 +132,162 @@ class TalepKarti extends StatelessWidget {
               ),
             );
           }
+          // Teknik Destek / Bilgi Teknolojileri İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('teknik destek')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    TeknikDestekDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          }
+          // Sarf Malzeme İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('sarf malzeme')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    SarfMalzemeDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          }
+          // Yiyecek İçecek İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('yiyecek') ||
+              talep.onayTipi.toLowerCase().contains('içecek') ||
+              talep.onayTipi.toLowerCase().contains('icecek')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    YiyecekIcecekDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          }
           // Diğer süreç türleri için şimdilik tepki verme
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Sol taraf - Bilgiler
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Süreç No
-                    Row(
-                      children: [
-                        Text(
-                          'Süreç No: ',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textTertiary,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Sol taraf - Bilgiler
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Süreç No
+                      Row(
+                        children: [
+                          Text(
+                            'Süreç No: ',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
-                        Text(
-                          '${talep.onayKayitId}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.gradientStart,
+                          Text(
+                            '${talep.onayKayitId}',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryDark,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Talep Türü
-                    Text(
-                      talep.onayTipi,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.gradientStart,
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // Tarih ve Onay Durumu
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _formatTarih(talep.olusturmaTarihi),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textTertiary,
-                          ),
+                      const SizedBox(height: 4),
+                      // Talep Türü
+                      Text(
+                        talep.onayTipi,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          color: Colors.black,
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                      ),
+                      const SizedBox(height: 8),
+                      // Tarih
+                      Text(
+                        _formatTarih(talep.olusturmaTarihi),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Sağ taraf - Durum ve Chevron
+                const SizedBox(width: 8),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Durum rozeti
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _getOnayDurumuRengi(
+                          talep.onayDurumu,
+                        ).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _getOnayDurumuIkonu(talep.onayDurumu),
+                            size: 14,
+                            color: _getOnayDurumuRengi(talep.onayDurumu),
                           ),
-                          decoration: BoxDecoration(
-                            color: _getOnayDurumuRengi(
-                              talep.onayDurumu,
-                            ).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _getOnayDurumuIkonu(talep.onayDurumu),
-                                size: 16,
+                          const SizedBox(width: 4),
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _getOnayDurumuText(talep.onayDurumu),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                                 color: _getOnayDurumuRengi(talep.onayDurumu),
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                talep.onayDurumu,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getOnayDurumuRengi(talep.onayDurumu),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    // Chevron (dikey ortalaması biraz daha aşağıda kalabilir, IntrinsicHeight ve Spacer ile yönetiyoruz)
+                    // Ortada olması için Spacer kullanılabilir ancak üst tarafın hizası önemli.
+                    // IntrinsicHeight olduğu için, içerik kadar yer kaplamaz, en yüksek kadar kaplar.
+                    // Üstte durum var, altta bir şey yoksa sadece durum olur. SpaceAround işe yaramaz.
+                    // Ortalamadan ziyade en alta koysak? Hayır son karakterler hizalı demiş.
+                    // "yazıların son karakterleri dikeyde chevron ile aynı hizada olsun" -> Vertical alignment?
+                    // "Süreç No: X yazısı ile aynı hizada ama sağa dayalı olsun" -> Horizontal alignment with first row.
+                    // Durum widget'ı zaten ilk row hizasında.
+                    // Chevron dikeyde ortada mı yoksa altta mı? "yazıların son karakterleri dikeyde chevron ile aynı hizada olsun"
+                    // Bu ifade biraz karışık. "Yazıların son karakterleri" -> Durum yazısı?
+                    // "dikeyde chevron ile aynı hizada olsun" -> Muhtemelen sağa dayalı demek istiyor (Alignment.centerRight).
+                    // Yani Durum ve Chevron sağ kenara dayalı olacak (CrossAxisAlignment.end).
+                    const Spacer(),
+                    Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textTertiary,
+                      size: 28,
+                    ),
+                    // Chevron'u biraz yukarı itmek gerekebilir mi? Tam orta için Spacer yeterli.
+                    // Üstteki boşluk kadar alttan boşluk bırakmak gerekebilir, ama Spacer bunu dinamik yapar.
+                    const Spacer(),
                   ],
                 ),
-              ),
-              // Sağ taraf - Büyüktür ikonu
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right, color: AppColors.textTertiary, size: 28),
-            ],
+              ],
+            ),
           ),
         ),
       ),

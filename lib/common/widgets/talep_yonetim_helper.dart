@@ -51,7 +51,10 @@ class TalepYonetimHelper {
           ),
         ),
       ),
-      backgroundColor: AppColors.gradientStart,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+      ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
         onPressed: onBackPressed ?? () => context.go('/'),
@@ -84,20 +87,47 @@ class TalepYonetimHelper {
     required VoidCallback onPressed,
     String label = 'Yeni İstek',
   }) {
-    return FloatingActionButton.extended(
-      onPressed: onPressed,
-      backgroundColor: AppColors.gradientStart,
-      icon: Container(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Container(
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: AppColors.textOnPrimary.withValues(alpha: 0.3),
-          shape: BoxShape.circle,
+          color: AppColors.scaffoldBackground,
+          borderRadius: BorderRadius.circular(45),
         ),
-        padding: const EdgeInsets.all(6),
-        child: const Icon(Icons.add, color: AppColors.textOnPrimary, size: 24),
-      ),
-      label: Text(
-        label,
-        style: const TextStyle(color: AppColors.textOnPrimary),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: onPressed,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            focusElevation: 0,
+            hoverElevation: 0,
+            highlightElevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            icon: Container(
+              decoration: BoxDecoration(
+                color: AppColors.textOnPrimary.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(6),
+              child: const Icon(
+                Icons.add,
+                color: AppColors.textOnPrimary,
+                size: 24,
+              ),
+            ),
+            label: Text(
+              label,
+              style: const TextStyle(color: AppColors.textOnPrimary),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -303,7 +333,10 @@ class TalepYonetimHelper {
     if (lower.contains('redd') || lower.contains('iptal')) {
       return AppColors.error;
     }
-    if (lower.contains('onay bekliyor') || lower.contains('beklemede')) {
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor') ||
+        lower.contains('devam')) {
       return AppColors.warning; // Amber
     }
     if (lower.contains('onaylandı') || lower.contains('tamamlandı')) {
@@ -324,7 +357,10 @@ class TalepYonetimHelper {
     if (lower.contains('redd') || lower.contains('iptal')) {
       return Icons.cancel_outlined;
     }
-    if (lower.contains('onay bekliyor') || lower.contains('beklemede')) {
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor') ||
+        lower.contains('devam')) {
       return Icons.access_time_rounded;
     }
     if (lower.contains('onaylandı') || lower.contains('tamamlandı')) {
@@ -338,6 +374,7 @@ class TalepYonetimHelper {
     final color = getStatusColor(status);
     final bgColor = getStatusBackgroundColor(status);
     final icon = getStatusIcon(status);
+    final displayText = getStatusText(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -350,16 +387,34 @@ class TalepYonetimHelper {
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
-          Text(
-            status.isEmpty ? 'Durum Bilinmiyor' : status,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                displayText.isEmpty ? 'Durum Bilinmiyor' : displayText,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Durum etiketini normalize et
+  static String getStatusText(String status) {
+    final lower = status.toLowerCase();
+    if (lower.contains('onay bekliyor') ||
+        lower.contains('beklemede') ||
+        lower.contains('bekliyor') ||
+        lower.contains('devam')) {
+      return 'Devam Ediyor';
+    }
+    return status;
   }
 }
