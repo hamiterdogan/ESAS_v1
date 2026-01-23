@@ -13,8 +13,13 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_det
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
   final Talep talep;
+  final String? displayOnayTipi;
 
-  const TalepKarti({super.key, required this.talep});
+  const TalepKarti({
+    super.key,
+    required this.talep,
+    this.displayOnayTipi,
+  });
 
   String _formatTarih(String tarihStr) {
     try {
@@ -73,6 +78,8 @@ class TalepKarti extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onayTipiText = displayOnayTipi ?? talep.onayTipi;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -202,7 +209,7 @@ class TalepKarti extends StatelessWidget {
                       const SizedBox(height: 4),
                       // Talep Türü
                       Text(
-                        talep.onayTipi,
+                        onayTipiText,
                         style: const TextStyle(
                           fontSize: 17,
                           color: Colors.black,

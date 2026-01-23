@@ -10,6 +10,8 @@ class TalepGetirRequest {
   final String? talepBaslangicTarihi;
   final String? talepBitisTarihi;
   final int oturumGorevId;
+  final int pageIndex;
+  final int pageSize;
 
   TalepGetirRequest({
     this.tip = 1,
@@ -22,6 +24,8 @@ class TalepGetirRequest {
     this.talepBaslangicTarihi,
     this.talepBitisTarihi,
     this.oturumGorevId = 0,
+    this.pageIndex = 0,
+    this.pageSize = 20,
   });
 
   Map<String, dynamic> toJson() {
@@ -36,6 +40,8 @@ class TalepGetirRequest {
       'talepBaslangicTarihi': talepBaslangicTarihi,
       'talepBitisTarihi': talepBitisTarihi,
       'oturumGorevId': oturumGorevId,
+      'pageIndex': pageIndex,
+      'pageSize': pageSize,
     };
   }
 }

@@ -6,6 +6,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay_model.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -25,6 +26,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
   bool _personelBilgileriExpanded = true;
   bool _izinDetaylariExpanded = true;
   bool _onaySureciExpanded = true;
+  bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
   @override
@@ -171,7 +173,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
           const SizedBox(height: 16),
           // 3. Accordion - Onay Süreci
           _buildOnaySureciAccordion(),
-          const SizedBox(height: 16),
+          _buildOnayFormAccordion(),
           // 4. Accordion - Bildirim Gidecekler
           _buildBildirimGideceklerAccordion(),
         ],
@@ -239,6 +241,49 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOnayFormAccordion() {
+    final resolvedOnayTipi = (widget.onayTipi ?? '').trim().isNotEmpty
+        ? widget.onayTipi!.trim()
+        : 'İzin İstek';
+    final onayDurumuAsync = ref.watch(
+      onayDurumuProvider((talepId: widget.talepId, onayTipi: resolvedOnayTipi)),
+    );
+
+    return onayDurumuAsync.when(
+      data: (onayDurumu) {
+        if (!onayDurumu.onayFormuGoster) {
+          return const SizedBox(height: 16);
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.assignment_turned_in_outlined,
+              title: 'Onay',
+              isExpanded: _onayFormExpanded,
+              onTap: () {
+                setState(() {
+                  _onayFormExpanded = !_onayFormExpanded;
+                });
+              },
+              child: OnayFormContent(
+                onApprove: () {},
+                onReject: () {},
+                onReturn: () {},
+                onAssign: () {},
+                gorevAtamaEnabled: onayDurumu.gorevAtama,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox(height: 16),
+      error: (_, __) => const SizedBox(height: 16),
     );
   }
 
@@ -348,7 +393,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
                 ),
                 if (!isLast) ...[
                   const SizedBox(height: 10),
-                  Container(height: 1, color: AppColors.border),
+                  Container(height: 0.5, color: AppColors.border),
                 ],
               ],
             ),

@@ -100,9 +100,9 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen> {
         devamEdenBuilder:
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _IzinTalepListesi(
-                taleplerAsync: ref.watch(devamEdenIsteklerimProvider),
+                taleplerAsync: ref.watch(devamEdenIsteklerimLegacyProvider),
                 onRefresh: () {
-                  ref.invalidate(devamEdenIsteklerimProvider);
+                  ref.invalidate(devamEdenIsteklerimLegacyProvider);
                   return Future.value();
                 },
                 helper: helper,
@@ -117,9 +117,9 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen> {
         tamamlananBuilder:
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _IzinTalepListesi(
-                taleplerAsync: ref.watch(tamamlananIsteklerimProvider),
+                taleplerAsync: ref.watch(tamamlananIsteklerimLegacyProvider),
                 onRefresh: () {
-                  ref.invalidate(tamamlananIsteklerimProvider);
+                  ref.invalidate(tamamlananIsteklerimLegacyProvider);
                   return Future.value();
                 },
                 helper: helper,

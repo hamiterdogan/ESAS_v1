@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_detay_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -23,6 +24,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
   bool _personelBilgileriExpanded = true;
   bool _aracDetaylariExpanded = true;
   bool _onaySureciExpanded = true;
+  bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
   bool _yolcuListesiExpanded = false;
 
@@ -155,7 +157,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
               const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
-            const SizedBox(height: 16),
+            _buildOnayFormAccordion(),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -516,6 +518,47 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOnayFormAccordion() {
+    const onayTipi = 'Araç İstek';
+    final onayDurumuAsync = ref.watch(
+      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
+    );
+
+    return onayDurumuAsync.when(
+      data: (onayDurumu) {
+        if (!onayDurumu.onayFormuGoster) {
+          return const SizedBox(height: 16);
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.assignment_turned_in_outlined,
+              title: 'Onay',
+              isExpanded: _onayFormExpanded,
+              onTap: () {
+                setState(() {
+                  _onayFormExpanded = !_onayFormExpanded;
+                });
+              },
+              child: OnayFormContent(
+                onApprove: () {},
+                onReject: () {},
+                onReturn: () {},
+                onAssign: () {},
+                gorevAtamaEnabled: onayDurumu.gorevAtama,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox(height: 16),
+      error: (_, __) => const SizedBox(height: 16),
     );
   }
 
@@ -925,7 +968,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
               ),
               if (!isLast) ...[
                 const SizedBox(height: 10),
-                Container(height: 1, color: AppColors.border),
+                Container(height: 0.5, color: AppColors.border),
               ],
             ],
           ),

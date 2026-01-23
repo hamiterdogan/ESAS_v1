@@ -147,27 +147,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
       ),
     );
 
-    if (!widget.showOverlay) {
-      return indicator;
-    }
-
-    return AbsorbPointer(
-      absorbing: true,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: widget.blurSigma,
-                sigmaY: widget.blurSigma,
-              ),
-              child: Container(color: widget.overlayColor),
-            ),
-          ),
-          Center(child: indicator),
-        ],
-      ),
-    );
+    return indicator;
   }
 }
 

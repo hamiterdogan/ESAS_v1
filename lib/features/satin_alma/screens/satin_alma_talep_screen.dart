@@ -997,6 +997,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   ),
 
                   const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 24),
 
                   // Satıcı Firma
                   Text(
@@ -1162,6 +1167,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     ],
                   ),
 
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
                   const SizedBox(height: 24),
                   if (_urunler.isNotEmpty) ...[
                     ListView.separated(
@@ -1610,6 +1620,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   ),
 
                   const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Genel Toplam',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -1715,6 +1730,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
                   const SizedBox(height: 24),
                   // Fiyat Teklifi / Sözleşme Ekle
                   FilePhotoUploadWidget<PlatformFile>(

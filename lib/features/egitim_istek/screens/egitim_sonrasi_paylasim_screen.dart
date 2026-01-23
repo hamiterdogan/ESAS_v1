@@ -26,6 +26,20 @@ class EgitimSonrasiPaylasimsScreen extends ConsumerStatefulWidget {
 
 class _EgitimSonrasiPaylasimsScreenState
     extends ConsumerState<EgitimSonrasiPaylasimsScreen> {
+  static const List<int> _allowedMinutes = [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45,
+    50,
+    55,
+  ];
   late DateTime _baslangicTarihi;
   late DateTime _bitisTarihi;
   int _baslangicSaat = 8;
@@ -43,6 +57,37 @@ class _EgitimSonrasiPaylasimsScreenState
   List<GorevItem> _gorevler = [];
   // ignore: unused_field - may be used in future
   List<GorevYeriItem> _gorevYerleri = [];
+
+  void _syncBitisWithBaslangic({
+    required int startHour,
+    required int startMinute,
+  }) {
+    final minBitis = _computeBitisMin(startHour, startMinute);
+    if (_isBefore(_bitisSaat, _bitisDakika, minBitis.$1, minBitis.$2)) {
+      _bitisSaat = minBitis.$1;
+      _bitisDakika = minBitis.$2;
+    }
+  }
+
+  (int, int) _computeBitisMin(int startHour, int startMinute) {
+    if (startMinute >= _allowedMinutes.last) {
+      if (startHour >= 17) {
+        return (17, _allowedMinutes.last);
+      }
+      final nextHour = (startHour + 1).clamp(0, 17);
+      return (nextHour, _allowedMinutes.first);
+    }
+
+    final nextMinute = _allowedMinutes.firstWhere(
+      (m) => m > startMinute,
+      orElse: () => _allowedMinutes.last,
+    );
+    return (startHour, nextMinute);
+  }
+
+  bool _isBefore(int h1, int m1, int h2, int m2) {
+    return h1 < h2 || (h1 == h2 && m1 < m2);
+  }
 
   @override
   void initState() {
@@ -383,45 +428,61 @@ class _EgitimSonrasiPaylasimsScreenState
                                 initialMinute: _baslangicDakika,
                                 minHour: 8,
                                 maxHour: 17,
-                                allowedMinutes: const [0, 30],
+                                allowedMinutes: _allowedMinutes,
                                 label: 'Başlangıç Saati',
+                                allowAllMinutesAtMaxHour: true,
                                 onTimeChanged: (hour, minute) {
                                   setState(() {
                                     _baslangicSaat = hour;
                                     _baslangicDakika = minute;
+                                    _syncBitisWithBaslangic(
+                                      startHour: hour,
+                                      startMinute: minute,
+                                    );
                                   });
                                 },
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: TimePickerBottomSheetWidget(
-                                labelStyle: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontSize:
-                                          (Theme.of(context)
-                                                  .textTheme
-                                                  .titleSmall
-                                                  ?.fontSize ??
-                                              14) +
-                                          1,
-                                      color: AppColors.inputLabelColor,
+                              child: Builder(
+                                builder: (context) {
+                                  final minBitis = _computeBitisMin(
+                                    _baslangicSaat,
+                                    _baslangicDakika,
+                                  );
+                                  return TimePickerBottomSheetWidget(
+                                    key: ValueKey(
+                                      'bitis-$_baslangicSaat-$_baslangicDakika-$_bitisSaat-$_bitisDakika',
                                     ),
-                                initialHour: _bitisSaat,
-                                initialMinute: _bitisDakika,
-                                minHour: _baslangicSaat,
-                                minMinute: 0,
-                                maxHour: 17,
-                                allowAllMinutesAtMaxHour: true,
-                                allowedMinutes: const [0, 30],
-                                label: 'Bitiş Saati',
-                                onTimeChanged: (hour, minute) {
-                                  setState(() {
-                                    _bitisSaat = hour;
-                                    _bitisDakika = minute;
-                                  });
+                                    labelStyle: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontSize:
+                                              (Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.fontSize ??
+                                                  14) +
+                                              1,
+                                          color: AppColors.inputLabelColor,
+                                        ),
+                                    initialHour: _bitisSaat,
+                                    initialMinute: _bitisDakika,
+                                    minHour: minBitis.$1,
+                                    minMinute: minBitis.$2,
+                                    maxHour: 17,
+                                    allowAllMinutesAtMaxHour: true,
+                                    allowedMinutes: _allowedMinutes,
+                                    label: 'Bitiş Saati',
+                                    onTimeChanged: (hour, minute) {
+                                      setState(() {
+                                        _bitisSaat = hour;
+                                        _bitisDakika = minute;
+                                      });
+                                    },
+                                  );
                                 },
                               ),
                             ),

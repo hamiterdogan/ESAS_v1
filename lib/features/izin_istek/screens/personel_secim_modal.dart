@@ -23,6 +23,7 @@ class PersonelSecimModal extends ConsumerWidget {
         ),
         iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
       ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           // Arama kutusu
@@ -86,11 +87,17 @@ class PersonelSecimModal extends ConsumerWidget {
                   itemCount: personeller.length,
                   itemBuilder: (context, index) {
                     final personel = personeller[index];
-                    return ListTile(
-                      title: Text('${personel.ad} ${personel.soyad}'),
-                      onTap: () {
-                        Navigator.pop(context, personel);
-                      },
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: Text('${personel.ad} ${personel.soyad}'),
+                          onTap: () {
+                            Navigator.pop(context, personel);
+                          },
+                        ),
+                        if (index < personeller.length - 1)
+                          const Divider(height: 1, color: Color(0xFFE8E8E8)),
+                      ],
                     );
                   },
                 );

@@ -326,8 +326,13 @@ class _BilgiTeknolojileriIstekScreenState
             message: '${widget.baslik} isteğiniz oluşturulmuştur.',
             onConfirm: () async {
               if (widget.destekTuru == 'bilgiTek') {
-                ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
-                ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+                // Devam eden ve tamamlanan provider'ları invalidate et
+                ref.invalidate(bilgiTeknolojiDevamEdenTaleplerProvider);
+                ref.invalidate(bilgiTeknolojiTamamlananTaleplerProvider);
+
+                // Provider'ın yeni data yüklemesini bekle
+                await Future.delayed(const Duration(milliseconds: 300));
+
                 if (!context.mounted) return;
                 Navigator.of(context).popUntil((route) => route.isFirst);
                 if (!context.mounted) return;

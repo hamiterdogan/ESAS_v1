@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/talep/screens/widgets/talep_karti.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
@@ -108,6 +110,15 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   final Set<String> _selectedTalepTurleri = {};
   final Set<String> _selectedTalepDurumlari = {};
 
+  // Bilgi Teknolojileri onayKayitId cache
+  Set<int> _bilgiTekOnayKayitIds = <int>{};
+
+  final ScrollController _scrollController = ScrollController();
+  static const int _pageSize = 20;
+  int _visibleCount = 0;
+  int _lastTotal = -1;
+  ProviderSubscription<PaginatedTalepState>? _prefetchSub;
+
   // Sıralama: true = yeniden eskiye (varsayılan), false = eskiden yeniye
   bool _yenidenEskiye = true;
 
@@ -128,6 +139,54 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
   // Filtre sayfası durumu - null = ana liste, 'talepTuru' = talep türü sayfası, vb.
   String? _currentFilterPage;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+
+    // Initial fetch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(devamEdenIsteklerimProvider.notifier).loadInitial();
+      ref.read(tamamlananIsteklerimProvider.notifier).loadInitial();
+    });
+
+    final provider = widget.tip == 0
+        ? devamEdenIsteklerimProvider
+        : tamamlananIsteklerimProvider;
+
+    _prefetchSub = ref.listenManual<PaginatedTalepState>(provider, (
+      prev,
+      next,
+    ) {
+      if (!mounted) return;
+      if (!next.isLoading &&
+          !next.isInitialLoading &&
+          next.hasMore &&
+          next.talepler.isNotEmpty &&
+          next.talepler.length < _pageSize) {
+        ref.read(provider.notifier).loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _prefetchSub?.close();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Scroll en alta geldiğinde yeni sayfa yükle
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final provider = widget.tip == 0
+          ? devamEdenIsteklerimProvider
+          : tamamlananIsteklerimProvider;
+      ref.read(provider.notifier).loadMore();
+    }
+  }
 
   /// Hata mesajlarını kullanıcı dostu hale getir
   String _getHataBasligi(String error) {
@@ -160,6 +219,128 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       return 'Sunucu geçici olarak hizmet veremiyor. Lütfen daha sonra tekrar deneyin.';
     }
     return 'Veriler yüklenirken bir sorun oluştu. Lütfen tekrar deneyin.';
+  }
+
+  Widget _buildTalepList(
+    BuildContext context,
+    PaginatedTalepState state,
+    Set<int> bilgiTekOnayKayitIds,
+  ) {
+    final talepler = state.talepler;
+
+    // Side effect: Update filter lists
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final talepTurleri =
+          talepler
+              .map((t) => t.onayTipi)
+              .where((tur) => tur.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+      bool changed = false;
+      if (_mevcutTalepTurleri.length != talepTurleri.length) {
+        changed = true;
+      } else {
+        for (int i = 0; i < talepTurleri.length; i++) {
+          if (_mevcutTalepTurleri[i] != talepTurleri[i]) {
+            changed = true;
+            break;
+          }
+        }
+      }
+
+      if (changed) {
+        setState(() {
+          _mevcutTalepTurleri = talepTurleri;
+        });
+      }
+    });
+
+    final filteredTalepler = talepler.where((talep) {
+      final surePassed = _sureFiltresindenGeciyorMu(talep.olusturmaTarihi);
+      final talepTuruPassed = _talepTuruFiltresindenGeciyorMu(talep.onayTipi);
+      final talepDurumuPassed = widget.tip == 1
+          ? _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)
+          : true;
+      return surePassed && talepTuruPassed && talepDurumuPassed;
+    }).toList();
+
+    filteredTalepler.sort((a, b) {
+      try {
+        final tarihA = DateTime.parse(a.olusturmaTarihi);
+        final tarihB = DateTime.parse(b.olusturmaTarihi);
+        return _yenidenEskiye
+            ? tarihB.compareTo(tarihA)
+            : tarihA.compareTo(tarihB);
+      } catch (e) {
+        return 0;
+      }
+    });
+
+    if (filteredTalepler.isEmpty) {
+      if (talepler.isEmpty) {
+        // Empty state vs handled by caller or specific empty widget here if desired
+      }
+
+      return const SizedBox.shrink();
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
+        final provider = widget.tip == 0
+            ? devamEdenIsteklerimProvider
+            : tamamlananIsteklerimProvider;
+        await ref.read(provider.notifier).refresh();
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 120,
+        ),
+        // +1 for loading indicator
+        itemCount: filteredTalepler.length + (state.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          // Loading spinner
+          if (index == filteredTalepler.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: AppColors.gradientStart,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          final talep = filteredTalepler[index];
+          final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
+            'teknik destek',
+          );
+          final shouldShowBilgiTeknolojileri =
+              isTeknikDestek &&
+              bilgiTekOnayKayitIds.contains(talep.onayKayitId);
+
+          return TalepKarti(
+            talep: talep,
+            displayOnayTipi: shouldShowBilgiTeknolojileri
+                ? 'Bilgi Teknolojileri'
+                : talep.onayTipi,
+          );
+        },
+      ),
+    );
   }
 
   /// AppBar'dan çağrılacak public metodlar
@@ -736,23 +917,22 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncValue = widget.tip == 0
-        ? ref.watch(devamEdenIsteklerimProvider)
-        : ref.watch(tamamlananIsteklerimProvider);
+    // Bilgi Teknolojileri ID'lerini güvenli şekilde izle
+    final bilgiTekAsyncValue = ref.watch(
+      bilgiTeknolojileriOnayKayitIdSetProvider,
+    );
 
-    return asyncValue.when(
-      loading: () => const Center(
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-      ),
-      error: (error, stack) => RefreshIndicator(
+    final provider = widget.tip == 0
+        ? devamEdenIsteklerimProvider
+        : tamamlananIsteklerimProvider;
+
+    final state = ref.watch(provider);
+
+    if (state.errorMessage != null && state.talepler.isEmpty) {
+      return RefreshIndicator(
         onRefresh: () async {
-          if (widget.tip == 0) {
-            ref.invalidate(devamEdenIsteklerimProvider);
-          } else {
-            ref.invalidate(tamamlananIsteklerimProvider);
-          }
-          // Provider'ın yeniden yüklenmesini bekle
-          await Future.delayed(const Duration(milliseconds: 100));
+          ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
+          await ref.read(provider.notifier).refresh();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -771,7 +951,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      _getHataBasligi(error.toString()),
+                      _getHataBasligi(state.errorMessage!),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 18,
@@ -781,9 +961,9 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      _getHataMesaji(error.toString()),
+                      _getHataMesaji(state.errorMessage!),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textTertiary,
                       ),
@@ -791,11 +971,10 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () {
-                        if (widget.tip == 0) {
-                          ref.invalidate(devamEdenIsteklerimProvider);
-                        } else {
-                          ref.invalidate(tamamlananIsteklerimProvider);
-                        }
+                        ref.invalidate(
+                          bilgiTeknolojileriOnayKayitIdSetProvider,
+                        );
+                        ref.read(provider.notifier).refresh();
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Tekrar Dene'),
@@ -814,114 +993,19 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
             ),
           ),
         ),
-      ),
-      data: (response) {
-        // Mevcut talep türlerinin listesini güncelle (unique ve sıralı)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final talepTurleri =
-              response.talepler
-                  .map((t) => t.onayTipi)
-                  .where((tur) => tur.isNotEmpty)
-                  .toSet()
-                  .toList()
-                ..sort();
-          if (_mevcutTalepTurleri.length != talepTurleri.length ||
-              !_mevcutTalepTurleri.every((t) => talepTurleri.contains(t))) {
-            setState(() {
-              _mevcutTalepTurleri = talepTurleri;
-            });
-          }
-        });
+      );
+    }
 
-        // Filtrelenmiş liste
-        final filteredTalepler = response.talepler.where((talep) {
-          final surePassed = _sureFiltresindenGeciyorMu(talep.olusturmaTarihi);
-          final talepTuruPassed = _talepTuruFiltresindenGeciyorMu(
-            talep.onayTipi,
-          );
-          // Talep durumu filtresi sadece Tamamlanan tab'da (tip == 1) uygulanır
-          final talepDurumuPassed = widget.tip == 1
-              ? _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)
-              : true;
-          return surePassed && talepTuruPassed && talepDurumuPassed;
-        }).toList();
+    if (state.isInitialLoading) {
+      return const Center(
+        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+      );
+    }
 
-        // Sıralama uygula
-        filteredTalepler.sort((a, b) {
-          try {
-            final tarihA = DateTime.parse(a.olusturmaTarihi);
-            final tarihB = DateTime.parse(b.olusturmaTarihi);
-            return _yenidenEskiye
-                ? tarihB.compareTo(tarihA) // Yeniden eskiye
-                : tarihA.compareTo(tarihB); // Eskiden yeniye
-          } catch (e) {
-            return 0;
-          }
-        });
-
-        if (filteredTalepler.isEmpty) {
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (widget.tip == 0) {
-                ref.invalidate(devamEdenIsteklerimProvider);
-              } else {
-                ref.invalidate(tamamlananIsteklerimProvider);
-              }
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.filter_list_off,
-                          size: 64,
-                          color: AppColors.textTertiary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Filtre kriterlerine uygun talep yok',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async {
-            if (widget.tip == 0) {
-              ref.invalidate(devamEdenIsteklerimProvider);
-            } else {
-              ref.invalidate(tamamlananIsteklerimProvider);
-            }
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: 120,
-            ),
-            itemCount: filteredTalepler.length,
-            itemBuilder: (context, index) {
-              final talep = filteredTalepler[index];
-              return TalepKarti(talep: talep);
-            },
-          ),
-        );
-      },
+    return bilgiTekAsyncValue.when(
+      data: (ids) => _buildTalepList(context, state, ids),
+      loading: () => _buildTalepList(context, state, <int>{}),
+      error: (_, __) => _buildTalepList(context, state, <int>{}),
     );
   }
 }

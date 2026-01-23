@@ -9,7 +9,9 @@ import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 
 abstract class TalepYonetimRepository {
   Future<Result<TalepYonetimResponse>> taleplerimiGetir({
-    required int tip, // 0: Devam eden, 1: Tamamlanan
+    required int tip,
+    int pageIndex = 0,
+    int pageSize = 20,
   });
 
   Future<Result<IzinTalepleriResponse>> izinTaleplerimiGetir();
@@ -42,11 +44,19 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<TalepYonetimResponse>> taleplerimiGetir({
     required int tip,
+    int pageIndex = 0,
+    int pageSize = 20,
   }) async {
     try {
+      final requestModel = TalepGetirRequest(
+        tip: tip,
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+      );
+
       final response = await dio.post(
         '/TalepYonetimi/TaleplerimiGetir',
-        data: {'tip': tip},
+        data: requestModel.toJson(),
         options: Options(contentType: 'application/json'),
       );
 

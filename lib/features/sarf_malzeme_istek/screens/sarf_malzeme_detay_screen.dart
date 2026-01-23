@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_detay_model.dart';
@@ -31,6 +32,7 @@ class _SarfMalzemeDetayScreenState
   bool _sarfMalzemeDetaylariExpanded = true;
   bool _urunBilgileriExpanded = true;
   bool _onaySureciExpanded = true;
+  bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
   @override
@@ -164,7 +166,7 @@ class _SarfMalzemeDetayScreenState
             _buildUrunBilgileriAccordion(detay),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
-            const SizedBox(height: 16),
+            _buildOnayFormAccordion(),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -662,6 +664,47 @@ class _SarfMalzemeDetayScreenState
     );
   }
 
+  Widget _buildOnayFormAccordion() {
+    const onayTipi = 'Satın Alma';
+    final onayDurumuAsync = ref.watch(
+      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
+    );
+
+    return onayDurumuAsync.when(
+      data: (onayDurumu) {
+        if (!onayDurumu.onayFormuGoster) {
+          return const SizedBox(height: 16);
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.assignment_turned_in_outlined,
+              title: 'Onay',
+              isExpanded: _onayFormExpanded,
+              onTap: () {
+                setState(() {
+                  _onayFormExpanded = !_onayFormExpanded;
+                });
+              },
+              child: OnayFormContent(
+                onApprove: () {},
+                onReject: () {},
+                onReturn: () {},
+                onAssign: () {},
+                gorevAtamaEnabled: onayDurumu.gorevAtama,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox(height: 16),
+      error: (_, __) => const SizedBox(height: 16),
+    );
+  }
+
   Widget _buildBildirimGideceklerAccordion() {
     const onayTipi = 'Satın Alma';
     final onayDurumuAsync = ref.watch(
@@ -782,7 +825,11 @@ class _SarfMalzemeDetayScreenState
             ],
           ),
         ),
-        if (!isLast) const Divider(height: 24),
+        if (!isLast) ...[
+          const SizedBox(height: 12),
+          const Divider(height: 1, thickness: 0.5, color: AppColors.border),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }

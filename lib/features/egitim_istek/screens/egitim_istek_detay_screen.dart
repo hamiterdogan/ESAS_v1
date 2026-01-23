@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/egitim_istek/models/egitim_istek_detay_model.dart';
 import 'package:esas_v1/features/egitim_istek/providers/egitim_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
@@ -26,6 +27,7 @@ class _EgitimIstekDetayScreenState
   bool _egitimAlacakPersonelExpanded = false;
   bool _paylasimYapilacakKisilerExpanded = false;
   bool _onaySureciExpanded = true;
+  bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
   @override
@@ -195,7 +197,7 @@ class _EgitimIstekDetayScreenState
             ),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
-            const SizedBox(height: 16),
+            _buildOnayFormAccordion(),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -756,6 +758,47 @@ class _EgitimIstekDetayScreenState
     );
   }
 
+  Widget _buildOnayFormAccordion() {
+    const onayTipi = 'Eğitim İstek';
+    final onayDurumuAsync = ref.watch(
+      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
+    );
+
+    return onayDurumuAsync.when(
+      data: (onayDurumu) {
+        if (!onayDurumu.onayFormuGoster) {
+          return const SizedBox(height: 16);
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.assignment_turned_in_outlined,
+              title: 'Onay',
+              isExpanded: _onayFormExpanded,
+              onTap: () {
+                setState(() {
+                  _onayFormExpanded = !_onayFormExpanded;
+                });
+              },
+              child: OnayFormContent(
+                onApprove: () {},
+                onReject: () {},
+                onReturn: () {},
+                onAssign: () {},
+                gorevAtamaEnabled: onayDurumu.gorevAtama,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+      loading: () => const SizedBox(height: 16),
+      error: (_, __) => const SizedBox(height: 16),
+    );
+  }
+
   List<Widget> _buildOnaySureciContent(OnayDurumuResponse onayDurumu) {
     final List<Widget> widgets = [];
 
@@ -1157,7 +1200,7 @@ class _EgitimIstekDetayScreenState
                 ),
                 if (!isLast) ...[
                   const SizedBox(height: 10),
-                  Container(height: 1, color: AppColors.border),
+                  Container(height: 0.5, color: AppColors.border),
                 ],
               ],
             ),

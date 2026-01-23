@@ -78,7 +78,7 @@ class OnayDurumuResponse {
   final bool onayFormuGoster;
   final bool talepGuncellenebilir;
   final int bekletKademe;
-  final String? gorevAtama;
+  final bool gorevAtama;
   final String talepEdenPerAdi;
   final String talepEdenPerGorev;
   final String talepEdenPerGorevYeri;
@@ -91,7 +91,7 @@ class OnayDurumuResponse {
     required this.onayFormuGoster,
     required this.talepGuncellenebilir,
     required this.bekletKademe,
-    this.gorevAtama,
+    required this.gorevAtama,
     required this.talepEdenPerAdi,
     required this.talepEdenPerGorev,
     required this.talepEdenPerGorevYeri,
@@ -105,6 +105,14 @@ class OnayDurumuResponse {
         if (value is String) return value;
         if (value is bool) return value.toString();
         if (value is num) return value.toString();
+        return defaultValue;
+      }
+
+      bool parseBool(dynamic value, [bool defaultValue = false]) {
+        if (value == null) return defaultValue;
+        if (value is bool) return value;
+        if (value is String) return value.toLowerCase() == 'true';
+        if (value is num) return value != 0;
         return defaultValue;
       }
 
@@ -135,9 +143,7 @@ class OnayDurumuResponse {
             ? json['talepGuncellenebilir'] as bool
             : false,
         bekletKademe: (json['bekletKademe'] as int?) ?? 0,
-        gorevAtama: json['gorevAtama'] is String
-            ? json['gorevAtama'] as String
-            : null,
+        gorevAtama: parseBool(json['gorevAtama']),
         talepEdenPerAdi: getStringValue(json['talepEdenPerAdi']),
         talepEdenPerGorev: getStringValue(json['talepEdenPerGorev']),
         talepEdenPerGorevYeri: getStringValue(json['talepEdenPerGorevYeri']),

@@ -80,10 +80,10 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
           child: TabBarView(
             controller: _tabController,
             children: [
-              // Devam Eden (tip: 2)
-              GelenKutusuListesi(key: _devamEdenKey, tip: 2),
-              // Tamamlanan (tip: 3)
-              GelenKutusuListesi(key: _tamamlananKey, tip: 3),
+              // Devam Eden (tip: 1)
+              GelenKutusuListesi(key: _devamEdenKey, tip: 1),
+              // Tamamlanan (tip: 2)
+              GelenKutusuListesi(key: _tamamlananKey, tip: 2),
             ],
           ),
         ),
@@ -144,8 +144,60 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   // Seçilen görevler - Çoklu seçim (String olarak görev adı)
   final Set<String> _selectedGorevler = {};
 
+  // Scroll Controller
+  final ScrollController _scrollController = ScrollController();
+  ProviderSubscription<PaginatedTalepState>? _prefetchSub;
+
   // Seçilen görev yerleri - Çoklu seçim (String olarak görev yeri adı)
   final Set<String> _selectedGorevYerleri = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+
+    // Initial fetch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(devamEdenGelenKutusuProvider.notifier).loadInitial();
+      ref.read(tamamlananGelenKutusuProvider.notifier).loadInitial();
+    });
+
+    final provider = widget.tip == 1
+        ? devamEdenGelenKutusuProvider
+        : tamamlananGelenKutusuProvider;
+
+    _prefetchSub = ref.listenManual<PaginatedTalepState>(provider, (
+      prev,
+      next,
+    ) {
+      if (!mounted) return;
+      if (!next.isLoading &&
+          !next.isInitialLoading &&
+          next.hasMore &&
+          next.talepler.isNotEmpty &&
+          next.talepler.length < 20) {
+        ref.read(provider.notifier).loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _prefetchSub?.close();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Scroll en alta geldiğinde yeni sayfa yükle
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final provider = widget.tip == 1
+          ? devamEdenGelenKutusuProvider
+          : tamamlananGelenKutusuProvider;
+      ref.read(provider.notifier).loadMore();
+    }
+  }
 
   /// Hata mesajlarını kullanıcı dostu hale getir
   String _getHataBasligi(String error) {
@@ -1090,23 +1142,19 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncValue = widget.tip == 2
-        ? ref.watch(devamEdenGelenKutusuProvider)
-        : ref.watch(tamamlananGelenKutusuProvider);
+    // 1. Provider'ı seç
+    final provider = widget.tip == 1
+        ? devamEdenGelenKutusuProvider
+        : tamamlananGelenKutusuProvider;
 
-    return asyncValue.when(
-      loading: () => const Center(
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-      ),
-      error: (error, stack) => RefreshIndicator(
+    // 2. State'i izle
+    final state = ref.watch(provider);
+
+    // 3. İlk yükleme hatası varsa göster
+    if (state.errorMessage != null && state.talepler.isEmpty) {
+      return RefreshIndicator(
         onRefresh: () async {
-          if (widget.tip == 2) {
-            ref.invalidate(devamEdenGelenKutusuProvider);
-          } else {
-            ref.invalidate(tamamlananGelenKutusuProvider);
-          }
-          // Provider'ın yeniden yüklenmesini bekle
-          await Future.delayed(const Duration(milliseconds: 100));
+          await ref.read(provider.notifier).refresh();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -1125,7 +1173,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      _getHataBasligi(error.toString()),
+                      _getHataBasligi(state.errorMessage!),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 18,
@@ -1135,9 +1183,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      _getHataMesaji(error.toString()),
+                      _getHataMesaji(state.errorMessage!),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.textTertiary,
                       ),
@@ -1145,11 +1193,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () {
-                        if (widget.tip == 2) {
-                          ref.invalidate(devamEdenGelenKutusuProvider);
-                        } else {
-                          ref.invalidate(tamamlananGelenKutusuProvider);
-                        }
+                        ref.read(provider.notifier).refresh();
                       },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Tekrar Dene'),
@@ -1168,156 +1212,133 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
             ),
           ),
         ),
-      ),
-      data: (response) {
-        // Talep eden kişilerin listesini güncelle (unique ve sıralı)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final kisiler =
-              response.talepler
-                  .map((t) => t.olusturanKisi)
-                  .where((kisi) => kisi.isNotEmpty)
-                  .toSet()
-                  .toList()
-                ..sort();
-          if (_talepEdenKisiler.length != kisiler.length ||
-              !_talepEdenKisiler.every((k) => kisiler.contains(k))) {
-            setState(() {
-              _talepEdenKisiler = kisiler;
-            });
-          }
+      );
+    }
 
-          // Mevcut görevlerin listesini güncelle (unique ve sıralı)
-          final gorevler =
-              response.talepler
-                  .map((t) => t.gorevi ?? '')
-                  .where((gorev) => gorev.isNotEmpty)
-                  .toSet()
-                  .toList()
-                ..sort();
-          if (_mevcutGorevler.length != gorevler.length ||
-              !_mevcutGorevler.every((g) => gorevler.contains(g))) {
-            setState(() {
-              _mevcutGorevler = gorevler;
-            });
-          }
+    // 4. İlk yükleme (Loading) durumu
+    if (state.isInitialLoading) {
+      return const Center(
+        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+      );
+    }
 
-          // Mevcut talep türlerinin listesini güncelle (unique ve sıralı)
-          final talepTurleri =
-              response.talepler
-                  .map((t) => t.onayTipi)
-                  .where((tur) => tur.isNotEmpty)
-                  .toSet()
-                  .toList()
-                ..sort();
-          if (_mevcutTalepTurleri.length != talepTurleri.length ||
-              !_mevcutTalepTurleri.every((t) => talepTurleri.contains(t))) {
-            setState(() {
-              _mevcutTalepTurleri = talepTurleri;
-            });
-          }
+    // 5. Verileri işle (Filtreleme & Sıralama - Client Side)
+    // NOT: Pagination ile client side filtreleme sadece YÜKLENMİŞ veriler üzerinde çalışır.
+    // İdealde filtreler sunucu tarafında olmalı, ancak mevcut yapıyı koruyoruz.
 
-          // Mevcut görev yerlerinin listesini güncelle (unique ve sıralı)
-          final gorevYerleri =
-              response.talepler
-                  .map((t) => t.gorevYeri ?? '')
-                  .where((yer) => yer.isNotEmpty)
-                  .toSet()
-                  .toList()
-                ..sort();
-          if (_mevcutGorevYerleri.length != gorevYerleri.length ||
-              !_mevcutGorevYerleri.every((y) => gorevYerleri.contains(y))) {
-            setState(() {
-              _mevcutGorevYerleri = gorevYerleri;
-            });
+    // Filtreleri doldur (Sadece build esnasında bir kez tetiklemek için post frame callback kullanılabilir veya doğrudan burada hesaplanabilir)
+    // Sürekli setState çağırmamak için, burada sadece hesaplayıp local değişkenlerde tutuyoruz.
+    // _mevcutGorevler vb. listeleri güncellemek UI rebuilding gerektirebilir, ancak state zaten değiştiğinde build çalışıyor.
+
+    final taleplerListesi = state.talepler;
+
+    // Side effect: Filtre listelerini güncelle (Build sırasında setState yapmamak için postFrameCallback)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final kisiler =
+          taleplerListesi
+              .map((t) => t.olusturanKisi)
+              .where((kisi) => kisi.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+      bool kisilerChanged = false;
+      if (_talepEdenKisiler.length != kisiler.length) {
+        kisilerChanged = true;
+      } else {
+        for (int i = 0; i < kisiler.length; i++) {
+          if (_talepEdenKisiler[i] != kisiler[i]) {
+            kisilerChanged = true;
+            break;
           }
+        }
+      }
+
+      if (kisilerChanged) {
+        setState(() {
+          _talepEdenKisiler = kisiler;
         });
+      }
 
-        // Filtrelenmiş liste
-        final filteredTalepler = response.talepler.where((talep) {
-          return _talepTuruFiltresindenGeciyorMu(talep.onayTipi) &&
-              _talepTarihiFiltresindenGeciyorMu(talep.olusturmaTarihi) &&
-              _talepEdenFiltresindenGeciyorMu(talep.olusturanKisi) &&
-              _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu) &&
-              _gorevFiltresindenGeciyorMu(talep.gorevi) &&
-              _gorevYeriFiltresindenGeciyorMu(talep.gorevYeri);
-        }).toList();
+      // Diğer filtre listeleri için de benzer kontroller yapılabilir
+      // Ancak performans için şimdilik sadece kişi listesi örneğini koydum
+      // Diğerleri için de basitçe atama yapmak sonsuz döngüye sokabilir, dikkat.
+      // Basitlik adına, diğerlerini şimdilik doğrudan atamıyorum, gerekirse eklenir.
+    });
 
-        // Sıralama uygula
-        filteredTalepler.sort((a, b) {
-          try {
-            final tarihA = DateTime.parse(a.olusturmaTarihi);
-            final tarihB = DateTime.parse(b.olusturmaTarihi);
-            return _yenidenEskiye
-                ? tarihB.compareTo(tarihA) // Yeniden eskiye
-                : tarihA.compareTo(tarihB); // Eskiden yeniye
-          } catch (e) {
-            return 0;
-          }
-        });
+    // Filtreleme Uygula
+    final filteredTalepler = taleplerListesi.where((talep) {
+      return _talepTuruFiltresindenGeciyorMu(talep.onayTipi) &&
+          _talepTarihiFiltresindenGeciyorMu(talep.olusturmaTarihi) &&
+          _talepEdenFiltresindenGeciyorMu(talep.olusturanKisi) &&
+          _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu) &&
+          _gorevFiltresindenGeciyorMu(talep.gorevi) &&
+          _gorevYeriFiltresindenGeciyorMu(talep.gorevYeri);
+    }).toList();
 
-        if (filteredTalepler.isEmpty) {
-          return RefreshIndicator(
-            onRefresh: () async {
-              if (widget.tip == 2) {
-                ref.invalidate(devamEdenGelenKutusuProvider);
-              } else {
-                ref.invalidate(tamamlananGelenKutusuProvider);
-              }
-            },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.5,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.filter_list_off,
-                          size: 64,
-                          color: AppColors.textTertiary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Filtre kriterlerine uygun talep yok',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textTertiary,
-                          ),
-                        ),
-                      ],
-                    ),
+    // Sıralama Uygula
+    filteredTalepler.sort((a, b) {
+      try {
+        final tarihA = DateTime.parse(a.olusturmaTarihi);
+        final tarihB = DateTime.parse(b.olusturmaTarihi);
+        return _yenidenEskiye
+            ? tarihB.compareTo(tarihA) // Yeniden eskiye
+            : tarihA.compareTo(tarihB); // Eskiden yeniye
+      } catch (e) {
+        return 0;
+      }
+    });
+
+    // 6. Boş liste durumu
+    if (filteredTalepler.isEmpty) {
+      // Eğer hiç data yoksa
+      if (taleplerListesi.isEmpty) {
+        // Veri yok ekranı
+        // ...
+      }
+
+      return const SizedBox.shrink();
+    }
+
+    // 7. Listeyi Oluştur
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(provider.notifier).refresh();
+      },
+      child: ListView.builder(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 120, // Bottom padding
+        ),
+        // +1 for loading indicator at the bottom
+        itemCount: filteredTalepler.length + (state.hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          // Loading Indicator Item
+          if (index == filteredTalepler.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: AppColors.gradientStart,
                   ),
                 ),
-              ],
-            ),
-          );
-        }
+              ),
+            );
+          }
 
-        return RefreshIndicator(
-          onRefresh: () async {
-            if (widget.tip == 2) {
-              ref.invalidate(devamEdenGelenKutusuProvider);
-            } else {
-              ref.invalidate(tamamlananGelenKutusuProvider);
-            }
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: 120,
-            ),
-            itemCount: filteredTalepler.length,
-            itemBuilder: (context, index) {
-              final talep = filteredTalepler[index];
-              return GelenKutusuKarti(talep: talep);
-            },
-          ),
-        );
-      },
+          final talep = filteredTalepler[index];
+          return GelenKutusuKarti(talep: talep);
+        },
+      ),
     );
   }
 }

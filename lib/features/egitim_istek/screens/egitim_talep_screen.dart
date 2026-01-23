@@ -806,6 +806,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 24),
                   OnayToggleWidget(
                     initialValue: _topluIstekte,
                     label: 'Toplu istekte bulunmak istiyorum',
@@ -822,8 +827,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       });
                     },
                   ),
-                  const SizedBox(height: 24),
-                  if (_topluIstekte)
+                  if (_topluIstekte) ...[
+                    const SizedBox(height: 24),
                     Container(
                       key: _personelKey,
                       child: PersonelSelectorWidget(
@@ -853,7 +858,20 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         },
                       ),
                     ),
-                  if (_topluIstekte) const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                      child: Divider(height: 1, color: Colors.grey.shade400),
+                    ),
+                    const SizedBox(height: 24),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                      child: Divider(height: 1, color: Colors.grey.shade400),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                   Column(
                     key: _egitimAdiKey,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1201,7 +1219,12 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 24),
                   OnayToggleWidget(
                     initialValue: _egitimYeriYurtDisi,
                     label: 'Eğitim yeri yurt dışında',
@@ -1365,6 +1388,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
                   ),
                   const SizedBox(height: 16),
                   OnayToggleWidget(
@@ -1605,6 +1633,11 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
                   const SizedBox(height: 16),
                   FilePhotoUploadWidget<PlatformFile>(
                     title: 'Eğitim Teklif Dosya / Fotoğraf Yükle',
@@ -1659,7 +1692,12 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 24),
                   // PDF Dökümanları Card
                   Card(
                     color: AppColors.textOnPrimary,
