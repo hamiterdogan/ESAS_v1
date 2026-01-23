@@ -190,10 +190,10 @@ final onaylananTaleplerProvider = FutureProvider<IzinTalepleriResponse>((
   };
 });
 
-// Devam eden talepler (tip: 1) - İsteklerim tabı için (PAGINATED)
+// Devam eden talepler (tip: 0) - İsteklerim tabı için (PAGINATED)
 final devamEdenIsteklerimProvider =
     NotifierProvider.autoDispose<_PaginatedTalepNotifier, PaginatedTalepState>(
-      () => _PaginatedTalepNotifier(1),
+      () => _PaginatedTalepNotifier(0),
     );
 
 // Legacy provider for backward compatibility with non-paginated screens
@@ -201,7 +201,7 @@ final devamEdenIsteklerimLegacyProvider =
     FutureProvider.autoDispose<TalepYonetimResponse>((ref) async {
       final repository = ref.watch(talepYonetimRepositoryProvider);
       final result = await repository.taleplerimiGetir(
-        tip: 1,
+        tip: 0,
         pageIndex: 0,
         pageSize: 100,
       );
@@ -220,10 +220,10 @@ final devamEdenIsteklerimInitProvider = Provider.autoDispose((ref) {
   Future.microtask(() => notifier.loadInitial());
 });
 
-// Tamamlanan talepler (tip: 2) - İsteklerim tabı için (PAGINATED)
+// Tamamlanan talepler (tip: 1) - İsteklerim tabı için (PAGINATED)
 final tamamlananIsteklerimProvider =
     NotifierProvider.autoDispose<_PaginatedTalepNotifier, PaginatedTalepState>(
-      () => _PaginatedTalepNotifier(2),
+      () => _PaginatedTalepNotifier(1),
     );
 
 // Legacy provider for backward compatibility with non-paginated screens
@@ -231,7 +231,7 @@ final tamamlananIsteklerimLegacyProvider =
     FutureProvider.autoDispose<TalepYonetimResponse>((ref) async {
       final repository = ref.watch(talepYonetimRepositoryProvider);
       final result = await repository.taleplerimiGetir(
-        tip: 2,
+        tip: 1,
         pageIndex: 0,
         pageSize: 100,
       );
@@ -268,16 +268,16 @@ final bilgiTeknolojileriOnayKayitIdSetProvider =
       return {...devamEdenIds, ...tamamlananIds};
     });
 
-// Devam eden talepler (tip: 1) - Gelen Kutusu tabı için (PAGINATED)
+// Devam eden talepler (tip: 2) - Gelen Kutusu tabı için (PAGINATED)
 final devamEdenGelenKutusuProvider =
     NotifierProvider.autoDispose<_PaginatedTalepNotifier, PaginatedTalepState>(
-      () => _PaginatedTalepNotifier(1),
+      () => _PaginatedTalepNotifier(2),
     );
 
-// Tamamlanan talepler (tip: 2) - Gelen Kutusu tabı için (PAGINATED)
+// Tamamlanan talepler (tip: 3) - Gelen Kutusu tabı için (PAGINATED)
 final tamamlananGelenKutusuProvider =
     NotifierProvider.autoDispose<_PaginatedTalepNotifier, PaginatedTalepState>(
-      () => _PaginatedTalepNotifier(2),
+      () => _PaginatedTalepNotifier(3),
     );
 
 // Görev listesi provider - GorevDoldur endpoint'i

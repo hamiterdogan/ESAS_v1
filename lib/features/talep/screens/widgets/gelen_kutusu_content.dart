@@ -80,10 +80,10 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
           child: TabBarView(
             controller: _tabController,
             children: [
-              // Devam Eden (tip: 1)
-              GelenKutusuListesi(key: _devamEdenKey, tip: 1),
-              // Tamamlanan (tip: 2)
-              GelenKutusuListesi(key: _tamamlananKey, tip: 2),
+              // Devam Eden (tip: 2)
+              GelenKutusuListesi(key: _devamEdenKey, tip: 2),
+              // Tamamlanan (tip: 3)
+              GelenKutusuListesi(key: _tamamlananKey, tip: 3),
             ],
           ),
         ),
@@ -162,7 +162,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
       ref.read(tamamlananGelenKutusuProvider.notifier).loadInitial();
     });
 
-    final provider = widget.tip == 1
+    final provider = widget.tip == 2
         ? devamEdenGelenKutusuProvider
         : tamamlananGelenKutusuProvider;
 
@@ -192,7 +192,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // Scroll en alta geldiğinde yeni sayfa yükle
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final provider = widget.tip == 1
+      final provider = widget.tip == 2
           ? devamEdenGelenKutusuProvider
           : tamamlananGelenKutusuProvider;
       ref.read(provider.notifier).loadMore();
@@ -1143,7 +1143,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   @override
   Widget build(BuildContext context) {
     // 1. Provider'ı seç
-    final provider = widget.tip == 1
+    final provider = widget.tip == 2
         ? devamEdenGelenKutusuProvider
         : tamamlananGelenKutusuProvider;
 
