@@ -50,6 +50,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     try {
       final requestModel = TalepGetirRequest(
         tip: tip,
+        onayTipi: '',
         pageIndex: pageIndex,
         pageSize: pageSize,
       );

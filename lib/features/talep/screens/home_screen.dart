@@ -17,6 +17,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
+  late final PageController _pageController;
 
   // GlobalKey'ler filtre işlemlerine erişim için
   final GlobalKey<IsteklerimContentState> _isteklerimKey = GlobalKey();
@@ -25,10 +26,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
     // Keyboard'u otomatik olarak kapat
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).unfocus();
     });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -50,6 +58,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        if (_currentIndex != 0) {
+          _setTabIndex(0);
+          return;
+        }
         _showExitConfirmationBottomSheet();
       },
       child: Scaffold(
@@ -80,20 +92,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ]
               : null,
         ),
-        body: Builder(
-          builder: (context) {
-            // Sadece aktif tab'ı render et - gereksiz API çağrılarını önler
-            switch (_currentIndex) {
-              case 0:
-                return const AnaSayfaContent();
-              case 1:
-                return IsteklerimContent(key: _isteklerimKey);
-              case 2:
-                return GelenKutusuContent(key: _gelenKutusuKey);
-              default:
-                return const AnaSayfaContent();
-            }
+        // Slide transitions for all tabs
+        body: PageView(
+          controller: _pageController,
+          physics: const ClampingScrollPhysics(),
+          onPageChanged: (index) {
+            if (_currentIndex == index) return;
+            setState(() => _currentIndex = index);
           },
+          children: [
+            const AnaSayfaContent(),
+            IsteklerimContent(key: _isteklerimKey),
+            GelenKutusuContent(key: _gelenKutusuKey),
+          ],
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),
@@ -125,7 +136,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     activeIcon: Icons.home,
                     label: 'Ana Sayfa',
                     isSelected: _currentIndex == 0,
-                    onTap: () => setState(() => _currentIndex = 0),
+                    onTap: () => _setTabIndex(0),
                   ),
                   // İsteklerim
                   _buildNavItem(
@@ -133,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     activeIcon: Icons.assignment,
                     label: 'İsteklerim',
                     isSelected: _currentIndex == 1,
-                    onTap: () => setState(() => _currentIndex = 1),
+                    onTap: () => _setTabIndex(1),
                   ),
                   // Gelen Kutusu
                   _buildNavItem(
@@ -141,7 +152,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     activeIcon: Icons.inbox,
                     label: 'Gelen Kutusu',
                     isSelected: _currentIndex == 2,
-                    onTap: () => setState(() => _currentIndex = 2),
+                    onTap: () => _setTabIndex(2),
                   ),
                 ],
               ),
@@ -203,92 +214,107 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  void _setTabIndex(int index) {
+    if (_currentIndex == index) return;
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   void _showExitConfirmationBottomSheet() {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            color: Colors.white,
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 60),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icon
-              const Icon(Icons.exit_to_app, color: AppColors.error, size: 49),
-              const SizedBox(height: 16),
-
-              // Message
-              const Text(
-                'Uygulamadan çıkmak istediğinize emin misiniz?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+        return Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 60),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon
+                // Icon
+                const Icon(
+                  Icons.power_settings_new_rounded,
+                  color: AppColors.primaryDark,
+                  size: 56,
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-              // Buttons
-              Row(
-                children: [
-                  // Vazgeç Button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.textTertiary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                // Message
+                const Text(
+                  'Uygulamadan çıkmak istediğinize emin misiniz?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Buttons
+                Row(
+                  children: [
+                    // Vazgeç Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.textTertiary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Vazgeç',
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          'Vazgeç',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
+                    const SizedBox(width: 12),
 
-                  // Devam Button
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        exit(0);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryDark,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    // Devam Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          exit(0);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryDark,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Devam',
-                        style: TextStyle(
-                          color: AppColors.textOnPrimary,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                        child: const Text(
+                          'Devam',
+                          style: TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
