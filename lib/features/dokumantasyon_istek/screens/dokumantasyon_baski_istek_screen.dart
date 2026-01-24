@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
@@ -952,6 +953,7 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                   ),
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 24),
 
                 // Baskı Adedi & Sayfa Sayısı
@@ -1003,6 +1005,7 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                   ),
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 24),
 
                 // Baskı Boyutu
@@ -1052,6 +1055,7 @@ class _DokumantasyonBaskiIstekScreenState
                   focusNode: _aciklamaFocusNode,
                   minCharacters: 15,
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 24),
 
                 // Renkli Baskı Toggle
@@ -1140,6 +1144,7 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                     maxLines: 1,
                   ),
+                  const CommonDivider(),
                 ],
                 const SizedBox(height: 24),
                 // Dokümanın istendiği sınıflar

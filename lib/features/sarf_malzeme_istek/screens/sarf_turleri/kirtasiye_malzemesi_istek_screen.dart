@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -1161,6 +1162,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                       labelText: 'Açıklama',
                     ),
                   ),
+                  const CommonDivider(),
                   const SizedBox(height: 24),
                   if (_urunler.isNotEmpty) ...[
                     ListView.separated(
@@ -1454,6 +1456,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                       ),
                     ),
                   ),
+                  const CommonDivider(),
                   const SizedBox(height: 24),
                   // Fiyat Teklifi / Sözleşme Ekle
                   FilePhotoUploadWidget<PlatformFile>(

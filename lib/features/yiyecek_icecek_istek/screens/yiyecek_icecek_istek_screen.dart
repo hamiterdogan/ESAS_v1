@@ -1192,6 +1192,7 @@ class _YiyecekIcecekIstekScreenState
                     ),
                   ],
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 16),
 
                 // Etkinlik Adı Seçimi
@@ -1307,6 +1308,7 @@ class _YiyecekIcecekIstekScreenState
                     ),
                   ),
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 16),
 
                 // Eklenen İkramlar Listesi
@@ -1541,6 +1543,7 @@ class _YiyecekIcecekIstekScreenState
                     ),
                   ),
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 24),
                 AciklamaFieldWidget(
                   controller: _aciklamaController,

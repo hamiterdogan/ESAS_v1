@@ -9,7 +9,9 @@ import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 /// İsteklerim tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class IsteklerimContent extends ConsumerStatefulWidget {
-  const IsteklerimContent({super.key});
+  final VoidCallback? onFilterStateChanged;
+
+  const IsteklerimContent({super.key, this.onFilterStateChanged});
 
   @override
   ConsumerState<IsteklerimContent> createState() => IsteklerimContentState();
@@ -27,6 +29,11 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        widget.onFilterStateChanged?.call();
+      }
+    });
   }
 
   @override
@@ -50,6 +57,14 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
       _devamEdenKey.currentState?.showFilterBottomSheetPublic();
     } else {
       _tamamlananKey.currentState?.showFilterBottomSheetPublic();
+    }
+  }
+
+  bool get isFilterActive {
+    if (_tabController.index == 0) {
+      return _devamEdenKey.currentState?.isFilterActive ?? false;
+    } else {
+      return _tamamlananKey.currentState?.isFilterActive ?? false;
     }
   }
 
@@ -83,9 +98,18 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
             controller: _tabController,
             children: [
               // Devam Eden
-              IsteklerimListesi(key: _devamEdenKey, tip: 0),
+              // Devam Eden
+              IsteklerimListesi(
+                key: _devamEdenKey,
+                tip: 0,
+                onFilterStateChanged: widget.onFilterStateChanged,
+              ),
               // Tamamlanan
-              IsteklerimListesi(key: _tamamlananKey, tip: 1),
+              IsteklerimListesi(
+                key: _tamamlananKey,
+                tip: 1,
+                onFilterStateChanged: widget.onFilterStateChanged,
+              ),
             ],
           ),
         ),
@@ -98,7 +122,13 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
 class IsteklerimListesi extends ConsumerStatefulWidget {
   final int tip;
 
-  const IsteklerimListesi({super.key, required this.tip});
+  final VoidCallback? onFilterStateChanged;
+
+  const IsteklerimListesi({
+    super.key,
+    required this.tip,
+    this.onFilterStateChanged,
+  });
 
   @override
   ConsumerState<IsteklerimListesi> createState() => IsteklerimListesiState();
@@ -139,6 +169,11 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
   // Filtre sayfası durumu - null = ana liste, 'talepTuru' = talep türü sayfası, vb.
   String? _currentFilterPage;
+
+  bool get isFilterActive =>
+      _selectedSure != 'Tümü' ||
+      _selectedTalepTurleri.isNotEmpty ||
+      _selectedTalepDurumlari.isNotEmpty;
 
   @override
   void initState() {
@@ -309,6 +344,17 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
         itemBuilder: (context, index) {
           // Loading spinner
           if (index == filteredTalepler.length) {
+            // Eğer loading spinner görünüyorsa ve henüz yükleme yapılmıyorsa,
+            // yeni verileri yükle (Auto-pagination for short lists)
+            if (!state.isLoading && state.hasMore) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final provider = widget.tip == 0
+                    ? devamEdenIsteklerimProvider
+                    : tamamlananIsteklerimProvider;
+                ref.read(provider.notifier).loadMore();
+              });
+            }
+
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
@@ -544,7 +590,29 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(width: 64),
+                    if (_currentFilterPage == null)
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _currentFilterPage = null;
+                            _selectedSure = 'Tümü';
+                            _selectedTalepTurleri.clear();
+                            _selectedTalepDurumlari.clear();
+                          });
+                          setState(() {});
+                          widget.onFilterStateChanged?.call();
+                        },
+                        child: const Text(
+                          'Tüm filtreleri temizle',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientStart,
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 64),
                   ],
                 ),
               ),
@@ -590,6 +658,8 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {});
+                        setState(() {});
+                        widget.onFilterStateChanged?.call();
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(

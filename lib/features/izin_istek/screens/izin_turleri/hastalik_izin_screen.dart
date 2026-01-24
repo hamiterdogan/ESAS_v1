@@ -7,6 +7,7 @@ import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
@@ -311,6 +312,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       });
                     },
                   ),
+                  const CommonDivider(),
                   const SizedBox(height: 10),
 
                   // Açıklama
@@ -560,6 +562,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       }
                     },
                   ),
+                  const CommonDivider(),
                   const SizedBox(height: 24),
 
                   // Doktor Raporu Var Toggle
@@ -597,6 +600,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                       onPickFile: _pickFile,
                     ),
                   ],
+                  const CommonDivider(),
                   const SizedBox(height: 24),
 
                   GuidelineCardWithToggle(

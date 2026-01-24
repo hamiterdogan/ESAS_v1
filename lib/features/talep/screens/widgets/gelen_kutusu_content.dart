@@ -7,7 +7,9 @@ import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 /// Gelen Kutusu tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class GelenKutusuContent extends ConsumerStatefulWidget {
-  const GelenKutusuContent({super.key});
+  final VoidCallback? onFilterStateChanged;
+
+  const GelenKutusuContent({super.key, this.onFilterStateChanged});
 
   @override
   ConsumerState<GelenKutusuContent> createState() => GelenKutusuContentState();
@@ -25,6 +27,11 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        widget.onFilterStateChanged?.call();
+      }
+    });
   }
 
   @override
@@ -48,6 +55,14 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
       _devamEdenKey.currentState?.showFilterBottomSheetPublic();
     } else {
       _tamamlananKey.currentState?.showFilterBottomSheetPublic();
+    }
+  }
+
+  bool get isFilterActive {
+    if (_tabController.index == 0) {
+      return _devamEdenKey.currentState?.isFilterActive ?? false;
+    } else {
+      return _tamamlananKey.currentState?.isFilterActive ?? false;
     }
   }
 
@@ -81,9 +96,18 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
             controller: _tabController,
             children: [
               // Devam Eden (tip: 2)
-              GelenKutusuListesi(key: _devamEdenKey, tip: 2),
+              // Devam Eden (tip: 2)
+              GelenKutusuListesi(
+                key: _devamEdenKey,
+                tip: 2,
+                onFilterStateChanged: widget.onFilterStateChanged,
+              ),
               // Tamamlanan (tip: 3)
-              GelenKutusuListesi(key: _tamamlananKey, tip: 3),
+              GelenKutusuListesi(
+                key: _tamamlananKey,
+                tip: 3,
+                onFilterStateChanged: widget.onFilterStateChanged,
+              ),
             ],
           ),
         ),
@@ -95,8 +119,13 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
 /// Gelen Kutusu listesi widget'ı - Filtreli
 class GelenKutusuListesi extends ConsumerStatefulWidget {
   final int tip;
+  final VoidCallback? onFilterStateChanged;
 
-  const GelenKutusuListesi({super.key, required this.tip});
+  const GelenKutusuListesi({
+    super.key,
+    required this.tip,
+    this.onFilterStateChanged,
+  });
 
   @override
   ConsumerState<GelenKutusuListesi> createState() => GelenKutusuListesiState();
@@ -149,7 +178,16 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   ProviderSubscription<PaginatedTalepState>? _prefetchSub;
 
   // Seçilen görev yerleri - Çoklu seçim (String olarak görev yeri adı)
+
   final Set<String> _selectedGorevYerleri = {};
+
+  bool get isFilterActive =>
+      _selectedTalepTurleri.isNotEmpty ||
+      _selectedTalepEdenler.isNotEmpty ||
+      _selectedTalepTarihi != 'Tümü' ||
+      _selectedTalepDurumlari.isNotEmpty ||
+      _selectedGorevler.isNotEmpty ||
+      _selectedGorevYerleri.isNotEmpty;
 
   @override
   void initState() {
@@ -238,10 +276,6 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   }
 
   void showFilterBottomSheetPublic() {
-    // Filtrelenecek seçenek yoksa hiçbir tepki verme
-    if (_mevcutGorevler.isEmpty && _mevcutGorevYerleri.isEmpty) {
-      return;
-    }
     _showFilterOptionsBottomSheet();
   }
 
@@ -419,10 +453,10 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           margin: const EdgeInsets.only(top: 20),
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height - 20,
+            maxHeight: MediaQuery.of(context).size.height - 60,
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.max,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 40,
@@ -467,12 +501,38 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                       ),
                     ),
                     const Spacer(),
-                    const SizedBox(width: 64),
+                    if (_currentFilterPage == null)
+                      TextButton(
+                        onPressed: () {
+                          setModalState(() {
+                            _currentFilterPage = null;
+                            _selectedTalepTurleri.clear();
+                            _selectedTalepEdenler.clear();
+                            _selectedTalepTarihi = 'Tümü';
+                            _selectedTalepDurumlari.clear();
+                            _selectedGorevler.clear();
+                            _selectedGorevYerleri.clear();
+                          });
+                          setState(() {});
+                          widget.onFilterStateChanged?.call();
+                        },
+                        child: const Text(
+                          'Tüm filtreleri temizle',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gradientStart,
+                          ),
+                        ),
+                      )
+                    else
+                      const SizedBox(width: 64),
                   ],
                 ),
               ),
               const Divider(height: 1),
-              Expanded(
+              Flexible(
+                fit: FlexFit.loose,
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   child: AnimatedSwitcher(
@@ -515,13 +575,15 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     left: 16,
                     right: 16,
                     top: 16,
-                    bottom: 50,
+                    bottom: 60,
                   ),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {});
+
+                        widget.onFilterStateChanged?.call();
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -547,7 +609,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     left: 16,
                     right: 16,
                     top: 16,
-                    bottom: 50,
+                    bottom: 60,
                   ),
                   child: SizedBox(
                     width: double.infinity,
@@ -607,16 +669,16 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         children: [
           _buildFilterMainItem(
             title: 'Talep Türü',
-            selectedValue: _selectedTalepTurleri.isEmpty
-                ? 'Tümü'
-                : _selectedTalepTurleri.join(', '),
+            selectedValue: _selectedTalepTurleri.isNotEmpty
+                ? _selectedTalepTurleri.join(', ')
+                : 'Tümü',
             onTap: () => setModalState(() => _currentFilterPage = 'talepTuru'),
           ),
           _buildFilterMainItem(
             title: 'Talep Eden',
-            selectedValue: _selectedTalepEdenler.isEmpty
-                ? 'Tümü'
-                : _selectedTalepEdenler.join(', '),
+            selectedValue: _selectedTalepEdenler.isNotEmpty
+                ? _selectedTalepEdenler.join(', ')
+                : 'Tümü',
             onTap: () => setModalState(() => _currentFilterPage = 'talepEden'),
           ),
           _buildFilterMainItem(
@@ -636,16 +698,16 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
             ),
           _buildFilterMainItem(
             title: 'Görev',
-            selectedValue: _selectedGorevler.isEmpty
-                ? 'Tümü'
-                : _selectedGorevler.join(', '),
+            selectedValue: _selectedGorevler.isNotEmpty
+                ? _selectedGorevler.join(', ')
+                : 'Tümü',
             onTap: () => setModalState(() => _currentFilterPage = 'gorev'),
           ),
           _buildFilterMainItem(
             title: 'Görev Yeri',
-            selectedValue: _selectedGorevYerleri.isEmpty
-                ? 'Tümü'
-                : _selectedGorevYerleri.join(', '),
+            selectedValue: _selectedGorevYerleri.isNotEmpty
+                ? _selectedGorevYerleri.join(', ')
+                : 'Tümü',
             onTap: () => setModalState(() => _currentFilterPage = 'gorevYeri'),
           ),
         ],
@@ -1243,6 +1305,30 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
               .toList()
             ..sort();
 
+      final talepTurleri =
+          taleplerListesi
+              .map((t) => t.onayTipi)
+              .where((tur) => tur.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+      final gorevler =
+          taleplerListesi
+              .map((t) => t.gorevi ?? '')
+              .where((gorev) => gorev.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+      final gorevYerleri =
+          taleplerListesi
+              .map((t) => t.gorevYeri ?? '')
+              .where((gorevYeri) => gorevYeri.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
       bool kisilerChanged = false;
       if (_talepEdenKisiler.length != kisiler.length) {
         kisilerChanged = true;
@@ -1255,16 +1341,61 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         }
       }
 
-      if (kisilerChanged) {
-        setState(() {
-          _talepEdenKisiler = kisiler;
-        });
+      bool talepTurleriChanged = false;
+      if (_mevcutTalepTurleri.length != talepTurleri.length) {
+        talepTurleriChanged = true;
+      } else {
+        for (int i = 0; i < talepTurleri.length; i++) {
+          if (_mevcutTalepTurleri[i] != talepTurleri[i]) {
+            talepTurleriChanged = true;
+            break;
+          }
+        }
       }
 
-      // Diğer filtre listeleri için de benzer kontroller yapılabilir
-      // Ancak performans için şimdilik sadece kişi listesi örneğini koydum
-      // Diğerleri için de basitçe atama yapmak sonsuz döngüye sokabilir, dikkat.
-      // Basitlik adına, diğerlerini şimdilik doğrudan atamıyorum, gerekirse eklenir.
+      bool gorevlerChanged = false;
+      if (_mevcutGorevler.length != gorevler.length) {
+        gorevlerChanged = true;
+      } else {
+        for (int i = 0; i < gorevler.length; i++) {
+          if (_mevcutGorevler[i] != gorevler[i]) {
+            gorevlerChanged = true;
+            break;
+          }
+        }
+      }
+
+      bool gorevYerleriChanged = false;
+      if (_mevcutGorevYerleri.length != gorevYerleri.length) {
+        gorevYerleriChanged = true;
+      } else {
+        for (int i = 0; i < gorevYerleri.length; i++) {
+          if (_mevcutGorevYerleri[i] != gorevYerleri[i]) {
+            gorevYerleriChanged = true;
+            break;
+          }
+        }
+      }
+
+      if (kisilerChanged ||
+          talepTurleriChanged ||
+          gorevlerChanged ||
+          gorevYerleriChanged) {
+        setState(() {
+          if (kisilerChanged) {
+            _talepEdenKisiler = kisiler;
+          }
+          if (talepTurleriChanged) {
+            _mevcutTalepTurleri = talepTurleri;
+          }
+          if (gorevlerChanged) {
+            _mevcutGorevler = gorevler;
+          }
+          if (gorevYerleriChanged) {
+            _mevcutGorevYerleri = gorevYerleri;
+          }
+        });
+      }
     });
 
     // Filtreleme Uygula
@@ -1320,6 +1451,17 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         itemBuilder: (context, index) {
           // Loading Indicator Item
           if (index == filteredTalepler.length) {
+            // Eğer loading spinner görünüyorsa ve henüz yükleme yapılmıyorsa,
+            // yeni verileri yükle (Auto-pagination for short lists)
+            if (!state.isLoading && state.hasMore) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final provider = widget.tip == 2
+                    ? devamEdenGelenKutusuProvider
+                    : tamamlananGelenKutusuProvider;
+                ref.read(provider.notifier).loadMore();
+              });
+            }
+
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(

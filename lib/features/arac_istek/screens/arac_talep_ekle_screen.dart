@@ -8,6 +8,7 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/common/widgets/ogrenci/ogrenci_filter_sheet_full.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
@@ -464,6 +465,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   const SizedBox(height: 12),
                   YerEkleButton(onTap: _openYerSecimiBottomSheet),
+                  const CommonDivider(),
                   const SizedBox(height: 24),
                   NumericSpinnerWidget(
                     initialValue: _tahminiMesafe,
@@ -602,6 +604,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       ),
                     ],
                   ),
+                  const CommonDivider(),
                   const SizedBox(height: 32),
                   Text(
                     'Araç İstek Nedeni',
@@ -697,6 +700,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     focusNode: _aciklamaFocusNode,
                   ),
 
+                  const CommonDivider(),
                   const SizedBox(height: 32),
                   Text(
                     'Yolcu Seçimi',

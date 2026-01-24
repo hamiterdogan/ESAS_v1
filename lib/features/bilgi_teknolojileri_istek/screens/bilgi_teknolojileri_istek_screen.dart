@@ -18,6 +18,7 @@ import 'package:esas_v1/features/bilgi_teknolojileri_istek/widgets/teknik_destek
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -784,6 +785,7 @@ class _BilgiTeknolojileriIstekScreenState
                     });
                   },
                 ),
+                const CommonDivider(),
                 const SizedBox(height: 16),
 
                 // Eklenen Hizmetler Listesi
@@ -1005,6 +1007,7 @@ class _BilgiTeknolojileriIstekScreenState
                   ),
                 ),
 
+                const CommonDivider(),
                 const SizedBox(height: 24),
 
                 // Açıklama
@@ -1014,6 +1017,7 @@ class _BilgiTeknolojileriIstekScreenState
                   maxLines: 4,
                 ),
 
+                const CommonDivider(),
                 const SizedBox(height: 24),
 
                 // Dosya/Fotoğraf Yükle

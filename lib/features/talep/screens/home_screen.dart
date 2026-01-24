@@ -88,6 +88,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _gelenKutusuKey.currentState?.showFilterBottomSheet();
                       }
                     },
+                    icon: (_currentIndex == 1 &&
+                                (_isteklerimKey.currentState?.isFilterActive ??
+                                    false)) ||
+                            (_currentIndex == 2 &&
+                                (_gelenKutusuKey.currentState?.isFilterActive ??
+                                    false))
+                        ? Icons.filter_alt
+                        : Icons.filter_alt_outlined,
                   ),
                 ]
               : null,
@@ -102,8 +110,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
           children: [
             const AnaSayfaContent(),
-            IsteklerimContent(key: _isteklerimKey),
-            GelenKutusuContent(key: _gelenKutusuKey),
+            IsteklerimContent(
+              key: _isteklerimKey,
+              onFilterStateChanged: () => setState(() {}),
+            ),
+            GelenKutusuContent(
+              key: _gelenKutusuKey,
+              onFilterStateChanged: () => setState(() {}),
+            ),
           ],
         ),
         bottomNavigationBar: Padding(

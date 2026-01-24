@@ -97,12 +97,24 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
     switch (result) {
       case Success(data: final data):
         final newTalepler = data.talepler;
-        final isLastPage = newTalepler.isEmpty;
+        bool isLastPage = newTalepler.length < _pageSize;
+
+        List<Talep> updatedList;
+        if (pageIndex == 0) {
+          updatedList = newTalepler;
+        } else {
+          final existingIds = state.talepler.map((t) => t.onayKayitId).toSet();
+          final uniqueNewTalepler = newTalepler
+              .where((t) => !existingIds.contains(t.onayKayitId))
+              .toList();
+          if (uniqueNewTalepler.isEmpty) {
+            isLastPage = true;
+          }
+          updatedList = [...state.talepler, ...uniqueNewTalepler];
+        }
 
         state = state.copyWith(
-          talepler: pageIndex == 0
-              ? newTalepler
-              : [...state.talepler, ...newTalepler],
+          talepler: updatedList,
           pageIndex: pageIndex,
           isLoading: false,
           isInitialLoading: false,
