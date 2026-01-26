@@ -95,6 +95,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   // FocusNodes for keyboard control
   final FocusNode _egitimTeklifIcerikFocusNode = FocusNode();
   final FocusNode _ozelEgitimAdiFocusNode = FocusNode();
+  final FocusNode _egitimAdiFocusNode = FocusNode();
+  final FocusNode _egitimTuruFocusNode = FocusNode();
 
   // FocusNodes for validation fields
   final FocusNode _egitimSirketiAdiFocusNode = FocusNode();
@@ -182,6 +184,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     _ozelEgitimAdiController.dispose();
     _egitimTeklifIcerikFocusNode.dispose();
     _ozelEgitimAdiFocusNode.dispose();
+    _egitimAdiFocusNode.dispose();
+    _egitimTuruFocusNode.dispose();
     _egitimSirketiAdiFocusNode.dispose();
     _egitimKonusuFocusNode.dispose();
     _webSitesiFocusNode.dispose();
@@ -889,42 +893,45 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () => _showEgitimAdiBottomSheet(),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.textOnPrimary,
-                            border: Border.all(
-                              color: AppColors.borderStandartColor,
-                              width: 0.75,
+                      Focus(
+                        focusNode: _egitimAdiFocusNode,
+                        child: GestureDetector(
+                          onTap: () => _showEgitimAdiBottomSheet(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _secilenEgitimAdi ?? 'Eğitim adını seçiniz',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: _secilenEgitimAdi != null
-                                        ? AppColors.textPrimary
-                                        : Colors.grey.shade600,
+                            decoration: BoxDecoration(
+                              color: AppColors.textOnPrimary,
+                              border: Border.all(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _secilenEgitimAdi ?? 'Eğitim adını seçiniz',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _secilenEgitimAdi != null
+                                          ? AppColors.textPrimary
+                                          : Colors.grey.shade600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Icon(
-                                Icons.chevron_right,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -992,44 +999,47 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                   ),
                             ),
                             const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => _showEgitimTuruBottomSheet(),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.textOnPrimary,
-                                  border: Border.all(
-                                    color: AppColors.borderStandartColor,
-                                    width: 0.75,
+                            Focus(
+                              focusNode: _egitimTuruFocusNode,
+                              child: GestureDetector(
+                                onTap: () => _showEgitimTuruBottomSheet(),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        _secilenEgitimTuru ??
-                                            'Eğitim türünü seçiniz',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: _secilenEgitimTuru != null
-                                              ? AppColors.textPrimary
-                                              : Colors.grey.shade600,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.textOnPrimary,
+                                    border: Border.all(
+                                      color: AppColors.borderStandartColor,
+                                      width: 0.75,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _secilenEgitimTuru ??
+                                              'Eğitim türünü seçiniz',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: _secilenEgitimTuru != null
+                                                ? AppColors.textPrimary
+                                                : Colors.grey.shade600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ],
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -2501,6 +2511,14 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen eğitimin adını seçiniz',
+          onDismiss: () {
+            if (!mounted) return;
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (!mounted) return;
+              _egitimAdiFocusNode.requestFocus();
+              _showEgitimAdiBottomSheet();
+            });
+          },
         );
       }
       return;
@@ -2525,6 +2543,14 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen eğitim türünü seçiniz',
+          onDismiss: () {
+            if (!mounted) return;
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (!mounted) return;
+              _egitimTuruFocusNode.requestFocus();
+              _showEgitimTuruBottomSheet();
+            });
+          },
         );
       }
       return;

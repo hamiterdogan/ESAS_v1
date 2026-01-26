@@ -783,9 +783,15 @@ class _YiyecekIcecekIkramEkleScreenState
 
                 // 2. İkram seçimi kontrolü
                 if (_selectedIkramlar.isEmpty) {
+                  FocusScope.of(context).unfocus();
                   await ValidationUyariWidget.goster(
                     context: context,
                     message: "Lütfen ikram seçiniz",
+                    onDismiss: () {
+                      if (!mounted) return;
+                      _ikramSecimiFocusNode.requestFocus();
+                      _showIkramSelectionBottomSheet();
+                    },
                   );
                   return;
                 }

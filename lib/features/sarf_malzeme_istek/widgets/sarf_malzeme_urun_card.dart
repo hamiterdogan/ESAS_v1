@@ -120,13 +120,23 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
       await ValidationUyariWidget.goster(
         context: context,
         message: 'Ürün detay bilgisi giriniz',
+        onDismiss: () {
+          if (!mounted) return;
+          _urunDetayFocusNode.requestFocus();
+        },
       );
       return false;
     }
     if (_selectedOlcuBirim == null) {
+      _urunDetayFocusNode.unfocus();
+      FocusScope.of(context).unfocus();
       await ValidationUyariWidget.goster(
         context: context,
         message: 'Birim seçiniz',
+        onDismiss: () {
+          if (!mounted) return;
+          _showOlcuBirimBottomSheet();
+        },
       );
       return false;
     }

@@ -640,7 +640,11 @@ class _DokumantasyonBaskiIstekScreenState
         onDismiss: () async {
           if (!mounted) return;
           await _scrollToDokumanTuruSection();
-          _dokumanTuruFocusNode.requestFocus();
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (!mounted) return;
+            _dokumanTuruFocusNode.requestFocus();
+            _showDokumanTuruBottomSheet();
+          });
         },
       );
       return;

@@ -101,6 +101,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   final FocusNode _customAracIstekNedeniFocusNode = FocusNode();
   final FocusNode _aciklamaFocusNode = FocusNode();
   final FocusNode _gidilecekYerButtonFocusNode = FocusNode();
+  final FocusNode _aracIstekNedeniFocusNode = FocusNode();
   final GlobalKey _gidilecekYerSectionKey = GlobalKey();
   late final ScrollController _scrollController;
 
@@ -122,6 +123,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     _customAracIstekNedeniFocusNode.dispose();
     _aciklamaFocusNode.dispose();
     _gidilecekYerButtonFocusNode.dispose();
+    _aracIstekNedeniFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -653,38 +655,41 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: _openAracIstekNedeniBottomSheet,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.textOnPrimary,
-                        border: Border.all(color: AppColors.border),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _buildAracIstekNedeniSummary(),
-                              style: TextStyle(
-                                color: _selectedAracIstekNedeniId != null
-                                    ? AppColors.textPrimary
-                                    : Colors.grey.shade600,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
+                    child: Focus(
+                      focusNode: _aracIstekNedeniFocusNode,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.textOnPrimary,
+                          border: Border.all(color: AppColors.border),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                _buildAracIstekNedeniSummary(),
+                                style: TextStyle(
+                                  color: _selectedAracIstekNedeniId != null
+                                      ? AppColors.textPrimary
+                                      : Colors.grey.shade600,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
+                            Icon(
+                              Icons.chevron_right,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -907,13 +912,18 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     try {
       // Basit validasyonlar
       if (_entries.isEmpty) {
+        FocusScope.of(context).unfocus();
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen en az 1 gidilecek yer ekleyiniz',
+          onDismiss: () {
+            if (!mounted) return;
+            _scrollToGidilecekYerSection();
+            _gidilecekYerButtonFocusNode.requestFocus();
+            _openYerSecimiBottomSheet();
+          },
         );
         if (!mounted) return;
-        await _scrollToGidilecekYerSection();
-        _gidilecekYerButtonFocusNode.requestFocus();
         setState(() => _isActionInProgress = false);
         return;
       }
@@ -925,9 +935,18 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         return;
       }
       if (_selectedAracIstekNedeniId == null) {
+        FocusScope.of(context).unfocus();
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen araç istek nedenini seçiniz',
+          onDismiss: () {
+            if (!mounted) return;
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (!mounted) return;
+              _aracIstekNedeniFocusNode.requestFocus();
+              _openAracIstekNedeniBottomSheet();
+            });
+          },
         );
         return;
       }

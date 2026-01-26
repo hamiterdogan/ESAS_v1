@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/index.dart';
@@ -44,6 +45,17 @@ class _TemizlikMalzemesiIstekScreenState
   final TextEditingController _fiyatTeklifIcerikController =
       TextEditingController();
   final GlobalKey _gonderButtonKey = GlobalKey();
+  final FocusNode _gonderButtonFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _aciklamaFocusNode.addListener(() {
+      if (!_aciklamaFocusNode.hasFocus) {
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+      }
+    });
+  }
 
   Future<void> _scrollToWidget(GlobalKey key) async {
     final context = key.currentContext;
@@ -67,6 +79,10 @@ class _TemizlikMalzemesiIstekScreenState
       await ValidationUyariWidget.goster(
         context: context,
         message: 'Lütfen bir açıklama giriniz.',
+        onDismiss: () {
+          if (!mounted) return;
+          _aciklamaFocusNode.requestFocus();
+        },
       );
       return;
     }
@@ -1070,6 +1086,7 @@ class _TemizlikMalzemesiIstekScreenState
     _aciklamaController.dispose();
     _aciklamaFocusNode.dispose();
     _searchBinaController.dispose();
+    _gonderButtonFocusNode.dispose();
     super.dispose();
   }
 
@@ -1191,10 +1208,17 @@ class _TemizlikMalzemesiIstekScreenState
                                             ),
                                       ),
                                     ).then((result) {
+                                      if (!mounted) return;
                                       if (result != null) {
                                         setState(() {
                                           _urunler[index] = result;
                                         });
+                                        FocusScope.of(
+                                          context,
+                                        ).requestFocus(_gonderButtonFocusNode);
+                                        SystemChannels.textInput.invokeMethod(
+                                          'TextInput.hide',
+                                        );
                                       }
                                     });
                                   },
@@ -1408,11 +1432,16 @@ class _TemizlikMalzemesiIstekScreenState
                           setState(() {
                             _urunler.add(result);
                           });
+                          FocusScope.of(
+                            context,
+                          ).requestFocus(_gonderButtonFocusNode);
+                          SystemChannels.textInput.invokeMethod(
+                            'TextInput.hide',
+                          );
                         }
 
                         // After returning, scroll to submit button and unfocus
                         // ignore: use_build_context_synchronously
-                        FocusScope.of(context).unfocus();
                         Future.delayed(const Duration(milliseconds: 300), () {
                           _scrollToKey(_gonderButtonKey);
                         });
@@ -1516,11 +1545,14 @@ class _TemizlikMalzemesiIstekScreenState
                     ),
                   ),
                   const SizedBox(height: 32),
-                  GonderButtonWidget(
-                    buttonKey: _gonderButtonKey,
-                    onPressed: _submitForm,
-                    padding: 14.0,
-                    borderRadius: 8.0,
+                  Focus(
+                    focusNode: _gonderButtonFocusNode,
+                    child: GonderButtonWidget(
+                      buttonKey: _gonderButtonKey,
+                      onPressed: _submitForm,
+                      padding: 14.0,
+                      borderRadius: 8.0,
+                    ),
                   ),
                   const SizedBox(height: 50),
                 ],

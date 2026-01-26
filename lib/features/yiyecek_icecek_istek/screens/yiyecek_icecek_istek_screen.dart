@@ -621,18 +621,30 @@ class _YiyecekIcecekIstekScreenState
   Future<void> _validateAndSubmit() async {
     // 1. Dönem Kontrolü
     if (_selectedDonem == null) {
+      FocusScope.of(context).unfocus();
       await ValidationUyariWidget.goster(
         context: context,
         message: "Lütfen dönem seçiniz",
+        onDismiss: () {
+          if (!mounted) return;
+          _donemFocusNode.requestFocus();
+          _showDonemBottomSheet();
+        },
       );
       return;
     }
 
     // 2. Etkinlik Adı Kontrolü
     if (_selectedEtkinlik == null) {
+      FocusScope.of(context).unfocus();
       await ValidationUyariWidget.goster(
         context: context,
         message: "Lütfen etkinlik adını seçiniz",
+        onDismiss: () {
+          if (!mounted) return;
+          _etkinlikFocusNode.requestFocus();
+          _showEtkinlikBottomSheet();
+        },
       );
       return;
     }
@@ -652,6 +664,10 @@ class _YiyecekIcecekIstekScreenState
       await ValidationUyariWidget.goster(
         context: context,
         message: "Lütfen ikram yapılak yer bilgisi giriniz",
+        onDismiss: () {
+          if (!mounted) return;
+          _ikramYeriFocusNode.requestFocus();
+        },
       );
       return;
     }
@@ -661,6 +677,10 @@ class _YiyecekIcecekIstekScreenState
       await ValidationUyariWidget.goster(
         context: context,
         message: "Lütfen açıklama giriniz",
+        onDismiss: () {
+          if (!mounted) return;
+          _aciklamaFocusNode.requestFocus();
+        },
       );
       return;
     }
