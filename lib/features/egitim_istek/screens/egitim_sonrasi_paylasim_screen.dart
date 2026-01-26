@@ -523,13 +523,15 @@ class _EgitimSonrasiPaylasimsScreenState
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(

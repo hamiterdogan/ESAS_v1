@@ -845,7 +845,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                       decoration: BoxDecoration(
                                         color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: AppColors.borderStandartColor,
+                                          width: 0.75,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -936,7 +937,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                       decoration: BoxDecoration(
                                         color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: AppColors.borderStandartColor,
+                                          width: 0.75,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1028,7 +1030,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                       decoration: BoxDecoration(
                                         color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: AppColors.borderStandartColor,
+                                          width: 0.75,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1121,7 +1124,8 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                       decoration: BoxDecoration(
                                         color: AppColors.textOnPrimary,
                                         border: Border.all(
-                                          color: AppColors.border,
+                                          color: AppColors.borderStandartColor,
+                                          width: 0.75,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1290,13 +1294,15 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1351,13 +1357,15 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -1413,13 +1421,15 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: AppColors.border,
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(

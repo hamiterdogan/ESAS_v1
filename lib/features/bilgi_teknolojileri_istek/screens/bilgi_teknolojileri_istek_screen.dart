@@ -57,6 +57,8 @@ class _BilgiTeknolojileriIstekScreenState
   final TextEditingController _aciklamaController = TextEditingController();
   final FocusNode _aciklamaFocusNode = FocusNode();
   final FocusNode _okulFocusNode = FocusNode();
+  final GlobalKey _okulSecimSectionKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
   DateTime? _selectedDate;
 
   @override
@@ -67,7 +69,19 @@ class _BilgiTeknolojileriIstekScreenState
     _aciklamaController.dispose();
     _aciklamaFocusNode.dispose();
     _okulFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scrollToOkulSecimSection() async {
+    final ctx = _okulSecimSectionKey.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
   }
 
   Future<void> _pickFiles() async {
@@ -230,6 +244,9 @@ class _BilgiTeknolojileriIstekScreenState
       _showWarningBottomSheet(
         'İsteğin yapılacağı okul/bina seçimi gerekmektedir.',
       );
+      if (!mounted) return;
+      await _scrollToOkulSecimSection();
+      _okulFocusNode.requestFocus();
       return;
     }
 
@@ -239,7 +256,21 @@ class _BilgiTeknolojileriIstekScreenState
     }
 
     if (_addedHizmetler.isEmpty) {
-      _showWarningBottomSheet('En az bir hizmet eklemesi gerekmektedir.');
+      await _showWarningBottomSheet('En az bir hizmet eklemesi gerekmektedir.');
+      if (!mounted) return;
+      final result = await Navigator.push<BilgiTeknolojileriHizmetData>(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              BilgiTeknolojileriHizmetEkleScreen(destekTuru: widget.destekTuru),
+        ),
+      );
+
+      if (result != null && mounted) {
+        setState(() {
+          _addedHizmetler.add(result);
+        });
+      }
       return;
     }
 
@@ -747,22 +778,31 @@ class _BilgiTeknolojileriIstekScreenState
             ),
           ),
           body: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final binalarAsync = ref.watch(satinAlmaBinalarProvider);
-                    return OkulSecimWidget(
-                      binalarAsync: binalarAsync,
-                      selectedBinaKodlari: _selectedBinaKodlari,
-                      selectedTextBuilder: _buildSelectedText,
-                      onTap: _showBinaBottomSheet,
-                      title: 'İsteğin Yapılacağı Okul/Bina Seçiniz*',
-                      isMultiSelect: _isMultiSelect,
-                    );
-                  },
+                KeyedSubtree(
+                  key: _okulSecimSectionKey,
+                  child: Focus(
+                    focusNode: _okulFocusNode,
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final binalarAsync = ref.watch(
+                          satinAlmaBinalarProvider,
+                        );
+                        return OkulSecimWidget(
+                          binalarAsync: binalarAsync,
+                          selectedBinaKodlari: _selectedBinaKodlari,
+                          selectedTextBuilder: _buildSelectedText,
+                          onTap: _showBinaBottomSheet,
+                          title: 'İsteğin Yapılacağı Okul/Bina Seçiniz',
+                          isMultiSelect: _isMultiSelect,
+                        );
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -978,7 +1018,10 @@ class _BilgiTeknolojileriIstekScreenState
                       decoration: BoxDecoration(
                         color: AppColors.textOnPrimary,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1057,15 +1100,24 @@ class _BilgiTeknolojileriIstekScreenState
                     fillColor: Colors.white,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                   ),
                   maxLines: 1,

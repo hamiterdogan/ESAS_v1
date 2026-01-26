@@ -100,6 +100,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
   final FocusNode _customAracIstekNedeniFocusNode = FocusNode();
   final FocusNode _aciklamaFocusNode = FocusNode();
+  final FocusNode _gidilecekYerButtonFocusNode = FocusNode();
+  final GlobalKey _gidilecekYerSectionKey = GlobalKey();
+  late final ScrollController _scrollController;
 
   bool get _hasOgrenciBaseCache {
     return _initialOkulKoduList.isNotEmpty &&
@@ -118,12 +121,15 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     }
     _customAracIstekNedeniFocusNode.dispose();
     _aciklamaFocusNode.dispose();
+    _gidilecekYerButtonFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _mesafeController = TextEditingController(text: _tahminiMesafe.toString());
     _customAracIstekNedeniController = TextEditingController();
     _aciklamaController = TextEditingController();
@@ -352,17 +358,21 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Gidilecek Yer',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontSize:
-                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                              14) +
-                          1,
-                      color: AppColors.primaryDark,
+                  KeyedSubtree(
+                    key: _gidilecekYerSectionKey,
+                    child: Text(
+                      'Gidilecek Yer',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontSize:
+                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                                14) +
+                            1,
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -450,6 +460,27 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: AppColors
+                                                    .borderStandartColor,
+                                                width: 0.75,
+                                              ),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                color: AppColors
+                                                    .borderStandartColor,
+                                                width: 0.75,
+                                              ),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: const BorderSide(
+                                                color: AppColors.gradientStart,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -464,7 +495,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       ),
                     ),
                   const SizedBox(height: 12),
-                  YerEkleButton(onTap: _openYerSecimiBottomSheet),
+                  Focus(
+                    focusNode: _gidilecekYerButtonFocusNode,
+                    child: YerEkleButton(onTap: _openYerSecimiBottomSheet),
+                  ),
                   const CommonDivider(),
                   const SizedBox(height: 24),
                   NumericSpinnerWidget(
@@ -744,7 +778,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.textOnPrimary,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -852,6 +889,17 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     );
   }
 
+  Future<void> _scrollToGidilecekYerSection() async {
+    final context = _gidilecekYerSectionKey.currentContext;
+    if (context == null) return;
+    await Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
+  }
+
   Future<void> _submitForm() async {
     if (_isActionInProgress) return;
     setState(() => _isActionInProgress = true);
@@ -863,6 +911,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           context: context,
           message: 'Lütfen en az 1 gidilecek yer ekleyiniz',
         );
+        if (!mounted) return;
+        await _scrollToGidilecekYerSection();
+        _gidilecekYerButtonFocusNode.requestFocus();
+        setState(() => _isActionInProgress = false);
         return;
       }
       if (_gidilecekTarih == null) {

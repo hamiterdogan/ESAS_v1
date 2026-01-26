@@ -63,11 +63,17 @@ class PriceInputWidget extends StatelessWidget {
                         : AppColors.textOnPrimary,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -117,11 +123,17 @@ class PriceInputWidget extends StatelessWidget {
                         : AppColors.textOnPrimary,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: AppColors.border),
+                      borderSide: BorderSide(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),

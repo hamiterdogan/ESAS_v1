@@ -363,7 +363,8 @@ class GenericTalepCard extends StatelessWidget {
 
     final card = Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-      elevation: 2,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
@@ -400,30 +401,29 @@ class GenericTalepCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      Transform.translate(
-                        offset: Offset(showChevron ? 38 : 0, 0),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                TalepYonetimHelper.getStatusIcon(onayDurumu),
-                                size: 16,
-                                color: statusColor,
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 120),
+                        child: Transform.translate(
+                          offset: Offset(showChevron ? 38 : 0, 0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  TalepYonetimHelper.getStatusIcon(onayDurumu),
+                                  size: 16,
+                                  color: statusColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
                                   child: Text(
                                     statusText.isEmpty
                                         ? 'Durum Bilinmiyor'
@@ -431,12 +431,14 @@ class GenericTalepCard extends StatelessWidget {
                                     style: TextStyle(
                                       color: statusColor,
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                      fontSize: 12,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

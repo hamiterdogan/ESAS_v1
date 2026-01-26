@@ -87,7 +87,11 @@ class _DokumantasyonBaskiIstekScreenState
   // Lock mechanism for multi-tap prevention
   bool _isActionInProgress = false;
   final FocusNode _dosyaIcerikFocusNode = FocusNode();
+  final FocusNode _dosyaUploadFocusNode = FocusNode();
   final FocusNode _aciklamaFocusNode = FocusNode();
+  final FocusNode _dokumanTuruFocusNode = FocusNode();
+  final GlobalKey _dokumanTuruSectionKey = GlobalKey();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -106,8 +110,22 @@ class _DokumantasyonBaskiIstekScreenState
     _aciklamaController.dispose();
     _dosyaIcerikController.dispose();
     _dosyaIcerikFocusNode.dispose();
+    _dosyaUploadFocusNode.dispose();
     _aciklamaFocusNode.dispose();
+    _dokumanTuruFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _scrollToDokumanTuruSection() async {
+    final ctx = _dokumanTuruSectionKey.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
   }
 
   bool _hasFormData() {
@@ -616,25 +634,40 @@ class _DokumantasyonBaskiIstekScreenState
 
     // Validations
     if (_selectedDokumanTuru == null) {
-      _showStatusBottomSheet('Lütfen doküman türünü seçiniz.', isError: true);
+      ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen doküman türünü seçiniz.',
+        onDismiss: () async {
+          if (!mounted) return;
+          await _scrollToDokumanTuruSection();
+          _dokumanTuruFocusNode.requestFocus();
+        },
+      );
       return;
     }
 
     // Açıklama validation
     if (_aciklamaController.text.length < 15) {
       _aciklamaFocusNode.requestFocus();
-      _showStatusBottomSheet(
-        'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
-        isError: true,
+      ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
       );
       return;
     }
 
     if (!_isKopyaElden) {
       if (_selectedFiles.isEmpty) {
-        _showStatusBottomSheet(
-          'Lütfen en az bir dosya seçiniz.',
-          isError: true,
+        _aciklamaFocusNode.unfocus();
+        _dosyaIcerikFocusNode.unfocus();
+        FocusScope.of(context).unfocus();
+        ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az bir dosya seçiniz.',
+          onDismiss: () {
+            if (!mounted) return;
+            _dosyaUploadFocusNode.requestFocus();
+          },
         );
         return;
       }
@@ -798,7 +831,7 @@ class _DokumantasyonBaskiIstekScreenState
         );
       },
       onError: (error) {
-        _showStatusBottomSheet(error, isError: true);
+        ValidationUyariWidget.goster(context: context, message: error);
       },
     );
   }
@@ -855,6 +888,7 @@ class _DokumantasyonBaskiIstekScreenState
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),
           child: SingleChildScrollView(
+            controller: _scrollController,
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -912,45 +946,64 @@ class _DokumantasyonBaskiIstekScreenState
                 const SizedBox(height: 24),
 
                 // Doküman Türü
-                Text(
-                  'Doküman Türü',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontSize:
-                        (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                            14) +
-                        1,
-                    color: AppColors.primaryLight,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _showDokumanTuruBottomSheet,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.textOnPrimary,
-                      border: Border.all(color: AppColors.border),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          _selectedDokumanTuru?.tur ?? 'Seçiniz',
-                          style: TextStyle(
-                            color: _selectedDokumanTuru == null
-                                ? Colors.grey.shade600
-                                : AppColors.textPrimary,
-                            fontSize: 16,
+                KeyedSubtree(
+                  key: _dokumanTuruSectionKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Doküman Türü',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Focus(
+                        focusNode: _dokumanTuruFocusNode,
+                        child: GestureDetector(
+                          onTap: _showDokumanTuruBottomSheet,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.textOnPrimary,
+                              border: Border.all(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _selectedDokumanTuru?.tur ?? 'Seçiniz',
+                                  style: TextStyle(
+                                    color: _selectedDokumanTuru == null
+                                        ? Colors.grey.shade600
+                                        : AppColors.textPrimary,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
                 const CommonDivider(),
@@ -1030,7 +1083,10 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.textOnPrimary,
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -1096,16 +1152,19 @@ class _DokumantasyonBaskiIstekScreenState
                 if (!_isKopyaElden) ...[
                   const SizedBox(height: 24),
 
-                  FilePhotoUploadWidget<File>(
-                    title: 'Basılacak Dosya',
-                    buttonText: 'Dosya/Fotoğraf Yükle',
-                    files: _selectedFiles,
-                    fileNameBuilder: (file) =>
-                        file.path.split(Platform.pathSeparator).last,
-                    onRemoveFile: _removeFile,
-                    onPickCamera: _pickFromCamera,
-                    onPickGallery: _pickFromGallery,
-                    onPickFile: _pickFiles,
+                  Focus(
+                    focusNode: _dosyaUploadFocusNode,
+                    child: FilePhotoUploadWidget<File>(
+                      title: 'Basılacak Dosya',
+                      buttonText: 'Dosya/Fotoğraf Yükle',
+                      files: _selectedFiles,
+                      fileNameBuilder: (file) =>
+                          file.path.split(Platform.pathSeparator).last,
+                      onRemoveFile: _removeFile,
+                      onPickCamera: _pickFromCamera,
+                      onPickGallery: _pickFromGallery,
+                      onPickFile: _pickFiles,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -1131,15 +1190,24 @@ class _DokumantasyonBaskiIstekScreenState
                       fillColor: Colors.white,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                     ),
                     maxLines: 1,
@@ -1168,7 +1236,10 @@ class _DokumantasyonBaskiIstekScreenState
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.textOnPrimary,
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(
+                        color: AppColors.borderStandartColor,
+                        width: 0.75,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -2404,95 +2475,6 @@ class _DokumantasyonBaskiIstekScreenState
     if (ids.isEmpty) return 'Seçiniz';
     if (ids.length <= 2) return ids.join(', ');
     return '${ids.length} sınıf seçildi';
-  }
-
-  void _showStatusBottomSheet(String message, {bool isError = false}) async {
-    if (!mounted) return;
-
-    // Enhanced focus control
-    _dosyaIcerikFocusNode.canRequestFocus = false;
-    _aciklamaFocusNode.canRequestFocus = false;
-    FocusScope.of(context).unfocus();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext statusContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: AppColors.textOnPrimary,
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                size: 64,
-                color: isError ? AppColors.error : AppColors.success,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: isError ? null : AppColors.primaryGradient,
-                  color: isError ? AppColors.errorAccent : null,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(statusContext);
-                      if (!isError) {
-                        context.go('/dokumantasyon_istek');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Tamam',
-                      style: TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
-        );
-      },
-    );
-
-    // Ensure keyboard stays hidden after BottomSheet closes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        FocusScope.of(context).unfocus();
-        _dosyaIcerikFocusNode.canRequestFocus = true;
-        _aciklamaFocusNode.canRequestFocus = true;
-      }
-    });
   }
 }
 

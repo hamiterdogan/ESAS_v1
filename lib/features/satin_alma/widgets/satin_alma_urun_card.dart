@@ -1041,7 +1041,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.textOnPrimary,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: AppColors.borderStandartColor,
+                    width: 0.75,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1091,9 +1094,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                   decoration: BoxDecoration(
                     color: AppColors.textOnPrimary,
                     border: Border.all(
-                      color: _selectedAltKategori == null
-                          ? AppColors.error
-                          : Colors.grey.shade300,
+                      color: AppColors.borderStandartColor,
+                      width: 0.75,
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -1143,11 +1145,17 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 fillColor: AppColors.textOnPrimary,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(
+                    color: AppColors.borderStandartColor,
+                    width: 0.75,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(
+                    color: AppColors.borderStandartColor,
+                    width: 0.75,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -1199,7 +1207,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.textOnPrimary,
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(
+                    color: AppColors.borderStandartColor,
+                    width: 0.75,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1260,11 +1271,17 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                             fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1310,11 +1327,17 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                             fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -1429,7 +1452,10 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.textOnPrimary,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(

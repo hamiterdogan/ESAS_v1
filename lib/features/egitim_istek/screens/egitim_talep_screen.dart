@@ -898,7 +898,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.textOnPrimary,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -936,15 +939,24 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             fillColor: AppColors.textOnPrimary,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: AppColors.border),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -989,7 +1001,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.textOnPrimary,
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(
+                                    color: AppColors.borderStandartColor,
+                                    width: 0.75,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -1073,15 +1088,24 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1126,15 +1150,24 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1201,15 +1234,24 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           fillColor: AppColors.textOnPrimary,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: AppColors.border),
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1312,7 +1354,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.textOnPrimary,
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1377,9 +1422,27 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             hintStyle: TextStyle(color: Colors.grey.shade500),
                             filled: true,
                             fillColor: AppColors.textOnPrimary,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                            ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
                               vertical: 14,
@@ -1526,7 +1589,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.textOnPrimary,
-                              border: Border.all(color: AppColors.border),
+                              border: Border.all(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -1606,7 +1672,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.textOnPrimary,
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -1677,15 +1746,24 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           fillColor: AppColors.textOnPrimary,
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
                           ),
                         ),
                         maxLines: 1,
@@ -2682,8 +2760,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       });
     }
 
-    // Kullanıcı geri döndüğünde tekrar kontrol et (tamamlamadıysa gönderme durur)
-    return _getEgitimSonrasiPaylasimMissingErrorType() == null;
+    // Paylaşım ekranına gidildiyse otomatik gönderimi durdur.
+    // Kullanıcı geri döndüğünde manuel olarak Gönder'e basmalıdır.
+    return false;
   }
 
   Future<void> _showSummaryAndSubmit() async {

@@ -69,15 +69,24 @@ class _AciklamaFieldWidgetState extends ConsumerState<AciklamaFieldWidget> {
             hintStyle: TextStyle(color: AppColors.textTertiary),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
+              borderSide: BorderSide(
+                color: AppColors.borderStandartColor,
+                width: 0.75,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
+              borderSide: BorderSide(
+                color: AppColors.borderStandartColor,
+                width: 0.75,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.gradientStart, width: 0.75),
+              borderSide: BorderSide(
+                color: AppColors.gradientStart,
+                width: 0.75,
+              ),
             ),
             filled: true,
             fillColor: Colors.white,

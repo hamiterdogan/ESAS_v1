@@ -924,7 +924,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.textOnPrimary,
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -1024,11 +1027,17 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1071,11 +1080,17 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1114,11 +1129,17 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1590,7 +1611,10 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                         decoration: BoxDecoration(
                           color: AppColors.textOnPrimary,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.border),
+                          border: Border.all(
+                            color: AppColors.borderStandartColor,
+                            width: 0.75,
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1645,11 +1669,17 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.border),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -1763,17 +1793,34 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _fiyatTeklifIcerikController,
+                    maxLines: 1,
                     decoration: InputDecoration(
                       hintText: 'Dosya içeriği hakkında bilgi veriniz',
                       hintStyle: TextStyle(color: Colors.grey.shade400),
                       contentPadding: const EdgeInsets.all(12),
                       filled: true,
                       fillColor: AppColors.textOnPrimary,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      border: InputBorder.none,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
                     ),
-                    maxLines: 1,
                   ),
                   const SizedBox(height: 32),
                   GonderButtonWidget(

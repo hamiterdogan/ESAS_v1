@@ -91,7 +91,8 @@ class GelenKutusuKarti extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
@@ -220,6 +221,7 @@ class GelenKutusuKarti extends StatelessWidget {
                       horizontal: 10,
                       vertical: 4,
                     ),
+                    constraints: const BoxConstraints(maxWidth: 110),
                     decoration: BoxDecoration(
                       color: _getOnayDurumuRengi(
                         talep.onayDurumu,
@@ -235,15 +237,17 @@ class GelenKutusuKarti extends StatelessWidget {
                           color: _getOnayDurumuRengi(talep.onayDurumu),
                         ),
                         const SizedBox(width: 4),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            _getDisplayDurum(talep.onayDurumu),
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: _getOnayDurumuRengi(talep.onayDurumu),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              _getDisplayDurum(talep.onayDurumu),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: _getOnayDurumuRengi(talep.onayDurumu),
+                              ),
                             ),
                           ),
                         ),

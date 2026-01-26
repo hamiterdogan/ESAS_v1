@@ -15,11 +15,7 @@ class TalepKarti extends StatelessWidget {
   final Talep talep;
   final String? displayOnayTipi;
 
-  const TalepKarti({
-    super.key,
-    required this.talep,
-    this.displayOnayTipi,
-  });
+  const TalepKarti({super.key, required this.talep, this.displayOnayTipi});
 
   String _formatTarih(String tarihStr) {
     try {
@@ -82,7 +78,8 @@ class TalepKarti extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: 3,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
       color:
           Color.lerp(
             Theme.of(context).scaffoldBackgroundColor,
@@ -240,6 +237,7 @@ class TalepKarti extends StatelessWidget {
                         horizontal: 10,
                         vertical: 4,
                       ),
+                      constraints: const BoxConstraints(maxWidth: 110),
                       decoration: BoxDecoration(
                         color: _getOnayDurumuRengi(
                           talep.onayDurumu,
@@ -255,15 +253,17 @@ class TalepKarti extends StatelessWidget {
                             color: _getOnayDurumuRengi(talep.onayDurumu),
                           ),
                           const SizedBox(width: 4),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              _getOnayDurumuText(talep.onayDurumu),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: _getOnayDurumuRengi(talep.onayDurumu),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                _getOnayDurumuText(talep.onayDurumu),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _getOnayDurumuRengi(talep.onayDurumu),
+                                ),
                               ),
                             ),
                           ),

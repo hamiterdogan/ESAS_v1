@@ -33,12 +33,16 @@ class CustomSwitchWidget extends StatelessWidget {
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
       children: [
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
-          activeThumbColor: AppColors.gradientEnd,
-          inactiveTrackColor: AppColors.textOnPrimary,
+        Container(
+          decoration: BoxDecoration(shape: BoxShape.circle),
+          padding: const EdgeInsets.all(8),
+          child: Switch(
+            value: value,
+            onChanged: onChanged,
+            activeTrackColor: AppColors.gradientStart.withValues(alpha: 0.5),
+            activeThumbColor: AppColors.gradientEnd,
+            inactiveTrackColor: AppColors.textOnPrimary,
+          ),
         ),
         SizedBox(width: spacing),
         if (compact) fittedLabel else Expanded(child: fittedLabel),

@@ -126,9 +126,6 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                           onPressed: () => Navigator.pop(context, false),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(
-                              color: AppColors.gradientStart,
-                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -366,15 +363,24 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                       hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                         borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
-                       ),
-                       enabledBorder: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(8),
-                         borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
-                       ),
-                       focusedBorder: OutlineInputBorder(
-                         borderRadius: BorderRadius.circular(8),
-                         borderSide: BorderSide(color: AppColors.gradientStart, width: 0.75),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.gradientStart,
+                          width: 0.75,
+                        ),
                       ),
                       filled: true,
                       fillColor: AppColors.textOnPrimary,

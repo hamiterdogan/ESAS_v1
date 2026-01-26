@@ -88,7 +88,10 @@ class _PersonelSelectorWidgetState
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.textOnPrimary,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(
+                color: AppColors.borderStandartColor,
+                width: 0.75,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
