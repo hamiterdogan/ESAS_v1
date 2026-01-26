@@ -366,15 +366,15 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                       hintText: 'Lütfen izinde bulunacağınız adresi giriniz.',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(color: AppColors.gradientStart),
                       ),
                       filled: true,
                       fillColor: AppColors.textOnPrimary,
