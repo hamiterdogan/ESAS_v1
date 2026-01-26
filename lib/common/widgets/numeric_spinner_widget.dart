@@ -101,7 +101,7 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                 width: buttonSize,
                 height: fieldHeight,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.borderStandartColor),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8),
                     bottomLeft: Radius.circular(8),
@@ -139,11 +139,11 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.borderStandartColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1),
-                    borderSide: const BorderSide(color: AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.borderStandartColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(1),
@@ -198,7 +198,7 @@ class _NumericSpinnerWidgetState extends ConsumerState<NumericSpinnerWidget> {
                 width: buttonSize,
                 height: fieldHeight,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: AppColors.borderStandartColor),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(8),
                     bottomRight: Radius.circular(8),

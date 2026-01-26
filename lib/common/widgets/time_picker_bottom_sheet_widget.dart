@@ -367,7 +367,7 @@ class _TimePickerBottomSheetWidgetState
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.textOnPrimary,
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: AppColors.borderStandartColor),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

@@ -78,7 +78,7 @@ class AppColors {
   // ══════════════════════════════════════════════════════════════════════════
 
   /// Standart border rengi (input alanları)
-  static const Color borderStandartColor = Color(0xFFD1D5DB);
+  static const Color borderStandartColor = Color(0xFF9CA3AF);
 
   /// Standart border rengi
   static const Color border = Color(0xFFE2E8F0);
