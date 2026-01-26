@@ -444,15 +444,15 @@ class _KurumGorevlendirmesiIzinScreenState
                       hintText: 'Lütfen izinde bulunacağı adres giriniz.',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.borderStandartColor),
+                        borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.borderStandartColor),
+                        borderSide: BorderSide(color: AppColors.borderStandartColor, width: 0.75),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: AppColors.gradientStart),
+                        borderSide: BorderSide(color: AppColors.gradientStart, width: 0.75),
                       ),
                       filled: true,
                       fillColor: AppColors.textOnPrimary,
