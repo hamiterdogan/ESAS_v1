@@ -472,11 +472,11 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                       hintText: 'Lütfen izinde bulunacağı adres giriniz.',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
+                         borderSide: BorderSide(color: AppColors.borderStandartColor),
+                       ),
+                       enabledBorder: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(8),
+                         borderSide: BorderSide(color: AppColors.borderStandartColor),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
