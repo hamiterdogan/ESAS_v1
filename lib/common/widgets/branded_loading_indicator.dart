@@ -123,7 +123,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   angle: _controller.value * 2 * math.pi,
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
-                      strokeWidth: 12,
+                      strokeWidth: 6,
                       startColor: AppColors.gradientStart.withValues(
                         alpha: 1.0,
                       ),
@@ -187,8 +187,8 @@ class _SegmentedRingPainter extends CustomPainter {
     // 2 * pi for full circle
     const fullCircle = 2 * math.pi;
     final segmentAngle = fullCircle / segmentCount;
-    // 12px gap = 12 / radius (arc length formula)
-    final gapAngle = (12.0 / radius).clamp(0.3, segmentAngle * 0.5);
+    // 20px gap = 20 / radius (arc length formula)
+    final gapAngle = (20.0 / radius).clamp(0.3, segmentAngle * 0.5);
     final sweepAngle = segmentAngle - gapAngle;
 
     for (int i = 0; i < segmentCount; i++) {
