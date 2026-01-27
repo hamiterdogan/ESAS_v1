@@ -184,18 +184,6 @@ class _SegmentedRingPainter extends CustomPainter {
     final radius = (math.min(size.width, size.height) - strokeWidth) / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    // Create a sweep gradient from startColor to endColor
-    // This will create a smooth transition around the circle.
-    paint.shader = SweepGradient(
-      colors: [startColor, endColor],
-      tileMode: TileMode.clamp,
-    ).createShader(rect);
-
     // 2 * pi for full circle
     const fullCircle = 2 * math.pi;
     final segmentAngle = fullCircle / segmentCount;
@@ -206,7 +194,21 @@ class _SegmentedRingPainter extends CustomPainter {
     for (int i = 0; i < segmentCount; i++) {
       final startAngle = (i * segmentAngle);
 
-      canvas.drawArc(rect, startAngle, sweepAngle, false, paint);
+      // Create gradient for each segment: start opacity 1.0, end opacity 0.2
+      final segmentPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      segmentPaint.shader = SweepGradient(
+        colors: [
+          startColor.withValues(alpha: 1.0),
+          endColor.withValues(alpha: 0.2),
+        ],
+        tileMode: TileMode.clamp,
+      ).createShader(rect);
+
+      canvas.drawArc(rect, startAngle, sweepAngle, false, segmentPaint);
     }
   }
 

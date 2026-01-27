@@ -5,6 +5,8 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/generic_talep_yonetim_screen.dart';
 import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 
@@ -39,6 +41,21 @@ class _AracTalepYonetimScreenState
     '3 Ay',
     '1 Yıl',
   ];
+
+  bool _showLoadingOverlay = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // 6 saniye loading göster
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) {
+        setState(() {
+          _showLoadingOverlay = false;
+        });
+      }
+    });
+  }
 
   void _updateAvailableStatuses(List<String> statuses) {
     final normalized = statuses.toSet().toList()..sort();
@@ -92,43 +109,54 @@ class _AracTalepYonetimScreenState
   @override
   Widget build(BuildContext context) {
     final ref = this.ref;
-    return GenericTalepYonetimScreen<Talep>(
-      config: TalepYonetimConfig<Talep>(
-        title: 'Araç İsteklerini Yönet',
-        addRoute: '/arac/turu_secim',
-        enableFilter: true,
-        onFilterTap: () => _showFilterBottomSheet(),
-        devamEdenBuilder:
-            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-              return _AracTalepListesi(
-                taleplerAsync: ref.watch(aracDevamEdenTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(aracDevamEdenTaleplerProvider.future),
-                helper: helper,
-                applyFilters: false,
-                selectedDuration: _selectedDuration,
-                selectedRequestTypes: _selectedRequestTypes,
-                selectedStatuses: _selectedStatuses,
-                onDurumlarUpdated: _updateAvailableStatuses,
-                onRequestTypesUpdated: _updateAvailableRequestTypes,
-              );
-            },
-        tamamlananBuilder:
-            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
-              return _AracTalepListesi(
-                taleplerAsync: ref.watch(aracTamamlananTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(aracTamamlananTaleplerProvider.future),
-                helper: helper,
-                applyFilters: true,
-                selectedDuration: _selectedDuration,
-                selectedRequestTypes: _selectedRequestTypes,
-                selectedStatuses: _selectedStatuses,
-                onDurumlarUpdated: _updateAvailableStatuses,
-                onRequestTypesUpdated: _updateAvailableRequestTypes,
-              );
-            },
-      ),
+    return Stack(
+      children: [
+        GenericTalepYonetimScreen<Talep>(
+          config: TalepYonetimConfig<Talep>(
+            title: 'Araç İsteklerini Yönet',
+            addRoute: '/arac/turu_secim',
+            enableFilter: true,
+            onFilterTap: () => _showFilterBottomSheet(),
+            devamEdenBuilder:
+                (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+                  return _AracTalepListesi(
+                    taleplerAsync: ref.watch(aracDevamEdenTaleplerProvider),
+                    onRefresh: () =>
+                        ref.refresh(aracDevamEdenTaleplerProvider.future),
+                    helper: helper,
+                    applyFilters: false,
+                    selectedDuration: _selectedDuration,
+                    selectedRequestTypes: _selectedRequestTypes,
+                    selectedStatuses: _selectedStatuses,
+                    onDurumlarUpdated: _updateAvailableStatuses,
+                    onRequestTypesUpdated: _updateAvailableRequestTypes,
+                  );
+                },
+            tamamlananBuilder:
+                (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
+                  return _AracTalepListesi(
+                    taleplerAsync: ref.watch(aracTamamlananTaleplerProvider),
+                    onRefresh: () =>
+                        ref.refresh(aracTamamlananTaleplerProvider.future),
+                    helper: helper,
+                    applyFilters: true,
+                    selectedDuration: _selectedDuration,
+                    selectedRequestTypes: _selectedRequestTypes,
+                    selectedStatuses: _selectedStatuses,
+                    onDurumlarUpdated: _updateAvailableStatuses,
+                    onRequestTypesUpdated: _updateAvailableRequestTypes,
+                  );
+                },
+          ),
+        ),
+        if (_showLoadingOverlay)
+          Container(
+            color: Colors.black.withOpacity(0.3),
+            child: const Center(
+              child: BrandedLoadingIndicator(),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -110,7 +110,7 @@ class GelenKutusuKarti extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final onayTipiText = displayOnayTipi ?? talep.onayTipi;
-    
+
     // Check if unread (API sends boolean but model converts to String "false"/"true")
     final isUnread = talep.okundu?.toLowerCase() == 'false';
 
@@ -133,7 +133,10 @@ class GelenKutusuKarti extends ConsumerWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isUnread
-            ? BorderSide(color: AppColors.primaryDark.withValues(alpha: 0.2), width: 1.5)
+            ? BorderSide(
+                color: AppColors.primaryDark.withValues(alpha: 0.2),
+                width: 1.5,
+              )
             : BorderSide.none,
       ),
       child: InkWell(
@@ -232,14 +235,13 @@ class GelenKutusuKarti extends ConsumerWidget {
               ),
             );
           }
-          
+
           // Detay sayfasından dönüldüğünde listeyi ve badge sayısını yenile
           // Sadece okunmamış bir talebe tıklandıysa yenileme yap
           if (isUnread) {
-             ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
-             ref.invalidate(okunmayanTalepSayisiProvider);
+            ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+            ref.invalidate(okunmayanTalepSayisiProvider);
           }
-
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -271,7 +273,9 @@ class GelenKutusuKarti extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: isUnread ? Colors.black : Colors.black, // Color reverted to standard
+                            color: isUnread
+                                ? Colors.black
+                                : Colors.black, // Color reverted to standard
                           ),
                         ),
                         Text(
@@ -279,7 +283,9 @@ class GelenKutusuKarti extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: isUnread ? AppColors.primary : AppColors.primaryDark,
+                            color: isUnread
+                                ? AppColors.primary
+                                : AppColors.primaryDark,
                           ),
                         ),
                       ],
@@ -331,9 +337,11 @@ class GelenKutusuKarti extends ConsumerWidget {
               Text(
                 onayTipiText,
                 style: TextStyle(
-                  fontSize: isUnread ? 18 : 17, 
+                  fontSize: isUnread ? 18 : 17,
                   color: isUnread ? AppColors.primary : Colors.black,
-                  fontWeight: isUnread ? FontWeight.w700 : FontWeight.normal, // Increased weight for unread
+                  fontWeight: isUnread
+                      ? FontWeight.w700
+                      : FontWeight.normal, // Increased weight for unread
                 ),
               ),
               const SizedBox(height: 4),
@@ -352,9 +360,11 @@ class GelenKutusuKarti extends ConsumerWidget {
                     TextSpan(
                       text: talep.olusturanKisi,
                       style: TextStyle(
-                        fontSize: 14, 
+                        fontSize: 14,
                         color: Colors.black,
-                        fontWeight: isUnread ? FontWeight.bold : FontWeight.normal, // Bold if unread
+                        fontWeight: isUnread
+                            ? FontWeight.bold
+                            : FontWeight.normal, // Bold if unread
                       ),
                     ),
                   ],
