@@ -44,13 +44,9 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
   // Hata durumu state'leri
   bool _adresHatali = false;
 
-  /// Bir sonraki seçilebilir günü döndürür (Pazar değilse)
+  /// Bir sonraki günü döndürür
   DateTime _getNextSelectableDay(DateTime date) {
-    var nextDay = date.add(const Duration(days: 1));
-    if (nextDay.weekday == DateTime.sunday) {
-      nextDay = nextDay.add(const Duration(days: 1));
-    }
-    return nextDay;
+    return date.add(const Duration(days: 1));
   }
 
   @override
@@ -291,15 +287,9 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                                 // Başlangıç > mevcut bitiş ise bitişi bir sonraki güne taşı
                                 if (_bitisTarihi == null ||
                                     date.isAfter(_bitisTarihi!)) {
-                                  var nextDay = date.add(
+                                  _bitisTarihi = date.add(
                                     const Duration(days: 1),
                                   );
-                                  if (nextDay.weekday == DateTime.sunday) {
-                                    nextDay = nextDay.add(
-                                      const Duration(days: 1),
-                                    );
-                                  }
-                                  _bitisTarihi = nextDay;
                                 }
                                 // Başlangıç tarihi bitişten küçükse bitiş sabit kalır
                               }

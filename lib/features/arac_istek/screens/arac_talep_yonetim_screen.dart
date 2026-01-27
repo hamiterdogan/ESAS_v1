@@ -253,8 +253,9 @@ class _AracTalepListesi extends ConsumerWidget {
             ),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 6),
-            itemBuilder: (context, index) =>
-                _AracTalepCard(talep: sorted[index], helper: helper),
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _AracTalepCard(talep: sorted[index], helper: helper),
+            ),
           ),
         );
       },

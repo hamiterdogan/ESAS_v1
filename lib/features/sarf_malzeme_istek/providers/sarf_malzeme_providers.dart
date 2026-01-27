@@ -5,6 +5,11 @@ import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_talep.da
 import 'package:esas_v1/features/sarf_malzeme_istek/repositories/sarf_malzeme_repository.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_kategori_models.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_detay_model.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
+import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
+import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 
 final sarfMalzemeRepositoryProvider = Provider<SarfMalzemeRepository>((ref) {
   final dio = ref.read(dioProvider);
@@ -13,24 +18,28 @@ final sarfMalzemeRepositoryProvider = Provider<SarfMalzemeRepository>((ref) {
 
 final sarfMalzemeTemizlikKategorilerProvider =
     FutureProvider.autoDispose<List<SarfMalzemeAnaKategori>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
       return repo.getTemizlikKategorileri();
     });
 
 final sarfMalzemeKirtasiyeKategorilerProvider =
     FutureProvider.autoDispose<List<SarfMalzemeAnaKategori>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
       return repo.getKirtasiyeKategorileri();
     });
 
 final sarfMalzemePromosyonKategorilerProvider =
     FutureProvider.autoDispose<List<SarfMalzemeAnaKategori>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
       return repo.getPromosyonKategorileri();
     });
 
 final sarfMalzemeYiyecekKategorilerProvider =
     FutureProvider.autoDispose<List<SarfMalzemeAnaKategori>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
       return repo.getYiyecekKategorileri();
     });
@@ -43,6 +52,7 @@ final sarfMalzemeAltKategorilerProvider = FutureProvider.family
 
 final allSarfMalzemeTurleriProvider =
     FutureProvider.autoDispose<List<SarfMalzemeTuru>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
       return repo.getSarfMalzemeTurleri();
     });
@@ -67,7 +77,38 @@ final sarfMalzemeDetayProvider = FutureProvider.family
       return repo.getSarfMalzemeDetay(id);
     });
 
+// Combined provider for parallel loading of detay screen data
+final sarfMalzemeDetayParalelProvider = FutureProvider.family
+    .autoDispose<SarfMalzemeDetayParalelData, int>((ref, id) async {
+      final results = await Future.wait([
+        ref.watch(sarfMalzemeDetayProvider(id).future),
+        ref.watch(personelBilgiProvider.future),
+        ref.watch(satinAlmaBinalarProvider.future),
+      ]);
+
+      return SarfMalzemeDetayParalelData(
+        detay: results[0] as SarfMalzemeDetayResponse,
+        personel: results[1] as PersonelBilgiResponse,
+        binalar: results[2] as List<SatinAlmaBina>,
+      );
+    });
+
+class SarfMalzemeDetayParalelData {
+  final SarfMalzemeDetayResponse detay;
+  final PersonelBilgiResponse personel;
+  final List<SatinAlmaBina> binalar;
+
+  SarfMalzemeDetayParalelData({
+    required this.detay,
+    required this.personel,
+    required this.binalar,
+  });
+}
+
 final donemlerProvider = FutureProvider.autoDispose<List<String>>((ref) async {
+  ref.cacheFor(
+    const Duration(minutes: 10),
+  ); // Cache for 10 minutes - rarely changes
   final repo = ref.read(sarfMalzemeRepositoryProvider);
   return repo.getDonemler();
 });
@@ -75,6 +116,9 @@ final donemlerProvider = FutureProvider.autoDispose<List<String>>((ref) async {
 final etkinlikAdlariProvider = FutureProvider.autoDispose<List<String>>((
   ref,
 ) async {
+  ref.cacheFor(
+    const Duration(minutes: 10),
+  ); // Cache for 10 minutes - rarely changes
   final repo = ref.read(sarfMalzemeRepositoryProvider);
   return repo.getEtkinlikAdlari();
 });

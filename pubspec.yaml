@@ -23,6 +23,7 @@ dependencies:
   file_picker: ^10.3.6
   flutter_slidable: ^4.0.3
   image_picker: ^1.1.2
+  shimmer: ^3.0.0
   # state_notifier removed - using Riverpod 3 Notifier pattern
 
 dev_dependencies:

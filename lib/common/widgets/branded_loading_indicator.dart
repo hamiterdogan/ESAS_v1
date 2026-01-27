@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -73,6 +74,8 @@ class BrandedLoadingOverlay extends StatelessWidget {
 class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  Timer? _delayTimer;
+  bool _isVisible = false;
 
   @override
   void initState() {
@@ -81,10 +84,17 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
+    _delayTimer = Timer(const Duration(seconds: 1), () {
+      if (!mounted) return;
+      setState(() {
+        _isVisible = true;
+      });
+    });
   }
 
   @override
   void dispose() {
+    _delayTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -113,12 +123,12 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   angle: _controller.value * 2 * math.pi,
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
-                      strokeWidth: widget.strokeWidth,
+                      strokeWidth: 8,
                       startColor: AppColors.gradientStart.withValues(
-                        alpha: 0.9,
+                        alpha: 1.0,
                       ),
-                      endColor: AppColors.gradientEnd.withValues(alpha: 0.9),
-                      segmentCount: 8,
+                      endColor: AppColors.gradientEnd.withValues(alpha: 0.3),
+                      segmentCount: 3,
                     ),
                   ),
                 );
@@ -147,7 +157,11 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
       ),
     );
 
-    return indicator;
+    return Visibility(
+      visible: _isVisible,
+      replacement: const SizedBox.shrink(),
+      child: indicator,
+    );
   }
 }
 
@@ -185,8 +199,8 @@ class _SegmentedRingPainter extends CustomPainter {
     // 2 * pi for full circle
     const fullCircle = 2 * math.pi;
     final segmentAngle = fullCircle / segmentCount;
-    // Adjusted gap for round cap (0.96 for wider gaps)
-    final gapAngle = 0.96 * segmentAngle;
+    // 35px gap = 35 / radius (arc length formula)
+    final gapAngle = (35.0 / radius).clamp(0.3, segmentAngle * 0.5);
     final sweepAngle = segmentAngle - gapAngle;
 
     for (int i = 0; i < segmentCount; i++) {

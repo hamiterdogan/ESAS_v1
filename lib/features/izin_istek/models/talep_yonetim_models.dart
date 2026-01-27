@@ -178,3 +178,15 @@ class Talep {
     };
   }
 }
+
+class OkunmayanTalepResponse {
+  final int talepSayisi;
+
+  OkunmayanTalepResponse({required this.talepSayisi});
+
+  factory OkunmayanTalepResponse.fromJson(Map<String, dynamic> json) {
+    return OkunmayanTalepResponse(
+      talepSayisi: json['talepSayisi'] as int? ?? 0,
+    );
+  }
+}

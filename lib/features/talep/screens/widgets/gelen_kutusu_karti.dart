@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
 import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
 import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
@@ -11,7 +14,7 @@ import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_s
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
 
 /// Gelen Kutusu kartı widget'ı - Gelen Kutusu listesindeki kartlar
-class GelenKutusuKarti extends StatelessWidget {
+class GelenKutusuKarti extends ConsumerWidget {
   final Talep talep;
   final String? displayOnayTipi;
 
@@ -85,13 +88,40 @@ class GelenKutusuKarti extends StatelessWidget {
     }
   }
 
+  /// Satın Alma kartları için toplamTutar'a göre renk döndürür
+  /// 0-10.000 TL: Açık yeşil
+  /// 10.001-50.000 TL: Turuncu
+  /// 50.001+ TL: Açık kırmızı
+  Color _getSatinAlmaCardColor(BuildContext context) {
+    final toplamTutar = talep.toplamTutar;
+
+    if (toplamTutar <= 10000) {
+      // Açık yeşil
+      return const Color(0xFFE8F5E9); // Light Green 50
+    } else if (toplamTutar <= 50000) {
+      // Turuncu
+      return const Color(0xFFFFF3E0); // Orange 50
+    } else {
+      // Açık kırmızı
+      return const Color(0xFFFFEBEE); // Red 50
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final onayTipiText = displayOnayTipi ?? talep.onayTipi;
+    
+    // Check if unread (API sends boolean but model converts to String "false"/"true")
+    final isUnread = talep.okundu?.toLowerCase() == 'false';
+
+    // Satın Alma kartları için toplam tutar rengi
+    final isSatinAlma =
+        talep.onayTipi.toLowerCase().contains('satın') ||
+        talep.onayTipi.toLowerCase().contains('satin');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 3,
+      elevation: 2,
       shadowColor: Colors.black.withValues(alpha: 0.12),
       color:
           Color.lerp(
@@ -100,12 +130,33 @@ class GelenKutusuKarti extends StatelessWidget {
             0.65,
           ) ??
           AppColors.textOnPrimary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isUnread
+            ? BorderSide(color: AppColors.primaryDark.withValues(alpha: 0.2), width: 1.5)
+            : BorderSide.none,
+      ),
       child: InkWell(
-        onTap: () {
+        onTap: () async {
+          // Eğer okunmamışsa, okundu olarak işaretle
+          if (isUnread) {
+            try {
+              final repository = ref.read(talepYonetimRepositoryProvider);
+              await repository.okunduIsaretle(
+                onayKayitId: talep.onayKayitId,
+                onayTipi: talep.onayTipi,
+              );
+              // Hata olsa bile sessizce devam et, kullanıcı akışını bozma
+            } catch (e) {
+              debugPrint('Okundu işaretleme hatası: $e');
+            }
+          }
+
+          if (!context.mounted) return;
+
           // İzin İstek tipleri için detay sayfasına git
           if (talep.onayTipi.toLowerCase().contains('izin')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) => IzinIstekDetayScreen(
@@ -118,7 +169,7 @@ class GelenKutusuKarti extends StatelessWidget {
           // Araç İstek tipleri için detay sayfasına git
           else if (talep.onayTipi.toLowerCase().contains('araç') ||
               talep.onayTipi.toLowerCase().contains('arac')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
@@ -128,7 +179,7 @@ class GelenKutusuKarti extends StatelessWidget {
           }
           // Dokümantasyon İstek tipleri için detay sayfasına git
           else if (talep.onayTipi.toLowerCase().contains('dok')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) => DokumantasyonIstekDetayScreen(
@@ -141,7 +192,7 @@ class GelenKutusuKarti extends StatelessWidget {
           // Satın Alma İstek tipleri için detay sayfasına git
           else if (talep.onayTipi.toLowerCase().contains('satın') ||
               talep.onayTipi.toLowerCase().contains('satin')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
@@ -151,7 +202,7 @@ class GelenKutusuKarti extends StatelessWidget {
           }
           // Teknik Destek / Bilgi Teknolojileri İstek tipleri için detay sayfasına git
           else if (talep.onayTipi.toLowerCase().contains('teknik destek')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
@@ -161,7 +212,7 @@ class GelenKutusuKarti extends StatelessWidget {
           }
           // Sarf Malzeme İstek tipleri için detay sayfasına git
           else if (talep.onayTipi.toLowerCase().contains('sarf malzeme')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
@@ -173,7 +224,7 @@ class GelenKutusuKarti extends StatelessWidget {
           else if (talep.onayTipi.toLowerCase().contains('yiyecek') ||
               talep.onayTipi.toLowerCase().contains('içecek') ||
               talep.onayTipi.toLowerCase().contains('icecek')) {
-            Navigator.push(
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (ctx) =>
@@ -181,7 +232,14 @@ class GelenKutusuKarti extends StatelessWidget {
               ),
             );
           }
-          // Diğer süreç türleri için şimdilik tepki verme
+          
+          // Detay sayfasından dönüldüğünde listeyi ve badge sayısını yenile
+          // Sadece okunmamış bir talebe tıklandıysa yenileme yap
+          if (isUnread) {
+             ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+             ref.invalidate(okunmayanTalepSayisiProvider);
+          }
+
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -193,23 +251,35 @@ class GelenKutusuKarti extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Unread Indicator - Clean Dot
+                  if (isUnread) ...[
+                    Container(
+                      margin: const EdgeInsets.only(top: 6, right: 10),
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                   Expanded(
                     child: Row(
                       children: [
                         Text(
                           'Süreç No: ',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: isUnread ? Colors.black : Colors.black, // Color reverted to standard
                           ),
                         ),
                         Text(
                           '${talep.onayKayitId}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primaryDark,
+                            color: isUnread ? AppColors.primary : AppColors.primaryDark,
                           ),
                         ),
                       ],
@@ -260,7 +330,11 @@ class GelenKutusuKarti extends StatelessWidget {
               // Talep Türü
               Text(
                 onayTipiText,
-                style: const TextStyle(fontSize: 17, color: Colors.black),
+                style: TextStyle(
+                  fontSize: isUnread ? 18 : 17, 
+                  color: isUnread ? AppColors.primary : Colors.black,
+                  fontWeight: isUnread ? FontWeight.w700 : FontWeight.normal, // Increased weight for unread
+                ),
               ),
               const SizedBox(height: 4),
               // Talep Eden
@@ -277,7 +351,11 @@ class GelenKutusuKarti extends StatelessWidget {
                     ),
                     TextSpan(
                       text: talep.olusturanKisi,
-                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                      style: TextStyle(
+                        fontSize: 14, 
+                        color: Colors.black,
+                        fontWeight: isUnread ? FontWeight.bold : FontWeight.normal, // Bold if unread
+                      ),
                     ),
                   ],
                 ),
@@ -288,6 +366,28 @@ class GelenKutusuKarti extends StatelessWidget {
                 '${talep.gorevYeri ?? '-'} - ${talep.gorevi ?? '-'}',
                 style: const TextStyle(fontSize: 14, color: Colors.black),
               ),
+              // Satın Alma için Toplam Tutar
+              if (isSatinAlma && talep.toplamTutar > 0) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getSatinAlmaCardColor(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Toplam: ${NumberFormat('#,##0.00', 'tr_TR').format(talep.toplamTutar)} ₺',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               // Tarih
               Text(

@@ -34,6 +34,13 @@ abstract class TalepYonetimRepository {
     required int talepId,
     required String onayTipi,
   });
+
+  Future<Result<OkunmayanTalepResponse>> okunmayanTalepSayisiGetir();
+
+  Future<Result<void>> okunduIsaretle({
+    required int onayKayitId,
+    required String onayTipi,
+  });
 }
 
 class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
@@ -58,7 +65,12 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
       final response = await dio.post(
         '/TalepYonetimi/TaleplerimiGetir',
         data: requestModel.toJson(),
-        options: Options(contentType: 'application/json'),
+        options: Options(
+          contentType: 'application/json',
+          // Timeout for large datasets - prevents infinite loading
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -68,6 +80,11 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
 
       return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return Failure('Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.');
+      }
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {
       return Failure(e.toString());
@@ -291,6 +308,52 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
       }
 
       return Failure('Onay durumu verisi boş');
+    } on DioException catch (e) {
+      return Failure(e.message ?? 'Bağlantı hatası');
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<OkunmayanTalepResponse>> okunmayanTalepSayisiGetir() async {
+    try {
+      final response = await dio.get(
+        '/TalepYonetimi/OkunmayanTalepSayisi',
+      );
+
+      if (response.statusCode == 200) {
+        final data = OkunmayanTalepResponse.fromJson(response.data);
+        return Success(data);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(e.message ?? 'Bağlantı hatası');
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<void>> okunduIsaretle({
+    required int onayKayitId,
+    required String onayTipi,
+  }) async {
+    try {
+      final response = await dio.post(
+        '/TalepYonetimi/OkunduIsaretle',
+        data: {
+          'onayKayitId': onayKayitId,
+          'onayTipi': onayTipi,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {

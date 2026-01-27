@@ -145,8 +145,12 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
             ),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 6),
-            itemBuilder: (context, index) =>
-                _TeknikDestekTalepCard(talep: sorted[index], helper: helper),
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _TeknikDestekTalepCard(
+                talep: sorted[index],
+                helper: helper,
+              ),
+            ),
           ),
         );
       },

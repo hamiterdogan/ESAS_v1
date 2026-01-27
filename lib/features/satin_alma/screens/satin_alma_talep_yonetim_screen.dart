@@ -344,11 +344,13 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
             ),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 2),
-            itemBuilder: (context, index) => _SatinAlmaTalepCard(
-              talep: sorted[index],
-              helper: helper,
-              kategoriLabel: getKategoriLabel(sorted[index]),
-              tamamlanan: tamamlanan,
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _SatinAlmaTalepCard(
+                talep: sorted[index],
+                helper: helper,
+                kategoriLabel: getKategoriLabel(sorted[index]),
+                tamamlanan: tamamlanan,
+              ),
             ),
           ),
         );

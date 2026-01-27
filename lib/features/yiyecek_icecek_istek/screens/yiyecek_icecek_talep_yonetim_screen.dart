@@ -256,8 +256,12 @@ class _YiyecekIcecekTalepListesi extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 2),
-            itemBuilder: (context, index) =>
-                _YiyecekIcecekTalepCard(talep: sorted[index], helper: helper),
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _YiyecekIcecekTalepCard(
+                talep: sorted[index],
+                helper: helper,
+              ),
+            ),
           ),
         );
       },

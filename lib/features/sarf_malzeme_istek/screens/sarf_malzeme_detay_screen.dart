@@ -37,14 +37,18 @@ class _SarfMalzemeDetayScreenState
 
   @override
   Widget build(BuildContext context) {
-    final detayAsync = ref.watch(sarfMalzemeDetayProvider(widget.talepId));
-    final personelAsync = ref.watch(personelBilgiProvider);
-    final binalarAsync = ref.watch(satinAlmaBinalarProvider);
+    final paralelAsync = ref.watch(
+      sarfMalzemeDetayParalelProvider(widget.talepId),
+    );
 
-    final isLoading = detayAsync.isLoading;
-    final body = detayAsync.when(
-      data: (detay) =>
-          _buildContent(context, detay, personelAsync, binalarAsync),
+    final isLoading = paralelAsync.isLoading;
+    final body = paralelAsync.when(
+      data: (paralelData) => _buildContent(
+        context,
+        paralelData.detay,
+        AsyncValue.data(paralelData.personel),
+        AsyncValue.data(paralelData.binalar),
+      ),
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => _buildError(context, error),
     );

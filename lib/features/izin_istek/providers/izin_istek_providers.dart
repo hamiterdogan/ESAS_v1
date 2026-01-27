@@ -6,6 +6,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_nedeni.dart';
 import 'package:esas_v1/features/izin_istek/models/dini_gun_model.dart';
 import 'package:esas_v1/features/izin_istek/repositories/izin_istek_repository.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 
 // Repository provider
 final izinIstekRepositoryProvider = Provider<IzinIstekRepository>((ref) {
@@ -45,8 +46,8 @@ final personelSecimSearchQueryProvider =
 final allPersonelProvider = FutureProvider.autoDispose<List<Personel>>((
   ref,
 ) async {
-  // Cache'leme icin keepAlive - ekran kapandiginda hemen dispose etme
-  ref.keepAlive();
+  // Cache'leme icin cacheFor - 10 dakika boyunca cache'de tut
+  ref.cacheFor(const Duration(minutes: 10));
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getPersoneller('');
 
@@ -82,8 +83,8 @@ final filteredPersonelProvider = Provider<AsyncValue<List<Personel>>>((ref) {
 final allIzinNedenlerProvider = FutureProvider.autoDispose<List<IzinNedeni>>((
   ref,
 ) async {
-  // Cache'leme icin keepAlive
-  ref.keepAlive();
+  // Cache'leme icin cacheFor - 10 dakika boyunca cache'de tut
+  ref.cacheFor(const Duration(minutes: 10));
   final repo = ref.watch(izinIstekRepositoryProvider);
   final result = await repo.getIzinNedenleri();
 

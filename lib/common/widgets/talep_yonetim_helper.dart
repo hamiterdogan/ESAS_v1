@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/shimmer_loading_widgets.dart';
 
 /// Talep yönetim ekranları için yardımcı sınıf.
 ///
@@ -159,13 +159,7 @@ class TalepYonetimHelper {
 
   /// Yükleme durumu widget'ı
   Widget buildLoadingState() {
-    return const Center(
-      child: SizedBox(
-        width: 153,
-        height: 153,
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-      ),
-    );
+    return const ListShimmer(itemCount: 5);
   }
 
   /// Hata durumu widget'ı

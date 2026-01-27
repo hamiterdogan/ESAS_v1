@@ -7,6 +7,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_talepleri_model.dart';
 import 'package:esas_v1/features/izin_istek/models/gorev_model.dart';
 import 'package:esas_v1/features/izin_istek/models/gorev_yeri_model.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 
 final talepYonetimRepositoryProvider = Provider<TalepYonetimRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -59,14 +60,22 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
 
   @override
   PaginatedTalepState build() {
-    return const PaginatedTalepState();
+    // Auto-load on first access via microtask to avoid build-time state mutation
+    Future.microtask(() => loadInitial());
+    return const PaginatedTalepState(isInitialLoading: true);
   }
 
   Future<void> loadInitial() async {
     // If already initialized or loading, skip
-    if (state.isInitialLoading || (state.talepler.isNotEmpty && !state.hasMore))
+    if (state.talepler.isNotEmpty ||
+        (state.isLoading && !state.isInitialLoading)) {
+      print(
+        '🔄 [TalepProvider tip:$tip] loadInitial SKIPPED - hasData:${state.talepler.isNotEmpty}, isLoading:${state.isLoading}',
+      );
       return;
+    }
 
+    print('🔄 [TalepProvider tip:$tip] loadInitial STARTING...');
     state = state.copyWith(isInitialLoading: true, errorMessage: null);
     await _fetchPage(0);
   }
@@ -83,20 +92,31 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
 
   Future<void> _fetchPage(int pageIndex) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
+    print('📡 [TalepProvider tip:$tip] Fetching page $pageIndex...');
 
     final repository = ref.read(talepYonetimRepositoryProvider);
 
     final result = await repository.taleplerimiGetir(
-      tip: tip, // Use the tip field instead of arg
+      tip: tip,
       pageIndex: pageIndex,
       pageSize: _pageSize,
     );
 
-    if (!ref.mounted) return;
+    print(
+      '📡 [TalepProvider tip:$tip] API result received: ${result.runtimeType}',
+    );
+
+    if (!ref.mounted) {
+      print('⚠️ [TalepProvider tip:$tip] NOT MOUNTED - aborting');
+      return;
+    }
 
     switch (result) {
       case Success(data: final data):
         final newTalepler = data.talepler;
+        print(
+          '✅ [TalepProvider tip:$tip] SUCCESS - ${newTalepler.length} items received',
+        );
         bool isLastPage = newTalepler.length < _pageSize;
 
         List<Talep> updatedList;
@@ -120,7 +140,11 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
           isInitialLoading: false,
           hasMore: !isLastPage,
         );
+        print(
+          '✅ [TalepProvider tip:$tip] State updated - total:${updatedList.length}, hasMore:${!isLastPage}',
+        );
       case Failure(message: final message):
+        print('❌ [TalepProvider tip:$tip] FAILURE - $message');
         state = state.copyWith(
           isLoading: false,
           isInitialLoading: false,
@@ -258,6 +282,9 @@ final tamamlananIsteklerimLegacyProvider =
 // Bilgi Teknolojileri taleplerinin onayKayitId seti
 final bilgiTeknolojileriOnayKayitIdSetProvider =
     FutureProvider.autoDispose<Set<int>>((ref) async {
+      // Cache for 10 minutes - prevents repeated API calls on tab switches
+      ref.cacheFor(const Duration(minutes: 10));
+
       final repo = ref.watch(bilgiTeknolojileriIstekRepositoryProvider);
 
       Future<Set<int>> fetchIds(int tip) async {
@@ -274,10 +301,10 @@ final bilgiTeknolojileriOnayKayitIdSetProvider =
         };
       }
 
-      final devamEdenIds = await fetchIds(0);
-      final tamamlananIds = await fetchIds(1);
+      // Fetch both in parallel for faster loading
+      final results = await Future.wait([fetchIds(0), fetchIds(1)]);
 
-      return {...devamEdenIds, ...tamamlananIds};
+      return {...results[0], ...results[1]};
     });
 
 // Devam eden talepler (tip: 2) - Gelen Kutusu tabı için (PAGINATED)
@@ -294,6 +321,9 @@ final tamamlananGelenKutusuProvider =
 
 // Görev listesi provider - GorevDoldur endpoint'i
 final gorevlerProvider = FutureProvider.autoDispose<List<Gorev>>((ref) async {
+  ref.cacheFor(
+    const Duration(minutes: 15),
+  ); // Cache for 15 minutes - rarely changes
   final repo = ref.watch(talepYonetimRepositoryProvider);
   final result = await repo.gorevleriGetir();
 
@@ -308,6 +338,21 @@ final gorevlerProvider = FutureProvider.autoDispose<List<Gorev>>((ref) async {
 final gorevYerleriProvider = FutureProvider<List<GorevYeri>>((ref) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
   final result = await repo.gorevYerleriniGetir();
+
+  return switch (result) {
+    Success(:final data) => data,
+    Failure(:final message) => throw Exception(message),
+    Loading() => throw Exception('Loading'),
+  };
+});
+
+// Okunmayan talep sayısı provider
+final okunmayanTalepSayisiProvider =
+    FutureProvider.autoDispose<OkunmayanTalepResponse>((ref) async {
+  // 5 dakika cache
+  ref.cacheFor(const Duration(minutes: 5));
+  final repo = ref.watch(talepYonetimRepositoryProvider);
+  final result = await repo.okunmayanTalepSayisiGetir();
 
   return switch (result) {
     Success(:final data) => data,

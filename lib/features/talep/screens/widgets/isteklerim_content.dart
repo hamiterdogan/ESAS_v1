@@ -3,9 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
-import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/talep/screens/widgets/talep_karti.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/shimmer_loading_widgets.dart';
 
 /// İsteklerim tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class IsteklerimContent extends ConsumerStatefulWidget {
@@ -180,11 +179,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // Initial fetch
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(devamEdenIsteklerimProvider.notifier).loadInitial();
-      ref.read(tamamlananIsteklerimProvider.notifier).loadInitial();
-    });
+    // Provider now auto-loads in build() method, no need for manual loadInitial
 
     final provider = widget.tip == 0
         ? devamEdenIsteklerimProvider
@@ -263,43 +258,56 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   ) {
     final talepler = state.talepler;
 
-    // Side effect: Update filter lists
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final talepTurleri =
-          talepler
-              .map((t) => t.onayTipi)
-              .where((tur) => tur.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+    // Side effect: Update filter lists - only if talepler length changed
+    // Use microtask instead of postFrameCallback for less overhead
+    if (talepler.length != _lastTotal) {
+      _lastTotal = talepler.length;
+      Future.microtask(() {
+        if (!mounted) return;
+        final talepTurleri =
+            talepler
+                .map((t) => t.onayTipi)
+                .where((tur) => tur.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-      bool changed = false;
-      if (_mevcutTalepTurleri.length != talepTurleri.length) {
-        changed = true;
-      } else {
-        for (int i = 0; i < talepTurleri.length; i++) {
-          if (_mevcutTalepTurleri[i] != talepTurleri[i]) {
-            changed = true;
-            break;
-          }
+        if (!_listEquals(_mevcutTalepTurleri, talepTurleri)) {
+          setState(() {
+            _mevcutTalepTurleri = talepTurleri;
+          });
+        }
+      });
+    }
+
+    // Pre-calculate filter check results for faster filtering
+    final now = DateTime.now();
+    final sureCutoff = _getSureCutoffDate(now);
+
+    final filteredTalepler = talepler.where((talep) {
+      // Optimized date check with pre-calculated cutoff
+      if (sureCutoff != null) {
+        try {
+          final tarih = DateTime.parse(talep.olusturmaTarihi);
+          if (tarih.isBefore(sureCutoff)) return false;
+        } catch (e) {
+          // Invalid date, include anyway
         }
       }
 
-      if (changed) {
-        setState(() {
-          _mevcutTalepTurleri = talepTurleri;
-        });
+      // Early return if filter set is empty (common case)
+      if (_selectedTalepTurleri.isNotEmpty &&
+          !_selectedTalepTurleri.contains(talep.onayTipi)) {
+        return false;
       }
-    });
 
-    final filteredTalepler = talepler.where((talep) {
-      final surePassed = _sureFiltresindenGeciyorMu(talep.olusturmaTarihi);
-      final talepTuruPassed = _talepTuruFiltresindenGeciyorMu(talep.onayTipi);
-      final talepDurumuPassed = widget.tip == 1
-          ? _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)
-          : true;
-      return surePassed && talepTuruPassed && talepDurumuPassed;
+      if (widget.tip == 1 &&
+          _selectedTalepDurumlari.isNotEmpty &&
+          !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
+        return false;
+      }
+
+      return true;
     }).toList();
 
     filteredTalepler.sort((a, b) {
@@ -355,18 +363,9 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
               });
             }
 
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: AppColors.gradientStart,
-                  ),
-                ),
-              ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: TalepKartiShimmer()),
             );
           }
 
@@ -378,11 +377,13 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
               isTeknikDestek &&
               bilgiTekOnayKayitIds.contains(talep.onayKayitId);
 
-          return TalepKarti(
-            talep: talep,
-            displayOnayTipi: shouldShowBilgiTeknolojileri
-                ? 'Bilgi Teknolojileri'
-                : talep.onayTipi,
+          return RepaintBoundary(
+            child: TalepKarti(
+              talep: talep,
+              displayOnayTipi: shouldShowBilgiTeknolojileri
+                  ? 'Bilgi Teknolojileri'
+                  : talep.onayTipi,
+            ),
           );
         },
       ),
@@ -400,6 +401,31 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       return;
     }
     _showFilterOptionsBottomSheet();
+  }
+
+  // Listeleri karşılaştırma helper
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  // Süre filtresi için cutoff tarihini hesapla - her filtreleme için tekrar hesaplama yerine bir kere
+  DateTime? _getSureCutoffDate(DateTime now) {
+    switch (_selectedSure) {
+      case '1 Hafta':
+        return now.subtract(const Duration(days: 7));
+      case '1 Ay':
+        return now.subtract(const Duration(days: 30));
+      case '3 Ay':
+        return now.subtract(const Duration(days: 90));
+      case '1 Yıl':
+        return now.subtract(const Duration(days: 365));
+      default:
+        return null; // Tümü - no cutoff
+    }
   }
 
   // Süre filtresine göre tarih kontrolü
@@ -987,10 +1013,16 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
   @override
   Widget build(BuildContext context) {
-    // Bilgi Teknolojileri ID'lerini güvenli şekilde izle
+    // Bilgi Teknolojileri ID'lerini güvenli şekilde izle - non-blocking
+    // Use previous value during loading to prevent shimmer flicker
     final bilgiTekAsyncValue = ref.watch(
       bilgiTeknolojileriOnayKayitIdSetProvider,
     );
+
+    // Cache the IDs locally when available
+    if (bilgiTekAsyncValue.hasValue) {
+      _bilgiTekOnayKayitIds = bilgiTekAsyncValue.value!;
+    }
 
     final provider = widget.tip == 0
         ? devamEdenIsteklerimProvider
@@ -998,7 +1030,13 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
     final state = ref.watch(provider);
 
+    // DEBUG LOG
+    print(
+      '🖥️ [IsteklerimListesi tip:${widget.tip}] BUILD - isInitialLoading:${state.isInitialLoading}, isLoading:${state.isLoading}, talepler:${state.talepler.length}, error:${state.errorMessage}',
+    );
+
     if (state.errorMessage != null && state.talepler.isEmpty) {
+      print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING ERROR STATE');
       return RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
@@ -1067,15 +1105,14 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     }
 
     if (state.isInitialLoading) {
-      return const Center(
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-      );
+      print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
+      return const ListShimmer(itemCount: 5);
     }
 
-    return bilgiTekAsyncValue.when(
-      data: (ids) => _buildTalepList(context, state, ids),
-      loading: () => _buildTalepList(context, state, <int>{}),
-      error: (_, __) => _buildTalepList(context, state, <int>{}),
+    print(
+      '🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING LIST with ${state.talepler.length} items',
     );
+    // Use cached IDs immediately - don't wait for provider to load
+    return _buildTalepList(context, state, _bilgiTekOnayKayitIds);
   }
 }

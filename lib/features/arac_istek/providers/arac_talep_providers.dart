@@ -5,6 +5,7 @@ import 'package:esas_v1/features/arac_istek/repositories/arac_talep_repository.d
 import 'package:esas_v1/features/arac_istek/models/arac_turu_model.dart';
 import 'package:esas_v1/features/arac_istek/models/gidilecek_yer_model.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 
 final aracTalepRepositoryProvider = Provider<AracTalepRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -38,6 +39,7 @@ final aracTamamlananTaleplerProvider =
 final aracTurleriProvider = FutureProvider.autoDispose<List<AracTuru>>((
   ref,
 ) async {
+  ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
   final repo = ref.watch(aracTalepRepositoryProvider);
   final result = await repo.aracTurleriGetir();
 
@@ -48,8 +50,10 @@ final aracTurleriProvider = FutureProvider.autoDispose<List<AracTuru>>((
   };
 });
 
-final gidilecekYerlerProvider =
-    FutureProvider.autoDispose<List<GidilecekYer>>((ref) async {
+final gidilecekYerlerProvider = FutureProvider.autoDispose<List<GidilecekYer>>((
+  ref,
+) async {
+  ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
   final repo = ref.watch(aracTalepRepositoryProvider);
   final result = await repo.gidilecekYerleriGetir();
 

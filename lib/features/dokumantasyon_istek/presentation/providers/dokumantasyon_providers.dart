@@ -6,6 +6,7 @@ import 'package:esas_v1/features/dokumantasyon_istek/domain/repositories/dokuman
 import 'package:esas_v1/features/dokumantasyon_istek/domain/usecases/create_dokumantasyon_talep_usecase.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/presentation/providers/dokumantasyon_form_notifier.dart';
 import 'package:esas_v1/common/providers/file_attachment_provider.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 
 final dokumantasyonRepositoryProvider = Provider<IDokumantasyonRepository>((
   ref,
@@ -22,11 +23,13 @@ final createDokumantasyonUseCaseProvider =
       );
     });
 
-final dokumanTurleriProvider = FutureProvider<List<dynamic>>(
-  (ref) async =>
-      (await ref.watch(dokumantasyonRepositoryProvider).getDokumanTurleri())
-          .when(success: (d) => d, failure: (e) => throw e),
-);
+final dokumanTurleriProvider = FutureProvider.autoDispose<List<dynamic>>((
+  ref,
+) async {
+  ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
+  return (await ref.watch(dokumantasyonRepositoryProvider).getDokumanTurleri())
+      .when(success: (d) => d, failure: (e) => throw e);
+});
 
 // File Attachment Provider - Riverpod 3 pattern
 // Uses the shared fileAttachmentProvider

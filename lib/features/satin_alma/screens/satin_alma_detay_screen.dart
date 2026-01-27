@@ -34,13 +34,18 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Note: The logic for satinAlmaDetayProvider was established in previous steps.
-    final detayAsync = ref.watch(satinAlmaDetayProvider(widget.talepId));
-    final personelAsync = ref.watch(personelBilgiProvider);
+    // Note: The logic for satinAlmaDetayParalelProvider was established to load data in parallel.
+    final paralelAsync = ref.watch(
+      satinAlmaDetayParalelProvider(widget.talepId),
+    );
 
-    final isLoading = detayAsync.isLoading;
-    final body = detayAsync.when(
-      data: (detay) => _buildContent(context, detay, personelAsync),
+    final isLoading = paralelAsync.isLoading;
+    final body = paralelAsync.when(
+      data: (paralelData) => _buildContent(
+        context,
+        paralelData.detay,
+        AsyncValue.data(paralelData.personel),
+      ),
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => _buildError(context, error),
     );

@@ -255,8 +255,12 @@ class _SarfMalzemeTalepListesi extends ConsumerWidget {
             ),
             itemCount: filtered.length,
             separatorBuilder: (_, __) => const SizedBox(height: 2),
-            itemBuilder: (context, index) =>
-                _SarfMalzemeTalepCard(talep: filtered[index], helper: helper),
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _SarfMalzemeTalepCard(
+                talep: filtered[index],
+                helper: helper,
+              ),
+            ),
           ),
         );
       },

@@ -4,7 +4,6 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 
 /// A date picker widget that displays selected date as text
 /// and opens a bottom sheet with separate day, month, year spinners.
-/// Sundays are disabled and cannot be selected.
 class DatePickerBottomSheetWidget extends ConsumerStatefulWidget {
   final DateTime? initialDate;
   final DateTime? minDate;
@@ -65,15 +64,6 @@ class _DatePickerBottomSheetWidgetState
           }
           if (_selectedDate!.isAfter(_maxDate)) {
             _selectedDate = _maxDate;
-          }
-
-          // Skip Sundays if clamping landed on Sunday
-          while (_selectedDate!.weekday == DateTime.sunday) {
-            final candidate = _selectedDate!.add(const Duration(days: 1));
-            if (candidate.isAfter(_maxDate)) {
-              break;
-            }
-            _selectedDate = candidate;
           }
         }
       });
@@ -159,18 +149,8 @@ class _DatePickerBottomSheetWidgetState
     return days;
   }
 
-  /// Check if a given date is Sunday
-  bool _isSunday(int year, int month, int day) {
-    return DateTime(year, month, day).weekday == DateTime.sunday;
-  }
-
-  /// Get first non-Sunday day from the list
+  /// Get first day from the list
   int _getFirstSelectableDay(List<int> days, int year, int month) {
-    for (int day in days) {
-      if (!_isSunday(year, month, day)) {
-        return day;
-      }
-    }
     return days.first;
   }
 
@@ -204,8 +184,7 @@ class _DatePickerBottomSheetWidgetState
             }
 
             final days = _getAvailableDays(tempYear, tempMonth);
-            if (!days.contains(tempDay) ||
-                _isSunday(tempYear, tempMonth, tempDay)) {
+            if (!days.contains(tempDay)) {
               tempDay = _getFirstSelectableDay(days, tempYear, tempMonth);
             }
 
@@ -274,8 +253,7 @@ class _DatePickerBottomSheetWidgetState
                                   tempYear,
                                   tempMonth,
                                 );
-                                if (!newDays.contains(tempDay) ||
-                                    _isSunday(tempYear, tempMonth, tempDay)) {
+                                if (!newDays.contains(tempDay)) {
                                   tempDay = _getFirstSelectableDay(
                                     newDays,
                                     tempYear,
@@ -310,8 +288,7 @@ class _DatePickerBottomSheetWidgetState
                                   tempYear,
                                   tempMonth,
                                 );
-                                if (!newDays.contains(tempDay) ||
-                                    _isSunday(tempYear, tempMonth, tempDay)) {
+                                if (!newDays.contains(tempDay)) {
                                   tempDay = _getFirstSelectableDay(
                                     newDays,
                                     tempYear,
@@ -589,7 +566,7 @@ class _DateFadeSpinnerItem extends StatelessWidget {
   }
 }
 
-/// Day Spinner that shows Sundays but makes them non-selectable and faded
+/// Day Spinner widget for selecting any day of the month
 class _DaySpinner extends StatefulWidget {
   final List<int> days;
   final int year;
@@ -635,67 +612,10 @@ class _DaySpinnerState extends State<_DaySpinner> {
     }
   }
 
-  bool _isSunday(int day) {
-    return DateTime(widget.year, widget.month, day).weekday == DateTime.sunday;
-  }
-
   void _handleItemChanged(int index) {
     final day = widget.days[index];
-    if (_isSunday(day)) {
-      // Skip to next or previous non-Sunday
-      int targetIndex = index;
-
-      // Try to go to the direction of scroll
-      if (index > widget.days.indexOf(_lastValidDay)) {
-        // Scrolling down, find next non-Sunday
-        for (int i = index + 1; i < widget.days.length; i++) {
-          if (!_isSunday(widget.days[i])) {
-            targetIndex = i;
-            break;
-          }
-        }
-        // If no non-Sunday found after, go back
-        if (targetIndex == index) {
-          for (int i = index - 1; i >= 0; i--) {
-            if (!_isSunday(widget.days[i])) {
-              targetIndex = i;
-              break;
-            }
-          }
-        }
-      } else {
-        // Scrolling up, find previous non-Sunday
-        for (int i = index - 1; i >= 0; i--) {
-          if (!_isSunday(widget.days[i])) {
-            targetIndex = i;
-            break;
-          }
-        }
-        // If no non-Sunday found before, go forward
-        if (targetIndex == index) {
-          for (int i = index + 1; i < widget.days.length; i++) {
-            if (!_isSunday(widget.days[i])) {
-              targetIndex = i;
-              break;
-            }
-          }
-        }
-      }
-
-      // Animate to the valid day
-      Future.delayed(const Duration(milliseconds: 50), () {
-        if (_scrollController.hasClients) {
-          _scrollController.animateToItem(
-            targetIndex,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    } else {
-      _lastValidDay = day;
-      widget.onDayChanged(day);
-    }
+    _lastValidDay = day;
+    widget.onDayChanged(day);
   }
 
   @override
@@ -724,14 +644,13 @@ class _DaySpinnerState extends State<_DaySpinner> {
         childDelegate: ListWheelChildBuilderDelegate(
           builder: (context, index) {
             final day = widget.days[index];
-            final isSunday = _isSunday(day);
             final distance = (index - _currentPosition).abs();
             final normalizedDistance = distance.clamp(0.0, 1.5) / 1.5;
 
             return _DayFadeSpinnerItem(
               text: day.toString().padLeft(2, '0'),
               normalizedDistance: normalizedDistance,
-              isSunday: isSunday,
+              isSunday: false, // All days are now selectable
             );
           },
           childCount: widget.days.length,
@@ -741,7 +660,7 @@ class _DaySpinnerState extends State<_DaySpinner> {
   }
 }
 
-/// Fade efektli day spinner item widget'ı (Pazar günleri için özel stil)
+/// Fade effect day spinner item widget
 class _DayFadeSpinnerItem extends StatelessWidget {
   final String text;
   final double normalizedDistance;
@@ -766,28 +685,6 @@ class _DayFadeSpinnerItem extends StatelessWidget {
     final fontWeight = normalizedDistance < 0.3
         ? FontWeight.bold
         : FontWeight.w500;
-
-    // Pazar günleri aynı formatta ama üstü çizili
-    if (isSunday) {
-      return Center(
-        child: Transform.scale(
-          scale: scale,
-          child: Opacity(
-            opacity: opacity,
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: fontWeight,
-                color: color,
-                decoration: TextDecoration.lineThrough,
-                decorationColor: color,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
 
     return Center(
       child: Transform.scale(

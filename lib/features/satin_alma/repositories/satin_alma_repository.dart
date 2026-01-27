@@ -8,6 +8,9 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_olcu_birim.dart';
 import 'package:esas_v1/features/satin_alma/models/para_birimi.dart';
 import 'package:esas_v1/features/satin_alma/models/doviz_kuru.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
+import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
@@ -239,10 +242,7 @@ class SatinAlmaRepository {
 
   Future<Result<void>> deleteTalep({required int id}) async {
     try {
-      await _dio.delete(
-        '/SatinAlma/SatinAlmaSil',
-        queryParameters: {'id': id},
-      );
+      await _dio.delete('/SatinAlma/SatinAlmaSil', queryParameters: {'id': id});
       return const Success(null);
     } catch (e) {
       return Failure(e.toString());
@@ -257,12 +257,14 @@ final satinAlmaRepositoryProvider = Provider<SatinAlmaRepository>((ref) {
 
 final satinAlmaBinalarProvider =
     FutureProvider.autoDispose<List<SatinAlmaBina>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 10)); // Cache for 10 minutes
       final repo = ref.read(satinAlmaRepositoryProvider);
       return repo.fetchBinalar();
     });
 
 final satinAlmaAnaKategorilerProvider =
     FutureProvider.autoDispose<List<SatinAlmaAnaKategori>>((ref) async {
+      ref.cacheFor(const Duration(minutes: 10)); // Cache for 10 minutes
       final repo = ref.read(satinAlmaRepositoryProvider);
       return repo.getAnaKategoriler();
     });
@@ -275,6 +277,9 @@ final satinAlmaAltKategorilerProvider = FutureProvider.autoDispose
 
 final satinAlmaOlcuBirimleriProvider =
     FutureProvider.autoDispose<List<SatinAlmaOlcuBirim>>((ref) async {
+      ref.cacheFor(
+        const Duration(minutes: 15),
+      ); // Cache for 15 minutes - rarely changes
       final repo = ref.read(satinAlmaRepositoryProvider);
       return repo.getOlcuBirimleri();
     });
@@ -282,6 +287,7 @@ final satinAlmaOlcuBirimleriProvider =
 final paraBirimlerProvider = FutureProvider.autoDispose<List<ParaBirimi>>((
   ref,
 ) async {
+  ref.cacheFor(const Duration(minutes: 15)); // Cache for 15 minutes
   final repo = ref.read(satinAlmaRepositoryProvider);
   return repo.getParaBirimleri();
 });
@@ -289,6 +295,7 @@ final paraBirimlerProvider = FutureProvider.autoDispose<List<ParaBirimi>>((
 final odemeTurleriProvider = FutureProvider.autoDispose<List<OdemeTuru>>((
   ref,
 ) async {
+  ref.cacheFor(const Duration(minutes: 15)); // Cache for 15 minutes
   final repo = ref.read(satinAlmaRepositoryProvider);
   return repo.getOdemeTurleri();
 });
@@ -310,3 +317,24 @@ final satinAlmaDetayProvider = FutureProvider.autoDispose
       final repo = ref.read(satinAlmaRepositoryProvider);
       return repo.getDetay(id);
     });
+
+// Combined provider for parallel loading of detay screen data
+final satinAlmaDetayParalelProvider = FutureProvider.autoDispose
+    .family<SatinAlmaDetayParalelData, int>((ref, id) async {
+      final results = await Future.wait([
+        ref.watch(satinAlmaDetayProvider(id).future),
+        ref.watch(personelBilgiProvider.future),
+      ]);
+
+      return SatinAlmaDetayParalelData(
+        detay: results[0] as SatinAlmaDetayResponse,
+        personel: results[1] as PersonelBilgiResponse,
+      );
+    });
+
+class SatinAlmaDetayParalelData {
+  final SatinAlmaDetayResponse detay;
+  final PersonelBilgiResponse personel;
+
+  SatinAlmaDetayParalelData({required this.detay, required this.personel});
+}

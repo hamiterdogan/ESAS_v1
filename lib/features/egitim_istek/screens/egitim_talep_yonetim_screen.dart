@@ -250,8 +250,9 @@ class _EgitimTalepListesi extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             itemCount: sorted.length,
             separatorBuilder: (_, __) => const SizedBox(height: 2),
-            itemBuilder: (context, index) =>
-                _EgitimTalepCard(talep: sorted[index], helper: helper),
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: _EgitimTalepCard(talep: sorted[index], helper: helper),
+            ),
           ),
         );
       },

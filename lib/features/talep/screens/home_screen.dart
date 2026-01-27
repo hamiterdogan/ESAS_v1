@@ -5,6 +5,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 
 /// Ana sayfa - Tab navigation ile Ana Sayfa, İsteklerim ve Gelen Kutusu
@@ -53,6 +54,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       default:
         appBarTitle = 'ESAS';
     }
+
+    final okunmayanTalepSayisiState = ref.watch(okunmayanTalepSayisiProvider);
 
     return PopScope(
       canPop: false,
@@ -167,6 +170,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     label: 'Gelen Kutusu',
                     isSelected: _currentIndex == 2,
                     onTap: () => _setTabIndex(2),
+                    badgeCount: okunmayanTalepSayisiState.when(
+                      data: (data) => data.talepSayisi,
+                      error: (_, __) => 0,
+                      loading: () => 0,
+                    ),
                   ),
                 ],
               ),
@@ -183,6 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required String label,
     required bool isSelected,
     required VoidCallback onTap,
+    int? badgeCount,
   }) {
     return Expanded(
       child: GestureDetector(
@@ -195,13 +204,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  isSelected ? activeIcon : icon,
-                  size: 33,
-                  color: isSelected
-                      ? AppColors.textOnPrimary
-                      : AppColors.textOnPrimary.withValues(alpha: 0.6),
-                ),
+                if (badgeCount != null && badgeCount > 0)
+                  Badge(
+                    label: Text(
+                      badgeCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12, // Increased font size
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 6), // Added horizontal padding
+                    backgroundColor: Colors.red,
+                    offset: const Offset(8, -6), // Adjusted offset accordingly
+                    child: Icon(
+                      isSelected ? activeIcon : icon,
+                      size: 33,
+                      color: isSelected
+                          ? AppColors.textOnPrimary
+                          : AppColors.textOnPrimary.withValues(alpha: 0.6),
+                    ),
+                  )
+                else
+                  Icon(
+                    isSelected ? activeIcon : icon,
+                    size: 33,
+                    color: isSelected
+                        ? AppColors.textOnPrimary
+                        : AppColors.textOnPrimary.withValues(alpha: 0.6),
+                  ),
                 const SizedBox(height: 2),
                 Flexible(
                   child: Text(
@@ -214,9 +245,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ? AppColors.textOnPrimary
                           : AppColors.textOnPrimary.withValues(alpha: 0.6),
                       fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w600,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                     ),
                   ),
                 ),

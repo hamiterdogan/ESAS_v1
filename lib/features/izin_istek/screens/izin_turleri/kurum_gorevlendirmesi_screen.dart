@@ -46,13 +46,9 @@ class _KurumGorevlendirmesiIzinScreenState
   // Hata durumu state'leri
   bool _adresHatali = false;
 
-  /// Bir sonraki seçilebilir günü döndürür (Pazar değilse)
+  /// Bir sonraki günü döndürür
   DateTime _getNextSelectableDay(DateTime date) {
-    var nextDay = date.add(const Duration(days: 1));
-    if (nextDay.weekday == DateTime.sunday) {
-      nextDay = nextDay.add(const Duration(days: 1));
-    }
-    return nextDay;
+    return date.add(const Duration(days: 1));
   }
 
   @override
@@ -292,13 +288,9 @@ class _KurumGorevlendirmesiIzinScreenState
                                 _bitisTarihi = date;
                               } else {
                                 // 1 günlük izin kapalıyken bitiş tarihini başlangıçtan bir gün sonrasına ayarla
-                                var nextDay = date.add(const Duration(days: 1));
-                                if (nextDay.weekday == DateTime.sunday) {
-                                  nextDay = nextDay.add(
-                                    const Duration(days: 1),
-                                  );
-                                }
-                                _bitisTarihi = nextDay;
+                                _bitisTarihi = date.add(
+                                  const Duration(days: 1),
+                                );
                               }
                             });
                           },

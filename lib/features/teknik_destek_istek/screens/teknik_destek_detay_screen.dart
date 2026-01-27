@@ -35,17 +35,22 @@ class _TeknikDestekDetayScreenState
 
   @override
   Widget build(BuildContext context) {
-    final detayAsync = ref.watch(teknikDestekDetayProvider(widget.talepId));
-    final personelAsync = ref.watch(personelBilgiProvider);
+    final paralelAsync = ref.watch(
+      teknikDestekDetayParalelProvider(widget.talepId),
+    );
 
-    final titleText = detayAsync.maybeWhen(
-      data: (detay) => _buildDetayTitle(detay.hizmetTuru),
+    final titleText = paralelAsync.maybeWhen(
+      data: (paralelData) => _buildDetayTitle(paralelData.detay.hizmetTuru),
       orElse: () => _buildDetayTitle(null),
     );
 
-    final isLoading = detayAsync.isLoading;
-    final body = detayAsync.when(
-      data: (detay) => _buildContent(context, detay, personelAsync),
+    final isLoading = paralelAsync.isLoading;
+    final body = paralelAsync.when(
+      data: (paralelData) => _buildContent(
+        context,
+        paralelData.detay,
+        AsyncValue.data(paralelData.personel),
+      ),
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => _buildError(context, error),
     );

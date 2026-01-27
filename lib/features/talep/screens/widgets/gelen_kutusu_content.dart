@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_karti.dart';
-import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/shimmer_loading_widgets.dart';
 
 /// Gelen Kutusu tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class GelenKutusuContent extends ConsumerStatefulWidget {
@@ -177,6 +177,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   final ScrollController _scrollController = ScrollController();
   ProviderSubscription<PaginatedTalepState>? _prefetchSub;
 
+  // Cache for preventing repeated filter calculations
+  int _lastTotal = -1;
+
   // Seçilen görev yerleri - Çoklu seçim (String olarak görev yeri adı)
 
   final Set<String> _selectedGorevYerleri = {};
@@ -194,11 +197,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // Initial fetch
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(devamEdenGelenKutusuProvider.notifier).loadInitial();
-      ref.read(tamamlananGelenKutusuProvider.notifier).loadInitial();
-    });
+    // Provider now auto-loads in build() method, no need for manual loadInitial
 
     final provider = widget.tip == 2
         ? devamEdenGelenKutusuProvider
@@ -376,6 +375,31 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     return _selectedTalepEdenler.any(
       (kisi) => olusturanKisi.toLowerCase().contains(kisi.toLowerCase()),
     );
+  }
+
+  // Listeleri karşılaştırma helper
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  // Süre filtresi için cutoff tarihini hesapla - her filtreleme için tekrar hesaplama yerine bir kere
+  DateTime? _getSureCutoffDate(DateTime now) {
+    switch (_selectedTalepTarihi) {
+      case '1 Hafta':
+        return now.subtract(const Duration(days: 7));
+      case '1 Ay':
+        return now.subtract(const Duration(days: 30));
+      case '3 Ay':
+        return now.subtract(const Duration(days: 90));
+      case '1 Yıl':
+        return now.subtract(const Duration(days: 365));
+      default:
+        return null; // Tümü - no cutoff
+    }
   }
 
   // Talep tarihi (süre) filtresine göre kontrol
@@ -1279,9 +1303,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
     // 4. İlk yükleme (Loading) durumu
     if (state.isInitialLoading) {
-      return const Center(
-        child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-      );
+      return const ListShimmer(itemCount: 5);
     }
 
     // 5. Verileri işle (Filtreleme & Sıralama - Client Side)
@@ -1294,118 +1316,120 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
     final taleplerListesi = state.talepler;
 
-    // Side effect: Filtre listelerini güncelle (Build sırasında setState yapmamak için postFrameCallback)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final kisiler =
-          taleplerListesi
-              .map((t) => t.olusturanKisi)
-              .where((kisi) => kisi.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+    // Side effect: Filtre listelerini güncelle - only when data changes
+    // Use microtask for less overhead and guard with length check
+    if (taleplerListesi.length != _lastTotal) {
+      _lastTotal = taleplerListesi.length;
+      Future.microtask(() {
+        if (!mounted) return;
+        final kisiler =
+            taleplerListesi
+                .map((t) => t.olusturanKisi)
+                .where((kisi) => kisi.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-      final talepTurleri =
-          taleplerListesi
-              .map((t) => t.onayTipi)
-              .where((tur) => tur.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+        final talepTurleri =
+            taleplerListesi
+                .map((t) => t.onayTipi)
+                .where((tur) => tur.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-      final gorevler =
-          taleplerListesi
-              .map((t) => t.gorevi ?? '')
-              .where((gorev) => gorev.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+        final gorevler =
+            taleplerListesi
+                .map((t) => t.gorevi ?? '')
+                .where((gorev) => gorev.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-      final gorevYerleri =
-          taleplerListesi
-              .map((t) => t.gorevYeri ?? '')
-              .where((gorevYeri) => gorevYeri.isNotEmpty)
-              .toSet()
-              .toList()
-            ..sort();
+        final gorevYerleri =
+            taleplerListesi
+                .map((t) => t.gorevYeri ?? '')
+                .where((gorevYeri) => gorevYeri.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-      bool kisilerChanged = false;
-      if (_talepEdenKisiler.length != kisiler.length) {
-        kisilerChanged = true;
-      } else {
-        for (int i = 0; i < kisiler.length; i++) {
-          if (_talepEdenKisiler[i] != kisiler[i]) {
-            kisilerChanged = true;
-            break;
-          }
+        bool kisilerChanged = !_listEquals(_talepEdenKisiler, kisiler);
+        bool talepTurleriChanged = !_listEquals(
+          _mevcutTalepTurleri,
+          talepTurleri,
+        );
+        bool gorevlerChanged = !_listEquals(_mevcutGorevler, gorevler);
+        bool gorevYerleriChanged = !_listEquals(
+          _mevcutGorevYerleri,
+          gorevYerleri,
+        );
+
+        if (kisilerChanged ||
+            talepTurleriChanged ||
+            gorevlerChanged ||
+            gorevYerleriChanged) {
+          setState(() {
+            if (kisilerChanged) {
+              _talepEdenKisiler = kisiler;
+            }
+            if (talepTurleriChanged) {
+              _mevcutTalepTurleri = talepTurleri;
+            }
+            if (gorevlerChanged) {
+              _mevcutGorevler = gorevler;
+            }
+            if (gorevYerleriChanged) {
+              _mevcutGorevYerleri = gorevYerleri;
+            }
+          });
         }
-      }
+      });
+    }
 
-      bool talepTurleriChanged = false;
-      if (_mevcutTalepTurleri.length != talepTurleri.length) {
-        talepTurleriChanged = true;
-      } else {
-        for (int i = 0; i < talepTurleri.length; i++) {
-          if (_mevcutTalepTurleri[i] != talepTurleri[i]) {
-            talepTurleriChanged = true;
-            break;
-          }
-        }
-      }
+    // Pre-calculate filter cutoff for performance
+    final now = DateTime.now();
+    final sureCutoff = _getSureCutoffDate(now);
 
-      bool gorevlerChanged = false;
-      if (_mevcutGorevler.length != gorevler.length) {
-        gorevlerChanged = true;
-      } else {
-        for (int i = 0; i < gorevler.length; i++) {
-          if (_mevcutGorevler[i] != gorevler[i]) {
-            gorevlerChanged = true;
-            break;
-          }
-        }
-      }
-
-      bool gorevYerleriChanged = false;
-      if (_mevcutGorevYerleri.length != gorevYerleri.length) {
-        gorevYerleriChanged = true;
-      } else {
-        for (int i = 0; i < gorevYerleri.length; i++) {
-          if (_mevcutGorevYerleri[i] != gorevYerleri[i]) {
-            gorevYerleriChanged = true;
-            break;
-          }
-        }
-      }
-
-      if (kisilerChanged ||
-          talepTurleriChanged ||
-          gorevlerChanged ||
-          gorevYerleriChanged) {
-        setState(() {
-          if (kisilerChanged) {
-            _talepEdenKisiler = kisiler;
-          }
-          if (talepTurleriChanged) {
-            _mevcutTalepTurleri = talepTurleri;
-          }
-          if (gorevlerChanged) {
-            _mevcutGorevler = gorevler;
-          }
-          if (gorevYerleriChanged) {
-            _mevcutGorevYerleri = gorevYerleri;
-          }
-        });
-      }
-    });
-
-    // Filtreleme Uygula
+    // Optimized filtering with early returns
     final filteredTalepler = taleplerListesi.where((talep) {
-      return _talepTuruFiltresindenGeciyorMu(talep.onayTipi) &&
-          _talepTarihiFiltresindenGeciyorMu(talep.olusturmaTarihi) &&
-          _talepEdenFiltresindenGeciyorMu(talep.olusturanKisi) &&
-          _talepDurumuFiltresindenGeciyorMu(talep.onayDurumu) &&
-          _gorevFiltresindenGeciyorMu(talep.gorevi) &&
-          _gorevYeriFiltresindenGeciyorMu(talep.gorevYeri);
+      // Date filter (most common, check first)
+      if (sureCutoff != null) {
+        try {
+          final tarih = DateTime.parse(talep.olusturmaTarihi);
+          if (tarih.isBefore(sureCutoff)) return false;
+        } catch (e) {
+          // Invalid date, include anyway
+        }
+      }
+
+      // Early return for empty filter sets (common case)
+      if (_selectedTalepTurleri.isNotEmpty &&
+          !_selectedTalepTurleri.contains(talep.onayTipi)) {
+        return false;
+      }
+
+      if (_selectedTalepEdenler.isNotEmpty &&
+          !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
+        return false;
+      }
+
+      if (_selectedTalepDurumlari.isNotEmpty &&
+          !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
+        return false;
+      }
+
+      if (_selectedGorevler.isNotEmpty &&
+          !_selectedGorevler.contains(talep.gorevi ?? '')) {
+        return false;
+      }
+
+      if (_selectedGorevYerleri.isNotEmpty &&
+          !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
+        return false;
+      }
+
+      return true;
     }).toList();
 
     // Sıralama Uygula
@@ -1462,23 +1486,14 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
               });
             }
 
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    color: AppColors.gradientStart,
-                  ),
-                ),
-              ),
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: TalepKartiShimmer()),
             );
           }
 
           final talep = filteredTalepler[index];
-          return GelenKutusuKarti(talep: talep);
+          return RepaintBoundary(child: GelenKutusuKarti(talep: talep));
         },
       ),
     );
