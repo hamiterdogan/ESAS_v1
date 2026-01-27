@@ -123,7 +123,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   angle: _controller.value * 2 * math.pi,
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
-                      strokeWidth: 8,
+                      strokeWidth: 12,
                       startColor: AppColors.gradientStart.withValues(
                         alpha: 1.0,
                       ),
