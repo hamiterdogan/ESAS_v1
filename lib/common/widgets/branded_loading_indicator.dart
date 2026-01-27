@@ -187,8 +187,8 @@ class _SegmentedRingPainter extends CustomPainter {
     // 2 * pi for full circle
     const fullCircle = 2 * math.pi;
     final segmentAngle = fullCircle / segmentCount;
-    // 35px gap = 35 / radius (arc length formula)
-    final gapAngle = (35.0 / radius).clamp(0.3, segmentAngle * 0.5);
+    // 3px gap = 3 / radius (arc length formula)
+    final gapAngle = (3.0 / radius).clamp(0.3, segmentAngle * 0.5);
     final sweepAngle = segmentAngle - gapAngle;
 
     for (int i = 0; i < segmentCount; i++) {
