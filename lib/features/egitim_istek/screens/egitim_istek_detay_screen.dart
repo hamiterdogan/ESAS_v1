@@ -1061,7 +1061,7 @@ class _EgitimIstekDetayScreenState
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.gorevAtama,
+                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

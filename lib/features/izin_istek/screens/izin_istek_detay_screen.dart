@@ -550,7 +550,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.gorevAtama,
+                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

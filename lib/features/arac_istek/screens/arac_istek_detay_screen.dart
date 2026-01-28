@@ -828,7 +828,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.gorevAtama,
+                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

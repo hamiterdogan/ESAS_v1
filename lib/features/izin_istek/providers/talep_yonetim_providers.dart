@@ -279,7 +279,7 @@ final tamamlananIsteklerimLegacyProvider =
       };
     });
 
-// Bilgi Teknolojileri taleplerinin onayKayitId seti
+// Bilgi Teknolojileri taleplerinin onayKayitId seti (İsteklerim tabı için)
 final bilgiTeknolojileriOnayKayitIdSetProvider =
     FutureProvider.autoDispose<Set<int>>((ref) async {
       // Cache for 10 minutes - prevents repeated API calls on tab switches
@@ -301,8 +301,36 @@ final bilgiTeknolojileriOnayKayitIdSetProvider =
         };
       }
 
-      // Fetch both in parallel for faster loading
+      // Fetch both in parallel for faster loading (İsteklerim için: tip 0 ve 1)
       final results = await Future.wait([fetchIds(0), fetchIds(1)]);
+
+      return {...results[0], ...results[1]};
+    });
+
+// Bilgi Teknolojileri taleplerinin onayKayitId seti (Gelen Kutusu tabı için)
+final bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider =
+    FutureProvider.autoDispose<Set<int>>((ref) async {
+      // Cache for 10 minutes - prevents repeated API calls on tab switches
+      ref.cacheFor(const Duration(minutes: 10));
+
+      final repo = ref.watch(bilgiTeknolojileriIstekRepositoryProvider);
+
+      Future<Set<int>> fetchIds(int tip) async {
+        final result = await repo.teknikDestekTaleplerimiGetir(
+          tip: tip,
+          hizmetTuru: 1,
+        );
+
+        return switch (result) {
+          Success(data: final data) =>
+            data.talepler.map((t) => t.onayKayitId).toSet(),
+          Failure() => <int>{},
+          Loading() => <int>{},
+        };
+      }
+
+      // Fetch both in parallel for faster loading (Gelen Kutusu için: tip 2 ve 3)
+      final results = await Future.wait([fetchIds(2), fetchIds(3)]);
 
       return {...results[0], ...results[1]};
     });

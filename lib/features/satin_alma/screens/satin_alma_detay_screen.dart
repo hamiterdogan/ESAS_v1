@@ -1093,7 +1093,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.gorevAtama,
+                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

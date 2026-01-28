@@ -184,6 +184,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
   final Set<String> _selectedGorevYerleri = {};
 
+  // Bilgi Teknolojileri ID'lerini cache'le
+  Set<int> _bilgiTekOnayKayitIds = {};
+
   bool get isFilterActive =>
       _selectedTalepTurleri.isNotEmpty ||
       _selectedTalepEdenler.isNotEmpty ||
@@ -1228,6 +1231,17 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
   @override
   Widget build(BuildContext context) {
+    // Bilgi Teknolojileri ID'lerini güvenli şekilde izle - non-blocking
+    // Use previous value during loading to prevent shimmer flicker
+    final bilgiTekAsyncValue = ref.watch(
+      bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider,
+    );
+
+    // Cache the IDs locally when available
+    if (bilgiTekAsyncValue.hasValue) {
+      _bilgiTekOnayKayitIds = bilgiTekAsyncValue.value!;
+    }
+
     // 1. Provider'ı seç
     final provider = widget.tip == 2
         ? devamEdenGelenKutusuProvider
@@ -1493,7 +1507,21 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
           }
 
           final talep = filteredTalepler[index];
-          return RepaintBoundary(child: GelenKutusuKarti(talep: talep));
+          final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
+            'teknik destek',
+          );
+          final shouldShowBilgiTeknolojileri =
+              isTeknikDestek &&
+              _bilgiTekOnayKayitIds.contains(talep.onayKayitId);
+
+          return RepaintBoundary(
+            child: GelenKutusuKarti(
+              talep: talep,
+              displayOnayTipi: shouldShowBilgiTeknolojileri
+                  ? 'Bilgi Teknolojileri'
+                  : talep.onayTipi,
+            ),
+          );
         },
       ),
     );

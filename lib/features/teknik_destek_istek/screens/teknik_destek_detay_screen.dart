@@ -894,7 +894,7 @@ class _TeknikDestekDetayScreenState
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.gorevAtama,
+                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

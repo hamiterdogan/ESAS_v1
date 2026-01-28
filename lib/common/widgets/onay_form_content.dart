@@ -188,7 +188,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
               ),
               const SizedBox(width: 32),
               SizedBox(
-                width: 80,
+                width: 105,
                 height: 40,
                 child: ElevatedButton(
                   onPressed: () {
@@ -205,7 +205,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                         }
                       },
                       customMessage:
-                          'Süreci $_bekletKademe gün beklemeye almak istediğinizden emin misiniz?',
+                          'Süreci $_bekletKademe gün bekletmek istediğinizden emin misiniz?',
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -222,7 +222,15 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
         if (widget.gorevAtamaEnabled) ...[
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 12),
+          const SizedBox(height: 22),
+          const Text(
+            'Atanacak Personel',
+            style: TextStyle(
+              fontSize: 17,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          const SizedBox(height: 8),
           _buildPersonelSecimButton(),
           const SizedBox(height: 12),
           Align(

@@ -79,6 +79,7 @@ class OnayDurumuResponse {
   final bool talepGuncellenebilir;
   final int bekletKademe;
   final bool gorevAtama;
+  final bool atamaGoster;
   final String talepEdenPerAdi;
   final String talepEdenPerGorev;
   final String talepEdenPerGorevYeri;
@@ -92,6 +93,7 @@ class OnayDurumuResponse {
     required this.talepGuncellenebilir,
     required this.bekletKademe,
     required this.gorevAtama,
+    required this.atamaGoster,
     required this.talepEdenPerAdi,
     required this.talepEdenPerGorev,
     required this.talepEdenPerGorevYeri,
@@ -144,6 +146,7 @@ class OnayDurumuResponse {
             : false,
         bekletKademe: (json['bekletKademe'] as int?) ?? 0,
         gorevAtama: parseBool(json['gorevAtama']),
+        atamaGoster: parseBool(json['atamaGoster']),
         talepEdenPerAdi: getStringValue(json['talepEdenPerAdi']),
         talepEdenPerGorev: getStringValue(json['talepEdenPerGorev']),
         talepEdenPerGorevYeri: getStringValue(json['talepEdenPerGorevYeri']),
