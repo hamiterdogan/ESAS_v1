@@ -47,4 +47,18 @@ class JwtDecoder {
       return null;
     }
   }
+
+  /// JWT token'dan KullaniciAdi'yi çıkarır
+  static String? getKullaniciAdi(String token) {
+    try {
+      final payload = decode(token);
+      final kullaniciAdi = payload['KullaniciAdi'];
+
+      if (kullaniciAdi == null) return null;
+
+      return kullaniciAdi.toString();
+    } catch (e) {
+      return null;
+    }
+  }
 }

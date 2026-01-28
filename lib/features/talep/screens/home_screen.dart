@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
@@ -80,28 +81,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             decoration: BoxDecoration(gradient: AppColors.primaryGradient),
           ),
           iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-          actions: _currentIndex != 0
-              ? [
-                  CommonAppBarActionButton(
-                    label: 'Filtrele',
-                    onTap: () {
-                      if (_currentIndex == 1) {
-                        _isteklerimKey.currentState?.showFilterBottomSheet();
-                      } else if (_currentIndex == 2) {
-                        _gelenKutusuKey.currentState?.showFilterBottomSheet();
-                      }
-                    },
-                    icon: (_currentIndex == 1 &&
-                                (_isteklerimKey.currentState?.isFilterActive ??
-                                    false)) ||
-                            (_currentIndex == 2 &&
-                                (_gelenKutusuKey.currentState?.isFilterActive ??
-                                    false))
-                        ? Icons.filter_alt
-                        : Icons.filter_alt_outlined,
-                  ),
-                ]
-              : null,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16, top: 8),
+              child: Consumer(
+                builder: (context, ref, child) {
+                  final kullaniciAdi = ref.watch(currentKullaniciAdiProvider);
+                  return Center(
+                    child: Text(
+                      kullaniciAdi,
+                      style: const TextStyle(
+                        color: AppColors.textOnPrimary,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_currentIndex != 0)
+              CommonAppBarActionButton(
+                label: 'Filtrele',
+                onTap: () {
+                  if (_currentIndex == 1) {
+                    _isteklerimKey.currentState?.showFilterBottomSheet();
+                  } else if (_currentIndex == 2) {
+                    _gelenKutusuKey.currentState?.showFilterBottomSheet();
+                  }
+                },
+                icon:
+                    (_currentIndex == 1 &&
+                            (_isteklerimKey.currentState?.isFilterActive ??
+                                false)) ||
+                        (_currentIndex == 2 &&
+                            (_gelenKutusuKey.currentState?.isFilterActive ??
+                                false))
+                    ? Icons.filter_alt
+                    : Icons.filter_alt_outlined,
+              ),
+          ],
         ),
         // Slide transitions for all tabs
         body: PageView(
@@ -214,7 +233,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 6), // Added horizontal padding
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                    ), // Added horizontal padding
                     backgroundColor: Colors.red,
                     offset: const Offset(8, -6), // Adjusted offset accordingly
                     child: Icon(
@@ -245,7 +266,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ? AppColors.textOnPrimary
                           : AppColors.textOnPrimary.withValues(alpha: 0.6),
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w600,
                     ),
                   ),
                 ),
@@ -312,16 +335,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.textTertiary,
+                          backgroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(
+                              color: AppColors.primaryDark,
+                              width: 1.5,
+                            ),
                           ),
                         ),
                         child: const Text(
                           'Vazgeç',
                           style: TextStyle(
-                            color: AppColors.textPrimary,
+                            color: AppColors.primaryDark,
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
                           ),

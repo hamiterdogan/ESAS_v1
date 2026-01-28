@@ -5,7 +5,7 @@ import 'package:esas_v1/core/utils/jwt_decoder.dart';
 
 // Token Provider
 final tokenProvider = Provider<String>((ref) {
-  return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiNDUwNyIsIkVtYWlsIjoidGVzdGV2cmVuLnRvbWJ1bEBleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJFVE9NQlVMIiwiR29yZXZJZCI6IjQ2IiwibmJmIjoxNzY0MzI5NDUwLCJleHAiOjE3OTU0MzM0NTAsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0In0.lSaV7AXUSEvbNb6m4YCwCyUcP7Tbs5hn4YoJt7WzrGg';
+  return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiMjcwIiwiRW1haWwiOiJ0ZXN0Y2Vua0BleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJDRVlVQk9HTFUiLCJHb3JldklkIjoiMTE2IiwibmJmIjoxNzY5NTk5MDMyLCJleHAiOjE4MDA3MDMwMzIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0In0.Uxd797yZIm12wPwPRRkbvIYsKGkRlcPrcpSsVxZK_ws';
 });
 
 // Auth Error Notifier - Riverpod 3 pattern (StateProvider yerine)
@@ -28,6 +28,13 @@ final currentPersonelIdProvider = Provider<int>((ref) {
   final token = ref.watch(tokenProvider);
   final personelId = JwtDecoder.getPersonelId(token);
   return personelId ?? 0; // Default 0 if decode fails
+});
+
+// Current User KullaniciAdi Provider
+final currentKullaniciAdiProvider = Provider<String>((ref) {
+  final token = ref.watch(tokenProvider);
+  final kullaniciAdi = JwtDecoder.getKullaniciAdi(token);
+  return kullaniciAdi ?? ''; // Default empty string if decode fails
 });
 
 final dioProvider = Provider<Dio>((ref) {

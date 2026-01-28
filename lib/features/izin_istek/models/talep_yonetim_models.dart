@@ -190,3 +190,43 @@ class OkunmayanTalepResponse {
     );
   }
 }
+
+class OnayDurumuGuncelleRequest {
+  final String onayTipi;
+  final int onayKayitId;
+  final int onaySureciId;
+  final bool onay;
+  final bool beklet;
+  final bool geriDon;
+  final String? aciklama;
+  // Görev atama için gerekli alanlar (onay formunda görev atama varsa)
+  final int? atanacakPersonelId;
+  // Bekletme kademesi ("CEYUBOGLU" kullanıcısı için)
+  final int? bekletKademe;
+
+  OnayDurumuGuncelleRequest({
+    required this.onayTipi,
+    required this.onayKayitId,
+    required this.onaySureciId,
+    this.onay = false,
+    this.beklet = false,
+    this.geriDon = false,
+    this.aciklama,
+    this.atanacakPersonelId,
+    this.bekletKademe,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'onayTipi': onayTipi,
+      'onayKayitId': onayKayitId,
+      'onaySureciId': onaySureciId,
+      'onay': onay,
+      'beklet': beklet,
+      'geriDon': geriDon,
+      'aciklama': aciklama ?? '',
+      if (atanacakPersonelId != null) 'atanacakPersonelId': atanacakPersonelId,
+      if (bekletKademe != null) 'bekletKademe': bekletKademe,
+    };
+  }
+}

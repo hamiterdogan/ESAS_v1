@@ -12,6 +12,8 @@ import 'package:esas_v1/features/satin_alma/screens/satin_alma_detay_screen.dart
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
+import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.dart';
+
 
 /// Gelen Kutusu kartı widget'ı - Gelen Kutusu listesindeki kartlar
 class GelenKutusuKarti extends ConsumerWidget {
@@ -220,6 +222,17 @@ class GelenKutusuKarti extends ConsumerWidget {
               MaterialPageRoute(
                 builder: (ctx) =>
                     SarfMalzemeDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          }
+          // Eğitim İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('eğitim') ||
+              talep.onayTipi.toLowerCase().contains('egitim')) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    EgitimIstekDetayScreen(talepId: talep.onayKayitId),
               ),
             );
           }

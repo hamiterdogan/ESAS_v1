@@ -13,6 +13,10 @@ import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.d
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
+import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/core/models/result.dart';
 
 class SatinAlmaDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -814,10 +818,281 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                 });
               },
               child: OnayFormContent(
-                onApprove: () {},
-                onReject: () {},
-                onReturn: () {},
-                onAssign: () {},
+                onApprove: (aciklama) async {
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Onay süreci ID bulunamadı!'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final repository = ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: 'Satın Alma',
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay: true,
+                      beklet: false,
+                      geriDon: false,
+                      aciklama: aciklama,
+                    );
+
+                    final result = await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
+                        // Listeyi yenile ve geri dön
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      case Failure(message: final message):
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata: $message'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
+                onReject: (aciklama) async {
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) return;
+
+                  try {
+                    final repository = ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: 'Satın Alma',
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay: false,
+                      beklet: false,
+                      geriDon: false,
+                      aciklama: aciklama,
+                    );
+
+                    final result = await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
+                        Navigator.pop(context);
+                      case Failure(message: final message):
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata: $message'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
+                onReturn: (aciklama) async {
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) return;
+
+                  try {
+                    final repository = ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: 'Satın Alma',
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay: false,
+                      beklet: false,
+                      geriDon: true,
+                      aciklama: aciklama,
+                    );
+
+                    final result = await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
+                        Navigator.pop(context);
+                      case Failure(message: final message):
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata: $message'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
+                onAssign: (aciklama, selectedPersonel) async {
+                  if (selectedPersonel == null) return;
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Onay süreci ID bulunamadı!'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final repository =
+                        ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: 'Satın Alma',
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay: true,
+                      beklet: false,
+                      geriDon: false,
+                      aciklama: aciklama,
+                      atanacakPersonelId: selectedPersonel.personelId,
+                    );
+
+                    final result =
+                        await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Görev atama başarıyla gerçekleşti'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        Navigator.pop(context);
+                      case Failure(message: final message):
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata: $message'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
+                onHold: (aciklama, bekletKademe) async {
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Onay süreci ID bulunamadı!'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final repository =
+                        ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: 'Satın Alma',
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay: false,
+                      beklet: true,
+                      geriDon: false,
+                      aciklama: aciklama,
+                      bekletKademe: bekletKademe,
+                    );
+
+                    final result =
+                        await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
+                        Navigator.pop(context);
+                      case Failure(message: final message):
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata: $message'),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
                 gorevAtamaEnabled: onayDurumu.gorevAtama,
               ),
             ),
@@ -1102,18 +1377,20 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        '($durum)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: iconColor,
-                          fontWeight: FontWeight.w500,
+                    if (durum.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          '($durum)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: iconColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 2),
