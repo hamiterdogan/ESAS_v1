@@ -15,8 +15,13 @@ class OnayFormContent extends ConsumerStatefulWidget {
   onAssign; // Görev atama için açıklama ve personel
   final Function(String aciklama, int bekletKademe)?
   onHold; // Bekletme için açıklama ve kademe
+  final Function(String aciklama)? onSend; // Sadece Gönder butonu için
 
+  final String descriptionLabel;
+  final int descriptionMaxLines;
+  final Widget? extraContent;
   final bool gorevAtamaEnabled;
+  final bool sendOnlyMode; // Sadece Gönder butonunu göster
 
   const OnayFormContent({
     super.key,
@@ -25,7 +30,12 @@ class OnayFormContent extends ConsumerStatefulWidget {
     this.onReturn,
     this.onAssign,
     this.onHold,
+    this.onSend,
     this.gorevAtamaEnabled = true,
+    this.descriptionLabel = 'Açıklama',
+    this.descriptionMaxLines = 3,
+    this.extraContent,
+    this.sendOnlyMode = false,
   });
 
   @override
@@ -51,9 +61,9 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Açıklama',
-          style: TextStyle(
+        Text(
+          widget.descriptionLabel,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.textSecondary,
@@ -62,9 +72,9 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _aciklamaController,
-          maxLines: 3,
+          maxLines: widget.descriptionMaxLines,
           decoration: InputDecoration(
-            hintText: 'Açıklama giriniz',
+            hintText: '${widget.descriptionLabel} giriniz',
             filled: true,
             fillColor: AppColors.textOnPrimary,
             border: OutlineInputBorder(
@@ -81,94 +91,120 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
             ),
           ),
         ),
+        if (widget.extraContent != null) ...[
+          const SizedBox(height: 16),
+          widget.extraContent!,
+        ],
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 36,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showConfirmationSheet(
-                      context,
-                      'Onayla',
-                      AppColors.success,
-                      () {
-                        if (widget.onApprove != null) {
-                          widget.onApprove!(_aciklamaController.text);
-                        }
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    foregroundColor: AppColors.textOnPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    textStyle: const TextStyle(fontSize: 17),
-                  ),
-                  child: const Text('Onayla'),
+        if (widget.sendOnlyMode)
+          Center(
+            child: SizedBox(
+              width: 200,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (widget.onSend != null) {
+                    widget.onSend!(_aciklamaController.text);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gradientStart,
+                  foregroundColor: AppColors.textOnPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
+                child: const Text('Gönder'),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 36,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showConfirmationSheet(
-                      context,
-                      'Reddet',
-                      AppColors.error,
-                      () {
-                        if (widget.onReject != null) {
-                          widget.onReject!(_aciklamaController.text);
-                        }
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: AppColors.textOnPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    textStyle: const TextStyle(fontSize: 17),
-                  ),
-                  child: const Text('Reddet'),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: SizedBox(
-                height: 36,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showConfirmationSheet(
-                      context,
-                      'Geri Gönder',
-                      AppColors.warning,
-                      () {
-                        if (widget.onReturn != null) {
-                          widget.onReturn!(_aciklamaController.text);
-                        }
-                      },
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.warning,
-                    foregroundColor: AppColors.textOnPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    textStyle: const TextStyle(fontSize: 17),
-                  ),
-                  child: const FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text('Geri Gönder'),
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showConfirmationSheet(
+                        context,
+                        'Onayla',
+                        AppColors.success,
+                        () {
+                          if (widget.onApprove != null) {
+                            widget.onApprove!(_aciklamaController.text);
+                          }
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      foregroundColor: AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      textStyle: const TextStyle(fontSize: 17),
+                    ),
+                    child: const Text('Onayla'),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showConfirmationSheet(
+                        context,
+                        'Reddet',
+                        AppColors.error,
+                        () {
+                          if (widget.onReject != null) {
+                            widget.onReject!(_aciklamaController.text);
+                          }
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                      foregroundColor: AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      textStyle: const TextStyle(fontSize: 17),
+                    ),
+                    child: const Text('Reddet'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showConfirmationSheet(
+                        context,
+                        'Geri Gönder',
+                        AppColors.warning,
+                        () {
+                          if (widget.onReturn != null) {
+                            widget.onReturn!(_aciklamaController.text);
+                          }
+                        },
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.warning,
+                      foregroundColor: AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      textStyle: const TextStyle(fontSize: 17),
+                    ),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('Geri Gönder'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         if (isSpecificUser) ...[
           const SizedBox(height: 16),
           Row(

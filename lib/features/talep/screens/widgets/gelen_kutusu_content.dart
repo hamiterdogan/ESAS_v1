@@ -1250,6 +1250,19 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // 2. State'i izle
     final state = ref.watch(provider);
 
+    // DEBUG: Veri çekildi bildirimi
+    /*ref.listen(provider, (previous, next) {
+       if (previous?.isInitialLoading == true && !next.isInitialLoading) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text('${widget.tip == 2 ? "Devam Eden" : "Tamamlanan"} tabı için veri çekildi.'),
+             duration: const Duration(milliseconds: 1500),
+             backgroundColor: Colors.green,
+           ),
+         );
+       }
+    });*/
+
     // 3. İlk yükleme hatası varsa göster
     if (state.errorMessage != null && state.talepler.isEmpty) {
       return RefreshIndicator(
@@ -1401,63 +1414,83 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
       });
     }
 
-    // Pre-calculate filter cutoff for performance
-    final now = DateTime.now();
-    final sureCutoff = _getSureCutoffDate(now);
+    // 5. Verileri işle (Filtreleme & Sıralama - Client Side)
+    // NOT: Pagination ile client side filtreleme sadece YÜKLENMİŞ veriler üzerinde çalışır.
+    
+    // Filtreleri doldur logic... (keep existing side-effect regarding _lastTotal)
+    // ... (lines 1334-1402 logic is about populating filter options, this should run regardless or be optimized separately. 
+    // The user specifically asked to skip filtering THE DATA)
 
-    // Optimized filtering with early returns
-    final filteredTalepler = taleplerListesi.where((talep) {
-      // Date filter (most common, check first)
-      if (sureCutoff != null) {
-        try {
-          final tarih = DateTime.parse(talep.olusturmaTarihi);
-          if (tarih.isBefore(sureCutoff)) return false;
-        } catch (e) {
-          // Invalid date, include anyway
+    // Ensure filter options are populated (keep lines 1333-1402 effectively)
+    // Actually, I should keep the filter population logic as it might be needed for the filter UI itself even if not filtering data right now? 
+    // No, if I don't filter, I still need to know what options are available IF I open the filter menu.
+    // So I will leave lines 1331-1402 alone (handled by the tool implicitly if I don't touch them, but I need to target the block AFTER that).
+
+    // Define filteredTalepler variable
+    List<dynamic> filteredTalepler; // Using dynamic or exact type depending on context, Talep is likely the type.
+
+    // OPTIMIZATION: Eğer filtre yoksa ve varsayılan sıralama ise (Yeniden Eskiye), işlem yapma
+    if (!isFilterActive && _yenidenEskiye) {
+      filteredTalepler = taleplerListesi;
+    } else {
+      // Pre-calculate filter cutoff for performance
+      final now = DateTime.now();
+      final sureCutoff = _getSureCutoffDate(now);
+
+      // Optimized filtering with early returns
+      filteredTalepler = taleplerListesi.where((talep) {
+        // Date filter (most common, check first)
+        if (sureCutoff != null) {
+          try {
+            final tarih = DateTime.parse(talep.olusturmaTarihi);
+            if (tarih.isBefore(sureCutoff)) return false;
+          } catch (e) {
+            // Invalid date, include anyway
+          }
         }
-      }
 
-      // Early return for empty filter sets (common case)
-      if (_selectedTalepTurleri.isNotEmpty &&
-          !_selectedTalepTurleri.contains(talep.onayTipi)) {
-        return false;
-      }
+        // Early return for empty filter sets (common case)
+        if (_selectedTalepTurleri.isNotEmpty &&
+            !_selectedTalepTurleri.contains(talep.onayTipi)) {
+          return false;
+        }
 
-      if (_selectedTalepEdenler.isNotEmpty &&
-          !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
-        return false;
-      }
+        if (_selectedTalepEdenler.isNotEmpty &&
+            !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
+          return false;
+        }
 
-      if (_selectedTalepDurumlari.isNotEmpty &&
-          !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
-        return false;
-      }
+        if (_selectedTalepDurumlari.isNotEmpty &&
+            !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
+          return false;
+        }
 
-      if (_selectedGorevler.isNotEmpty &&
-          !_selectedGorevler.contains(talep.gorevi ?? '')) {
-        return false;
-      }
+        if (_selectedGorevler.isNotEmpty &&
+            !_selectedGorevler.contains(talep.gorevi ?? '')) {
+          return false;
+        }
 
-      if (_selectedGorevYerleri.isNotEmpty &&
-          !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
-        return false;
-      }
+        if (_selectedGorevYerleri.isNotEmpty &&
+            !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
+          return false;
+        }
 
-      return true;
-    }).toList();
+        return true;
+      }).toList();
 
-    // Sıralama Uygula
-    filteredTalepler.sort((a, b) {
-      try {
-        final tarihA = DateTime.parse(a.olusturmaTarihi);
-        final tarihB = DateTime.parse(b.olusturmaTarihi);
-        return _yenidenEskiye
-            ? tarihB.compareTo(tarihA) // Yeniden eskiye
-            : tarihA.compareTo(tarihB); // Eskiden yeniye
-      } catch (e) {
-        return 0;
-      }
-    });
+      // Sıralama Uygula
+      filteredTalepler.sort((a, b) {
+        try {
+          final tarihA = DateTime.parse(a.olusturmaTarihi);
+          final tarihB = DateTime.parse(b.olusturmaTarihi);
+          return _yenidenEskiye
+              ? tarihB.compareTo(tarihA) // Yeniden eskiye
+              : tarihA.compareTo(tarihB); // Eskiden yeniye
+        } catch (e) {
+          return 0;
+        }
+      });
+    }
 
     // 6. Boş liste durumu
     if (filteredTalepler.isEmpty) {

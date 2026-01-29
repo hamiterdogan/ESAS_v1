@@ -377,14 +377,14 @@ final gorevYerleriProvider = FutureProvider<List<GorevYeri>>((ref) async {
 // Okunmayan talep sayısı provider
 final okunmayanTalepSayisiProvider =
     FutureProvider.autoDispose<OkunmayanTalepResponse>((ref) async {
-  // 5 dakika cache
-  ref.cacheFor(const Duration(minutes: 5));
-  final repo = ref.watch(talepYonetimRepositoryProvider);
-  final result = await repo.okunmayanTalepSayisiGetir();
+      // 5 dakika cache
+      ref.cacheFor(const Duration(minutes: 5));
+      final repo = ref.watch(talepYonetimRepositoryProvider);
+      final result = await repo.okunmayanTalepSayisiGetir();
 
-  return switch (result) {
-    Success(:final data) => data,
-    Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Loading'),
-  };
-});
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+        Loading() => throw Exception('Loading'),
+      };
+    });

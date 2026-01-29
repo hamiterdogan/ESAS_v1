@@ -16,6 +16,10 @@ import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
 
 class TeknikDestekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -35,6 +39,89 @@ class _TeknikDestekDetayScreenState
   bool _onaySureciExpanded = true;
   bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
+
+  // File Upload State
+  final List<(String path, String fileName)> _selectedFiles = [];
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickCamera() async {
+    try {
+      final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+      if (photo != null) {
+        setState(() {
+          _selectedFiles.add((photo.path, photo.name));
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Kamera hatası: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickGallery() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedFiles.add((image.path, image.name));
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Galeri hatası: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: [
+          'pdf',
+          'jpg',
+          'jpeg',
+          'png',
+          'doc',
+          'docx',
+          'xls',
+          'xlsx',
+        ],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _selectedFiles.add((
+            result.files.single.path!,
+            result.files.single.name,
+          ));
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Dosya seçme hatası: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _removeFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -655,7 +742,7 @@ class _TeknikDestekDetayScreenState
             const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
-              title: 'Onay',
+              title: 'Çözüm Süreci',
               isExpanded: _onayFormExpanded,
               onTap: () {
                 setState(() {
@@ -663,7 +750,20 @@ class _TeknikDestekDetayScreenState
                 });
               },
               child: OnayFormContent(
-                onApprove: (aciklama) async {
+                descriptionLabel: 'Mesajınızı yazınız',
+                descriptionMaxLines: 2,
+                extraContent: FilePhotoUploadWidget(
+                  title: 'Dosya / Fotoğraf Yükle',
+                  buttonText: 'Dosya Seç veya Fotoğraf Çek',
+                  files: _selectedFiles.map((e) => e.$2).toList(),
+                  fileNameBuilder: (file) => file,
+                  onRemoveFile: _removeFile,
+                  onPickCamera: _pickCamera,
+                  onPickGallery: _pickGallery,
+                  onPickFile: _pickFile,
+                ),
+                sendOnlyMode: true,
+                onSend: (aciklama) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
                   if (onaySureciId == null) {
@@ -677,6 +777,31 @@ class _TeknikDestekDetayScreenState
                   }
 
                   try {
+                    // Upload files first if any
+                    if (_selectedFiles.isNotEmpty) {
+                      final fileRepo = ref
+                          .read(bilgiTeknolojileriIstekRepositoryProvider);
+                      final uploadResult = await fileRepo.dosyaYukle(
+                        onayKayitId: widget.talepId,
+                        onayTipi: 'Teknik Destek',
+                        files: _selectedFiles,
+                        dosyaAciklama: aciklama,
+                      );
+
+                      if (uploadResult is Failure) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Dosya yükleme hatası: ${(uploadResult as Failure).message}',
+                            ),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                        return; // Stop execution on upload failure
+                      }
+                    }
+
                     final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Teknik Destek',
@@ -724,120 +849,7 @@ class _TeknikDestekDetayScreenState
                     );
                   }
                 },
-                onReject: (aciklama) async {
-                  final onaySureciId =
-                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                  if (onaySureciId == null) return;
-
-                  try {
-                    final repository = ref.read(talepYonetimRepositoryProvider);
-                    final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Teknik Destek',
-                      onayKayitId: widget.talepId,
-                      onaySureciId: onaySureciId,
-                      onay: false,
-                      beklet: false,
-                      geriDon: false,
-                      aciklama: aciklama,
-                    );
-
-                    final result = await repository.onayDurumuGuncelle(request);
-
-                    if (!context.mounted) return;
-
-                    switch (result) {
-                      case Success():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('İşlem başarıyla gerçekleşti'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                        ref
-                            .read(devamEdenGelenKutusuProvider.notifier)
-                            .refresh();
-                        Navigator.pop(context);
-                      case Failure(message: final message):
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Hata: $message'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                      case Loading():
-                        break;
-                    }
-                  } catch (e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                  }
-                },
-                onReturn: (aciklama) async {
-                  final onaySureciId =
-                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                  if (onaySureciId == null) return;
-
-                  try {
-                    final repository = ref.read(talepYonetimRepositoryProvider);
-                    final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Teknik Destek',
-                      onayKayitId: widget.talepId,
-                      onaySureciId: onaySureciId,
-                      onay: false,
-                      beklet: false,
-                      geriDon: true,
-                      aciklama: aciklama,
-                    );
-
-                    final result = await repository.onayDurumuGuncelle(request);
-
-                    if (!context.mounted) return;
-
-                    switch (result) {
-                      case Success():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('İşlem başarıyla gerçekleşti'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                        ref
-                            .read(devamEdenGelenKutusuProvider.notifier)
-                            .refresh();
-                        Navigator.pop(context);
-                      case Failure(message: final message):
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Hata: $message'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                      case Loading():
-                        break;
-                    }
-                  } catch (e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                  }
-                },
-                onAssign: (aciklama, selectedPersonel) {},
-                onHold: (aciklama, bekletKademe) async {
-                  final onaySureciId =
-                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                  if (onaySureciId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Onay süreci ID bulunamadı!'),
+              ),
                         backgroundColor: AppColors.error,
                       ),
                     );
