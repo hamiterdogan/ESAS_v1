@@ -779,8 +779,9 @@ class _TeknikDestekDetayScreenState
                   try {
                     // Upload files first if any
                     if (_selectedFiles.isNotEmpty) {
-                      final fileRepo = ref
-                          .read(bilgiTeknolojileriIstekRepositoryProvider);
+                      final fileRepo = ref.read(
+                        bilgiTeknolojileriIstekRepositoryProvider,
+                      );
                       final uploadResult = await fileRepo.dosyaYukle(
                         onayKayitId: widget.talepId,
                         onayTipi: 'Teknik Destek',

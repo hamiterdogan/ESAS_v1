@@ -120,7 +120,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
               ),
             ),
           )
-        else
+        else ...[
           Row(
             children: [
               Expanded(
@@ -208,99 +208,100 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
               ),
             ],
           ),
-        if (isSpecificUser) ...[
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              NumericSpinnerWidget(
-                onValueChanged: (value) {
-                  setState(() {
-                    _bekletKademe = value;
-                  });
-                },
-                initialValue: _bekletKademe,
-                minValue: 1,
-                maxValue: 10,
-                compact: true,
-                label: 'Bekletme Kademesi',
-              ),
-              const SizedBox(width: 32),
-              SizedBox(
-                width: 105,
-                height: 40,
+          if (isSpecificUser) ...[
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                NumericSpinnerWidget(
+                  onValueChanged: (value) {
+                    setState(() {
+                      _bekletKademe = value;
+                    });
+                  },
+                  initialValue: _bekletKademe,
+                  minValue: 1,
+                  maxValue: 10,
+                  compact: true,
+                  label: 'Bekletme Kademesi',
+                ),
+                const SizedBox(width: 32),
+                SizedBox(
+                  width: 105,
+                  height: 40,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showConfirmationSheet(
+                        context,
+                        'Beklet',
+                        Colors.blueGrey,
+                        () {
+                          if (widget.onHold != null) {
+                            widget.onHold!(
+                              _aciklamaController.text,
+                              _bekletKademe,
+                            );
+                          }
+                        },
+                        customMessage:
+                            'Süreci $_bekletKademe gün bekletmek istediğinizden emin misiniz?',
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                    ),
+                    child: const Text('Beklet'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (widget.gorevAtamaEnabled) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1, color: AppColors.border),
+            const SizedBox(height: 22),
+            const Text(
+              'Atanacak Personel',
+              style: TextStyle(fontSize: 17, color: AppColors.primaryDark),
+            ),
+            const SizedBox(height: 8),
+            _buildPersonelSecimButton(),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: 120,
                 child: ElevatedButton(
                   onPressed: () {
-                    _showConfirmationSheet(
-                      context,
-                      'Beklet',
-                      Colors.blueGrey,
-                      () {
-                        if (widget.onHold != null) {
-                          widget.onHold!(
-                            _aciklamaController.text,
-                            _bekletKademe,
-                          );
-                        }
-                      },
-                      customMessage:
-                          'Süreci $_bekletKademe gün bekletmek istediğinizden emin misiniz?',
-                    );
+                    if (widget.onAssign != null) {
+                      if (_secilenPersonel == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Lütfen atanacak personeli seçiniz'),
+                            backgroundColor: AppColors.warning,
+                          ),
+                        );
+                        return;
+                      }
+                      widget.onAssign!(
+                        _aciklamaController.text,
+                        _secilenPersonel,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey,
+                    backgroundColor: AppColors.gradientStart,
                     foregroundColor: AppColors.textOnPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    textStyle: const TextStyle(fontSize: 18),
                   ),
-                  child: const Text('Beklet'),
+                  child: const Text('Görev Ata'),
                 ),
-              ),
-            ],
-          ),
-        ],
-        if (widget.gorevAtamaEnabled) ...[
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.border),
-          const SizedBox(height: 22),
-          const Text(
-            'Atanacak Personel',
-            style: TextStyle(fontSize: 17, color: AppColors.primaryDark),
-          ),
-          const SizedBox(height: 8),
-          _buildPersonelSecimButton(),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              width: 120,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (widget.onAssign != null) {
-                    if (_secilenPersonel == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Lütfen atanacak personeli seçiniz'),
-                          backgroundColor: AppColors.warning,
-                        ),
-                      );
-                      return;
-                    }
-                    widget.onAssign!(
-                      _aciklamaController.text,
-                      _secilenPersonel,
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gradientStart,
-                  foregroundColor: AppColors.textOnPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  textStyle: const TextStyle(fontSize: 18),
-                ),
-                child: const Text('Görev Ata'),
               ),
             ),
-          ),
+          ],
         ],
       ],
     );
