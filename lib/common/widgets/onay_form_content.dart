@@ -111,7 +111,10 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                   backgroundColor: AppColors.gradientStart,
                   foregroundColor: AppColors.textOnPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 child: const Text('Gönder'),
               ),
@@ -261,10 +264,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
           const SizedBox(height: 22),
           const Text(
             'Atanacak Personel',
-            style: TextStyle(
-              fontSize: 17,
-              color: AppColors.primaryDark,
-            ),
+            style: TextStyle(fontSize: 17, color: AppColors.primaryDark),
           ),
           const SizedBox(height: 8),
           _buildPersonelSecimButton(),

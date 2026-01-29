@@ -476,7 +476,7 @@ class _DokumantasyonIstekDetayScreenState
                           );
                         }
                       },
-                onHold: (aciklama, bekletKademe) async {
+                      onHold: (aciklama, bekletKademe) async {
                         final onaySureciId = onayDurumu
                             .siradakiOnayVerecekPersonel
                             ?.onaySureciId;
@@ -554,6 +554,7 @@ class _DokumantasyonIstekDetayScreenState
             loading: () => const SizedBox(height: 16),
             error: (_, __) => const SizedBox(height: 16),
           ),
+          const SizedBox(height: 20),
           onayDurumuAsync.when(
             data: (onayDurumu) => _buildAccordion(
               icon: Icons.notifications_outlined,

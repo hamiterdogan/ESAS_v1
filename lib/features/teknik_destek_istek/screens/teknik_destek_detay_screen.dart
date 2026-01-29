@@ -850,64 +850,6 @@ class _TeknikDestekDetayScreenState
                   }
                 },
               ),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                    return;
-                  }
-
-                  try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
-                    final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Teknik Destek',
-                      onayKayitId: widget.talepId,
-                      onaySureciId: onaySureciId,
-                      onay: false,
-                      beklet: true,
-                      geriDon: false,
-                      aciklama: aciklama,
-                      bekletKademe: bekletKademe,
-                    );
-
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
-
-                    if (!context.mounted) return;
-
-                    switch (result) {
-                      case Success():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                        ref
-                            .read(devamEdenGelenKutusuProvider.notifier)
-                            .refresh();
-                        Navigator.pop(context);
-                      case Failure(message: final message):
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Hata: $message'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                      case Loading():
-                        break;
-                    }
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                  }
-                },
-                gorevAtamaEnabled: onayDurumu.atamaGoster,
-              ),
             ),
             const SizedBox(height: 16),
           ],
