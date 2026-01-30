@@ -268,7 +268,7 @@ class _TeknikDestekDetayScreenState
             _buildHizmetBilgileriAccordion(detay),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
-            _buildOnayFormAccordion(),
+            _buildOnayFormAccordion(detay.cozumler, detay.surecTamamlandi),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -725,7 +725,10 @@ class _TeknikDestekDetayScreenState
     );
   }
 
-  Widget _buildOnayFormAccordion() {
+  Widget _buildOnayFormAccordion(
+    List<TeknikDestekCozum> cozumler,
+    bool surecTamamlandi,
+  ) {
     const onayTipi = 'Teknik Destek';
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
@@ -733,7 +736,8 @@ class _TeknikDestekDetayScreenState
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster) {
+        // Show if there exists history OR if we can act on the form
+        if (cozumler.isEmpty && !onayDurumu.onayFormuGoster) {
           return const SizedBox(height: 16);
         }
 
@@ -749,107 +753,223 @@ class _TeknikDestekDetayScreenState
                   _onayFormExpanded = !_onayFormExpanded;
                 });
               },
-              child: OnayFormContent(
-                descriptionLabel: 'Mesajınızı yazınız',
-                descriptionMaxLines: 2,
-                extraContent: FilePhotoUploadWidget(
-                  title: 'Dosya / Fotoğraf Yükle',
-                  buttonText: 'Dosya Seç veya Fotoğraf Çek',
-                  files: _selectedFiles.map((e) => e.$2).toList(),
-                  fileNameBuilder: (file) => file,
-                  onRemoveFile: _removeFile,
-                  onPickCamera: _pickCamera,
-                  onPickGallery: _pickGallery,
-                  onPickFile: _pickFile,
-                ),
-                sendOnlyMode: true,
-                onSend: (aciklama) async {
-                  final onaySureciId =
-                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                  if (onaySureciId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Onay süreci ID bulunamadı!'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                    return;
-                  }
-
-                  try {
-                    // Upload files first if any
-                    if (_selectedFiles.isNotEmpty) {
-                      final fileRepo = ref.read(
-                        bilgiTeknolojileriIstekRepositoryProvider,
-                      );
-                      final uploadResult = await fileRepo.dosyaYukle(
-                        onayKayitId: widget.talepId,
-                        onayTipi: 'Teknik Destek',
-                        files: _selectedFiles,
-                        dosyaAciklama: aciklama,
-                      );
-
-                      if (uploadResult is Failure) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Dosya yükleme hatası: ${(uploadResult as Failure).message}',
+              child: Column(
+                children: [
+                  // 1. History (Timeline)
+                  if (cozumler.isNotEmpty) ...[
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: cozumler.length,
+                      itemBuilder: (context, index) {
+                        final item = cozumler[index];
+                        final dateStr = item.tarih != null
+                            ? DateFormat('dd.MM.yyyy HH:mm').format(
+                                DateTime.tryParse(item.tarih!) ??
+                                    DateTime.now(),
+                              )
+                            : '-';
+                        return Card(
+                          color: AppColors.textOnPrimary,
+                          elevation: 1,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: AppColors.border.withOpacity(0.5),
                             ),
-                            backgroundColor: AppColors.error,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Date & Time
+                                Text(
+                                  dateStr,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                // Sender
+                                Text(
+                                  item.yazanKisi ?? '-',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primaryDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                // Message
+                                Text(
+                                  item.aciklama ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                // Attachments
+                                if (item.ekliDosya != null &&
+                                    item.ekliDosya!.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          AppColors.scaffoldBackground
+                                              .withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.attach_file,
+                                          size: 14,
+                                          color: AppColors.primary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            item.ekliDosya!,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.primary,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         );
-                        return; // Stop execution on upload failure
-                      }
-                    }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
-                    final repository = ref.read(talepYonetimRepositoryProvider);
-                    final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Teknik Destek',
-                      onayKayitId: widget.talepId,
-                      onaySureciId: onaySureciId,
-                      onay: true,
-                      beklet: false,
-                      geriDon: false,
-                      aciklama: aciklama,
-                    );
-
-                    final result = await repository.onayDurumuGuncelle(request);
-
-                    if (!context.mounted) return;
-
-                    switch (result) {
-                      case Success():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('İşlem başarıyla gerçekleşti'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                        ref
-                            .read(devamEdenGelenKutusuProvider.notifier)
-                            .refresh();
-                        Navigator.pop(context);
-                      case Failure(message: final message):
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Hata: $message'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                      case Loading():
-                        break;
-                    }
-                  } catch (e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
+                  // 2. Action Form - Only if process is NOT COMPLETED and user HAS PERMISSION
+                  if (!surecTamamlandi && onayDurumu.onayFormuGoster)
+                    OnayFormContent(
+                      descriptionLabel: 'Mesajınızı yazınız',
+                      descriptionMaxLines: 2,
+                      extraContent: FilePhotoUploadWidget(
+                        title: 'Dosya / Fotoğraf Yükle',
+                        buttonText: 'Dosya Seç veya Fotoğraf Çek',
+                        files: _selectedFiles.map((e) => e.$2).toList(),
+                        fileNameBuilder: (file) => file,
+                        onRemoveFile: _removeFile,
+                        onPickCamera: _pickCamera,
+                        onPickGallery: _pickGallery,
+                        onPickFile: _pickFile,
                       ),
-                    );
-                  }
-                },
+                      sendOnlyMode: true,
+                      onSend: (aciklama) async {
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
+                        if (onaySureciId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Onay süreci ID bulunamadı!'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                          return;
+                        }
+
+                        try {
+                          // Upload files first if any
+                          if (_selectedFiles.isNotEmpty) {
+                            final fileRepo = ref.read(
+                              bilgiTeknolojileriIstekRepositoryProvider,
+                            );
+                            final uploadResult = await fileRepo.dosyaYukle(
+                              onayKayitId: widget.talepId,
+                              onayTipi: 'Teknik Destek',
+                              files: _selectedFiles,
+                              dosyaAciklama: aciklama,
+                            );
+
+                            if (uploadResult is Failure) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Dosya yükleme hatası: ${(uploadResult as Failure).message}',
+                                  ),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                              return; // Stop execution on upload failure
+                            }
+                          }
+
+                          final repository = ref
+                              .read(talepYonetimRepositoryProvider);
+                          final request = OnayDurumuGuncelleRequest(
+                            onayTipi: 'Teknik Destek',
+                            onayKayitId: widget.talepId,
+                            onaySureciId: onaySureciId,
+                            onay: true,
+                            beklet: false,
+                            geriDon: false,
+                            aciklama: aciklama,
+                          );
+
+                          final result =
+                              await repository.onayDurumuGuncelle(request);
+
+                          if (!context.mounted) return;
+
+                          switch (result) {
+                            case Success():
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'İşlem başarıyla gerçekleşti',
+                                  ),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                              ref
+                                  .read(devamEdenGelenKutusuProvider.notifier)
+                                  .refresh();
+                              Navigator.pop(context);
+                            case Failure(message: final message):
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Hata: $message'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            case Loading():
+                              break;
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Hata: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

@@ -96,10 +96,11 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
           widget.extraContent!,
         ],
         const SizedBox(height: 12),
-        if (widget.sendOnlyMode)
+        if (widget.sendOnlyMode) ...[
+          const SizedBox(height: 10),
           Center(
             child: SizedBox(
-              width: 200,
+              width: 140,
               height: 48,
               child: ElevatedButton(
                 onPressed: () {
@@ -112,15 +113,25 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                   foregroundColor: AppColors.textOnPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   textStyle: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                child: const Text('Gönder'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Transform.rotate(
+                      angle: 5.4554,
+                      child: const Icon(Icons.send, size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    const Text('Gönder'),
+                  ],
+                ),
               ),
             ),
-          )
-        else ...[
+          ),
+        ] else ...[
           Row(
             children: [
               Expanded(

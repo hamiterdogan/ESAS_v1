@@ -14,6 +14,7 @@ class TeknikDestekDetayResponse {
   final String? dosyaAdi;
   final String? dosyaAciklama;
   final bool surecTamamlandi;
+  final List<TeknikDestekCozum> cozumler;
 
   TeknikDestekDetayResponse({
     required this.id,
@@ -31,6 +32,7 @@ class TeknikDestekDetayResponse {
     this.dosyaAdi,
     this.dosyaAciklama,
     required this.surecTamamlandi,
+    required this.cozumler,
   });
 
   static int _parseInt(dynamic value) {
@@ -70,6 +72,20 @@ class TeknikDestekDetayResponse {
     return <TeknikDestekDetayHizmet>[];
   }
 
+  static List<TeknikDestekCozum> _parseCozumler(Map<String, dynamic> json) {
+    final raw = json['cozumler'];
+    if (raw is List) {
+      return raw
+          .map(
+            (e) => TeknikDestekCozum.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
+          .toList();
+    }
+    return <TeknikDestekCozum>[];
+  }
+
   factory TeknikDestekDetayResponse.fromJson(Map<String, dynamic> json) {
     return TeknikDestekDetayResponse(
       id: _parseInt(json['id'] ?? json['Id'] ?? json['onayKayitId']),
@@ -93,9 +109,13 @@ class TeknikDestekDetayResponse {
       ]),
       sonTarih: _readString(json, ['sonTarih', 'sonTarihStr', 'terminTarihi']),
       hizmetler: _parseHizmetler(json),
+      cozumler: _parseCozumler(json),
       dosyaAdi: json['dosyaAdi']?.toString(),
       dosyaAciklama: json['dosyaAciklama']?.toString(),
-      surecTamamlandi: json['surecTamamlandi'] as bool? ?? false,
+      surecTamamlandi:
+          (json['surecTamamlandi'] as bool?) ??
+          (json['tamamlandi'] as bool?) ??
+          false,
     );
   }
 }
@@ -131,6 +151,32 @@ class TeknikDestekDetayHizmet {
         'aciklama',
         'hizmetDetayAciklama',
       ]),
+    );
+  }
+}
+
+class TeknikDestekCozum {
+  final int id;
+  final String? aciklama;
+  final String? yazanKisi;
+  final String? tarih;
+  final String? ekliDosya;
+
+  TeknikDestekCozum({
+    required this.id,
+    this.aciklama,
+    this.yazanKisi,
+    this.tarih,
+    this.ekliDosya,
+  });
+
+  factory TeknikDestekCozum.fromJson(Map<String, dynamic> json) {
+    return TeknikDestekCozum(
+      id: json['id'] as int? ?? 0,
+      aciklama: json['aciklama'] as String?,
+      yazanKisi: json['yazanKisi'] as String?,
+      tarih: json['tarih'] as String?,
+      ekliDosya: json['ekliDosya'] as String?,
     );
   }
 }
