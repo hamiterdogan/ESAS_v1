@@ -736,8 +736,8 @@ class _TeknikDestekDetayScreenState
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        // Show if there exists history OR if we can act on the form
-        if (cozumler.isEmpty && !onayDurumu.onayFormuGoster) {
+        // Show if there exists history OR if process is ongoing (to show form)
+        if (cozumler.isEmpty && surecTamamlandi) {
           return const SizedBox(height: 16);
         }
 
@@ -860,8 +860,8 @@ class _TeknikDestekDetayScreenState
                     const SizedBox(height: 16),
                   ],
 
-                  // 2. Action Form - Only if process is NOT COMPLETED and user HAS PERMISSION
-                  if (!surecTamamlandi && onayDurumu.onayFormuGoster)
+                  // 2. Action Form - Only if process is NOT COMPLETED
+                  if (!surecTamamlandi)
                     OnayFormContent(
                       descriptionLabel: 'Mesajınızı yazınız',
                       descriptionMaxLines: 2,
@@ -875,32 +875,87 @@ class _TeknikDestekDetayScreenState
                         onPickGallery: _pickGallery,
                         onPickFile: _pickFile,
                       ),
-                      sendOnlyMode: true,
-                      onSend: (aciklama) async {
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
-                        if (onaySureciId == null) {
+                      showCloseRequestOption: true,
+                      onCloseRequest: (aciklama, rating) async {
+                        try {
+                          final repo = ref.read(
+                            bilgiTeknolojileriIstekRepositoryProvider,
+                          );
+                          final result = await repo.talepKapat(
+                            teknikDestekId: widget.talepId,
+                            puan: rating ?? 0,
+                            aciklama: aciklama,
+                          );
+
+                          if (!context.mounted) return;
+
+                          if (result is Success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Talep başarıyla kapatıldı'),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                            ref
+                                .read(devamEdenGelenKutusuProvider.notifier)
+                                .refresh();
+                            ref.invalidate(
+                              teknikDestekDetayProvider(widget.talepId),
+                            );
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Hata: ${(result as Failure).message}',
+                                ),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Onay süreci ID bulunamadı!'),
+                            SnackBar(
+                              content: Text('Hata: $e'),
                               backgroundColor: AppColors.error,
                             ),
                           );
-                          return;
                         }
-
+                      },
+                      sendOnlyMode: true,
+                      onSend: (aciklama) async {
                         try {
-                          // Upload files first if any
-                          if (_selectedFiles.isNotEmpty) {
-                            final fileRepo = ref.read(
-                              bilgiTeknolojileriIstekRepositoryProvider,
+                          final repo = ref.read(
+                            bilgiTeknolojileriIstekRepositoryProvider,
+                          );
+
+                          // 1. Send Message
+                          final messageResult = await repo.aciklamaYaz(
+                            teknikDestekId: widget.talepId,
+                            aciklama: aciklama,
+                          );
+
+                          if (messageResult is Failure) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Mesaj gönderilemedi: ${messageResult.message}',
+                                ),
+                                backgroundColor: AppColors.error,
+                              ),
                             );
-                            final uploadResult = await fileRepo.dosyaYukle(
+                            return;
+                          }
+
+                          // 2. Upload Files (if any)
+                          if (_selectedFiles.isNotEmpty) {
+                            final uploadResult = await repo.dosyaYukle(
                               onayKayitId: widget.talepId,
                               onayTipi: 'Teknik Destek',
                               files: _selectedFiles,
-                              dosyaAciklama: aciklama,
+                              dosyaAciklama: 'Teknik Destek Çözüm',
                             );
 
                             if (uploadResult is Failure) {
@@ -908,56 +963,38 @@ class _TeknikDestekDetayScreenState
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Dosya yükleme hatası: ${(uploadResult as Failure).message}',
+                                    'Dosya yükleme hatası: ${uploadResult.message}',
                                   ),
                                   backgroundColor: AppColors.error,
                                 ),
                               );
-                              return; // Stop execution on upload failure
+                              // We don't return here because the message was sent successfully
                             }
                           }
 
-                          final repository = ref
-                              .read(talepYonetimRepositoryProvider);
-                          final request = OnayDurumuGuncelleRequest(
-                            onayTipi: 'Teknik Destek',
-                            onayKayitId: widget.talepId,
-                            onaySureciId: onaySureciId,
-                            onay: true,
-                            beklet: false,
-                            geriDon: false,
-                            aciklama: aciklama,
-                          );
-
-                          final result =
-                              await repository.onayDurumuGuncelle(request);
-
                           if (!context.mounted) return;
 
-                          switch (result) {
-                            case Success():
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'İşlem başarıyla gerçekleşti',
-                                  ),
-                                  backgroundColor: AppColors.success,
-                                ),
-                              );
-                              ref
-                                  .read(devamEdenGelenKutusuProvider.notifier)
-                                  .refresh();
-                              Navigator.pop(context);
-                            case Failure(message: final message):
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Hata: $message'),
-                                  backgroundColor: AppColors.error,
-                                ),
-                              );
-                            case Loading():
-                              break;
-                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Mesajınız başarıyla iletildi'),
+                              backgroundColor: AppColors.success,
+                            ),
+                          );
+
+                          ref
+                              .read(devamEdenGelenKutusuProvider.notifier)
+                              .refresh();
+                          ref.invalidate(
+                            teknikDestekDetayProvider(widget.talepId),
+                          ); // Refresh details to show new message
+                          
+                          // Clear inputs
+                          setState(() {
+                            _selectedFiles.clear();
+                          });
+                          
+                          // We stay on the screen to see the updated chat history
+                          // Navigator.pop(context); 
                         } catch (e) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(

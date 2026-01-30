@@ -5,7 +5,9 @@ import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/features/izin_istek/screens/personel_secim_modal.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/common/widgets/onay_toggle_widget.dart';
 
 class OnayFormContent extends ConsumerStatefulWidget {
   final Function(String aciklama)? onApprove;
@@ -16,12 +18,15 @@ class OnayFormContent extends ConsumerStatefulWidget {
   final Function(String aciklama, int bekletKademe)?
   onHold; // Bekletme için açıklama ve kademe
   final Function(String aciklama)? onSend; // Sadece Gönder butonu için
+  final Function(String aciklama, int? rating)?
+  onCloseRequest; // Talebi kapatma callback
 
   final String descriptionLabel;
   final int descriptionMaxLines;
   final Widget? extraContent;
   final bool gorevAtamaEnabled;
   final bool sendOnlyMode; // Sadece Gönder butonunu göster
+  final bool showCloseRequestOption; // Talebi kapat seçeneğini göster
 
   const OnayFormContent({
     super.key,
@@ -31,11 +36,13 @@ class OnayFormContent extends ConsumerStatefulWidget {
     this.onAssign,
     this.onHold,
     this.onSend,
+    this.onCloseRequest,
     this.gorevAtamaEnabled = true,
     this.descriptionLabel = 'Açıklama',
     this.descriptionMaxLines = 3,
     this.extraContent,
     this.sendOnlyMode = false,
+    this.showCloseRequestOption = false,
   });
 
   @override
@@ -45,11 +52,16 @@ class OnayFormContent extends ConsumerStatefulWidget {
 class _OnayFormContentState extends ConsumerState<OnayFormContent> {
   Personel? _secilenPersonel;
   final TextEditingController _aciklamaController = TextEditingController();
+  final FocusNode _aciklamaFocusNode = FocusNode();
   int _bekletKademe = 1;
+  bool _showValidationWarning = false;
+  bool _isCloseRequestActive = false;
+  int? _selectedRating;
 
   @override
   void dispose() {
     _aciklamaController.dispose();
+    _aciklamaFocusNode.dispose();
     super.dispose();
   }
 
@@ -72,6 +84,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _aciklamaController,
+          focusNode: _aciklamaFocusNode,
           maxLines: widget.descriptionMaxLines,
           decoration: InputDecoration(
             hintText: '${widget.descriptionLabel} giriniz',
@@ -98,39 +111,122 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
         const SizedBox(height: 12),
         if (widget.sendOnlyMode) ...[
           const SizedBox(height: 10),
-          Center(
-            child: SizedBox(
-              width: 140,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (widget.onSend != null) {
-                    widget.onSend!(_aciklamaController.text);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gradientStart,
-                  foregroundColor: AppColors.textOnPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  textStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+          if (!_isCloseRequestActive)
+            Center(
+              child: Container(
+                width: 140,
+                height: 43,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Transform.rotate(
-                      angle: 5.4554,
-                      child: const Icon(Icons.send, size: 18),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_aciklamaController.text.trim().isEmpty) {
+                      await ValidationUyariWidget.goster(
+                        context: context,
+                        message: 'Lütfen mesajınızı yazınız',
+                        onDismiss: () {
+                          _aciklamaFocusNode.requestFocus();
+                        },
+                      );
+                      return;
+                    }
+                    if (widget.onSend != null) {
+                      widget.onSend!(_aciklamaController.text);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: AppColors.textOnPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(width: 10),
-                    const Text('Gönder'),
-                  ],
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Transform.rotate(
+                        angle: 0.7854,
+                        child: const Icon(Icons.send, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text('Gönder'),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          if (widget.showCloseRequestOption) ...[
+            const SizedBox(height: 16),
+            Center(
+              child: OnayToggleWidget(
+                label: 'Talebi Kapat',
+                initialValue: _isCloseRequestActive,
+                onChanged: (value) {
+                  setState(() {
+                    _isCloseRequestActive = value;
+                  });
+                },
+              ),
+            ),
+            if (_isCloseRequestActive) ...[
+              const SizedBox(height: 16),
+              _buildSatisfactionSurvey(),
+              const SizedBox(height: 16),
+              Center(
+                child: Container(
+                  width: 140,
+                  height: 43,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_selectedRating == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Lütfen memnuniyetinizi değerlendirin',
+                            ),
+                            backgroundColor: AppColors.warning,
+                          ),
+                        );
+                        return;
+                      }
+                      if (widget.onCloseRequest != null) {
+                        widget.onCloseRequest!(
+                          _aciklamaController.text,
+                          _selectedRating,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: AppColors.textOnPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Kaydet'),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ] else ...[
           Row(
             children: [
@@ -485,5 +581,78 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
       default:
         return 'Süreci ${actionName.toUpperCase()}MEK istediğinizden emin misiniz?';
     }
+  }
+
+  Widget _buildSatisfactionSurvey() {
+    return Column(
+      children: [
+        const Text(
+          'Lütfen memnuniyetinizi değerlendirin:',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildRatingIcon(1, Icons.sentiment_very_dissatisfied, Colors.red),
+            const SizedBox(width: 12),
+            _buildRatingIcon(2, Icons.sentiment_dissatisfied, Colors.orange),
+            const SizedBox(width: 12),
+            _buildRatingIcon(3, Icons.sentiment_neutral, Colors.amber),
+            const SizedBox(width: 12),
+            _buildRatingIcon(4, Icons.sentiment_satisfied, Colors.lightGreen),
+            const SizedBox(width: 12),
+            _buildRatingIcon(5, Icons.sentiment_very_satisfied, Colors.green),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRatingIcon(int rating, IconData icon, Color color) {
+    final isSelected = _selectedRating == rating;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedRating = rating;
+        });
+      },
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+              border: isSelected
+                  ? Border.all(color: color, width: 2)
+                  : Border.all(color: Colors.transparent),
+            ),
+            child: Icon(
+              icon,
+              size: isSelected ? 40 : 34,
+              color: isSelected ? color : AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? color : Colors.transparent,
+              border: Border.all(
+                color: isSelected ? Colors.transparent : AppColors.border,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

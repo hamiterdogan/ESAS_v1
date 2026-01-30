@@ -140,6 +140,63 @@ class BilgiTeknolojileriIstekRepository {
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
+      return Failure(e.toString());
+    }
+  }
+
+  Future<Result<void>> aciklamaYaz({
+    required int teknikDestekId,
+    required String aciklama,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/TeknikDestek/AciklamaYaz',
+        data: {
+          'teknikDestekId': teknikDestekId,
+          'aciklama': aciklama,
+        },
+        options: Options(contentType: 'application/json'),
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  Future<Result<void>> talepKapat({
+    required int teknikDestekId,
+    required int puan,
+    required String aciklama,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/TeknikDestek/TalepKapat',
+        data: {
+          'teknikDestekId': teknikDestekId,
+          'puan': puan,
+          'aciklama': aciklama,
+        },
+        options: Options(contentType: 'application/json'),
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
     } catch (e) {
       return Failure(e.toString());
     }
