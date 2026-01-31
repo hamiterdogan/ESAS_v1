@@ -333,7 +333,7 @@ class TalepYonetimHelper {
         lower.contains('devam')) {
       return AppColors.warning; // Amber
     }
-    if (lower.contains('onaylandı') || lower.contains('tamamlandı')) {
+    if (lower.contains('onaylandı') || lower.contains('tamam')) {
       return AppColors.success;
     }
     return AppColors.primaryGrey;
@@ -349,16 +349,16 @@ class TalepYonetimHelper {
   static IconData getStatusIcon(String status) {
     final lower = status.toLowerCase();
     if (lower.contains('redd') || lower.contains('iptal')) {
-      return Icons.cancel_outlined;
+      return Icons.cancel;
     }
     if (lower.contains('onay bekliyor') ||
         lower.contains('beklemede') ||
         lower.contains('bekliyor') ||
         lower.contains('devam')) {
-      return Icons.access_time_rounded;
+      return Icons.schedule;
     }
-    if (lower.contains('onaylandı') || lower.contains('tamamlandı')) {
-      return Icons.check_circle_outline;
+    if (lower.contains('onaylandı') || lower.contains('tamam')) {
+      return Icons.check_circle;
     }
     return Icons.info_outline;
   }
@@ -402,13 +402,6 @@ class TalepYonetimHelper {
 
   /// Durum etiketini normalize et
   static String getStatusText(String status) {
-    final lower = status.toLowerCase();
-    if (lower.contains('onay bekliyor') ||
-        lower.contains('beklemede') ||
-        lower.contains('bekliyor') ||
-        lower.contains('devam')) {
-      return 'Devam Ediyor';
-    }
     return status;
   }
 }

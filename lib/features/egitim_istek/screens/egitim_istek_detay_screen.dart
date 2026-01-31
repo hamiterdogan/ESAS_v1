@@ -13,6 +13,9 @@ import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.da
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:esas_v1/features/egitim_istek/repositories/egitim_istek_repository.dart';
 
 class EgitimIstekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -27,12 +30,30 @@ class EgitimIstekDetayScreen extends ConsumerStatefulWidget {
 class _EgitimIstekDetayScreenState
     extends ConsumerState<EgitimIstekDetayScreen> {
   bool _personelBilgileriExpanded = true;
-  bool _egitimDetaylariExpanded = true;
+  bool _egitimBilgileriExpanded = true;
   bool _egitimAlacakPersonelExpanded = false;
+  bool _ucretBilgisiExpanded = true;
+  bool _paylasimBilgileriExpanded = true;
+  bool _yuklenenDosyalarExpanded = true;
   bool _paylasimYapilacakKisilerExpanded = false;
   bool _onaySureciExpanded = true;
   bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
+
+  late TextEditingController _kurumUcretController;
+  bool _isControllerInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _kurumUcretController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _kurumUcretController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,15 +117,30 @@ class _EgitimIstekDetayScreenState
     EgitimIstekDetayResponse detay,
     AsyncValue<PersonelBilgiResponse> personelAsync,
   ) {
-    final adSoyad = detay.adSoyad.isNotEmpty
-        ? detay.adSoyad
-        : (personelAsync.value?.adSoyad ?? '-');
-    final gorevYeri = detay.gorevYeri.isNotEmpty
-        ? detay.gorevYeri
-        : (personelAsync.value?.gorevYeri ?? '-');
-    final gorevi = detay.gorevi.isNotEmpty
-        ? detay.gorevi
-        : (personelAsync.value?.gorev ?? '-');
+    // Initialize controller only once when data is available
+    if (!_isControllerInitialized) {
+      _kurumUcretController.text =
+          detay.kurumunKarsiladigiUcret > 0
+              ? _formatNumber(detay.kurumunKarsiladigiUcret)
+              : '';
+      _isControllerInitialized = true;
+    }
+
+    final currentKullaniciAdi = ref.watch(currentKullaniciAdiProvider);
+    final isAerbil = currentKullaniciAdi == 'AERBIL';
+
+    final adSoyad =
+        detay.adSoyad.isNotEmpty
+            ? detay.adSoyad
+            : (personelAsync.value?.adSoyad ?? '-');
+    final gorevYeri =
+        detay.gorevYeri.isNotEmpty
+            ? detay.gorevYeri
+            : (personelAsync.value?.gorevYeri ?? '-');
+    final gorevi =
+        detay.gorevi.isNotEmpty
+            ? detay.gorevi
+            : (personelAsync.value?.gorev ?? '-');
 
     final showEgitimAlacaklar =
         detay.topluIstek && detay.egitimAlacakPersoneller.isNotEmpty;
@@ -148,16 +184,16 @@ class _EgitimIstekDetayScreenState
             const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.school_outlined,
-              title: 'Eğitim İstek Detayları',
-              isExpanded: _egitimDetaylariExpanded,
+              title: 'Eğitim Bilgileri',
+              isExpanded: _egitimBilgileriExpanded,
               onTap: () {
                 setState(() {
-                  _egitimDetaylariExpanded = !_egitimDetaylariExpanded;
+                  _egitimBilgileriExpanded = !_egitimBilgileriExpanded;
                 });
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildEgitimDetayRows(detay),
+                children: _buildEgitimBilgileriRows(detay),
               ),
             ),
             const SizedBox(height: 16),
@@ -181,6 +217,52 @@ class _EgitimIstekDetayScreenState
                 ),
               ),
             if (showEgitimAlacaklar) const SizedBox(height: 16),
+            if (detay.egitimUcreti > 0)
+              _buildAccordion(
+                icon: Icons.payments_outlined,
+                title: 'Kişi Başı Ücret Bilgisi',
+                isExpanded: _ucretBilgisiExpanded,
+                onTap: () {
+                  setState(() {
+                    _ucretBilgisiExpanded = !_ucretBilgisiExpanded;
+                  });
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _buildUcretBilgisiRows(detay, isAerbil),
+                ),
+              ),
+            if (detay.egitimUcreti > 0) const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.share_location_outlined,
+              title: 'Eğitim Sonrası Kurum İçi Paylaşım',
+              isExpanded: _paylasimBilgileriExpanded,
+              onTap: () {
+                setState(() {
+                  _paylasimBilgileriExpanded = !_paylasimBilgileriExpanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildPaylasimRows(detay),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildAccordion(
+              icon: Icons.attach_file_outlined,
+              title: 'Yüklenen Dosyalar',
+              isExpanded: _yuklenenDosyalarExpanded,
+              onTap: () {
+                setState(() {
+                  _yuklenenDosyalarExpanded = !_yuklenenDosyalarExpanded;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildDosyalarRows(detay),
+              ),
+            ),
+            const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.share_outlined,
               title: 'Paylaşım Yapılacak Kişiler',
@@ -241,253 +323,342 @@ class _EgitimIstekDetayScreenState
     );
   }
 
-  List<Widget> _buildEgitimDetayRows(EgitimIstekDetayResponse detay) {
-    final rows = <Widget>[];
-    final items = <MapEntry<String, String>>[];
-
-    if (detay.egitiminAdi.isNotEmpty) {
-      items.add(MapEntry('Eğitimin Adı', detay.egitiminAdi));
-    }
-
-    if (detay.egitiminAdiDiger.isNotEmpty) {
-      items.add(MapEntry('Eğitimin Adı (Diğer)', detay.egitiminAdiDiger));
-    }
-
-    if (detay.departman.isNotEmpty) {
-      items.add(MapEntry('Departman', detay.departman));
-    }
-
-    if (detay.egitimTuru.isNotEmpty) {
-      items.add(MapEntry('Eğitim Türü', detay.egitimTuru));
-    }
-
-    if (detay.sirketAdi.isNotEmpty) {
-      items.add(MapEntry('Şirket Adı', detay.sirketAdi));
-    }
-
-    if (detay.egitimIcerigi.isNotEmpty) {
-      items.add(MapEntry('Eğitim İçeriği', detay.egitimIcerigi));
-    }
-
-    if (detay.webSitesi.isNotEmpty) {
-      items.add(MapEntry('Web Sitesi', detay.webSitesi));
-    }
-
-    if (detay.egitimBaslangicTarihi.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Eğitim Başlangıç Tarihi',
-          _formatDateString(detay.egitimBaslangicTarihi),
+  List<Widget> _buildEgitimBilgileriRows(EgitimIstekDetayResponse detay) {
+    final rows = <Widget>[
+      _buildInfoRow(
+        'Eğitim Başlangıç Tarihi',
+        _formatDateString(detay.egitimBaslangicTarihi),
+      ),
+      _buildInfoRow(
+        'Eğitim Bitiş Tarihi',
+        _formatDateString(detay.egitimBitisTarihi),
+      ),
+      _buildInfoRow(
+        'Eğitim Başlangıç Saati',
+        _formatTimeString(detay.egitimBaslangicSaati),
+      ),
+      _buildInfoRow(
+        'Eğitim Bitiş Saati',
+        _formatTimeString(detay.egitimBitisSaati),
+      ),
+      if (detay.egitimSuresiGun.isNotEmpty ||
+          detay.egitimSuresiSaat.isNotEmpty) ...[
+        Builder(
+          builder: (context) {
+            final parts = <String>[];
+            if (detay.egitimSuresiGun.isNotEmpty) {
+              parts.add('${detay.egitimSuresiGun} Gün');
+            }
+            if (detay.egitimSuresiSaat.isNotEmpty) {
+              parts.add('günde ${detay.egitimSuresiSaat} Saat');
+            }
+            return _buildInfoRow('Eğitimin Süresi', parts.join(', '));
+          },
         ),
-      );
-    }
-
-    if (detay.egitimBitisTarihi.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Eğitim Bitiş Tarihi',
-          _formatDateString(detay.egitimBitisTarihi),
-        ),
-      );
-    }
-
-    if (detay.egitimBaslangicSaati.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Eğitim Başlangıç Saati',
-          _formatTimeString(detay.egitimBaslangicSaati),
-        ),
-      );
-    }
-
-    if (detay.egitimBitisSaati.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Eğitim Bitiş Saati',
-          _formatTimeString(detay.egitimBitisSaati),
-        ),
-      );
-    }
-
-    if (detay.egitimSuresiGun.isNotEmpty) {
-      items.add(MapEntry('Eğitim Süresi (Gün)', detay.egitimSuresiGun));
-    }
-
-    if (detay.egitimSuresiSaat.isNotEmpty) {
-      items.add(MapEntry('Eğitim Süresi (Saat)', detay.egitimSuresiSaat));
-    }
-
-    if (detay.girilmeyenToplamDersSaati > 0) {
-      items.add(
-        MapEntry(
+      ],
+      if (detay.girilmeyenToplamDersSaati > 0)
+        _buildInfoRow(
           'Girilmeyen Toplam Ders Saati',
           '${detay.girilmeyenToplamDersSaati}',
         ),
+      _buildInfoRow('Eğitimin Adı', detay.egitiminAdi),
+      if (detay.egitiminAdiDiger.isNotEmpty)
+        _buildInfoRow('Eğitimin Adı (Diğer)', detay.egitiminAdiDiger),
+      _buildInfoRow('Eğitim Türü', detay.egitimTuru),
+      _buildInfoRow('Online', detay.online ? 'Evet' : 'Hayır'),
+      _buildInfoRow('Eğitim Şirketinin Adı', detay.sirketAdi),
+      _buildInfoRow('Eğitimin Konusu', detay.egitimIcerigi),
+      _buildInfoRow(
+        'Web Sitesi',
+        detay.webSitesi.isNotEmpty ? detay.webSitesi : '-',
+      ),
+      _buildInfoRow('Eğitimin Yeri', detay.egitimYeri),
+      _buildInfoRow('Şehir', detay.sehir),
+      _buildInfoRow('Adres', detay.adres, isLast: true),
+    ];
+
+    return rows;
+  }
+
+  String _formatNumber(num value) {
+    final formatter =
+        NumberFormat.currency(locale: 'tr_TR', symbol: '', decimalDigits: 2);
+    return formatter.format(value).trim();
+  }
+
+  double _parseCurrency(String value) {
+    // 10.800,00 -> 10800.00
+    // Remove dots, replace comma with dot
+    if (value.isEmpty) return 0;
+    String cleaned = value.replaceAll('.', '').replaceAll(',', '.');
+    return double.tryParse(cleaned) ?? 0;
+  }
+
+  Future<void> _saveKurumUcret(int talepId) async {
+    final valueStr = _kurumUcretController.text;
+    final value = _parseCurrency(valueStr);
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (c) => const Center(child: BrandedLoadingIndicator()),
+      );
+
+      final repo = ref.read(egitimIstekRepositoryProvider);
+      final result = await repo.egitimIstekGuncelle(
+        id: talepId,
+        kurumunKarsiladigiUcret: value,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Dismiss loading
+
+      switch (result) {
+        case Success():
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ücret başarıyla güncellendi'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          // Refresh the page data
+          ref.invalidate(egitimIstekDetayProvider(widget.talepId));
+        case Failure(:final message):
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        case Loading():
+          break;
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Hata: $e'), backgroundColor: AppColors.error),
       );
     }
+  }
 
-    if (detay.egitimYeri.isNotEmpty) {
-      items.add(MapEntry('Eğitim Yeri', detay.egitimYeri));
+  String _formatCurrency(num value, String? symbol) {
+    final s = symbol ?? (value == 0 ? '' : 'TL');
+    final formattedValue = _formatNumber(value);
+    return '$formattedValue $s';
+  }
+
+  List<Widget> _buildUcretBilgisiRows(
+    EgitimIstekDetayResponse detay,
+    bool isAerbil,
+  ) {
+    final rows = <Widget>[];
+
+    // Eğitim Ücreti
+    rows.add(
+      _buildInfoRow(
+        'Eğitimin Ücreti',
+        _formatCurrency(detay.egitimUcreti, detay.egitimParaBirimiSembol),
+      ),
+    );
+
+    // Ulaşım Ücreti
+    rows.add(
+      _buildInfoRow(
+        'Ulaşım Ücreti',
+        _formatCurrency(detay.ulasimUcreti, detay.ulasimParaBirimiSembol),
+      ),
+    );
+
+    // Konaklama Ücreti
+    rows.add(
+      _buildInfoRow(
+        'Konaklama Ücreti',
+        _formatCurrency(detay.konaklamaUcreti, detay.konaklamaParaBirimiSembol),
+      ),
+    );
+
+    // Yemek Ücreti
+    rows.add(
+      _buildInfoRow(
+        'Yemek Ücreti',
+        _formatCurrency(detay.yemekUcreti, detay.yemekParaBirimiSembol),
+      ),
+    );
+
+    // Kişi Başı Toplam Ücret (TL)
+    rows.add(
+      _buildInfoRow(
+        'Kişi Başı Toplam Ücret',
+        _formatCurrency(detay.toplamUcret, 'TL'),
+      ),
+    );
+
+    // Genel Toplam Ücret (TL)
+    rows.add(
+      _buildInfoRow(
+        'Genel Toplam Ücret',
+        _formatCurrency(detay.genelToplamUcret, 'TL'),
+      ),
+    );
+
+    // Ödeme Şekli
+    if (detay.odemeSekli?.isNotEmpty == true) {
+      rows.add(_buildInfoRow('Ödeme Şekli', detay.odemeSekli!));
     }
 
-    items.add(MapEntry('Online', detay.online ? 'Evet' : 'Hayır'));
-
-    if (detay.ulke.isNotEmpty) {
-      items.add(MapEntry('Ülke', detay.ulke));
+    // Peşin / Vadeli
+    rows.add(_buildInfoRow('Peşin / Vadeli', detay.pesin ? 'Peşin' : 'Vadeli'));
+    if (!detay.pesin && detay.vadeGun > 0) {
+      rows.add(_buildInfoRow('Vade (Gün)', '${detay.vadeGun}'));
     }
 
-    if (detay.sehir.isNotEmpty) {
-      items.add(MapEntry('Şehir', detay.sehir));
+    // IBAN
+    if (detay.hesapNo.isNotEmpty) {
+      rows.add(_buildInfoRow('IBAN', detay.hesapNo));
     }
 
-    if (detay.adres.isNotEmpty) {
-      items.add(MapEntry('Adres', detay.adres));
+    // Hesap Adı (Using unvan as best guess)
+    if (detay.unvan.isNotEmpty) {
+      rows.add(_buildInfoRow('Hesap Adı', detay.unvan));
     }
 
-    items.add(MapEntry('Ücretsiz', detay.ucretsiz ? 'Evet' : 'Hayır'));
+    // Diğer Ek Bilgiler
+    if (detay.ekBilgi.isNotEmpty) {
+      rows.add(_buildInfoRow('Diğer Ek Bilgiler', detay.ekBilgi));
+    }
 
-    if (!detay.ucretsiz) {
-      if (detay.egitimUcreti != 0) {
-        items.add(MapEntry('Eğitim Ücreti', '${detay.egitimUcreti}'));
-      }
-      if (detay.ulasimUcreti != 0) {
-        items.add(MapEntry('Ulaşım Ücreti', '${detay.ulasimUcreti}'));
-      }
-      if (detay.konaklamaUcreti != 0) {
-        items.add(MapEntry('Konaklama Ücreti', '${detay.konaklamaUcreti}'));
-      }
-      if (detay.yemekUcreti != 0) {
-        items.add(MapEntry('Yemek Ücreti', '${detay.yemekUcreti}'));
-      }
-      if (detay.toplamUcret != 0) {
-        items.add(MapEntry('Toplam Ücret', '${detay.toplamUcret}'));
-      }
-      if (detay.genelToplamUcret != 0) {
-        items.add(MapEntry('Genel Toplam Ücret', '${detay.genelToplamUcret}'));
-      }
-      if (detay.kurumunKarsiladigiUcret != 0) {
-        items.add(
-          MapEntry(
+    // Kurumun Karşıladığı Ücret
+    if (isAerbil) {
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Kurumun Karşıladığı Ücret (TL)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _kurumUcretController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        suffixText: 'TL',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 30),
+                  Expanded(
+                    flex: 1,
+                    child: InkWell(
+                      onTap: () => _saveKurumUcret(detay.id),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text(
+                          'Kaydet',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      if (detay.kurumunKarsiladigiUcret > 0) {
+        rows.add(
+          _buildInfoRow(
             'Kurumun Karşıladığı Ücret',
-            '${detay.kurumunKarsiladigiUcret}',
+            _formatCurrency(detay.kurumunKarsiladigiUcret, 'TL'),
           ),
         );
       }
     }
 
-    if (detay.odemeSekli?.isNotEmpty == true) {
-      items.add(MapEntry('Ödeme Şekli', detay.odemeSekli!));
-    }
+    return rows;
+  }
 
-    items.add(MapEntry('Peşin', detay.pesin ? 'Evet' : 'Hayır'));
+  List<Widget> _buildPaylasimRows(EgitimIstekDetayResponse detay) {
+    return [
+      _buildInfoRow(
+        'Başlangıç Tarihi',
+        _formatDateString(detay.paylasimBaslangicTarihi),
+      ),
+      _buildInfoRow(
+        'Bitiş Tarihi',
+        _formatDateString(detay.paylasimBitisTarihi),
+      ),
+      _buildInfoRow(
+        'Başlangıç Saati',
+        _formatTimeString(detay.paylasimBaslangicSaati),
+      ),
+      _buildInfoRow(
+        'Bitiş Saati',
+        _formatTimeString(detay.paylasimBitisSaati),
+      ),
+      _buildInfoRow('Nerede yapılacak', detay.paylasimYeri, isLast: true),
+    ];
+  }
 
-    if (!detay.pesin && detay.vadeGun > 0) {
-      items.add(MapEntry('Vade (Gün)', '${detay.vadeGun}'));
-    }
+  List<Widget> _buildDosyalarRows(EgitimIstekDetayResponse detay) {
+    // As per request: Ekli dosya 1, Ekli dosya 2...
+    // The model currently has only one file field: dosyaAdi.
+    // Use it if present.
+    final rows = <Widget>[];
 
-    if (detay.hesapNo.isNotEmpty) {
-      items.add(MapEntry('Hesap No', detay.hesapNo));
-    }
-
-    if (detay.ekBilgi.isNotEmpty) {
-      items.add(MapEntry('Ek Bilgi', detay.ekBilgi));
-    }
-
-    if (detay.paylasimBaslangicTarihi.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Paylaşım Başlangıç Tarihi',
-          _formatDateString(detay.paylasimBaslangicTarihi),
-        ),
-      );
-    }
-
-    if (detay.paylasimBitisTarihi.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Paylaşım Bitiş Tarihi',
-          _formatDateString(detay.paylasimBitisTarihi),
-        ),
-      );
-    }
-
-    if (detay.paylasimBaslangicSaati.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Paylaşım Başlangıç Saati',
-          _formatTimeString(detay.paylasimBaslangicSaati),
-        ),
-      );
-    }
-
-    if (detay.paylasimBitisSaati.isNotEmpty) {
-      items.add(
-        MapEntry(
-          'Paylaşım Bitiş Saati',
-          _formatTimeString(detay.paylasimBitisSaati),
-        ),
-      );
-    }
-
-    if (detay.paylasimYeri.isNotEmpty) {
-      items.add(MapEntry('Paylaşım Yeri', detay.paylasimYeri));
-    }
-
-    items.add(MapEntry('Toplu İstek', detay.topluIstek ? 'Evet' : 'Hayır'));
-
-    if (items.isEmpty) {
+    if (detay.dosyaAdi != null && detay.dosyaAdi!.isNotEmpty) {
+      rows.add(_buildInfoRow('Ekli Dosya', detay.dosyaAdi!));
+    } else {
       rows.add(
-        Padding(
-          padding: const EdgeInsets.all(8),
+        const Padding(
+          padding: EdgeInsets.all(8.0),
           child: Text(
-            'Detay bilgisi bulunamadı',
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 14),
+            'Dosya bulunamadı',
+            style: TextStyle(color: AppColors.textTertiary),
           ),
         ),
       );
-      return rows;
     }
 
-    final multiLineFields = <String>{
-      'Eğitimin Adı',
-      'Eğitimin Adı (Diğer)',
-      'Şirket Adı',
-      'Eğitim İçeriği',
-      'Adres',
-      'Ek Bilgi',
-      'Paylaşım Yeri',
-      'Web Sitesi',
-    };
-
-    final singleLineFields = <String>{
-      'Eğitim Başlangıç Tarihi',
-      'Eğitim Bitiş Tarihi',
-      'Eğitim Başlangıç Saati',
-      'Eğitim Bitiş Saati',
-      'Eğitim Süresi (Gün)',
-      'Eğitim Süresi (Saat)',
-      'Girilmeyen Toplam Ders Saati',
-      'Online',
-      'Ücretsiz',
-      'Peşin',
-      'Vade (Gün)',
-      'Toplu İstek',
-    };
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final isLast = i == items.length - 1;
-      final multiLine =
-          multiLineFields.contains(item.key) &&
-          !singleLineFields.contains(item.key);
-
+    if (detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty) {
       rows.add(
-        _buildInfoRow(
-          item.key,
-          item.value,
-          isLast: isLast,
-          multiLine: multiLine,
-        ),
+        _buildInfoRow('Dosya İçeriği', detay.dosyaAciklama!, isLast: true),
       );
     }
 
@@ -1382,7 +1553,7 @@ class _EgitimIstekDetayScreenState
     return onayDurumuAsync.when(
       data: (onayDurumu) => _buildAccordion(
         icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
+        title: 'Bildirim Alacaklar',
         isExpanded: _bildirimGideceklerExpanded,
         onTap: () {
           setState(() {
@@ -1396,7 +1567,7 @@ class _EgitimIstekDetayScreenState
       ),
       loading: () => _buildAccordion(
         icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
+        title: 'Bildirim Alacaklar',
         isExpanded: _bildirimGideceklerExpanded,
         onTap: () {
           setState(() {
@@ -1416,7 +1587,7 @@ class _EgitimIstekDetayScreenState
       ),
       error: (error, _) => _buildAccordion(
         icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
+        title: 'Bildirim Alacaklar',
         isExpanded: _bildirimGideceklerExpanded,
         onTap: () {
           setState(() {

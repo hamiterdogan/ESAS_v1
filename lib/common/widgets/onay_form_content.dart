@@ -73,44 +73,46 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          widget.descriptionLabel,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _aciklamaController,
-          focusNode: _aciklamaFocusNode,
-          maxLines: widget.descriptionMaxLines,
-          decoration: InputDecoration(
-            hintText: '${widget.descriptionLabel} giriniz',
-            filled: true,
-            fillColor: AppColors.textOnPrimary,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: AppColors.primary),
+        if (!_isCloseRequestActive) ...[
+          Text(
+            widget.descriptionLabel,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
             ),
           ),
-        ),
-        if (widget.extraContent != null) ...[
-          const SizedBox(height: 16),
-          widget.extraContent!,
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _aciklamaController,
+            focusNode: _aciklamaFocusNode,
+            maxLines: widget.descriptionMaxLines,
+            decoration: InputDecoration(
+              hintText: '${widget.descriptionLabel} giriniz',
+              filled: true,
+              fillColor: AppColors.textOnPrimary,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: AppColors.primary),
+              ),
+            ),
+          ),
+          if (widget.extraContent != null) ...[
+            const SizedBox(height: 16),
+            widget.extraContent!,
+          ],
         ],
-        const SizedBox(height: 12),
+        if (!_isCloseRequestActive) const SizedBox(height: 12),
         if (widget.sendOnlyMode) ...[
-          const SizedBox(height: 10),
+          if (!_isCloseRequestActive) const SizedBox(height: 10),
           if (!_isCloseRequestActive)
             Center(
               child: Container(
@@ -153,7 +155,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Transform.rotate(
-                        angle: 0.7854,
+                        angle: -0.7854,
                         child: const Icon(Icons.send, size: 18),
                       ),
                       const SizedBox(width: 10),
@@ -164,7 +166,7 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
               ),
             ),
           if (widget.showCloseRequestOption) ...[
-            const SizedBox(height: 16),
+            if (!_isCloseRequestActive) const SizedBox(height: 16),
             Center(
               child: OnayToggleWidget(
                 label: 'Talebi Kapat',

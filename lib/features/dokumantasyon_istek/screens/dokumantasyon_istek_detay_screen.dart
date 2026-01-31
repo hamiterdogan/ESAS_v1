@@ -14,6 +14,7 @@ import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repositor
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart'; // Add Result model import
+import 'package:intl/intl.dart';
 
 class DokumantasyonIstekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -150,6 +151,7 @@ class _DokumantasyonIstekDetayScreenState
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 40),
         children: [
+          // 1. Personel Bilgileri
           _buildAccordion(
             icon: Icons.person_outline,
             title: 'Personel Bilgileri',
@@ -175,6 +177,8 @@ class _DokumantasyonIstekDetayScreenState
             ),
           ),
           const SizedBox(height: 16),
+
+          // 2. Süreç Detayı
           _buildAccordion(
             icon: Icons.description_outlined,
             title: 'Süreç Detayı',
@@ -182,10 +186,12 @@ class _DokumantasyonIstekDetayScreenState
             onTap: () => setState(() => _detayExpanded = !_detayExpanded),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: _buildTalepDetayRows(detay),
+              children: _buildSurecDetayiRows(detay),
             ),
           ),
           const SizedBox(height: 16),
+
+          // 3. Onay Süreci
           onayDurumuAsync.when(
             data: (onayDurumu) => _buildAccordion(
               icon: Icons.approval_outlined,
@@ -244,9 +250,10 @@ class _DokumantasyonIstekDetayScreenState
                         setState(() => _onayFormExpanded = !_onayFormExpanded),
                     child: OnayFormContent(
                       onApprove: (aciklama) async {
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
+                        final onaySureciId =
+                            onayDurumu
+                                .siradakiOnayVerecekPersonel
+                                ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -304,9 +311,10 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onReject: (aciklama) async {
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
+                        final onaySureciId =
+                            onayDurumu
+                                .siradakiOnayVerecekPersonel
+                                ?.onaySureciId;
                         if (onaySureciId == null) return;
 
                         try {
@@ -356,9 +364,10 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onReturn: (aciklama) async {
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
+                        final onaySureciId =
+                            onayDurumu
+                                .siradakiOnayVerecekPersonel
+                                ?.onaySureciId;
                         if (onaySureciId == null) return;
 
                         try {
@@ -409,9 +418,10 @@ class _DokumantasyonIstekDetayScreenState
                       },
                       onAssign: (aciklama, selectedPersonel) async {
                         if (selectedPersonel == null) return;
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
+                        final onaySureciId =
+                            onayDurumu
+                                .siradakiOnayVerecekPersonel
+                                ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -477,9 +487,10 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onHold: (aciklama, bekletKademe) async {
-                        final onaySureciId = onayDurumu
-                            .siradakiOnayVerecekPersonel
-                            ?.onaySureciId;
+                        final onaySureciId =
+                            onayDurumu
+                                .siradakiOnayVerecekPersonel
+                                ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -546,7 +557,6 @@ class _DokumantasyonIstekDetayScreenState
                       },
                       gorevAtamaEnabled: onayDurumu.atamaGoster,
                     ),
-                    //const SizedBox(height: 16),
                   ),
                 ],
               );
@@ -555,6 +565,8 @@ class _DokumantasyonIstekDetayScreenState
             error: (_, __) => const SizedBox(height: 16),
           ),
           const SizedBox(height: 20),
+
+          // 4. Bildirim Gidecekler
           onayDurumuAsync.when(
             data: (onayDurumu) => _buildAccordion(
               icon: Icons.notifications_outlined,
@@ -605,164 +617,183 @@ class _DokumantasyonIstekDetayScreenState
     );
   }
 
-  List<Widget> _buildTalepDetayRows(DokumantasyonIstekDetayResponse detay) {
-    final items = <MapEntry<String, String>>[];
-    final isA4 = detay.a4Talebi;
+  List<Widget> _buildSurecDetayiRows(DokumantasyonIstekDetayResponse detay) {
+    final rows = <Widget>[];
 
-    items.add(
-      MapEntry(
+    // 1. İstek Türü
+    rows.add(
+      _buildInfoRow(
         'İstek Türü',
-        isA4 ? 'A4 Kağıdı İstek' : 'Dokümantasyon Baskı İstek',
+        detay.a4Talebi ? 'A4 Kağıdı İstek' : 'Dokümantasyon Baskı İstek',
       ),
     );
-    items.add(MapEntry('Teslim Tarihi', _formatDate(detay.teslimTarihi)));
-    items.add(MapEntry('Oluşturma Tarihi', _formatDate(detay.olusturmaTarihi)));
 
-    if (isA4) {
-      items.add(MapEntry('Paket Adedi', (detay.paket ?? 0).toString()));
-      items.add(
-        MapEntry(
-          'Kağıt Talebi',
-          detay.kagitTalebi.isNotEmpty ? detay.kagitTalebi : '-',
-        ),
-      );
-    } else {
-      items.add(
-        MapEntry(
-          'Doküman Türü',
-          (detay.dokumanTuru ?? '').isNotEmpty ? detay.dokumanTuru! : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Kağıt Talebi',
-          detay.kagitTalebi.isNotEmpty ? detay.kagitTalebi : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Baskı Türü',
-          detay.baskiTuru.isNotEmpty ? detay.baskiTuru : '-',
-        ),
-      );
-      items.add(MapEntry('Arkalı Önlü', detay.onluArkali ? 'Evet' : 'Hayır'));
-      items.add(
-        MapEntry(
-          'Teslim Şekli',
-          detay.kopyaElden ? 'Kopya elden teslim' : 'Dosya yüklendi',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Baskı Adedi',
-          detay.baskiAdedi != null ? detay.baskiAdedi.toString() : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Sayfa Sayısı',
-          detay.sayfaSayisi != null ? detay.sayfaSayisi.toString() : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Toplam Sayfa',
-          detay.toplamSayfa != null ? detay.toplamSayfa.toString() : '-',
-        ),
-      );
-      items.add(
-        MapEntry(
-          'Öğrenci Sayısı',
-          detay.ogrenciSayisi != null ? detay.ogrenciSayisi.toString() : '-',
-        ),
-      );
-    }
+    // 2. Oluşturma Tarihi
+    rows.add(
+      _buildInfoRow(
+        'Oluşturma Tarihi',
+        _formatDateTime(detay.olusturmaTarihi),
+      ),
+    );
 
-    // Açıklama (alt satıra yazılacak)
-    if (detay.aciklama.isNotEmpty) {
-      items.add(MapEntry('Açıklama', detay.aciklama));
-    }
+    // 3. Teslim Edilecek Tarih
+    rows.add(
+      _buildInfoRow(
+        'Teslim Edilecek Tarih',
+        _formatDate(detay.teslimTarihi),
+      ),
+    );
 
-    // Dosya Açıklaması (alt satıra yazılacak)
-    if ((detay.dosyaAciklama ?? '').isNotEmpty) {
-      items.add(MapEntry('Dosya Açıklaması', detay.dosyaAciklama!));
-    }
+    // 4. Doküman Türü
+    rows.add(
+      _buildInfoRow(
+        'Doküman Türü',
+        detay.dokumanTuru?.isNotEmpty == true ? detay.dokumanTuru! : '-',
+      ),
+    );
 
-    // Dosyalar (tıklanabilir hale getir)
+    // 5. Baskı Adedi
+    rows.add(
+      _buildInfoRow(
+        'Baskı Adedi',
+        detay.baskiAdedi != null ? '${detay.baskiAdedi}' : '-',
+      ),
+    );
+
+    // 6. Sayfa Sayısı
+    rows.add(
+      _buildInfoRow(
+        'Sayfa Sayısı',
+        detay.sayfaSayisi != null ? '${detay.sayfaSayisi}' : '-',
+      ),
+    );
+
+    // 7. Baskı Boyutu (Kullanıcının isteği: Baskı Boyutu olarak göster, veri kagitTalebi)
+    rows.add(
+      _buildInfoRow(
+        'Baskı Boyutu',
+        detay.kagitTalebi.isNotEmpty ? detay.kagitTalebi : '-',
+      ),
+    );
+
+    // 8. Toplam Sayfa
+    rows.add(
+      _buildInfoRow(
+        'Toplam Sayfa',
+        detay.toplamSayfa != null ? '${detay.toplamSayfa}' : '-',
+      ),
+    );
+
+    // 9. Açıklama
+    rows.add(
+      _buildInfoRow(
+        'Açıklama',
+        detay.aciklama.isNotEmpty ? detay.aciklama : '-',
+        multiLine: true,
+      ),
+    );
+
+    // 10. Baskı Türü
+    rows.add(
+      _buildInfoRow(
+        'Baskı Türü',
+        detay.baskiTuru.isNotEmpty ? detay.baskiTuru : '-',
+      ),
+    );
+
+    // 11. Arkalı Önlü Baskı
+    rows.add(
+      _buildInfoRow(
+        'Arkalı Önlü Baskı',
+        detay.onluArkali ? 'Evet' : 'Hayır',
+      ),
+    );
+
+    // 12. Çoğaltılacak kopya elden gönderilecektir
+    rows.add(
+      _buildInfoRow(
+        'Çoğaltılacak kopya elden gönderilecektir',
+        detay.kopyaElden ? 'Evet' : 'Hayır',
+      ),
+    );
+
+    // 13. Dosyalar
     if (detay.dosyaAdlari.isNotEmpty) {
-      items.add(MapEntry('Dosyalar', '')); // Placeholder
-    }
-
-    // Seçilen Sınıflar (alt satıra yazılacak)
-    if (detay.okullarSatir.isNotEmpty) {
-      final siniflar = detay.okullarSatir
-          .map((o) {
-            final sinifLabel = (o.sinif ?? '').isNotEmpty ? o.sinif : '-';
-            final okulLabel = (o.okulKodu ?? '').isNotEmpty ? o.okulKodu : '-';
-            final seviye = (o.seviye ?? '').isNotEmpty ? ' (${o.seviye})' : '';
-            final numara = (o.numara ?? '').isNotEmpty ? ' • ${o.numara}' : '';
-            final isim =
-                ((o.adi ?? '').isNotEmpty || (o.soyadi ?? '').isNotEmpty)
-                ? ' • ${(o.adi ?? '').trim()} ${(o.soyadi ?? '').trim()}'
-                : '';
-            return '• $okulLabel - $sinifLabel$seviye$numara$isim';
-          })
-          .join('\n');
-      items.add(MapEntry('Seçilen Sınıflar', siniflar));
-    } else {
-      items.add(MapEntry('Seçilen Sınıflar', '-'));
-    }
-
-    // Widgets oluştur
-    final rows = <Widget>[];
-    final multiLineFields = <String>{
-      'Açıklama',
-      'Dosya Açıklaması',
-      'Seçilen Sınıflar',
-    };
-
-    for (int i = 0; i < items.length; i++) {
-      final item = items[i];
-      final isLast = i == items.length - 1;
-      final multiLine = multiLineFields.contains(item.key);
-
-      // Dosyalar kısmını özel olarak handle et
-      if (item.key == 'Dosyalar') {
-        // Dosya başlığını ekle
-        rows.add(
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Dosyalar:',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textSecondary,
-              ),
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Dosyalar:',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
             ),
           ),
-        );
-        // Her dosya için tıklanabilir row ekle
-        for (int j = 0; j < detay.dosyaAdlari.length; j++) {
-          final fileName = detay.dosyaAdlari[j];
-          rows.add(
-            _buildClickableFileRow(
-              detay.dosyaAdlari.length > 1 ? 'Dosya ${j + 1}' : 'Dosya',
-              fileName,
-              isLast: j == detay.dosyaAdlari.length - 1 && isLast,
-            ),
-          );
-        }
-      } else {
+        ),
+      );
+      for (int i = 0; i < detay.dosyaAdlari.length; i++) {
+        final fileName = detay.dosyaAdlari[i];
         rows.add(
-          _buildInfoRow(
-            item.key,
-            item.value,
-            isLast: isLast,
-            multiLine: multiLine,
+          _buildClickableFileRow(
+            fileName,
+            fileName, // Assuming file name is displayed as label too
+            isLast: i == detay.dosyaAdlari.length - 1 &&
+                detay.dosyaAciklama?.isEmpty != false &&
+                detay.okullarSatir.isEmpty,
           ),
         );
       }
+    } else {
+       rows.add(_buildInfoRow('Dosyalar', '-'));
+    }
+
+    // 14. Dosya İçeriği (dosyaAciklama)
+    if (detay.dosyaAciklama?.isNotEmpty == true) {
+      rows.add(
+        _buildInfoRow(
+          'Dosya İçeriği',
+          detay.dosyaAciklama!,
+          multiLine: true,
+        ),
+      );
+    }
+
+    // 15. Seçilen Sınıflar
+    if (detay.okullarSatir.isNotEmpty) {
+      final siniflar =
+          detay.okullarSatir
+              .map((o) {
+                final sinifLabel = (o.sinif ?? '').isNotEmpty ? o.sinif : '-';
+                final okulLabel =
+                    (o.okulKodu ?? '').isNotEmpty ? o.okulKodu : '-';
+                final seviye =
+                    (o.seviye ?? '').isNotEmpty ? ' (${o.seviye})' : '';
+                final numara =
+                    (o.numara ?? '').isNotEmpty ? ' • ${o.numara}' : '';
+                final isim =
+                    ((o.adi ?? '').isNotEmpty || (o.soyadi ?? '').isNotEmpty)
+                        ? ' • ${(o.adi ?? '').trim()} ${(o.soyadi ?? '').trim()}'
+                        : '';
+                return '• $okulLabel - $sinifLabel$seviye$numara$isim';
+              })
+              .join('\n');
+      rows.add(
+        _buildInfoRow(
+          'Seçilen Sınıflar',
+          siniflar,
+          isLast: true,
+          multiLine: true,
+        ),
+      );
+    } else {
+      rows.add(
+        _buildInfoRow(
+          'Seçilen Sınıflar',
+          '-',
+          isLast: true,
+        ),
+      );
     }
 
     return rows;
@@ -1278,15 +1309,12 @@ class _DokumantasyonIstekDetayScreenState
 
   String _formatDate(DateTime? date) {
     if (date == null) return '-';
-    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    return DateFormat('dd.MM.yyyy').format(date);
   }
 
   String _formatDateTime(DateTime? date) {
     if (date == null) return '-';
-    final d = _formatDate(date);
-    final time =
-        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    return '$d $time';
+    return DateFormat('dd.MM.yyyy HH:mm').format(date);
   }
 
   Widget _buildClickableFileRow(
@@ -1307,16 +1335,6 @@ class _DokumantasyonIstekDetayScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Başlık
-          Text(
-            '$label:',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
           // Tıklanabilir dosya adı
           GestureDetector(
             onTap: () async {

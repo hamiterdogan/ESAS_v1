@@ -179,54 +179,11 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
   final Talep talep;
   final TalepYonetimHelper helper;
 
-  Color _getStatusColor(String status) {
-    final normalizedStatus = status.toLowerCase().trim();
-    if (normalizedStatus.contains('devam') ||
-        normalizedStatus.contains('bekleme') ||
-        normalizedStatus.contains('bekliyor') ||
-        normalizedStatus.contains('onay bekliyor')) {
-      return const Color(0xFFFFA500); // Orange for ongoing
-    } else if (normalizedStatus.contains('onaylandi') ||
-        normalizedStatus.contains('tamamland') ||
-        normalizedStatus.contains('uygun')) {
-      return const Color(0xFF4CAF50); // Green for approved/completed
-    } else if (normalizedStatus.contains('reddedildi')) {
-      return const Color(0xFFF44336); // Red for rejected
-    }
-    return const Color(0xFF9E9E9E); // Grey default
-  }
-
-  String _getStatusText(String status) {
-    final normalizedStatus = status.toLowerCase().trim();
-    if (normalizedStatus.contains('devam') ||
-        normalizedStatus.contains('bekleme') ||
-        normalizedStatus.contains('bekliyor') ||
-        normalizedStatus.contains('onay bekliyor')) {
-      return 'Devam Ediyor';
-    } else if (normalizedStatus.contains('reddedildi')) {
-      return 'Reddedildi';
-    } else if (normalizedStatus.contains('tamamland') ||
-        normalizedStatus.contains('onaylandi') ||
-        normalizedStatus.contains('uygun')) {
-      return 'Tamamlandı';
-    }
-    return status;
-  }
-
-  String _formatDate(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return '${date.day}.${date.month}.${date.year}';
-    } catch (e) {
-      return dateString;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statusColor = _getStatusColor(talep.onayDurumu);
-    final statusText = _getStatusText(talep.onayDurumu);
-    final formattedDate = _formatDate(talep.olusturmaTarihi);
+    final statusColor = TalepYonetimHelper.getStatusColor(talep.onayDurumu);
+    final statusText = TalepYonetimHelper.getStatusText(talep.onayDurumu);
+    final formattedDate = TalepYonetimHelper.formatDate(talep.olusturmaTarihi);
 
     final hizmetTuru =
         talep.hizmetTuru?.trim() ?? talep.actionAdi?.trim() ?? 'Teknik Destek';
@@ -311,11 +268,7 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              statusColor == const Color(0xFFFFA500)
-                                  ? Icons.schedule
-                                  : statusColor == const Color(0xFF4CAF50)
-                                  ? Icons.check_circle
-                                  : Icons.cancel,
+                              TalepYonetimHelper.getStatusIcon(talep.onayDurumu),
                               size: 14,
                               color: statusColor,
                             ),

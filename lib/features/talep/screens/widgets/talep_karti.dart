@@ -9,6 +9,7 @@ import 'package:esas_v1/features/satin_alma/screens/satin_alma_detay_screen.dart
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
+import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.dart';
 
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
@@ -34,6 +35,9 @@ class TalepKarti extends StatelessWidget {
         lower.contains('devam')) {
       return AppColors.warning;
     }
+    if (lower.contains('tamam')) {
+      return AppColors.success;
+    }
     switch (lower) {
       case 'onaylandı':
         return AppColors.success;
@@ -52,6 +56,9 @@ class TalepKarti extends StatelessWidget {
         lower.contains('devam')) {
       return Icons.schedule;
     }
+    if (lower.contains('tamam')) {
+      return Icons.check_circle;
+    }
     switch (lower) {
       case 'onaylandı':
         return Icons.check_circle;
@@ -63,12 +70,6 @@ class TalepKarti extends StatelessWidget {
   }
 
   String _getOnayDurumuText(String durum) {
-    final lower = durum.toLowerCase();
-    if (lower.contains('onay bekliyor') ||
-        lower.contains('beklemede') ||
-        lower.contains('bekliyor')) {
-      return 'Devam Ediyor';
-    }
     return durum;
   }
 
@@ -165,6 +166,17 @@ class TalepKarti extends StatelessWidget {
               MaterialPageRoute(
                 builder: (ctx) =>
                     YiyecekIcecekDetayScreen(talepId: talep.onayKayitId),
+              ),
+            );
+          }
+          // Eğitim İstek tipleri için detay sayfasına git
+          else if (talep.onayTipi.toLowerCase().contains('eğitim') ||
+              talep.onayTipi.toLowerCase().contains('egitim')) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) =>
+                    EgitimIstekDetayScreen(talepId: talep.onayKayitId),
               ),
             );
           }

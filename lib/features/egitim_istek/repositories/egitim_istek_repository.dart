@@ -241,4 +241,49 @@ class EgitimIstekRepository {
       return Failure(e.toString());
     }
   }
+  Future<Result<void>> egitimIstekGuncelle({
+    required int id,
+    required num kurumunKarsiladigiUcret,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/EgitimIstek/EgitimIstekGuncelle',
+        data: {
+          'id': id,
+          'kurumunKarsiladigiUcret': kurumunKarsiladigiUcret,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map) {
+          final basarili = data['basarili'];
+          if (basarili == false) {
+            final message =
+                (data['mesaj'] ?? data['message'] ?? 'Güncelleme yapılamadı.')
+                    .toString();
+            return Failure(message, statusCode: response.statusCode);
+          }
+        }
+        return const Success(null);
+      }
+
+      return Failure(
+        'Güncelleme yapılamadı: ${response.statusCode}',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (e) {
+      String errorMessage = 'Sunucu hatası oluştu';
+      final data = e.response?.data;
+      if (data is Map) {
+        final mesaj = data['mesaj'] ?? data['message'] ?? data['error'];
+        if (mesaj != null && mesaj.toString().isNotEmpty) {
+          errorMessage = mesaj.toString();
+        }
+      }
+      return Failure(errorMessage, statusCode: e.response?.statusCode);
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
 }

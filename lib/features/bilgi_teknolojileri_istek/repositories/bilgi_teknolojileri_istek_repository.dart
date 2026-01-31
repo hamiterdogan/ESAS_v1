@@ -172,18 +172,16 @@ class BilgiTeknolojileriIstekRepository {
     }
   }
 
-  Future<Result<void>> talepKapat({
+  Future<Result<void>> surecTamamlandi({
     required int teknikDestekId,
-    required int puan,
-    required String aciklama,
+    required int anketPuan,
   }) async {
     try {
       final response = await _dio.post(
-        '/TeknikDestek/TalepKapat',
+        '/TeknikDestek/SurecTamamlandi',
         data: {
           'teknikDestekId': teknikDestekId,
-          'puan': puan,
-          'aciklama': aciklama,
+          'anketPuan': anketPuan,
         },
         options: Options(contentType: 'application/json'),
       );

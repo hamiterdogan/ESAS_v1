@@ -243,7 +243,10 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
     // Araç İstek Nedeni (alt satıra yazılacak) - varsa göster
     if (detay.istekNedeni.isNotEmpty) {
-      final nedeniStr = _getIstekNedeniText(detay.istekNedeni);
+      String nedeniStr = _getIstekNedeniText(detay.istekNedeni);
+      if (detay.istekNedeniDiger.isNotEmpty) {
+        nedeniStr = '$nedeniStr - ${detay.istekNedeniDiger}';
+      }
       items.add(MapEntry('Araç İstek Nedeni', nedeniStr));
     }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -268,7 +269,11 @@ class _TeknikDestekDetayScreenState
             _buildHizmetBilgileriAccordion(detay),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
-            _buildOnayFormAccordion(detay.cozumler, detay.surecTamamlandi),
+            _buildOnayFormAccordion(
+              detay.cozumler,
+              detay.surecTamamlandi,
+              detay.personelId,
+            ),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -728,6 +733,7 @@ class _TeknikDestekDetayScreenState
   Widget _buildOnayFormAccordion(
     List<TeknikDestekCozum> cozumler,
     bool surecTamamlandi,
+    int creatorPersonelId,
   ) {
     const onayTipi = 'Teknik Destek';
     final onayDurumuAsync = ref.watch(
@@ -875,16 +881,40 @@ class _TeknikDestekDetayScreenState
                         onPickGallery: _pickGallery,
                         onPickFile: _pickFile,
                       ),
-                      showCloseRequestOption: true,
+                      showCloseRequestOption:
+                          ref.watch(currentPersonelIdProvider) ==
+                          creatorPersonelId,
                       onCloseRequest: (aciklama, rating) async {
                         try {
                           final repo = ref.read(
                             bilgiTeknolojileriIstekRepositoryProvider,
                           );
-                          final result = await repo.talepKapat(
+
+                          // 1. If there is an explanation, send it first
+                          if (aciklama.trim().isNotEmpty) {
+                            final messageResult = await repo.aciklamaYaz(
+                              teknikDestekId: widget.talepId,
+                              aciklama: aciklama,
+                            );
+
+                            if (messageResult is Failure) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Mesaj gönderilemedi: ${messageResult.message}',
+                                  ),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                              return; // Stop if message fails
+                            }
+                          }
+
+                          // 2. Complete the process
+                          final result = await repo.surecTamamlandi(
                             teknikDestekId: widget.talepId,
-                            puan: rating ?? 0,
-                            aciklama: aciklama,
+                            anketPuan: rating ?? 0,
                           );
 
                           if (!context.mounted) return;

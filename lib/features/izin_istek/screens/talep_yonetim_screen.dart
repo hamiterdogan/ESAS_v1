@@ -302,7 +302,7 @@ class _IzinTalepCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        _formatTarih(talep.olusturmaTarihi),
+                        TalepYonetimHelper.formatDate(talep.olusturmaTarihi),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -322,24 +322,8 @@ class _IzinTalepCard extends StatelessWidget {
                           color: AppColors.textTertiary,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(talep.onayDurumu),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          talep.onayDurumu,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textOnPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: 4),
+                      TalepYonetimHelper.buildStatusBadge(talep.onayDurumu),
                     ],
                   ),
                 ),
@@ -369,30 +353,6 @@ class _IzinTalepCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => _IzinTalepDetaySheet(talep: talep),
     );
-  }
-
-  String _formatTarih(String tarihi) {
-    try {
-      final date = DateTime.parse(tarihi);
-      return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-    } catch (e) {
-      return tarihi;
-    }
-  }
-
-  Color _getStatusColor(String durum) {
-    switch (durum.toLowerCase()) {
-      case 'onaylandı':
-        return AppColors.success;
-      case 'reddedildi':
-        return AppColors.error;
-      case 'bekleniyor':
-        return AppColors.warning;
-      case 'taslak':
-        return Colors.grey;
-      default:
-        return AppColors.primary;
-    }
   }
 }
 
@@ -571,24 +531,7 @@ class _IzinTalepDetaySheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(talep.onayDurumu),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    talep.onayDurumu,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                TalepYonetimHelper.buildStatusBadge(talep.onayDurumu),
               ],
             ),
           ),
@@ -701,21 +644,6 @@ class _IzinTalepDetaySheet extends StatelessWidget {
       return '$gun.$ay.$yil $saat:$dakika';
     } catch (e) {
       return tarihi;
-    }
-  }
-
-  Color _getStatusColor(String durum) {
-    switch (durum.toLowerCase()) {
-      case 'onaylandı':
-        return AppColors.success;
-      case 'reddedildi':
-        return AppColors.error;
-      case 'bekleniyor':
-        return AppColors.warning;
-      case 'taslak':
-        return Colors.grey;
-      default:
-        return AppColors.primary;
     }
   }
 }

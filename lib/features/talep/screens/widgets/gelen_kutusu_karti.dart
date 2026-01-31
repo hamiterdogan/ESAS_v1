@@ -43,13 +43,14 @@ class GelenKutusuKarti extends ConsumerWidget {
         lower.contains('devam')) {
       return AppColors.warning;
     }
+    if (lower.contains('tamam')) {
+      return AppColors.success;
+    }
     switch (lower) {
       case 'onaylandı':
         return AppColors.success;
       case 'reddedildi':
         return AppColors.error;
-      case 'tamamlandı':
-        return AppColors.success;
       default:
         return Colors.grey;
     }
@@ -63,31 +64,21 @@ class GelenKutusuKarti extends ConsumerWidget {
         lower.contains('devam')) {
       return Icons.schedule;
     }
+    if (lower.contains('tamam')) {
+      return Icons.check_circle;
+    }
     switch (lower) {
       case 'onaylandı':
         return Icons.check_circle;
       case 'reddedildi':
         return Icons.cancel;
-      case 'tamamlandı':
-        return Icons.check_circle;
       default:
         return Icons.info;
     }
   }
 
   String _getDisplayDurum(String durum) {
-    switch (durum.toLowerCase()) {
-      case 'onay bekliyor':
-        return 'Devam Ediyor';
-      case 'onaylandı':
-        return 'Onaylandı';
-      case 'reddedildi':
-        return 'Reddedildi';
-      case 'tamamlandı':
-        return 'Tamamlandı';
-      default:
-        return durum;
-    }
+    return durum;
   }
 
   /// Satın Alma kartları için toplamTutar'a göre renk döndürür

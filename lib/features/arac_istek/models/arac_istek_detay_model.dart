@@ -56,16 +56,18 @@ class AracIstekDetayResponse {
     final yerler = <String>[];
     for (final item in gidilecekYerlerList) {
       if (item is Map<String, dynamic>) {
-        // Önce gidilecekYer, sonra semt alanını kontrol et
         final yer = item['gidilecekYer']?.toString().trim();
         final semt = item['semt']?.toString().trim();
-        final yerText = (yer != null && yer.isNotEmpty) ? yer : semt;
-        if (yerText != null && yerText.isNotEmpty) {
-          yerler.add(yerText);
+
+        final parts =
+            [yer, semt].where((e) => e != null && e.isNotEmpty).join(' - ');
+
+        if (parts.isNotEmpty) {
+          yerler.add(parts);
         }
       }
     }
-    return yerler.join(', ');
+    return yerler.join('\n');
   }
 
   // Yolcu listesi

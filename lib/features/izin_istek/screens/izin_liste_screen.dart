@@ -1,4 +1,5 @@
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -587,24 +588,10 @@ class _IzinTalepKarti extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rawStatus = talep.onayDurumu;
-    final statusText = _mapStatusText(rawStatus);
+    final statusColor = TalepYonetimHelper.getStatusColor(rawStatus);
+    final statusIcon = TalepYonetimHelper.getStatusIcon(rawStatus);
+    final statusText = TalepYonetimHelper.getStatusText(rawStatus);
 
-    Color statusColor;
-    IconData statusIcon;
-
-    switch (rawStatus.toLowerCase()) {
-      case 'onaylandı':
-        statusColor = AppColors.success;
-        statusIcon = Icons.check_circle;
-        break;
-      case 'reddedildi':
-        statusColor = AppColors.error;
-        statusIcon = Icons.cancel;
-        break;
-      default:
-        statusColor = AppColors.warning;
-        statusIcon = Icons.schedule;
-    }
 
     String tarihStr = '';
     try {
@@ -810,13 +797,5 @@ class _IzinTalepKarti extends StatelessWidget {
     );
   }
 
-  String _mapStatusText(String status) {
-    final lower = status.toLowerCase();
-    if (lower.contains('onay bekliyor') ||
-        lower.contains('beklemede') ||
-        lower.contains('bekliyor')) {
-      return 'Devam Ediyor';
-    }
-    return status;
-  }
+
 }
