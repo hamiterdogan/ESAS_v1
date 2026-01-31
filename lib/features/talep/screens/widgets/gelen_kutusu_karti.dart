@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
-import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
 import 'package:esas_v1/common/widgets/swipeable_detay_wrapper.dart';
 
 /// Gelen Kutusu kartı widget'ı - Gelen Kutusu listesindeki kartlar
@@ -163,7 +162,9 @@ class GelenKutusuKarti extends ConsumerWidget {
           // Detay sayfasından dönüldüğünde listeyi ve badge sayısını yenile
           // Sadece okunmamış bir talebe tıklandıysa yenileme yap
           if (isUnread) {
+            // Her iki tab için de refresh yap
             ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+            ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
             ref.invalidate(okunmayanTalepSayisiProvider);
           }
         },

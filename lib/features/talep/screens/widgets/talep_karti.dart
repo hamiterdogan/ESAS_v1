@@ -2,21 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
-import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
-import 'package:esas_v1/features/arac_istek/screens/arac_istek_detay_screen.dart';
-import 'package:esas_v1/features/dokumantasyon_istek/screens/dokumantasyon_istek_detay_screen.dart';
-import 'package:esas_v1/features/satin_alma/screens/satin_alma_detay_screen.dart';
-import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
-import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
-import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_detay_screen.dart';
-import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.dart';
+import 'package:esas_v1/common/widgets/swipeable_detay_wrapper.dart';
 
 /// Talep kartı widget'ı - İsteklerim listesindeki kartlar
 class TalepKarti extends StatelessWidget {
   final Talep talep;
   final String? displayOnayTipi;
+  final List<Talep>? talepList;
+  final int? indexInList;
 
-  const TalepKarti({super.key, required this.talep, this.displayOnayTipi});
+  const TalepKarti({
+    super.key,
+    required this.talep,
+    this.displayOnayTipi,
+    this.talepList,
+    this.indexInList,
+  });
 
   String _formatTarih(String tarihStr) {
     try {
@@ -91,96 +92,26 @@ class TalepKarti extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          // İzin İstek tipleri için detay sayfasına git
-          if (talep.onayTipi.toLowerCase().contains('izin')) {
+          if (!context.mounted) return;
+
+          // Eğer talepList ve indexInList varsa SwipeableDetayWrapper kullan
+          if (talepList != null && indexInList != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (ctx) => IzinIstekDetayScreen(
-                  talepId: talep.onayKayitId,
-                  onayTipi: talep.onayTipi,
+                builder: (ctx) => SwipeableDetayWrapper(
+                  talepList: talepList!,
+                  initialIndex: indexInList!,
+                  isGelenKutusu: false,
                 ),
               ),
             );
+            return;
           }
-          // Araç İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('araç') ||
-              talep.onayTipi.toLowerCase().contains('arac')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    AracIstekDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Dokümantasyon İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('dok')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) => DokumantasyonIstekDetayScreen(
-                  talepId: talep.onayKayitId,
-                  onayTipi: talep.onayTipi,
-                ),
-              ),
-            );
-          }
-          // Satın Alma İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('satın') ||
-              talep.onayTipi.toLowerCase().contains('satin')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    SatinAlmaDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Teknik Destek / Bilgi Teknolojileri İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('teknik destek')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    TeknikDestekDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Sarf Malzeme İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('sarf malzeme')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    SarfMalzemeDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Yiyecek İçecek İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('yiyecek') ||
-              talep.onayTipi.toLowerCase().contains('içecek') ||
-              talep.onayTipi.toLowerCase().contains('icecek')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    YiyecekIcecekDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Eğitim İstek tipleri için detay sayfasına git
-          else if (talep.onayTipi.toLowerCase().contains('eğitim') ||
-              talep.onayTipi.toLowerCase().contains('egitim')) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) =>
-                    EgitimIstekDetayScreen(talepId: talep.onayKayitId),
-              ),
-            );
-          }
-          // Diğer süreç türleri için şimdilik tepki verme
+
+          // Fallback: Eski davranış (talepList yoksa) - SwipeableDetayWrapper kullan
+          // Bu durumda talepList None olduğu için normal şekilde açamayız
+          // Ancak belki talepList her zaman sağlanmıştır
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

@@ -1417,13 +1417,13 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
     // 5. Verileri işle (Filtreleme & Sıralama - Client Side)
     // NOT: Pagination ile client side filtreleme sadece YÜKLENMİŞ veriler üzerinde çalışır.
-    
+
     // Filtreleri doldur logic... (keep existing side-effect regarding _lastTotal)
-    // ... (lines 1334-1402 logic is about populating filter options, this should run regardless or be optimized separately. 
+    // ... (lines 1334-1402 logic is about populating filter options, this should run regardless or be optimized separately.
     // The user specifically asked to skip filtering THE DATA)
 
     // Ensure filter options are populated (keep lines 1333-1402 effectively)
-    // Actually, I should keep the filter population logic as it might be needed for the filter UI itself even if not filtering data right now? 
+    // Actually, I should keep the filter population logic as it might be needed for the filter UI itself even if not filtering data right now?
     // No, if I don't filter, I still need to know what options are available IF I open the filter menu.
     // So I will leave lines 1331-1402 alone (handled by the tool implicitly if I don't touch them, but I need to target the block AFTER that).
 
@@ -1439,45 +1439,48 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
       final sureCutoff = _getSureCutoffDate(now);
 
       // Optimized filtering with early returns
-      filteredTalepler = taleplerListesi.where((talep) {
-        // Date filter (most common, check first)
-        if (sureCutoff != null) {
-          try {
-            final tarih = DateTime.parse(talep.olusturmaTarihi);
-            if (tarih.isBefore(sureCutoff)) return false;
-          } catch (e) {
-            // Invalid date, include anyway
-          }
-        }
+      filteredTalepler = taleplerListesi
+          .where((talep) {
+            // Date filter (most common, check first)
+            if (sureCutoff != null) {
+              try {
+                final tarih = DateTime.parse(talep.olusturmaTarihi);
+                if (tarih.isBefore(sureCutoff)) return false;
+              } catch (e) {
+                // Invalid date, include anyway
+              }
+            }
 
-        // Early return for empty filter sets (common case)
-        if (_selectedTalepTurleri.isNotEmpty &&
-            !_selectedTalepTurleri.contains(talep.onayTipi)) {
-          return false;
-        }
+            // Early return for empty filter sets (common case)
+            if (_selectedTalepTurleri.isNotEmpty &&
+                !_selectedTalepTurleri.contains(talep.onayTipi)) {
+              return false;
+            }
 
-        if (_selectedTalepEdenler.isNotEmpty &&
-            !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
-          return false;
-        }
+            if (_selectedTalepEdenler.isNotEmpty &&
+                !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
+              return false;
+            }
 
-        if (_selectedTalepDurumlari.isNotEmpty &&
-            !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
-          return false;
-        }
+            if (_selectedTalepDurumlari.isNotEmpty &&
+                !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
+              return false;
+            }
 
-        if (_selectedGorevler.isNotEmpty &&
-            !_selectedGorevler.contains(talep.gorevi ?? '')) {
-          return false;
-        }
+            if (_selectedGorevler.isNotEmpty &&
+                !_selectedGorevler.contains(talep.gorevi ?? '')) {
+              return false;
+            }
 
-        if (_selectedGorevYerleri.isNotEmpty &&
-            !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
-          return false;
-        }
+            if (_selectedGorevYerleri.isNotEmpty &&
+                !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
+              return false;
+            }
 
-        return true;
-      }).toList().cast<Talep>();
+            return true;
+          })
+          .toList()
+          .cast<Talep>();
 
       // Sıralama Uygula
       filteredTalepler.sort((a, b) {
