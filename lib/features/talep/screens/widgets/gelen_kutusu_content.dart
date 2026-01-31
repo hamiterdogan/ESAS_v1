@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_karti.dart';
 import 'package:esas_v1/common/widgets/shimmer_loading_widgets.dart';
 
@@ -1427,7 +1428,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // So I will leave lines 1331-1402 alone (handled by the tool implicitly if I don't touch them, but I need to target the block AFTER that).
 
     // Define filteredTalepler variable
-    List<dynamic> filteredTalepler; // Using dynamic or exact type depending on context, Talep is likely the type.
+    late List<Talep> filteredTalepler;
 
     // OPTIMIZATION: Eğer filtre yoksa ve varsayılan sıralama ise (Yeniden Eskiye), işlem yapma
     if (!isFilterActive && _yenidenEskiye) {
