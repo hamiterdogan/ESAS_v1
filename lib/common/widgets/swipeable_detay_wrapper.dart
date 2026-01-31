@@ -29,7 +29,8 @@ class SwipeableDetayWrapper extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<SwipeableDetayWrapper> createState() => _SwipeableDetayWrapperState();
+  ConsumerState<SwipeableDetayWrapper> createState() =>
+      _SwipeableDetayWrapperState();
 }
 
 class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
@@ -42,7 +43,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
-    
+
     // İlk açılan sayfayı okundu olarak işaretle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _markAsRead(widget.initialIndex);
@@ -58,7 +59,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
   /// Belirtilen index'teki talebi okundu olarak işaretle
   Future<void> _markAsRead(int index) async {
     final talep = widget.talepList[index];
-    
+
     // Zaten okunmuşsa veya daha önce işaretlediyse tekrar işaretleme
     if (_markedAsRead.contains(talep.onayKayitId)) return;
     if (talep.okundu?.toLowerCase() != 'false') return;
@@ -69,10 +70,10 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
         onayKayitId: talep.onayKayitId,
         onayTipi: talep.onayTipi,
       );
-      
+
       // İşaretlendi olarak kaydet
       _markedAsRead.add(talep.onayKayitId);
-      
+
       // Provider'ları yenile
       ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
       ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
@@ -194,6 +195,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       body: PageView.builder(
         controller: _pageController,
         physics: const PageScrollPhysics(), // Pürüzsüz kaydırma fizik
+        clipBehavior: Clip.none, // Blur efektini kaldır
         onPageChanged: (index) {
           setState(() => _currentIndex = index);
           // Yeni sayfaya geçildiğinde okundu olarak işaretle
