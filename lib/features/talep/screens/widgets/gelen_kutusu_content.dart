@@ -1553,6 +1553,8 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
               displayOnayTipi: shouldShowBilgiTeknolojileri
                   ? 'Bilgi Teknolojileri'
                   : talep.onayTipi,
+              talepList: filteredTalepler,
+              indexInList: index,
             ),
           );
         },
