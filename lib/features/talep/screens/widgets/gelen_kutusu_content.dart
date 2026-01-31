@@ -1476,7 +1476,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         }
 
         return true;
-      }).toList();
+      }).toList().cast<Talep>();
 
       // Sıralama Uygula
       filteredTalepler.sort((a, b) {
