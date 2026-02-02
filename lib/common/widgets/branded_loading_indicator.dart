@@ -20,7 +20,7 @@ class BrandedLoadingIndicator extends StatefulWidget {
     this.strokeWidth = 4,
     this.logoAssetPath = defaultLogoAssetPath,
     this.showOverlay = true,
-    this.blurSigma = 6,
+    this.blurSigma = 0,
     this.overlayColor = const Color(0x66FFFFFF),
   });
 
@@ -38,7 +38,7 @@ class BrandedLoadingOverlay extends StatelessWidget {
 
   const BrandedLoadingOverlay({
     super.key,
-    this.blurSigma = 6,
+    this.blurSigma = 0,
     this.overlayColor = const Color(0x66FFFFFF),
     this.indicatorSize = 153,
     this.strokeWidth = 24,
@@ -52,10 +52,15 @@ class BrandedLoadingOverlay extends StatelessWidget {
       child: Stack(
         children: [
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-              child: Container(color: overlayColor),
-            ),
+            child: blurSigma > 0
+                ? BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: blurSigma,
+                      sigmaY: blurSigma,
+                    ),
+                    child: Container(color: overlayColor),
+                  )
+                : Container(color: overlayColor),
           ),
           Center(
             child: BrandedLoadingIndicator(

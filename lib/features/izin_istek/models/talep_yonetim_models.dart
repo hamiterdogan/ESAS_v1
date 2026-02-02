@@ -87,6 +87,23 @@ class Talep {
   final String? hizmetTuru;
   final String? aciklama;
 
+  // PERFORMANCE: DateTime parse cache - parse işlemini her seferinde yapmak yerine
+  // ilk çağrıda parse edip cache'leyerek performans kazanımı sağlanır
+  DateTime? _cachedOlusturmaTarihi;
+  DateTime? _cachedIslemTarihi;
+
+  /// Cached olusturmaTarihi - Parse işlemi sadece ilk çağrıda yapılır
+  DateTime get parsedOlusturmaTarihi {
+    _cachedOlusturmaTarihi ??= DateTime.tryParse(olusturmaTarihi);
+    return _cachedOlusturmaTarihi ?? DateTime.now();
+  }
+
+  /// Cached islemTarihi - Parse işlemi sadece ilk çağrıda yapılır
+  DateTime get parsedIslemTarihi {
+    _cachedIslemTarihi ??= DateTime.tryParse(islemTarihi);
+    return _cachedIslemTarihi ?? DateTime.now();
+  }
+
   Talep({
     required this.onayTipi,
     required this.onayKayitId,

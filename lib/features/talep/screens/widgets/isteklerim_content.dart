@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/talep/screens/widgets/talep_karti.dart';
 import 'package:esas_v1/common/widgets/shimmer_loading_widgets.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// İsteklerim tab içeriği - Devam Eden ve Tamamlanan tab'ları ile
 class IsteklerimContent extends ConsumerStatefulWidget {
@@ -142,9 +144,14 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   // Bilgi Teknolojileri onayKayitId cache
   Set<int> _bilgiTekOnayKayitIds = <int>{};
 
-  final ScrollController _scrollController = ScrollController();
+  // PERFORMANCE: Filtreleme cache - Her build'de yeniden filtreleme yerine
+  // sadece veri veya filtre değiştiğinde yeniden hesaplanır
+  List<Talep> _cachedFilteredTalepler = [];
+  int _lastFilteredDataHash = 0;
+  String _lastFilterHash = '';
+
+  final ItemScrollController _itemScrollController = ItemScrollController();
   static const int _pageSize = 20;
-  int _visibleCount = 0;
   int _lastTotal = -1;
   ProviderSubscription<PaginatedTalepState>? _prefetchSub;
 
@@ -177,7 +184,6 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
 
     // Provider now auto-loads in build() method, no need for manual loadInitial
 
@@ -202,20 +208,36 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _prefetchSub?.close();
     super.dispose();
   }
 
-  void _onScroll() {
-    // Scroll en alta geldiğinde yeni sayfa yükle
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+  bool _handleScrollNotification(
+    ScrollNotification notification,
+    int listLength,
+  ) {
+    if (notification.metrics.pixels >=
+        notification.metrics.maxScrollExtent - 200) {
       final provider = widget.tip == 0
           ? devamEdenIsteklerimProvider
           : tamamlananIsteklerimProvider;
       ref.read(provider.notifier).loadMore();
     }
+    return false;
+  }
+
+  /// Scroll to index when returning from detail screen
+  /// Called via TalepKarti.onReturnIndex callback
+  void _scrollToIndex(int index, int maxLength) {
+    if (index < 0 || index >= maxLength) return;
+    if (!_itemScrollController.isAttached) return;
+
+    _itemScrollController.scrollTo(
+      index: index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      alignment: 0,
+    );
   }
 
   /// Hata mesajlarını kullanıcı dostu hale getir
@@ -280,47 +302,8 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       });
     }
 
-    // Pre-calculate filter check results for faster filtering
-    final now = DateTime.now();
-    final sureCutoff = _getSureCutoffDate(now);
-
-    final filteredTalepler = talepler.where((talep) {
-      // Optimized date check with pre-calculated cutoff
-      if (sureCutoff != null) {
-        try {
-          final tarih = DateTime.parse(talep.olusturmaTarihi);
-          if (tarih.isBefore(sureCutoff)) return false;
-        } catch (e) {
-          // Invalid date, include anyway
-        }
-      }
-
-      // Early return if filter set is empty (common case)
-      if (_selectedTalepTurleri.isNotEmpty &&
-          !_selectedTalepTurleri.contains(talep.onayTipi)) {
-        return false;
-      }
-
-      if (widget.tip == 1 &&
-          _selectedTalepDurumlari.isNotEmpty &&
-          !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
-        return false;
-      }
-
-      return true;
-    }).toList();
-
-    filteredTalepler.sort((a, b) {
-      try {
-        final tarihA = DateTime.parse(a.olusturmaTarihi);
-        final tarihB = DateTime.parse(b.olusturmaTarihi);
-        return _yenidenEskiye
-            ? tarihB.compareTo(tarihA)
-            : tarihA.compareTo(tarihB);
-      } catch (e) {
-        return 0;
-      }
-    });
+    // PERFORMANCE: Memoized filtreleme - sadece veri veya filtre değiştiğinde çalışır
+    final filteredTalepler = _getFilteredAndSortedTalepler(talepler);
 
     if (filteredTalepler.isEmpty) {
       if (talepler.isEmpty) {
@@ -338,56 +321,65 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
             : tamamlananIsteklerimProvider;
         await ref.read(provider.notifier).refresh();
       },
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: 120,
-        ),
-        // +1 for loading indicator
-        itemCount: filteredTalepler.length + (state.hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          // Loading spinner
-          if (index == filteredTalepler.length) {
-            // Eğer loading spinner görünüyorsa ve henüz yükleme yapılmıyorsa,
-            // yeni verileri yükle (Auto-pagination for short lists)
-            if (!state.isLoading && state.hasMore) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                final provider = widget.tip == 0
-                    ? devamEdenIsteklerimProvider
-                    : tamamlananIsteklerimProvider;
-                ref.read(provider.notifier).loadMore();
-              });
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification notification) {
+          _handleScrollNotification(notification, filteredTalepler.length);
+          return false;
+        },
+        child: ScrollablePositionedList.builder(
+          itemScrollController: _itemScrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: 120,
+          ),
+          // +1 for loading indicator
+          itemCount: filteredTalepler.length + (state.hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            // Loading spinner
+            if (index == filteredTalepler.length) {
+              // Eğer loading spinner görünüyorsa ve henüz yükleme yapılmıyorsa,
+              // yeni verileri yükle (Auto-pagination for short lists)
+              if (!state.isLoading && state.hasMore) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final provider = widget.tip == 0
+                      ? devamEdenIsteklerimProvider
+                      : tamamlananIsteklerimProvider;
+                  ref.read(provider.notifier).loadMore();
+                });
+              }
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: TalepKartiShimmer()),
+              );
             }
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: TalepKartiShimmer()),
+            final talep = filteredTalepler[index];
+            final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
+              'teknik destek',
             );
-          }
+            final shouldShowBilgiTeknolojileri =
+                isTeknikDestek &&
+                bilgiTekOnayKayitIds.contains(talep.onayKayitId);
 
-          final talep = filteredTalepler[index];
-          final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
-            'teknik destek',
-          );
-          final shouldShowBilgiTeknolojileri =
-              isTeknikDestek &&
-              bilgiTekOnayKayitIds.contains(talep.onayKayitId);
-
-          return RepaintBoundary(
-            child: TalepKarti(
-              talep: talep,
-              displayOnayTipi: shouldShowBilgiTeknolojileri
-                  ? 'Bilgi Teknolojileri'
-                  : talep.onayTipi,
-              talepList: filteredTalepler,
-              indexInList: index,
-            ),
-          );
-        },
+            return RepaintBoundary(
+              child: TalepKarti(
+                talep: talep,
+                displayOnayTipi: shouldShowBilgiTeknolojileri
+                    ? 'Bilgi Teknolojileri'
+                    : talep.onayTipi,
+                talepList: filteredTalepler,
+                indexInList: index,
+                onReturnIndex: (returnIndex) {
+                  _scrollToIndex(returnIndex, filteredTalepler.length);
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -414,6 +406,77 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     return true;
   }
 
+  /// PERFORMANCE: Memoized filtreleme ve sıralama
+  /// Sadece veri veya filtre değiştiğinde yeniden hesaplanır
+  List<Talep> _getFilteredAndSortedTalepler(List<Talep> taleplerListesi) {
+    // Cache key oluştur
+    final filterHash =
+        '$_selectedSure|'
+        '${_selectedTalepTurleri.join(',')}|'
+        '${_selectedTalepDurumlari.join(',')}|'
+        '$_yenidenEskiye';
+    final dataHash = taleplerListesi.length;
+
+    // Cache hit - veri ve filtre değişmemişse cache'den dön
+    if (dataHash == _lastFilteredDataHash && filterHash == _lastFilterHash) {
+      return _cachedFilteredTalepler;
+    }
+
+    // Cache miss - yeniden hesapla
+    _lastFilteredDataHash = dataHash;
+    _lastFilterHash = filterHash;
+
+    List<Talep> result;
+
+    // Filtre yoksa ve varsayılan sıralama ise direkt kullan
+    if (!isFilterActive && _yenidenEskiye) {
+      result = taleplerListesi;
+    } else {
+      // Pre-calculate filter cutoff
+      final now = DateTime.now();
+      final sureCutoff = _getSureCutoffDate(now);
+
+      // Filtreleme - PERFORMANCE: cached parsedOlusturmaTarihi kullanılıyor
+      result = taleplerListesi.where((talep) {
+        // Date filter
+        if (sureCutoff != null) {
+          if (talep == null ||
+              talep.parsedOlusturmaTarihi.isBefore(sureCutoff)) {
+            return false;
+          }
+        }
+
+        // Talep türü filtresi
+        if (_selectedTalepTurleri.isNotEmpty &&
+            (talep == null ||
+                !_selectedTalepTurleri.contains(talep.onayTipi))) {
+          return false;
+        }
+
+        // Talep durumu filtresi (sadece Tamamlanan tab)
+        if (widget.tip == 1 &&
+            _selectedTalepDurumlari.isNotEmpty &&
+            (talep == null ||
+                !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu))) {
+          return false;
+        }
+
+        return true;
+      }).toList();
+
+      // Sıralama - PERFORMANCE: cached parsedOlusturmaTarihi kullanılıyor
+      result.sort((a, b) {
+        if (a == null || b == null) return 0;
+        return _yenidenEskiye
+            ? b.parsedOlusturmaTarihi.compareTo(a.parsedOlusturmaTarihi)
+            : a.parsedOlusturmaTarihi.compareTo(b.parsedOlusturmaTarihi);
+      });
+    }
+
+    _cachedFilteredTalepler = result;
+    return result;
+  }
+
   // Süre filtresi için cutoff tarihini hesapla - her filtreleme için tekrar hesaplama yerine bir kere
   DateTime? _getSureCutoffDate(DateTime now) {
     switch (_selectedSure) {
@@ -428,40 +491,6 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       default:
         return null; // Tümü - no cutoff
     }
-  }
-
-  // Süre filtresine göre tarih kontrolü
-  bool _sureFiltresindenGeciyorMu(String olusturmaTarihi) {
-    if (_selectedSure == 'Tümü') return true;
-
-    try {
-      final tarih = DateTime.parse(olusturmaTarihi);
-      final simdi = DateTime.now();
-      final fark = simdi.difference(tarih);
-
-      switch (_selectedSure) {
-        case '1 Hafta':
-          return fark.inDays <= 7;
-        case '1 Ay':
-          return fark.inDays <= 30;
-        case '3 Ay':
-          return fark.inDays <= 90;
-        case '1 Yıl':
-          return fark.inDays <= 365;
-        default:
-          return true;
-      }
-    } catch (e) {
-      return true;
-    }
-  }
-
-  // Talep türü filtresine göre kontrol - Çoklu seçim destekli
-  bool _talepTuruFiltresindenGeciyorMu(String onayTipi) {
-    if (_selectedTalepTurleri.isEmpty) return true;
-    return _selectedTalepTurleri.any(
-      (tur) => onayTipi.toLowerCase().contains(tur.toLowerCase()),
-    );
   }
 
   // Talep durumu filtresine göre kontrol
@@ -627,7 +656,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                             _selectedTalepTurleri.clear();
                             _selectedTalepDurumlari.clear();
                           });
-                          setState(() {});
+                          // PERFORMANCE: setState kaldırıldı - modal state yeterli
                           widget.onFilterStateChanged?.call();
                         },
                         child: const Text(
@@ -685,8 +714,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        setState(() {});
-                        setState(() {});
+                        // PERFORMANCE: Çift setState kaldırıldı, modal kapanınca rebuild olur
                         widget.onFilterStateChanged?.call();
                         Navigator.pop(context);
                       },

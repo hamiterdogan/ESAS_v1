@@ -79,84 +79,68 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
       ref.invalidate(okunmayanTalepSayisiProvider);
     } catch (e) {
-      debugPrint('Okundu işaretleme hatası: $e');
-      // Hata olsa bile sessizce devam et
+      // Hata oluşursa sessizce göz ardı et
+      debugPrint('Okundu işareti hatası: $e');
     }
   }
 
-  /// Talep tipine göre başlık metnini döndürür
+  /// Talep türüne göre Türkçe başlık döndür
   String _getDetayBaslik(String onayTipi) {
-    final lowerOnayTipi = onayTipi.toLowerCase();
+    final onayTipiLower = onayTipi.toLowerCase();
 
-    if (lowerOnayTipi.contains('izin')) {
+    if (onayTipiLower.contains('izin')) {
       return 'İzin İstek Detayı';
-    } else if (lowerOnayTipi.contains('araç') ||
-        lowerOnayTipi.contains('arac')) {
+    } else if (onayTipiLower.contains('araç') ||
+        onayTipiLower.contains('arac')) {
       return 'Araç İstek Detayı';
-    } else if (lowerOnayTipi.contains('dok')) {
+    } else if (onayTipiLower.contains('dok')) {
       return 'Dokümantasyon İstek Detayı';
-    } else if (lowerOnayTipi.contains('satın') ||
-        lowerOnayTipi.contains('satin')) {
-      return 'Satın Alma İstek Detayı';
-    } else if (lowerOnayTipi.contains('teknik destek') ||
-        lowerOnayTipi.contains('bilgi teknolojileri')) {
-      return 'Teknik Destek İstek Detayı';
-    } else if (lowerOnayTipi.contains('sarf malzeme')) {
-      return 'Sarf Malzeme İstek Detayı';
-    } else if (lowerOnayTipi.contains('yiyecek') ||
-        lowerOnayTipi.contains('içecek') ||
-        lowerOnayTipi.contains('icecek')) {
-      return 'Yiyecek İçecek İstek Detayı';
-    } else if (lowerOnayTipi.contains('eğitim') ||
-        lowerOnayTipi.contains('egitim')) {
+    } else if (onayTipiLower.contains('satın') ||
+        onayTipiLower.contains('satin')) {
+      return 'Satın Alma Detayı';
+    } else if (onayTipiLower.contains('teknik destek')) {
+      return 'Teknik Destek Detayı';
+    } else if (onayTipiLower.contains('sarf malzeme')) {
+      return 'Sarf Malzeme Detayı';
+    } else if (onayTipiLower.contains('yiyecek') ||
+        onayTipiLower.contains('içecek') ||
+        onayTipiLower.contains('icecek')) {
+      return 'Yiyecek İçecek Detayı';
+    } else if (onayTipiLower.contains('eğitim') ||
+        onayTipiLower.contains('egitim')) {
       return 'Eğitim İstek Detayı';
     }
 
     return 'İstek Detayı';
   }
 
-  /// Talep tipine göre detay ekranı widget'ını döndürür
+  /// Talep türüne göre uygun detay ekranını oluştur
   Widget _buildDetayScreen(Talep talep) {
     final onayTipi = talep.onayTipi.toLowerCase();
 
-    // İzin İstek
     if (onayTipi.contains('izin')) {
       return IzinIstekDetayScreen(
         talepId: talep.onayKayitId,
         onayTipi: talep.onayTipi,
       );
-    }
-    // Araç İstek
-    else if (onayTipi.contains('araç') || onayTipi.contains('arac')) {
+    } else if (onayTipi.contains('araç') || onayTipi.contains('arac')) {
       return AracIstekDetayScreen(talepId: talep.onayKayitId);
-    }
-    // Dokümantasyon İstek
-    else if (onayTipi.contains('dok')) {
+    } else if (onayTipi.contains('dok')) {
       return DokumantasyonIstekDetayScreen(
         talepId: talep.onayKayitId,
         onayTipi: talep.onayTipi,
       );
-    }
-    // Satın Alma
-    else if (onayTipi.contains('satın') || onayTipi.contains('satin')) {
+    } else if (onayTipi.contains('satın') || onayTipi.contains('satin')) {
       return SatinAlmaDetayScreen(talepId: talep.onayKayitId);
-    }
-    // Teknik Destek / Bilgi Teknolojileri
-    else if (onayTipi.contains('teknik destek')) {
+    } else if (onayTipi.contains('teknik destek')) {
       return TeknikDestekDetayScreen(talepId: talep.onayKayitId);
-    }
-    // Sarf Malzeme
-    else if (onayTipi.contains('sarf malzeme')) {
+    } else if (onayTipi.contains('sarf malzeme')) {
       return SarfMalzemeDetayScreen(talepId: talep.onayKayitId);
-    }
-    // Yiyecek İçecek
-    else if (onayTipi.contains('yiyecek') ||
+    } else if (onayTipi.contains('yiyecek') ||
         onayTipi.contains('içecek') ||
         onayTipi.contains('icecek')) {
       return YiyecekIcecekDetayScreen(talepId: talep.onayKayitId);
-    }
-    // Eğitim İstek
-    else if (onayTipi.contains('eğitim') || onayTipi.contains('egitim')) {
+    } else if (onayTipi.contains('eğitim') || onayTipi.contains('egitim')) {
       return EgitimIstekDetayScreen(talepId: talep.onayKayitId);
     }
 
@@ -172,45 +156,56 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
   Widget build(BuildContext context) {
     final currentTalep = widget.talepList[_currentIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          '${_getDetayBaslik(currentTalep.onayTipi)} (${currentTalep.onayKayitId})',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textOnPrimary,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        physics: const PageScrollPhysics(), // Pürüzsüz kaydırma fizik
-        clipBehavior: Clip.none, // Blur efektini kaldır
-        onPageChanged: (index) {
-          setState(() => _currentIndex = index);
-          // Yeni sayfaya geçildiğinde okundu olarak işaretle
-          _markAsRead(index);
-        },
-        itemCount: widget.talepList.length,
-        itemBuilder: (context, index) {
-          // Detay ekranlarının kendi AppBar'larını gizlemek için Theme override
-          return Theme(
-            data: Theme.of(context).copyWith(
-              appBarTheme: const AppBarTheme(toolbarHeight: 0, elevation: 0),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop(_currentIndex);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.primaryGradient,
             ),
-            child: _buildDetayScreen(widget.talepList[index]),
-          );
-        },
+          ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
+            onPressed: () => Navigator.of(context).pop(_currentIndex),
+          ),
+          title: Text(
+            '${_getDetayBaslik(currentTalep.onayTipi)} (${currentTalep.onayKayitId})',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textOnPrimary,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: PageView.builder(
+          controller: _pageController,
+          physics:
+              const ClampingScrollPhysics(), // Smooth scroll, no bounce or blur
+          clipBehavior: Clip.hardEdge, // Hard edges without blur effects
+          allowImplicitScrolling: false,
+          pageSnapping: true,
+          onPageChanged: (index) {
+            setState(() => _currentIndex = index);
+            // Yeni sayfaya geçildiğinde okundu olarak işaretle
+            _markAsRead(index);
+          },
+          itemCount: widget.talepList.length,
+          itemBuilder: (context, index) {
+            // Detay ekranlarının kendi AppBar'larını gizlemek için Theme override
+            return Theme(
+              data: Theme.of(context).copyWith(
+                appBarTheme: const AppBarTheme(toolbarHeight: 0, elevation: 0),
+              ),
+              child: _buildDetayScreen(widget.talepList[index]),
+            );
+          },
+        ),
       ),
     );
   }
