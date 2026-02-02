@@ -1373,18 +1373,19 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     final state = ref.watch(provider);
 
     // Veri çekildi bildirimi - Sadece tamamlanan tabında göster (tip: 3)
+    // API'den veri çekilmeye başlandığında (yükleme state'i aktif olduğunda) göster
     ref.listen(provider, (previous, next) {
-      if (widget.tip == 3 &&
-          previous?.isInitialLoading == true &&
-          !next.isInitialLoading &&
-          next.talepler.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Veri geldi'),
-            duration: Duration(milliseconds: 1500),
-            backgroundColor: Colors.green,
-          ),
-        );
+      if (widget.tip == 3) {
+        // Veri çekilmeye başladığında (loading state'ine geçişte)
+        if ((previous == null || !previous.isLoading) && next.isLoading) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Veri geldi'),
+              duration: Duration(milliseconds: 1500),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     });
 
