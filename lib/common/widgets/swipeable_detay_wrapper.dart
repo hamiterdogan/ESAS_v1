@@ -156,10 +156,11 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
   Widget build(BuildContext context) {
     final currentTalep = widget.talepList[_currentIndex];
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
         Navigator.of(context).pop(_currentIndex);
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(

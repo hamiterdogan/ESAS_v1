@@ -149,10 +149,11 @@ class GelenKutusuKarti extends StatelessWidget {
           builder: (context) {
             return InkWell(
               onTap: () async {
+                // Safe ref access: Capture container before async gaps
+                final container = ProviderScope.containerOf(context);
+
                 // Eğer okunmamışsa, okundu olarak işaretle
                 if (_isUnread) {
-                  // Consumer üzerinden ref erişimi
-                  final container = ProviderScope.containerOf(context);
                   try {
                     final repository = container.read(
                       talepYonetimRepositoryProvider,
@@ -161,7 +162,7 @@ class GelenKutusuKarti extends StatelessWidget {
                       onayKayitId: talep.onayKayitId,
                       onayTipi: talep.onayTipi,
                     );
-                    // Hata olsa bile sessizce devam et, kullanıcı akışını bozma
+                    // Hata olsa bile sessizce devam et
                   } catch (e) {
                     debugPrint('Okundu işaretleme hatası: $e');
                   }
@@ -190,8 +191,7 @@ class GelenKutusuKarti extends StatelessWidget {
                 // Detay sayfasından dönüldüğünde listeyi ve badge sayısını yenile
                 // Sadece okunmamış bir talebe tıklandıysa yenileme yap
                 if (_isUnread) {
-                  final container = ProviderScope.containerOf(context);
-                  // Her iki tab için de refresh yap
+                  // Use captured container instead of context
                   container
                       .read(devamEdenGelenKutusuProvider.notifier)
                       .refresh();

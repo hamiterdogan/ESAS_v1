@@ -828,9 +828,8 @@ class _TeknikDestekDetayScreenState
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color:
-                                          AppColors.scaffoldBackground
-                                              .withOpacity(0.5),
+                                      color: AppColors.scaffoldBackground
+                                          .withOpacity(0.5),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
@@ -1017,14 +1016,14 @@ class _TeknikDestekDetayScreenState
                           ref.invalidate(
                             teknikDestekDetayProvider(widget.talepId),
                           ); // Refresh details to show new message
-                          
+
                           // Clear inputs
                           setState(() {
                             _selectedFiles.clear();
                           });
-                          
+
                           // We stay on the screen to see the updated chat history
-                          // Navigator.pop(context); 
+                          // Navigator.pop(context);
                         } catch (e) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -1426,7 +1425,7 @@ class _TeknikDestekDetayScreenState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.textTertiary,
+                      color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.border),
                     ),

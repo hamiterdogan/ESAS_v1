@@ -854,7 +854,6 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                             .read(devamEdenGelenKutusuProvider.notifier)
                             .refresh();
                         Navigator.pop(context);
-                        Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -983,8 +982,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Satın Alma',
                       onayKayitId: widget.talepId,
@@ -996,8 +994,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       atanacakPersonelId: selectedPersonel.personelId,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -1009,7 +1006,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1044,8 +1043,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Satın Alma',
                       onayKayitId: widget.talepId,
@@ -1057,8 +1055,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       bekletKademe: bekletKademe,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -1066,7 +1063,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       case Success():
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
+                            content: Text(
+                              'Bekleme işlemi başarıyla gerçekleşti',
+                            ),
                             backgroundColor: AppColors.success,
                           ),
                         );
@@ -1413,7 +1412,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.textTertiary,
+                      color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.border),
                     ),

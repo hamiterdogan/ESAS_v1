@@ -922,8 +922,7 @@ class _SarfMalzemeDetayScreenState
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Satın Alma',
                       onayKayitId: widget.talepId,
@@ -935,8 +934,7 @@ class _SarfMalzemeDetayScreenState
                       bekletKademe: bekletKademe,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -944,7 +942,9 @@ class _SarfMalzemeDetayScreenState
                       case Success():
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
+                            content: Text(
+                              'Bekleme işlemi başarıyla gerçekleşti',
+                            ),
                             backgroundColor: AppColors.success,
                           ),
                         );
@@ -1361,7 +1361,7 @@ class _SarfMalzemeDetayScreenState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.textTertiary,
+                      color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.border),
                     ),
