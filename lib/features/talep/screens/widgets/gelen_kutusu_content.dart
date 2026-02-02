@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -194,6 +195,10 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   List<Talep> _cachedFilteredTalepler = [];
   int _lastFilteredDataHash = 0;
   String _lastFilterHash = '';
+
+  // Isolate State
+  List<Talep>? _displayedTalepler;
+  bool _isFiltering = false;
 
   bool get isFilterActive =>
       _selectedTalepTurleri.isNotEmpty ||
@@ -409,9 +414,10 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
   /// PERFORMANCE: Memoized filtreleme ve sıralama
   /// Sadece veri veya filtre değiştiğinde yeniden hesaplanır
-  List<Talep> _getFilteredAndSortedTalepler(List<Talep> taleplerListesi) {
-    // Cache key oluştur
-    final filterHash =
+  /// Isolate ile filtreleme işlemini başlat
+  Future<void> _runFilterIsolate(List<Talep> taleplerListesi) async {
+    // Mevcut filtre parametrelerini hash'le
+    final currentFilterHash =
         '$_selectedTalepTarihi|'
         '${_selectedTalepTurleri.join(',')}|'
         '${_selectedTalepEdenler.join(',')}|'
@@ -419,79 +425,91 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         '${_selectedGorevler.join(',')}|'
         '${_selectedGorevYerleri.join(',')}|'
         '$_yenidenEskiye';
-    final dataHash = taleplerListesi.length;
+    final currentDataHash = taleplerListesi.length;
 
-    // Cache hit - veri ve filtre değişmemişse cache'den dön
-    if (dataHash == _lastFilteredDataHash && filterHash == _lastFilterHash) {
-      return _cachedFilteredTalepler;
+    // Cache hit - eğer işlemde değilsek ve veri güncelse çık
+    if (!_isFiltering && 
+        currentDataHash == _lastFilteredDataHash && 
+        currentFilterHash == _lastFilterHash && 
+        _displayedTalepler != null) {
+      return;
     }
 
-    // Cache miss - yeniden hesapla
-    _lastFilteredDataHash = dataHash;
-    _lastFilterHash = filterHash;
+    // Eğer zaten işlemdeysek, işlem bitince tekrar kontrol edilmek üzere çık
+    // (Aşağıdaki loop mantığı veya recursive çağrı bunu halledecek)
+    if (_isFiltering) {
+      // İşlem sürüyor, parametreler değişmiş olabilir. 
+      // Ancak _runFilterIsolate zaten recursive/loop mantığıyla tekrar çağrılmalı.
+      // Burada sadece return diyerek mevcut isolate'in bitmesini bekleyemeyiz 
+      // çünkü mevcut isolate bitince kimse yeni filtreyi tetiklemez.
+      // Bu yüzden basit bir "pending update" flag'i veya recursive yapı kurmalıyız.
+      // Basit çözüm: mevcut isolate bitince tekrar kontrol et.
+      return; 
+    }
 
-    List<Talep> result;
+    _lastFilteredDataHash = currentDataHash;
+    _lastFilterHash = currentFilterHash;
 
-    // Filtre yoksa ve varsayılan sıralama ise direkt kullan
+    // Filtreleme yoksa direkt kullan (Isolate başlatma)
     if (!isFilterActive && _yenidenEskiye) {
-      result = taleplerListesi;
-    } else {
-      // Pre-calculate filter cutoff
-      final now = DateTime.now();
-      final sureCutoff = _getSureCutoffDate(now);
-
-      // Filtreleme - PERFORMANCE: cached parsedOlusturmaTarihi kullanılıyor
-      result = taleplerListesi.where((talep) {
-        // Date filter
-        if (sureCutoff != null) {
-          if (talep.parsedOlusturmaTarihi.isBefore(sureCutoff)) {
-            return false;
-          }
-        }
-
-        // Talep türü filtresi
-        if (_selectedTalepTurleri.isNotEmpty &&
-            !_selectedTalepTurleri.contains(talep.onayTipi)) {
-          return false;
-        }
-
-        // Talep eden filtresi
-        if (_selectedTalepEdenler.isNotEmpty &&
-            !_selectedTalepEdenler.contains(talep.olusturanKisi)) {
-          return false;
-        }
-
-        // Talep durumu filtresi
-        if (_selectedTalepDurumlari.isNotEmpty &&
-            !_talepDurumuFiltresindenGeciyorMu(talep.onayDurumu)) {
-          return false;
-        }
-
-        // Görev filtresi
-        if (_selectedGorevler.isNotEmpty &&
-            !_selectedGorevler.contains(talep.gorevi ?? '')) {
-          return false;
-        }
-
-        // Görev yeri filtresi
-        if (_selectedGorevYerleri.isNotEmpty &&
-            !_selectedGorevYerleri.contains(talep.gorevYeri ?? '')) {
-          return false;
-        }
-
-        return true;
-      }).toList();
-
-      // Sıralama - PERFORMANCE: cached parsedOlusturmaTarihi kullanılıyor
-      result.sort((a, b) {
-        return _yenidenEskiye
-            ? b.parsedOlusturmaTarihi.compareTo(a.parsedOlusturmaTarihi)
-            : a.parsedOlusturmaTarihi.compareTo(b.parsedOlusturmaTarihi);
-      });
+      if (mounted) {
+         setState(() {
+          _displayedTalepler = List.of(taleplerListesi);
+          _cachedFilteredTalepler = _displayedTalepler!;
+        });
+      }
+      return;
     }
 
-    _cachedFilteredTalepler = result;
-    return result;
+    setState(() {
+      _isFiltering = true;
+    });
+
+    try {
+      final params = FilterParams(
+        talepler: taleplerListesi,
+        talepTarihi: _selectedTalepTarihi,
+        talepTurleri: Set.of(_selectedTalepTurleri),
+        talepEdenler: Set.of(_selectedTalepEdenler),
+        talepDurumlari: Set.of(_selectedTalepDurumlari),
+        gorevler: Set.of(_selectedGorevler),
+        gorevYerleri: Set.of(_selectedGorevYerleri),
+        yenidenEskiye: _yenidenEskiye,
+      );
+
+      final result = await compute(filterAndSortTaleplerIsolate, params);
+
+      if (mounted) {
+        setState(() {
+          _displayedTalepler = result;
+          _cachedFilteredTalepler = result;
+          _isFiltering = false;
+        });
+
+        // CRITICAL: İşlem bittikten sonra parametreler değişmiş mi kontrol et
+        final newFilterHash =
+            '$_selectedTalepTarihi|'
+            '${_selectedTalepTurleri.join(',')}|'
+            '${_selectedTalepEdenler.join(',')}|'
+            '${_selectedTalepDurumlari.join(',')}|'
+            '${_selectedGorevler.join(',')}|'
+            '${_selectedGorevYerleri.join(',')}|'
+            '$_yenidenEskiye';
+        
+        // Eğer işlem süresince parametreler değiştiyse, tekrar çalıştır
+        if (newFilterHash != currentFilterHash) {
+          _runFilterIsolate(taleplerListesi);
+        }
+      }
+    } catch (e) {
+      debugPrint('Filtreleme hatası: $e');
+      if (mounted) {
+        setState(() {
+          _displayedTalepler = taleplerListesi; 
+          _isFiltering = false;
+        });
+      }
+    }
   }
 
   // Süre filtresi için cutoff tarihini hesapla - her filtreleme için tekrar hesaplama yerine bir kere
@@ -1354,18 +1372,21 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // 2. State'i izle
     final state = ref.watch(provider);
 
-    // DEBUG: Veri çekildi bildirimi
-    /*ref.listen(provider, (previous, next) {
-       if (previous?.isInitialLoading == true && !next.isInitialLoading) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
-             content: Text('${widget.tip == 2 ? "Devam Eden" : "Tamamlanan"} tabı için veri çekildi.'),
-             duration: const Duration(milliseconds: 1500),
-             backgroundColor: Colors.green,
-           ),
-         );
-       }
-    });*/
+    // Veri çekildi bildirimi - Sadece tamamlanan tabında göster (tip: 3)
+    ref.listen(provider, (previous, next) {
+      if (widget.tip == 3 &&
+          previous?.isInitialLoading == true &&
+          !next.isInitialLoading &&
+          next.talepler.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veri geldi'),
+            duration: Duration(milliseconds: 1500),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
 
     // 3. İlk yükleme hatası varsa göster
     if (state.errorMessage != null && state.talepler.isEmpty) {
@@ -1433,7 +1454,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     }
 
     // 4. İlk yükleme (Loading) durumu
-    if (state.isInitialLoading) {
+    // 4. İlk yükleme (Loading) durumu veya Filtreleme durumu
+    // Eğer filtreleme yapılıyorsa ve henüz data yoksa shimmer göster
+    if (state.isInitialLoading || (_isFiltering && _displayedTalepler == null)) {
       return const ListShimmer(itemCount: 5);
     }
 
@@ -1522,7 +1545,27 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // NOT: Pagination ile client side filtreleme sadece YÜKLENMİŞ veriler üzerinde çalışır.
 
     // PERFORMANCE: Memoized filtreleme - sadece veri veya filtre değiştiğinde çalışır
-    final filteredTalepler = _getFilteredAndSortedTalepler(taleplerListesi);
+    // 5. Verileri işle (Filtreleme & Sıralama - Isolate)
+    // Filtreleme işlemini başlat (gerekirse)
+    final filterHash =
+        '$_selectedTalepTarihi|'
+        '${_selectedTalepTurleri.join(',')}|'
+        '${_selectedTalepEdenler.join(',')}|'
+        '${_selectedTalepDurumlari.join(',')}|'
+        '${_selectedGorevler.join(',')}|'
+        '${_selectedGorevYerleri.join(',')}|'
+        '$_yenidenEskiye';
+    final dataHash = taleplerListesi.length;
+
+    // Eğer filtre/data değiştiyse isolate'i başlat
+    if (dataHash != _lastFilteredDataHash || filterHash != _lastFilterHash || _displayedTalepler == null) {
+      // Microtask içinde başlatarak build'i bloklama
+      Future.microtask(() => _runFilterIsolate(taleplerListesi));
+    }
+    
+    // Gösterilecek liste: Isolate sonucu varsa onu kullan, yoksa ham listeyi (ilk açılış) veya boş listeyi
+    // Filtreleme sürüyorsa ve _displayedTalepler null ise loading gösterebiliriz
+    final filteredTalepler = _displayedTalepler ?? (_isFiltering ? [] : taleplerListesi);
 
     // 6. Boş liste durumu
     if (filteredTalepler.isEmpty) {
@@ -1601,4 +1644,101 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
       ),
     );
   }
+}
+
+/// Isolate için filtreleme parametreleri
+class FilterParams {
+  final List<Talep> talepler;
+  final String talepTarihi;
+  final Set<String> talepTurleri;
+  final Set<String> talepEdenler;
+  final Set<String> talepDurumlari;
+  final Set<String> gorevler;
+  final Set<String> gorevYerleri;
+  final bool yenidenEskiye;
+
+  FilterParams({
+    required this.talepler,
+    required this.talepTarihi,
+    required this.talepTurleri,
+    required this.talepEdenler,
+    required this.talepDurumlari,
+    required this.gorevler,
+    required this.gorevYerleri,
+    required this.yenidenEskiye,
+  });
+}
+
+/// Isolate üzerinde çalışacak filtreleme ve sıralama fonksiyonu
+List<Talep> filterAndSortTaleplerIsolate(FilterParams params) {
+  List<Talep> result;
+
+  // Helper date calculator
+  DateTime? getSureCutoffDate(String selectedTalepTarihi, DateTime now) {
+    switch (selectedTalepTarihi) {
+      case '1 Hafta':
+        return now.subtract(const Duration(days: 7));
+      case '1 Ay':
+        return now.subtract(const Duration(days: 30));
+      case '3 Ay':
+        return now.subtract(const Duration(days: 90));
+      case '1 Yıl':
+        return now.subtract(const Duration(days: 365));
+      default:
+        return null;
+    }
+  }
+
+  // Pre-calculate filter cutoff
+  final now = DateTime.now();
+  final sureCutoff = getSureCutoffDate(params.talepTarihi, now);
+
+  // Filtreleme
+  result = params.talepler.where((talep) {
+    // Date filter
+    if (sureCutoff != null) {
+      if (talep.parsedOlusturmaTarihi.isBefore(sureCutoff)) {
+        return false;
+      }
+    }
+
+    // Talep türü
+    if (params.talepTurleri.isNotEmpty && !params.talepTurleri.contains(talep.onayTipi)) {
+      return false;
+    }
+
+    // Talep eden
+    if (params.talepEdenler.isNotEmpty && !params.talepEdenler.contains(talep.olusturanKisi)) {
+      return false;
+    }
+
+    // Talep durumu
+    if (params.talepDurumlari.isNotEmpty) {
+      // Basit kontrol: contains
+       if (!params.talepDurumlari.any((durum) => talep.onayDurumu.toLowerCase().contains(durum.toLowerCase()))) {
+         return false;
+       }
+    }
+
+    // Görev
+    if (params.gorevler.isNotEmpty && !params.gorevler.contains(talep.gorevi ?? '')) {
+      return false;
+    }
+
+    // Görev yeri
+    if (params.gorevYerleri.isNotEmpty && !params.gorevYerleri.contains(talep.gorevYeri ?? '')) {
+      return false;
+    }
+
+    return true;
+  }).toList();
+
+  // Sıralama
+  result.sort((a, b) {
+    return params.yenidenEskiye
+        ? b.parsedOlusturmaTarihi.compareTo(a.parsedOlusturmaTarihi)
+        : a.parsedOlusturmaTarihi.compareTo(b.parsedOlusturmaTarihi);
+  });
+
+  return result;
 }
