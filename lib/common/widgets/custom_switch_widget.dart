@@ -7,6 +7,7 @@ class CustomSwitchWidget extends StatelessWidget {
   final String label;
   final double spacing;
   final bool compact;
+  final EdgeInsets padding;
 
   const CustomSwitchWidget({
     super.key,
@@ -15,6 +16,7 @@ class CustomSwitchWidget extends StatelessWidget {
     required this.label,
     this.spacing = 8,
     this.compact = false,
+    this.padding = const EdgeInsets.all(8),
   });
 
   @override
@@ -35,7 +37,7 @@ class CustomSwitchWidget extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(shape: BoxShape.circle),
-          padding: const EdgeInsets.all(8),
+          padding: padding,
           child: Switch(
             value: value,
             onChanged: onChanged,

@@ -63,7 +63,7 @@ class _DurationPickerBottomSheetWidgetState
   }
 
   String _formatDuration() {
-    return '${_selectedDay.toString().padLeft(2, '0')} Gün ${_selectedHour.toString().padLeft(2, '0')} Saat';
+    return '${_selectedDay.toString().padLeft(2, '0')} Gün, Günde ${_selectedHour.toString().padLeft(2, '0')} Saat';
   }
 
   Future<void> _showDurationPickerBottomSheet() async {

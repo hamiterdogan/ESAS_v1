@@ -52,19 +52,31 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
     String? formFile,
   }) async {
     try {
-      final formData = FormData.fromMap({
-        'FormFile':
-            formFile ?? 'string', // API requirement: FormFile=string if empty
-        'A4Talebi': isA4Talebi,
-        'Paket': paket,
-        'Aciklama': aciklama,
-        'TeslimTarihi': teslimTarihi.toIso8601String(),
-      });
+      final requestData = {
+        'Paket': paket, 
+        'teslimTarihi': teslimTarihi.toIso8601String(),
+        'paket': paket,
+        'aciklama': aciklama,
+        'a4Talebi': isA4Talebi,
+        'dosyaAciklama': '', 
+        'baskiAdedi': 0,
+        'kagitTalebi': 'A4', 
+        'dokumanTuru': '',
+        'departman': '',
+        'baskiTuru': '',
+        'onluArkali': false,
+        'kopyaElden': false,
+        'sayfaSayisi': 0,
+        'toplamSayfa': 0,
+        'ogrenciSayisi': 0,
+        'okullarSatir': [],
+        'olusturmaTarihi': DateTime.now().toIso8601String(),
+      };
 
       final response = await _dio.post(
         '/DokumantasyonIstek/DokumantasyonIstekEkle',
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        data: requestData,
+        options: Options(contentType: 'application/json'),
       );
 
       if (response.statusCode == 200) {

@@ -814,7 +814,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
                     child: Divider(height: 1, color: Colors.grey.shade400),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   OnayToggleWidget(
                     initialValue: _topluIstekte,
                     label: 'Toplu istekte bulunmak istiyorum',
@@ -832,7 +832,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     },
                   ),
                   if (_topluIstekte) ...[
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     Container(
                       key: _personelKey,
                       child: PersonelSelectorWidget(
@@ -869,7 +869,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     ),
                     const SizedBox(height: 24),
                   ] else ...[
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
                       child: Divider(height: 1, color: Colors.grey.shade400),

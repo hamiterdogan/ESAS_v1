@@ -806,7 +806,7 @@ class _DokumantasyonBaskiIstekScreenState
           .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
       title: 'Dokümantasyon Baskı İstek',
       summaryItems: summaryItems,
-      showRequestData: true,
+      showRequestData: false,
       cancelButtonLabel: 'Düzenle',
       onConfirm: () async {
         final repo = ref.read(dokumantasyonIstekRepositoryProvider);
@@ -1122,6 +1122,7 @@ class _DokumantasyonBaskiIstekScreenState
                 CustomSwitchWidget(
                   value: _isRenkliBaski,
                   label: 'Renkli Baskı',
+                  padding: EdgeInsets.zero,
                   onChanged: (value) {
                     FocusScope.of(context).unfocus();
                     setState(() {
@@ -1134,6 +1135,7 @@ class _DokumantasyonBaskiIstekScreenState
                 CustomSwitchWidget(
                   value: _isArkaliOnlu,
                   label: 'Arkalı Önlü Baskı',
+                  padding: EdgeInsets.zero,
                   onChanged: (value) {
                     FocusScope.of(context).unfocus();
                     setState(() {
@@ -1146,6 +1148,7 @@ class _DokumantasyonBaskiIstekScreenState
                 CustomSwitchWidget(
                   value: _isKopyaElden,
                   label: 'Çoğaltılacak kopya elden teslim edilecektir',
+                  padding: EdgeInsets.zero,
                   onChanged: (value) {
                     FocusScope.of(context).unfocus();
                     setState(() {
