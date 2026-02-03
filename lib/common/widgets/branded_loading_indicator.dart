@@ -17,7 +17,7 @@ class BrandedLoadingIndicator extends StatefulWidget {
   const BrandedLoadingIndicator({
     super.key,
     this.size = 72,
-    this.strokeWidth = 4,
+    this.strokeWidth = 10,
     this.logoAssetPath = defaultLogoAssetPath,
     this.showOverlay = true,
     this.blurSigma = 0,
@@ -41,7 +41,7 @@ class BrandedLoadingOverlay extends StatelessWidget {
     this.blurSigma = 0,
     this.overlayColor = const Color(0x66FFFFFF),
     this.indicatorSize = 153,
-    this.strokeWidth = 24,
+    this.strokeWidth = 30,
     this.logoAssetPath = BrandedLoadingIndicator.defaultLogoAssetPath,
   });
 
@@ -128,7 +128,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   angle: _controller.value * 2 * math.pi,
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
-                      strokeWidth: 6,
+                      strokeWidth: 12,
                       startColor: AppColors.gradientStart.withValues(
                         alpha: 1.0,
                       ),

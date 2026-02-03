@@ -47,15 +47,7 @@ class _AracIstekOzetBottomSheetState
     extends ConsumerState<AracIstekOzetBottomSheet> {
   bool _isLoading = false;
 
-  String get _debugRequestJson {
-    try {
-      return const JsonEncoder.withIndent(
-        '  ',
-      ).convert(widget.request.toJson());
-    } catch (_) {
-      return widget.request.toJson().toString();
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -147,56 +139,7 @@ class _AracIstekOzetBottomSheetState
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.textOnPrimary,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.cardShadow,
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.gradientStart.withValues(
-                                  alpha: 0.05,
-                                ),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  topRight: Radius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Gönderilen Data',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                                _debugRequestJson,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+
                     ],
                   ),
                 ),

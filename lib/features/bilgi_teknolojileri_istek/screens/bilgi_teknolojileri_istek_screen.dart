@@ -303,23 +303,19 @@ class _BilgiTeknolojileriIstekScreenState
     // Prepare özet items
     final ozetItems = <TeknikDestekOzetItem>[
       TeknikDestekOzetItem(
-        label: 'Okul/Bina',
-        value: _resolveSelectedBinaName(),
+        label: 'Hizmet Türü',
+        value: _resolveHizmetTuruForRequest(),
         multiLine: false,
       ),
       TeknikDestekOzetItem(
-        label: 'Hizmet Türü',
-        value: _resolveHizmetTuruForRequest(),
+        label: 'Okul/Bina',
+        value: _resolveSelectedBinaName(),
         multiLine: false,
       ),
       TeknikDestekOzetItem(
         label: 'İstenen Son Çözüm Tarihi',
         value: _formatDate(_selectedDate ?? DateTime.now()),
         multiLine: false,
-      ),
-      TeknikDestekOzetItem(
-        label: 'Açıklama',
-        value: _aciklamaController.text.trim(),
       ),
       ..._addedHizmetler.asMap().entries.map(
         (entry) => TeknikDestekOzetItem(
@@ -328,15 +324,21 @@ class _BilgiTeknolojileriIstekScreenState
           multiLine: true,
         ),
       ),
+      TeknikDestekOzetItem(
+        label: 'Açıklama',
+        value: _aciklamaController.text.trim(),
+      ),
       if (_selectedFiles.isNotEmpty)
         TeknikDestekOzetItem(
-          label: 'Dosya Sayısı',
-          value: '${_selectedFiles.length} dosya',
-          multiLine: false,
+          label: 'Dosya Adı',
+          value: _selectedFiles
+              .map((f) => f.path.split(Platform.pathSeparator).last)
+              .join(',\n'),
+          multiLine: true,
         ),
       if (_dosyaIcerikController.text.trim().isNotEmpty)
         TeknikDestekOzetItem(
-          label: 'Dosyaların İçeriği',
+          label: 'Dosya İçeriği',
           value: _dosyaIcerikController.text.trim(),
         ),
     ];

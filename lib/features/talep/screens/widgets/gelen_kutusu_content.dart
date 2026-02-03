@@ -428,9 +428,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     final currentDataHash = taleplerListesi.length;
 
     // Cache hit - eğer işlemde değilsek ve veri güncelse çık
-    if (!_isFiltering && 
-        currentDataHash == _lastFilteredDataHash && 
-        currentFilterHash == _lastFilterHash && 
+    if (!_isFiltering &&
+        currentDataHash == _lastFilteredDataHash &&
+        currentFilterHash == _lastFilterHash &&
         _displayedTalepler != null) {
       return;
     }
@@ -438,13 +438,13 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // Eğer zaten işlemdeysek, işlem bitince tekrar kontrol edilmek üzere çık
     // (Aşağıdaki loop mantığı veya recursive çağrı bunu halledecek)
     if (_isFiltering) {
-      // İşlem sürüyor, parametreler değişmiş olabilir. 
+      // İşlem sürüyor, parametreler değişmiş olabilir.
       // Ancak _runFilterIsolate zaten recursive/loop mantığıyla tekrar çağrılmalı.
-      // Burada sadece return diyerek mevcut isolate'in bitmesini bekleyemeyiz 
+      // Burada sadece return diyerek mevcut isolate'in bitmesini bekleyemeyiz
       // çünkü mevcut isolate bitince kimse yeni filtreyi tetiklemez.
       // Bu yüzden basit bir "pending update" flag'i veya recursive yapı kurmalıyız.
       // Basit çözüm: mevcut isolate bitince tekrar kontrol et.
-      return; 
+      return;
     }
 
     _lastFilteredDataHash = currentDataHash;
@@ -453,7 +453,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // Filtreleme yoksa direkt kullan (Isolate başlatma)
     if (!isFilterActive && _yenidenEskiye) {
       if (mounted) {
-         setState(() {
+        setState(() {
           _displayedTalepler = List.of(taleplerListesi);
           _cachedFilteredTalepler = _displayedTalepler!;
         });
@@ -495,7 +495,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
             '${_selectedGorevler.join(',')}|'
             '${_selectedGorevYerleri.join(',')}|'
             '$_yenidenEskiye';
-        
+
         // Eğer işlem süresince parametreler değiştiyse, tekrar çalıştır
         if (newFilterHash != currentFilterHash) {
           _runFilterIsolate(taleplerListesi);
@@ -505,7 +505,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
       debugPrint('Filtreleme hatası: $e');
       if (mounted) {
         setState(() {
-          _displayedTalepler = taleplerListesi; 
+          _displayedTalepler = taleplerListesi;
           _isFiltering = false;
         });
       }
@@ -1372,22 +1372,18 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // 2. State'i izle
     final state = ref.watch(provider);
 
-    // Veri çekildi bildirimi - Sadece tamamlanan tabında göster (tip: 3)
-    // API'den veri çekilmeye başlandığında (yükleme state'i aktif olduğunda) göster
-    ref.listen(provider, (previous, next) {
-      if (widget.tip == 3) {
-        // Veri çekilmeye başladığında (loading state'ine geçişte)
-        if ((previous == null || !previous.isLoading) && next.isLoading) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Veri geldi'),
-              duration: Duration(milliseconds: 1500),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      }
-    });
+    // DEBUG: Veri çekildi bildirimi
+    /*ref.listen(provider, (previous, next) {
+       if (previous?.isInitialLoading == true && !next.isInitialLoading) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text('${widget.tip == 2 ? "Devam Eden" : "Tamamlanan"} tabı için veri çekildi.'),
+             duration: const Duration(milliseconds: 1500),
+             backgroundColor: Colors.green,
+           ),
+         );
+       }
+    });*/
 
     // 3. İlk yükleme hatası varsa göster
     if (state.errorMessage != null && state.talepler.isEmpty) {
@@ -1457,7 +1453,8 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // 4. İlk yükleme (Loading) durumu
     // 4. İlk yükleme (Loading) durumu veya Filtreleme durumu
     // Eğer filtreleme yapılıyorsa ve henüz data yoksa shimmer göster
-    if (state.isInitialLoading || (_isFiltering && _displayedTalepler == null)) {
+    if (state.isInitialLoading ||
+        (_isFiltering && _displayedTalepler == null)) {
       return const ListShimmer(itemCount: 5);
     }
 
@@ -1559,14 +1556,17 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     final dataHash = taleplerListesi.length;
 
     // Eğer filtre/data değiştiyse isolate'i başlat
-    if (dataHash != _lastFilteredDataHash || filterHash != _lastFilterHash || _displayedTalepler == null) {
+    if (dataHash != _lastFilteredDataHash ||
+        filterHash != _lastFilterHash ||
+        _displayedTalepler == null) {
       // Microtask içinde başlatarak build'i bloklama
       Future.microtask(() => _runFilterIsolate(taleplerListesi));
     }
-    
+
     // Gösterilecek liste: Isolate sonucu varsa onu kullan, yoksa ham listeyi (ilk açılış) veya boş listeyi
     // Filtreleme sürüyorsa ve _displayedTalepler null ise loading gösterebiliriz
-    final filteredTalepler = _displayedTalepler ?? (_isFiltering ? [] : taleplerListesi);
+    final filteredTalepler =
+        _displayedTalepler ?? (_isFiltering ? [] : taleplerListesi);
 
     // 6. Boş liste durumu
     if (filteredTalepler.isEmpty) {
@@ -1704,30 +1704,36 @@ List<Talep> filterAndSortTaleplerIsolate(FilterParams params) {
     }
 
     // Talep türü
-    if (params.talepTurleri.isNotEmpty && !params.talepTurleri.contains(talep.onayTipi)) {
+    if (params.talepTurleri.isNotEmpty &&
+        !params.talepTurleri.contains(talep.onayTipi)) {
       return false;
     }
 
     // Talep eden
-    if (params.talepEdenler.isNotEmpty && !params.talepEdenler.contains(talep.olusturanKisi)) {
+    if (params.talepEdenler.isNotEmpty &&
+        !params.talepEdenler.contains(talep.olusturanKisi)) {
       return false;
     }
 
     // Talep durumu
     if (params.talepDurumlari.isNotEmpty) {
       // Basit kontrol: contains
-       if (!params.talepDurumlari.any((durum) => talep.onayDurumu.toLowerCase().contains(durum.toLowerCase()))) {
-         return false;
-       }
+      if (!params.talepDurumlari.any(
+        (durum) => talep.onayDurumu.toLowerCase().contains(durum.toLowerCase()),
+      )) {
+        return false;
+      }
     }
 
     // Görev
-    if (params.gorevler.isNotEmpty && !params.gorevler.contains(talep.gorevi ?? '')) {
+    if (params.gorevler.isNotEmpty &&
+        !params.gorevler.contains(talep.gorevi ?? '')) {
       return false;
     }
 
     // Görev yeri
-    if (params.gorevYerleri.isNotEmpty && !params.gorevYerleri.contains(talep.gorevYeri ?? '')) {
+    if (params.gorevYerleri.isNotEmpty &&
+        !params.gorevYerleri.contains(talep.gorevYeri ?? '')) {
       return false;
     }
 

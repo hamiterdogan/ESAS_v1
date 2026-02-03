@@ -520,20 +520,9 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                       _updateMesafe(value);
                     },
                   ),
-                  const SizedBox(height: 24),
-                  // MEB Toggle
-                  CustomSwitchWidget(
-                    value: _isMEB,
-                    label: 'MEB',
-                    onChanged: (value) {
-                      FocusScope.of(context).unfocus();
-                      setState(() {
-                        _isMEB = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: DatePickerBottomSheetWidget(
@@ -561,7 +550,21 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         ),
                       ),
                       const SizedBox(width: 24),
-                      const Expanded(child: SizedBox()),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: CustomSwitchWidget(
+                            value: _isMEB,
+                            label: 'MEB',
+                            onChanged: (value) {
+                              FocusScope.of(context).unfocus();
+                              setState(() {
+                                _isMEB = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -1290,6 +1293,21 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     final items = <AracIstekOzetItem>[
       AracIstekOzetItem(label: 'Araç Türü', value: aracTuru, multiLine: false),
       AracIstekOzetItem(
+        label: 'Gidilecek Yer(ler)',
+        value: _buildGidilecekYerSummary(),
+        multiLine: true,
+      ),
+      AracIstekOzetItem(
+        label: 'Tahmini Mesafe (km)',
+        value: _tahminiMesafe.toString(),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'MEB',
+        value: _isMEB ? 'Evet' : 'Hayır',
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
         label: 'Gidilecek Tarih',
         value: _formatDateShort(req.gidilecekTarih),
         multiLine: false,
@@ -1305,25 +1323,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
         multiLine: false,
       ),
       AracIstekOzetItem(
-        label: 'Tahmini Mesafe (km)',
-        value: _tahminiMesafe.toString(),
-        multiLine: false,
-      ),
-      AracIstekOzetItem(
-        label: 'MEB',
-        value: _isMEB ? 'Evet' : 'Hayır',
-        multiLine: false,
-      ),
-      AracIstekOzetItem(
-        label: 'İstek Nedeni',
+        label: 'Araç İstek Nedeni',
         value: _selectedAracIstekNedeniId == -1
             ? 'DİĞER'
             : _buildAracIstekNedeniSummary(),
-        multiLine: true,
-      ),
-      AracIstekOzetItem(
-        label: 'Açıklama',
-        value: req.aciklama.isEmpty ? '-' : req.aciklama,
         multiLine: true,
       ),
     ];
@@ -1339,21 +1342,19 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
 
     items.addAll([
       AracIstekOzetItem(
-        label: 'Yolcu Sayısı',
-        value: req.yolcuSayisi.toString(),
-        multiLine: false,
+        label: 'Açıklama',
+        value: req.aciklama.isEmpty ? '-' : req.aciklama,
+        multiLine: true,
       ),
       AracIstekOzetItem(
         label: 'Seçilen Personel',
         value: _buildSelectedPersonelSummaryForOzet(),
+        multiLine: true,
       ),
       AracIstekOzetItem(
         label: 'Seçilen Öğrenci',
         value: _buildSelectedOgrenciSummaryForOzet(),
-      ),
-      AracIstekOzetItem(
-        label: 'Gidilecek Yer(ler)',
-        value: _buildGidilecekYerSummary(),
+        multiLine: true,
       ),
     ]);
 

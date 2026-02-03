@@ -4,6 +4,7 @@ import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_baski_istek_req.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_guncelle_req.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_detay_model.dart';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
@@ -31,6 +32,10 @@ abstract class DokumantasyonIstekRepository {
   });
 
   Future<Result<void>> dokumantasyonIstekSil({required int id});
+
+  Future<Result<void>> dokumantasyonIstekGuncelle({
+    required DokumantasyonIstekGuncelleReq request,
+  });
 }
 
 class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
@@ -134,6 +139,31 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<void>> dokumantasyonIstekGuncelle({
+    required DokumantasyonIstekGuncelleReq request,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/DokumantasyonIstek/DokumantasyonIstekGuncelle',
+        data: request.toJson(),
+        options: Options(contentType: 'application/json'),
+      );
+
+      if (response.statusCode == 200) {
         return const Success(null);
       }
 

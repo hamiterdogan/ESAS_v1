@@ -712,6 +712,15 @@ class _EgitimIstekDetayScreenState
                   color: AppColors.textTertiary,
                 ),
               ),
+              const SizedBox(height: 2),
+              // Çalıştığı Süre
+              Text(
+                'Çalıştığı Süre: ${personel.calistigiSure} yıl',
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: AppColors.textTertiary,
+                ),
+              ),
               if (!isLast) ...[
                 const SizedBox(height: 10),
                 Container(height: 1, color: AppColors.border),

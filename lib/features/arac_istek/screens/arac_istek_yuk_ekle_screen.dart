@@ -63,6 +63,7 @@ class _AracIstekYukEkleScreenState
     _mesafeController.dispose();
     _tasInacakYukController.dispose();
     _aciklamaController.dispose();
+
     for (final entry in _entries) {
       entry.adresController.dispose();
     }
@@ -110,8 +111,7 @@ class _AracIstekYukEkleScreenState
     if (_tasInacakYukController.text.trim().isNotEmpty) return true;
     if (_aciklamaController.text.trim().isNotEmpty) return true;
 
-    return false;
-  }
+    return false;  }
 
   Future<bool> _confirmExitIfNeeded() async {
     if (!_hasFormData()) return true;
@@ -651,6 +651,8 @@ class _AracIstekYukEkleScreenState
                   const CommonDivider(),
                   const SizedBox(height: 24),
 
+
+
                   // Taşınacak Yük
                   Text(
                     'Taşınacak Yük',
@@ -673,6 +675,24 @@ class _AracIstekYukEkleScreenState
                       fillColor: AppColors.textOnPrimary,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                          width: 0.75,
+                        ),
                       ),
                       prefixIcon: const Icon(
                         Icons.local_shipping_outlined,
@@ -730,24 +750,26 @@ class _AracIstekYukEkleScreenState
   Future<void> _submitForm() async {
     // Form validasyonu
     if (_entries.isEmpty) {
-      _showStatusBottomSheet('Lütfen gidilecek yeri seçiniz', isError: true);
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen gidilecek yeri seçiniz',
+      );
       return;
     }
-
     if (_tasInacakYukController.text.trim().isEmpty) {
-      _showStatusBottomSheet(
-        'Lütfen taşınacak yük hakkında bilgi giriniz',
-        isError: true,
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen taşınacak yük hakkında bilgi giriniz',
       );
       _tasInacakYukFocusNode.requestFocus();
       return;
     }
 
-    // Açıklama minimum 30 karakter kontrolü (Binek ekranıyla aynı)
-    if (_aciklamaController.text.length < 30) {
-      _showStatusBottomSheet(
-        'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-        isError: true,
+    // Açıklama minimum 15 karakter kontrolü
+    if (_aciklamaController.text.length < 15) {
+      await ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
       );
       _aciklamaFocusNode.requestFocus();
       return;
@@ -783,38 +805,25 @@ class _AracIstekYukEkleScreenState
       },
       onError: (error) {
         if (!mounted) return;
-        _showStatusBottomSheet(
-          error.isEmpty ? 'Hata oluştu' : error,
-          isError: true,
+        ValidationUyariWidget.goster(
+          context: context,
+          message: error.isEmpty ? 'Hata oluştu' : error,
         );
       },
     );
   }
 
   Future<void> _sendAracIstek(AracIstekEkleReq req) async {
-    try {
-      BrandedLoadingDialog.show(context);
-      final repo = ref.read(aracTalepRepositoryProvider);
-      final result = await repo.aracIstekEkle(req);
+    final repo = ref.read(aracTalepRepositoryProvider);
+    final result = await repo.aracIstekEkle(req);
 
-      if (mounted) {
-        BrandedLoadingDialog.hide(context);
-        if (!mounted) return;
-        switch (result) {
-          case Success():
-            // onSuccess callback'i çalıştır (özet ekranında tanımlanmış)
-            Navigator.pop(context);
-          case Failure(:final message):
-            throw Exception(message);
-          case Loading():
-            break;
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        BrandedLoadingDialog.hide(context);
-      }
-      rethrow;
+    switch (result) {
+      case Success():
+        return;
+      case Failure(:final message):
+        throw Exception(message);
+      case Loading():
+        throw Exception('Yükleniyor');
     }
   }
 
@@ -849,7 +858,7 @@ class _AracIstekYukEkleScreenState
       gidilecekYerSatir: gidilecekYerSatir,
       yolcuSayisi: 0,
       mesafe: _tahminiMesafe,
-      istekNedeni: '',
+      istekNedeni: 'Taşınacak Yük',
       istekNedeniDiger: '',
       aciklama: _aciklamaController.text,
       tasinacakYuk: _tasInacakYukController.text.trim(),
@@ -876,6 +885,21 @@ class _AracIstekYukEkleScreenState
     final items = <AracIstekOzetItem>[
       AracIstekOzetItem(label: 'Araç Türü', value: aracTuru, multiLine: false),
       AracIstekOzetItem(
+        label: 'Gidilecek Yer(ler)',
+        value: _buildGidilecekYerSummary(),
+        multiLine: true,
+      ),
+      AracIstekOzetItem(
+        label: 'Tahmini Mesafe (km)',
+        value: _tahminiMesafe.toString(),
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
+        label: 'MEB',
+        value: 'Hayır',
+        multiLine: false,
+      ),
+      AracIstekOzetItem(
         label: 'Gidilecek Tarih',
         value: _formatDateShort(req.gidilecekTarih),
         multiLine: false,
@@ -890,24 +914,16 @@ class _AracIstekYukEkleScreenState
         value: _formatTime(_donusSaat, _donusDakika),
         multiLine: false,
       ),
+
       AracIstekOzetItem(
-        label: 'Tahmini Mesafe (km)',
-        value: _tahminiMesafe.toString(),
-        multiLine: false,
+        label: 'Taşınacak Yük',
+        value: req.tasinacakYuk,
+        multiLine: true,
       ),
       AracIstekOzetItem(
         label: 'Açıklama',
         value: req.aciklama.isEmpty ? '-' : req.aciklama,
         multiLine: true,
-      ),
-      AracIstekOzetItem(
-        label: 'Taşınacak Yük',
-        value: req.tasinacakYuk.isEmpty ? '-' : req.tasinacakYuk,
-        multiLine: true,
-      ),
-      AracIstekOzetItem(
-        label: 'Gidilecek Yer(ler)',
-        value: _buildGidilecekYerSummary(),
       ),
     ];
 
@@ -945,74 +961,7 @@ class _AracIstekYukEkleScreenState
     });
   }
 
-  void _showStatusBottomSheet(String message, {bool isError = false}) {
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (BuildContext statusContext) {
-        return Container(
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-            color: AppColors.textOnPrimary,
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isError ? Icons.error_outline : Icons.check_circle_outline,
-                size: 64,
-                color: isError ? AppColors.error : AppColors.success,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(statusContext);
 
-                  // Başarı durumunda önceki ekrana dön
-                  if (!isError) {
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (mounted) {
-                        final router = GoRouter.of(context);
-                        if (router.canPop()) {
-                          context.pop();
-                        } else {
-                          context.go('/arac_istek');
-                        }
-                      }
-                    });
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.gradientEnd,
-                  minimumSize: const Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Tamam',
-                  style: TextStyle(color: AppColors.textOnPrimary),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }
 
 class _YerEntry {

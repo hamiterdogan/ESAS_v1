@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
@@ -14,6 +15,14 @@ import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repositor
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart'; // Add Result model import
+import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_guncelle_req.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/models/dokuman_tur_model.dart'; // Needed? No, just logic
+import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart'; // For refreshing lists
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart'; // Import NumericSpinnerWidget
 import 'package:intl/intl.dart';
 
 class DokumantasyonIstekDetayScreen extends ConsumerStatefulWidget {
@@ -39,56 +48,80 @@ class _DokumantasyonIstekDetayScreenState
   bool _onayFormExpanded = true;
   bool _bildirimExpanded = true;
 
+  // Edit variables
+  TextEditingController? _baskiAdediController;
+  TextEditingController? _sayfaSayisiController;
+  int _paketAdedi = 0; // State for A4 package count
+  String? _baskiBoyutu; // kagitTalebi
+  int? _lastInitTalepId;
+  List<String> _baskiBoyutlari = [];
+  bool _isLoadingBaskiBoyutlari = false;
+  bool _isUpdating = false;
+
+  @override
+  void dispose() {
+    _baskiAdediController?.dispose();
+    _sayfaSayisiController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final detayAsync = ref.watch(
       dokumantasyonIstekDetayProvider(widget.talepId),
     );
 
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Dokümantasyon İstek Detayı (${widget.talepId})',
-            style: const TextStyle(
-              color: AppColors.textOnPrimary,
-              fontWeight: FontWeight.w600,
+    final isLoading = detayAsync.isLoading;
+    final body = detayAsync.when(
+      data: (detay) => _buildContent(context, detay),
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => _buildError(context, error),
+    );
+
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            appBar: AppBar(
+              title: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Dokümantasyon İstek Detayı (${widget.talepId})',
+                  style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                ),
+              ),
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: AppColors.textOnPrimary,
+                ),
+                onPressed: () {
+                  final router = GoRouter.of(context);
+                  if (router.canPop()) {
+                    router.pop();
+                  } else {
+                    context.go('/dokumantasyon_istek');
+                  }
+                },
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              ),
+              elevation: 0,
             ),
+            body: body,
           ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
-          onPressed: () {
-            final router = GoRouter.of(context);
-            if (router.canPop()) {
-              router.pop();
-            } else {
-              context.go('/dokumantasyon_istek');
-            }
-          },
-          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
-        ),
-        elevation: 0,
-      ),
-      body: detayAsync.when(
-        data: (detay) => _buildContent(context, detay),
-        loading: () => const Center(
-          child: SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          ),
-        ),
-        error: (error, stack) => _buildError(context, error),
+          if (isLoading) const BrandedLoadingOverlay(),
+        ],
       ),
     );
   }
@@ -125,9 +158,23 @@ class _DokumantasyonIstekDetayScreenState
   }
 
   Widget _buildContent(
-    BuildContext context,
-    DokumantasyonIstekDetayResponse detay,
-  ) {
+      BuildContext context, DokumantasyonIstekDetayResponse detay) {
+    
+    // Initialize controllers if needed
+    if (_lastInitTalepId != detay.id) {
+      _lastInitTalepId = detay.id;
+      _baskiAdediController = TextEditingController(text: detay.baskiAdedi?.toString() ?? '1');
+      _sayfaSayisiController = TextEditingController(text: detay.sayfaSayisi?.toString() ?? '1');
+      _paketAdedi = (detay.paket != null && detay.paket! > 0) ? detay.paket! : 1; // Initialize paket
+      
+      // Listen for changes to update totals
+      _baskiAdediController?.addListener(() => setState(() {}));
+      _sayfaSayisiController?.addListener(() => setState(() {}));
+      
+      _baskiBoyutu = detay.kagitTalebi.isNotEmpty ? detay.kagitTalebi : 'A4';
+      _fetchBaskiBoyutlari();
+    }
+    
     final resolvedOnayTipi = (widget.onayTipi ?? '').trim().isNotEmpty
         ? widget.onayTipi!.trim()
         : 'Dokümantasyon İstek';
@@ -250,10 +297,9 @@ class _DokumantasyonIstekDetayScreenState
                         setState(() => _onayFormExpanded = !_onayFormExpanded),
                     child: OnayFormContent(
                       onApprove: (aciklama) async {
-                        final onaySureciId =
-                            onayDurumu
-                                .siradakiOnayVerecekPersonel
-                                ?.onaySureciId;
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -311,10 +357,9 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onReject: (aciklama) async {
-                        final onaySureciId =
-                            onayDurumu
-                                .siradakiOnayVerecekPersonel
-                                ?.onaySureciId;
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
                         if (onaySureciId == null) return;
 
                         try {
@@ -364,10 +409,9 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onReturn: (aciklama) async {
-                        final onaySureciId =
-                            onayDurumu
-                                .siradakiOnayVerecekPersonel
-                                ?.onaySureciId;
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
                         if (onaySureciId == null) return;
 
                         try {
@@ -418,10 +462,9 @@ class _DokumantasyonIstekDetayScreenState
                       },
                       onAssign: (aciklama, selectedPersonel) async {
                         if (selectedPersonel == null) return;
-                        final onaySureciId =
-                            onayDurumu
-                                .siradakiOnayVerecekPersonel
-                                ?.onaySureciId;
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -487,10 +530,9 @@ class _DokumantasyonIstekDetayScreenState
                         }
                       },
                       onHold: (aciklama, bekletKademe) async {
-                        final onaySureciId =
-                            onayDurumu
-                                .siradakiOnayVerecekPersonel
-                                ?.onaySureciId;
+                        final onaySureciId = onayDurumu
+                            .siradakiOnayVerecekPersonel
+                            ?.onaySureciId;
                         if (onaySureciId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -618,6 +660,229 @@ class _DokumantasyonIstekDetayScreenState
   }
 
   List<Widget> _buildSurecDetayiRows(DokumantasyonIstekDetayResponse detay) {
+    final currentUser = ref.watch(currentKullaniciAdiProvider);
+    final isAuthorized = currentUser == 'MUYILMAZ';
+    final isEditable = isAuthorized && !detay.a4Talebi; // dokumanTuru != null implies a4Talebi == false typically, user said "not a4Talebi" effectively
+
+    // dokumanTuru null ise (veya a4Talebi true) sadece belirli alanları göster
+    if (detay.a4Talebi) {
+      final rows = <Widget>[];
+
+      // 1. İstek Türü
+      rows.add(_buildInfoRow('İstek Türü', 'Boş A4 Kağıdı'));
+
+      // 2. Oluşturma Tarihi
+      rows.add(
+        _buildInfoRow(
+            'Oluşturma Tarihi', _formatDateTime(detay.olusturmaTarihi)),
+      );
+
+      // 3. Teslim Edilecek Tarih
+      rows.add(
+        _buildInfoRow('Teslim Edilecek Tarih', _formatDate(detay.teslimTarihi)),
+      );
+
+      // 4. Paket Adedi (paket) - Editable
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+               NumericSpinnerWidget(
+                 label: 'Paket Adedi',
+                 initialValue: _paketAdedi,
+                 minValue: 1,
+                 maxValue: 100,
+                 compact: true,
+                 onValueChanged: (val) {
+                   setState(() => _paketAdedi = val);
+                 },
+               ),
+              const SizedBox(height: 10),
+              Container(height: 1, color: AppColors.border),
+            ],
+          ),
+        ),
+      );
+      
+      // Update Button for A4
+      rows.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isUpdating ? null : () => _updateA4Istek(detay),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: _isUpdating 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Güncelle', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ),
+      );
+
+      return rows;
+    }
+
+    // Editable Mode for MUYILMAZ
+    if (isEditable) {
+       final rows = <Widget>[];
+       // 1. İstek Türü (Read-only)
+       rows.add(_buildInfoRow('İstek Türü', detay.a4Talebi ? 'A4 Kağıdı İstek' : 'Dokümantasyon Baskı İstek'));
+       // 2. Oluşturma Tarihi
+       rows.add(_buildInfoRow('Oluşturma Tarihi', _formatDateTime(detay.olusturmaTarihi)));
+       // 3. Teslim Edilecek Tarih
+       rows.add(_buildInfoRow('Teslim Edilecek Tarih', _formatDate(detay.teslimTarihi)));
+       // 4. Doküman Türü
+       rows.add(_buildInfoRow('Doküman Türü', detay.dokumanTuru?.isNotEmpty == true ? detay.dokumanTuru! : '-'));
+       
+       // Helper for edit rows
+       Widget _buildEditRow(String label, Widget input) {
+         return Padding(
+           padding: const EdgeInsets.only(bottom: 12),
+           child: Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               Text(
+                 label,
+                 style: const TextStyle(
+                   fontSize: 16,
+                   fontWeight: FontWeight.bold,
+                   color: AppColors.textSecondary,
+                 ),
+               ),
+               const SizedBox(height: 8),
+               input,
+               const SizedBox(height: 10),
+               Container(height: 1, color: AppColors.border),
+             ],
+           ),
+         );
+       }
+
+       // 5. Baskı Adedi (Editable)
+       rows.add(
+         _buildEditRow(
+           'Baskı Adedi',
+           TextField(
+             controller: _baskiAdediController,
+             keyboardType: TextInputType.number,
+             decoration: const InputDecoration(
+               border: OutlineInputBorder(),
+               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+               isDense: true,
+             ),
+           ),
+         ),
+       );
+
+       // 6. Sayfa Sayısı (Editable)
+       rows.add(
+         _buildEditRow(
+           'Sayfa Sayısı',
+           TextField(
+             controller: _sayfaSayisiController,
+             keyboardType: TextInputType.number,
+             decoration: const InputDecoration(
+               border: OutlineInputBorder(),
+               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+               isDense: true,
+             ),
+           ),
+         ),
+       );
+
+       // 7. Baskı Boyutu (Editable Selector)
+       rows.add(
+         _buildEditRow(
+           'Baskı Boyutu',
+           InkWell(
+              onTap: _showBaskiBoyutuBottomSheet,
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  suffixIcon: Icon(Icons.arrow_drop_down),
+                  isDense: true,
+                ),
+                child: Text(_baskiBoyutu ?? 'Seçiniz'),
+              ),
+            ),
+         ),
+       );
+
+       // 8. Toplam Sayfa (Calculated)
+       final baskiAdedi = int.tryParse(_baskiAdediController?.text ?? '0') ?? 0;
+       final sayfaSayisi = int.tryParse(_sayfaSayisiController?.text ?? '0') ?? 0;
+       final toplamSayfa = baskiAdedi * sayfaSayisi;
+       
+       rows.add(_buildInfoRow('Toplam Sayfa', '$toplamSayfa'));
+       
+       // ... Other read-only fields ...
+       rows.add(_buildInfoRow('Açıklama', detay.aciklama.isNotEmpty ? detay.aciklama : '-', multiLine: true));
+       rows.add(_buildInfoRow('Baskı Türü', detay.baskiTuru.isNotEmpty ? detay.baskiTuru : '-'));
+       rows.add(_buildInfoRow('Arkalı Önlü Baskı', detay.onluArkali ? 'Evet' : 'Hayır'));
+       rows.add(_buildInfoRow('Çoğaltılacak kopya elden gönderilecektir', detay.kopyaElden ? 'Evet' : 'Hayır'));
+       
+       // ... Files and Classes ...
+       if (detay.dosyaAdlari.isNotEmpty) {
+          rows.add(
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Dosyalar:',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+              ),
+            ),
+          );
+          for (int i = 0; i < detay.dosyaAdlari.length; i++) {
+             rows.add(_buildClickableFileRow(detay.dosyaAdlari[i], detay.dosyaAdlari[i], isLast: i == detay.dosyaAdlari.length - 1 && detay.dosyaAciklama?.isEmpty != false && detay.okullarSatir.isEmpty));
+          }
+       } else {
+          rows.add(_buildInfoRow('Dosyalar', '-'));
+       }
+
+       if (detay.dosyaAciklama?.isNotEmpty == true) {
+         rows.add(_buildInfoRow('Dosya İçeriği', detay.dosyaAciklama!, multiLine: true));
+       }
+
+       if (detay.okullarSatir.isNotEmpty) {
+          // Simplified logic for brevity, ideally reuse the one below or refactor to helper
+          final siniflar = detay.okullarSatir.map((o) => '• ${o.okulKodu ?? '-'} - ${o.sinif ?? '-'}').join('\n'); // Simplified for now
+          rows.add(_buildInfoRow('Seçilen Sınıflar', siniflar, isLast: true, multiLine: true));
+       } else {
+          rows.add(_buildInfoRow('Seçilen Sınıflar', '-', isLast: true));
+       }
+       
+        // Update Button
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isUpdating ? null : () => _updateIstek(detay),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: _isUpdating 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('Güncelle', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ),
+        );
+
+       return rows;
+    }
+
+    // dokumanTuru null değilse mevcut yapıyı koru (Standard View)
     final rows = <Widget>[];
 
     // 1. İstek Türü
@@ -630,18 +895,12 @@ class _DokumantasyonIstekDetayScreenState
 
     // 2. Oluşturma Tarihi
     rows.add(
-      _buildInfoRow(
-        'Oluşturma Tarihi',
-        _formatDateTime(detay.olusturmaTarihi),
-      ),
+      _buildInfoRow('Oluşturma Tarihi', _formatDateTime(detay.olusturmaTarihi)),
     );
 
     // 3. Teslim Edilecek Tarih
     rows.add(
-      _buildInfoRow(
-        'Teslim Edilecek Tarih',
-        _formatDate(detay.teslimTarihi),
-      ),
+      _buildInfoRow('Teslim Edilecek Tarih', _formatDate(detay.teslimTarihi)),
     );
 
     // 4. Doküman Türü
@@ -703,10 +962,7 @@ class _DokumantasyonIstekDetayScreenState
 
     // 11. Arkalı Önlü Baskı
     rows.add(
-      _buildInfoRow(
-        'Arkalı Önlü Baskı',
-        detay.onluArkali ? 'Evet' : 'Hayır',
-      ),
+      _buildInfoRow('Arkalı Önlü Baskı', detay.onluArkali ? 'Evet' : 'Hayır'),
     );
 
     // 12. Çoğaltılacak kopya elden gönderilecektir
@@ -738,46 +994,39 @@ class _DokumantasyonIstekDetayScreenState
           _buildClickableFileRow(
             fileName,
             fileName, // Assuming file name is displayed as label too
-            isLast: i == detay.dosyaAdlari.length - 1 &&
+            isLast:
+                i == detay.dosyaAdlari.length - 1 &&
                 detay.dosyaAciklama?.isEmpty != false &&
                 detay.okullarSatir.isEmpty,
           ),
         );
       }
     } else {
-       rows.add(_buildInfoRow('Dosyalar', '-'));
+      rows.add(_buildInfoRow('Dosyalar', '-'));
     }
 
     // 14. Dosya İçeriği (dosyaAciklama)
     if (detay.dosyaAciklama?.isNotEmpty == true) {
       rows.add(
-        _buildInfoRow(
-          'Dosya İçeriği',
-          detay.dosyaAciklama!,
-          multiLine: true,
-        ),
+        _buildInfoRow('Dosya İçeriği', detay.dosyaAciklama!, multiLine: true),
       );
     }
 
     // 15. Seçilen Sınıflar
     if (detay.okullarSatir.isNotEmpty) {
-      final siniflar =
-          detay.okullarSatir
-              .map((o) {
-                final sinifLabel = (o.sinif ?? '').isNotEmpty ? o.sinif : '-';
-                final okulLabel =
-                    (o.okulKodu ?? '').isNotEmpty ? o.okulKodu : '-';
-                final seviye =
-                    (o.seviye ?? '').isNotEmpty ? ' (${o.seviye})' : '';
-                final numara =
-                    (o.numara ?? '').isNotEmpty ? ' • ${o.numara}' : '';
-                final isim =
-                    ((o.adi ?? '').isNotEmpty || (o.soyadi ?? '').isNotEmpty)
-                        ? ' • ${(o.adi ?? '').trim()} ${(o.soyadi ?? '').trim()}'
-                        : '';
-                return '• $okulLabel - $sinifLabel$seviye$numara$isim';
-              })
-              .join('\n');
+      final siniflar = detay.okullarSatir
+          .map((o) {
+            final sinifLabel = (o.sinif ?? '').isNotEmpty ? o.sinif : '-';
+            final okulLabel = (o.okulKodu ?? '').isNotEmpty ? o.okulKodu : '-';
+            final seviye = (o.seviye ?? '').isNotEmpty ? ' (${o.seviye})' : '';
+            final numara = (o.numara ?? '').isNotEmpty ? ' • ${o.numara}' : '';
+            final isim =
+                ((o.adi ?? '').isNotEmpty || (o.soyadi ?? '').isNotEmpty)
+                ? ' • ${(o.adi ?? '').trim()} ${(o.soyadi ?? '').trim()}'
+                : '';
+            return '• $okulLabel - $sinifLabel$seviye$numara$isim';
+          })
+          .join('\n');
       rows.add(
         _buildInfoRow(
           'Seçilen Sınıflar',
@@ -787,13 +1036,7 @@ class _DokumantasyonIstekDetayScreenState
         ),
       );
     } else {
-      rows.add(
-        _buildInfoRow(
-          'Seçilen Sınıflar',
-          '-',
-          isLast: true,
-        ),
-      );
+      rows.add(_buildInfoRow('Seçilen Sınıflar', '-', isLast: true));
     }
 
     return rows;
@@ -1402,5 +1645,137 @@ class _DokumantasyonIstekDetayScreenState
         ],
       ),
     );
+  }
+
+  // Helper Methods for Edit
+  Future<void> _fetchBaskiBoyutlari() async {
+    setState(() => _isLoadingBaskiBoyutlari = true);
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/DokumantasyonIstek/BaskiBoyutuGetir');
+      if (response.statusCode == 200) {
+         final List<dynamic> data = response.data is List ? response.data : [];
+         if (mounted) {
+           setState(() {
+             _baskiBoyutlari = data.map((e) => e.toString()).toList();
+           });
+         }
+      }
+    } catch (e) {
+      debugPrint('Baskı boyutları yüklenemedi: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingBaskiBoyutlari = false);
+    }
+  }
+
+  void _showBaskiBoyutuBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.textOnPrimary,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Baskı Boyutu Seçiniz', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              if (_isLoadingBaskiBoyutlari)
+                const CircularProgressIndicator()
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _baskiBoyutlari.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final item = _baskiBoyutlari[index];
+                      return ListTile(
+                        leading: _baskiBoyutu == item ? const Icon(Icons.check, color: AppColors.primary) : const SizedBox(width: 24),
+                        title: Text(item),
+                        onTap: () {
+                          setState(() => _baskiBoyutu = item);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _updateIstek(DokumantasyonIstekDetayResponse detay) async {
+    if (_isUpdating) return;
+    
+    final baskiAdedi = int.tryParse(_baskiAdediController?.text ?? '');
+    final sayfaSayisi = int.tryParse(_sayfaSayisiController?.text ?? '');
+    
+    if (baskiAdedi == null || sayfaSayisi == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lütfen geçerli sayısal değerler giriniz.')));
+      return;
+    }
+
+    setState(() => _isUpdating = true);
+
+    try {
+      final req = DokumantasyonIstekGuncelleReq(
+        id: detay.id,
+        baskiAdedi: baskiAdedi,
+        kagitTalebi: _baskiBoyutu ?? 'A4',
+        dokumanTuru: detay.dokumanTuru ?? '',
+        sayfaSayisi: sayfaSayisi,
+        toplamSayfa: baskiAdedi * sayfaSayisi,
+      );
+
+      final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+      final result = await repo.dokumantasyonIstekGuncelle(request: req);
+
+      if (!mounted) return;
+
+      if (result is Success) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('İstek başarıyla güncellendi.'), backgroundColor: AppColors.success));
+        ref.invalidate(dokumantasyonIstekDetayProvider(widget.talepId)); // Refresh details
+      } else if (result is Failure) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: ${result.message}'), backgroundColor: AppColors.error));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bir hata oluştu: $e'), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
+  }
+
+  Future<void> _updateA4Istek(DokumantasyonIstekDetayResponse detay) async {
+    if (_isUpdating) return;
+
+    setState(() => _isUpdating = true);
+
+    try {
+      final req = DokumantasyonIstekGuncelleReq(
+        id: detay.id,
+        paket: _paketAdedi,
+      );
+
+      final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+      final result = await repo.dokumantasyonIstekGuncelle(request: req);
+
+      if (!mounted) return;
+
+      if (result is Success) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('İstek başarıyla güncellendi.'), backgroundColor: AppColors.success));
+        ref.invalidate(dokumantasyonIstekDetayProvider(widget.talepId)); // Refresh details
+      } else if (result is Failure) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: ${result.message}'), backgroundColor: AppColors.error));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bir hata oluştu: $e'), backgroundColor: AppColors.error));
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
+    }
   }
 }
