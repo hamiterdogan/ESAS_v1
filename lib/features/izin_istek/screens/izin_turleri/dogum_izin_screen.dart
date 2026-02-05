@@ -511,7 +511,11 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
         // Bottom sheet'te verileri göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Doğum'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Doğum İzni',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',

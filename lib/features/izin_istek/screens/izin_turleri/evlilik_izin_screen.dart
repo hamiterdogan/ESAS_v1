@@ -580,7 +580,11 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
         // Bottom sheet'te verileri göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Evlilik'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Evlilik İzni İstek',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
@@ -595,6 +599,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
             IzinOzetItem(
               label: 'Evlilik Tarihi',
               value: _formatDate(_evlilikTarihi!),
+              multiLine: false,
             ),
             IzinOzetItem(label: 'Eş Adı', value: _esAdiController.text),
             IzinOzetItem(

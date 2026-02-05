@@ -1276,7 +1276,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
                     child: Divider(height: 1, color: Colors.grey.shade400),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   OnayToggleWidget(
                     initialValue: _egitimYeriYurtDisi,
                     label: 'Eğitim yeri yurt dışında',
@@ -1467,7 +1467,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
                     child: Divider(height: 1, color: Colors.grey.shade400),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   OnayToggleWidget(
                     initialValue: _ucretsiz,
                     label: 'Ücretsiz',
@@ -3021,53 +3021,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     // Özet verilerini hazırla
     final summaryItems = <GenericSummaryItem>[];
 
-    // 1. Eğitimin Adı
-    if (_secilenEgitimAdi != null && _secilenEgitimAdi!.isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitimin Adı',
-          value: _secilenEgitimAdi == 'Diğer'
-              ? _ozelEgitimAdiController.text
-              : _secilenEgitimAdi!,
-          multiLine: true,
-        ),
-      );
-    }
-
-    // 2. Eğitim Türü
-    if (_secilenEgitimTuru != null && _secilenEgitimTuru!.isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitim Türü',
-          value: _secilenEgitimTuru!,
-          multiLine: false,
-        ),
-      );
-    }
-
-    // 3. Eğitim Şirketi
-    if (_egitimSirketiAdi.trim().isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitim Şirketinin Adı',
-          value: _egitimSirketiAdi,
-          multiLine: true,
-        ),
-      );
-    }
-
-    // 4. Eğitimin Konusu
-    if (_egitimKonusu.trim().isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitimin Konusu',
-          value: _egitimKonusu,
-          multiLine: true,
-        ),
-      );
-    }
-
-    // 5. Eğitim Başlangıç Tarihi
+    // 1. Eğitim Başlangıç Tarihi
     summaryItems.add(
       GenericSummaryItem(
         label: 'Eğitim Başlangıç Tarihi',
@@ -3077,7 +3031,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ),
     );
 
-    // 6. Eğitim Bitiş Tarihi
+    // 2. Eğitim Bitiş Tarihi
     summaryItems.add(
       GenericSummaryItem(
         label: 'Eğitim Bitiş Tarihi',
@@ -3087,7 +3041,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ),
     );
 
-    // 7. Eğitim Başlangıç Saati
+    // 3. Eğitim Başlangıç Saati
     summaryItems.add(
       GenericSummaryItem(
         label: 'Eğitim Başlangıç Saati',
@@ -3097,7 +3051,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ),
     );
 
-    // 8. Eğitim Bitiş Saati
+    // 4. Eğitim Bitiş Saati
     summaryItems.add(
       GenericSummaryItem(
         label: 'Eğitim Bitiş Saati',
@@ -3107,98 +3061,31 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       ),
     );
 
-    // 9. Eğitim Süresi
+    // 5. Eğitim Süresi
     if (_egitimGun > 0 || _egitimSaat > 0) {
-      String sure = '';
-      if (_egitimGun > 0) sure += '$_egitimGun gün ';
-      if (_egitimSaat > 0) sure += '$_egitimSaat saat';
       summaryItems.add(
         GenericSummaryItem(
           label: 'Eğitim Süresi',
-          value: sure.trim(),
+          value:
+              '${_egitimGun.toString().padLeft(2, '0')} Gün, günde ${_egitimSaat.toString().padLeft(2, '0')} saat',
           multiLine: false,
         ),
       );
     }
 
-    // 10. Adres
-    if (_adres.trim().isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(label: 'Adres', value: _adres, multiLine: true),
-      );
-    }
-
-    // 11. Şehir/Yer Bilgisi
-    String yerBilgisi = '';
-    if (_online) {
-      yerBilgisi = _secilenSehir == null
-          ? 'Online'
-          : 'Online - ${_secilenSehir!}';
-    } else if (_egitimYeriYurtDisi) {
-      yerBilgisi =
-          'Yurt Dışı${_egitimUlkeSehir.isNotEmpty ? ' - $_egitimUlkeSehir' : ''}';
-    } else if (_secilenSehir != null) {
-      yerBilgisi = _secilenSehir!;
-    }
-    if (yerBilgisi.isNotEmpty) {
+    // 6. Girilmeyen Toplam Ders Saati
+    if (_girileymeyenDersSaati > 0) {
       summaryItems.add(
         GenericSummaryItem(
-          label: 'Eğitimin Yapılacağı Yer',
-          value: yerBilgisi,
+          label: 'Girilmeyen Toplam Ders Saati',
+          value: '$_girileymeyenDersSaati Saat',
           multiLine: false,
         ),
       );
     }
 
-    // 12. Eğitim Ücreti
-    if (!_ucretsiz && _egitimUcretleriData != null) {
-      final egitimUcretiAna =
-          _egitimUcretleriData!['egitimUcretiAna'] as String? ?? '0';
-      final egitimUcretiKusurat =
-          _egitimUcretleriData!['egitimUcretiKusurat'] as String? ?? '';
-      final paraBirimi = _egitimUcretleriData!['selectedParaBirimi'];
-
-      if (egitimUcretiAna != '0') {
-        final kusuratPadded = egitimUcretiKusurat.isEmpty
-            ? '00'
-            : egitimUcretiKusurat.padLeft(2, '0');
-        String ucretStr = '$egitimUcretiAna,$kusuratPadded';
-        if (paraBirimi != null) {
-          final kod = paraBirimi.kod.replaceAll('TRL', 'TL');
-          ucretStr += ' $kod';
-        }
-        summaryItems.add(
-          GenericSummaryItem(
-            label: 'Eğitim Ücreti',
-            value: ucretStr,
-            multiLine: false,
-          ),
-        );
-      }
-    } else if (_ucretsiz) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitim Ücreti',
-          value: 'Ücretsiz',
-          multiLine: false,
-        ),
-      );
-    }
-
-    // 13. Web Sitesi
-    if (_webSitesi.trim().isNotEmpty) {
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Web Sitesi',
-          value: _webSitesi,
-          multiLine: false,
-        ),
-      );
-    }
-
-    // 14. Toplu İstek ve Personel Bilgileri
+    // 7. Eğitim Alacak Personel (Toplu İstek)
     if (_topluIstekte && _selectedPersonelIdsForTopluIstek.isNotEmpty) {
-      // Seçilen personel isimlerini al
       final selectedPersonelNames = _personeller
           .where(
             (p) => _selectedPersonelIdsForTopluIstek.contains(p.personelId),
@@ -3217,55 +3104,265 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       }
     }
 
-    // 15. Eğitim Sonrası Paylaşım Yeri
+    // 8. Eğitimin Adı
+    if (_secilenEgitimAdi != null && _secilenEgitimAdi!.isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Eğitimin Adı',
+          value: _secilenEgitimAdi == 'DİĞER'
+              ? _ozelEgitimAdiController.text
+              : _secilenEgitimAdi!,
+          multiLine: true,
+        ),
+      );
+    }
+
+    // 9. Eğitim Türü
+    if (_secilenEgitimTuru != null && _secilenEgitimTuru!.isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Eğitim Türü',
+          value: _secilenEgitimTuru!,
+          multiLine: false,
+        ),
+      );
+    }
+
+    // 10. Online Durumu
+    summaryItems.add(
+      GenericSummaryItem(
+        label: 'Online Durumu',
+        value: _online ? 'Evet' : 'Hayır',
+        multiLine: false,
+      ),
+    );
+
+    // 11. Eğitim Şirketinin Adı
+    if (_egitimSirketiAdi.trim().isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Eğitim Şirketinin Adı',
+          value: _egitimSirketiAdi,
+          multiLine: true,
+        ),
+      );
+    }
+
+    // 12. Eğitimin Konusu
+    if (_egitimKonusu.trim().isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Eğitimin Konusu',
+          value: _egitimKonusu,
+          multiLine: true,
+        ),
+      );
+    }
+
+    // 13. Web Sitesi
+    if (_webSitesi.trim().isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Web Sitesi',
+          value: _webSitesi,
+          multiLine: false,
+        ),
+      );
+    }
+
+    // 14. Eğitimin Yeri
+    summaryItems.add(
+      GenericSummaryItem(
+        label: 'Eğitimin Yeri',
+        value: _egitimYeriYurtDisi ? 'Yurt Dışı' : 'Yurt İçi',
+        multiLine: false,
+      ),
+    );
+
+    // 15. Şehir
+    String sehirBilgisi = '';
+    if (_egitimYeriYurtDisi) {
+      sehirBilgisi = _egitimUlkeSehir;
+    } else if (_secilenSehir != null) {
+      sehirBilgisi = _secilenSehir!;
+    }
+    if (sehirBilgisi.isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Şehir',
+          value: sehirBilgisi,
+          multiLine: false,
+        ),
+      );
+    }
+
+    // 16. Adres
+    if (_adres.trim().isNotEmpty) {
+      summaryItems.add(
+        GenericSummaryItem(label: 'Adres', value: _adres, multiLine: true),
+      );
+    }
+
+    // 17. Kişi Başı Toplam Ücret
+    if (!_ucretsiz && _egitimUcretleriData != null) {
+      final kisiBasiToplamAna =
+          _egitimUcretleriData!['kisiBasiToplamAna'] as String? ?? '0';
+      final kisiBasiToplamKusurat =
+          _egitimUcretleriData!['kisiBasiToplamKusurat'] as String? ?? '';
+      final paraBirimi = _egitimUcretleriData!['selectedParaBirimi'];
+
+      if (kisiBasiToplamAna != '0') {
+        final kusuratPadded = kisiBasiToplamKusurat.isEmpty
+            ? '00'
+            : kisiBasiToplamKusurat.padLeft(2, '0');
+        String ucretStr = '$kisiBasiToplamAna,$kusuratPadded';
+        if (paraBirimi != null) {
+          final kod = paraBirimi.kod.replaceAll('TRL', 'TL');
+          ucretStr += ' $kod';
+        }
+        summaryItems.add(
+          GenericSummaryItem(
+            label: 'Kişi Başı Toplam Ücret',
+            value: ucretStr,
+            multiLine: false,
+          ),
+        );
+      }
+    } else if (_ucretsiz) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Kişi Başı Toplam Ücret',
+          value: 'Ücretsiz',
+          multiLine: false,
+        ),
+      );
+    }
+
+    // 18. Genel Toplam Ücret
+    if (!_ucretsiz && _egitimUcretleriData != null) {
+      final genelToplamAna =
+          _egitimUcretleriData!['genelToplamAna'] as String? ?? '0';
+      final genelToplamKusurat =
+          _egitimUcretleriData!['genelToplamKusurat'] as String? ?? '';
+      final paraBirimi = _egitimUcretleriData!['selectedParaBirimi'];
+
+      if (genelToplamAna != '0') {
+        final kusuratPadded = genelToplamKusurat.isEmpty
+            ? '00'
+            : genelToplamKusurat.padLeft(2, '0');
+        String ucretStr = '$genelToplamAna,$kusuratPadded';
+        if (paraBirimi != null) {
+          final kod = paraBirimi.kod.replaceAll('TRL', 'TL');
+          ucretStr += ' $kod';
+        }
+        summaryItems.add(
+          GenericSummaryItem(
+            label: 'Genel Toplam Ücret',
+            value: ucretStr,
+            multiLine: false,
+          ),
+        );
+      }
+    } else if (_ucretsiz) {
+      summaryItems.add(
+        GenericSummaryItem(
+          label: 'Genel Toplam Ücret',
+          value: 'Ücretsiz',
+          multiLine: false,
+        ),
+      );
+    }
+
+    // 19. Eğitim Sonrası Paylaşım Detayları
     if (_egitimSonrasiPaylasimData != null) {
+      final paylasimItems = <String>[];
+
+      // Paylaşım Başlangıç Tarihi
+      final DateTime? baslangicTarihi =
+          _egitimSonrasiPaylasimData!['baslangicTarihi'] as DateTime?;
+      if (baslangicTarihi != null) {
+        paylasimItems.add(
+          'Başlangıç Tarihi: ${baslangicTarihi.day.toString().padLeft(2, '0')}.${baslangicTarihi.month.toString().padLeft(2, '0')}.${baslangicTarihi.year}',
+        );
+      }
+
+      // Paylaşım Bitiş Tarihi
+      final DateTime? bitisTarihi =
+          _egitimSonrasiPaylasimData!['bitisTarihi'] as DateTime?;
+      if (bitisTarihi != null) {
+        paylasimItems.add(
+          'Bitiş Tarihi: ${bitisTarihi.day.toString().padLeft(2, '0')}.${bitisTarihi.month.toString().padLeft(2, '0')}.${bitisTarihi.year}',
+        );
+      }
+
+      // Paylaşım Başlangıç Saati
+      final int baslangicSaat =
+          (_egitimSonrasiPaylasimData!['baslangicSaat'] as int?) ?? 0;
+      final int baslangicDakika =
+          (_egitimSonrasiPaylasimData!['baslangicDakika'] as int?) ?? 0;
+      paylasimItems.add(
+        'Başlangıç Saati: ${baslangicSaat.toString().padLeft(2, '0')}:${baslangicDakika.toString().padLeft(2, '0')}',
+      );
+
+      // Paylaşım Bitiş Saati
+      final int bitisSaat =
+          (_egitimSonrasiPaylasimData!['bitisSaat'] as int?) ?? 0;
+      final int bitisDakika =
+          (_egitimSonrasiPaylasimData!['bitisDakika'] as int?) ?? 0;
+      paylasimItems.add(
+        'Bitiş Saati: ${bitisSaat.toString().padLeft(2, '0')}:${bitisDakika.toString().padLeft(2, '0')}',
+      );
+
+      // Nerede Yapılacak
       final egitimYeri =
           _egitimSonrasiPaylasimData!['egitimYeri'] as String? ?? '';
       if (egitimYeri.isNotEmpty) {
+        paylasimItems.add('Nerede yapılacak: $egitimYeri');
+      }
+
+      // Paylaşım Yapılacak Kişiler
+      if (paylasimPersonelIds.isNotEmpty) {
+        final selectedPersonelNames = _personeller
+            .where((p) => paylasimPersonelIds.contains(p.personelId))
+            .map((p) => '${p.adi} ${p.soyadi}')
+            .join(', '); // Comma separated for better fit in detailed list
+
+        if (selectedPersonelNames.isNotEmpty) {
+          paylasimItems.add('Paylaşım yapılacak kişiler: $selectedPersonelNames');
+        } else {
+          paylasimItems.add(
+            'Paylaşım yapılacak kişiler: ${paylasimPersonelIds.length} kişi seçildi',
+          );
+        }
+      }
+
+      if (paylasimItems.isNotEmpty) {
         summaryItems.add(
           GenericSummaryItem(
-            label: 'Eğitim Sonrası Paylaşım Yeri',
-            value: egitimYeri,
+            label: 'Eğitim Sonrası Paylaşım Detayları',
+            value: paylasimItems.join('\n'),
             multiLine: true,
           ),
         );
       }
     }
 
-    // 16. Eğitim Sonrası Paylaşım Yapılacak Kişiler (Her iki durumda da gösterilsin)
-    if (paylasimPersonelIds.isNotEmpty) {
-      final selectedPersonelNames = _personeller
-          .where((p) => paylasimPersonelIds.contains(p.personelId))
-          .map((p) => '${p.adi} ${p.soyadi}')
-          .join('\n');
-
-      summaryItems.add(
-        GenericSummaryItem(
-          label: 'Eğitim Sonrası Paylaşım Yapılacak Kişiler',
-          value: selectedPersonelNames.isNotEmpty
-              ? selectedPersonelNames
-              : 'Seçili kişi sayısı: ${paylasimPersonelIds.length}',
-          multiLine: true,
-        ),
-      );
-    }
-
-    // 17. Yüklenen Dosyalar
+    // 19. Yüklenen Dosyaların İsimleri
     if (_selectedFiles.isNotEmpty) {
       summaryItems.add(
         GenericSummaryItem(
-          label: 'Yüklenen Dosyalar',
+          label: 'Yüklenen Dosyaların İsimleri',
           value: _selectedFiles.map((f) => f.name).join('\n'),
           multiLine: true,
         ),
       );
     }
 
-    // 18. Eğitim Teklifi İçeriği
+    // 20. Dosyaların İçeriği
     if (_egitimTeklifIcerikController.text.trim().isNotEmpty) {
       summaryItems.add(
         GenericSummaryItem(
-          label: 'Eğitim Teklifi İçeriği',
+          label: 'Dosyaların İçeriği',
           value: _egitimTeklifIcerikController.text,
           multiLine: true,
         ),
@@ -3278,9 +3375,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     await showGenericSummaryBottomSheet(
       context: context,
       requestData: payload,
-      title: 'Eğitim Talebi Özeti',
+      title: 'Eğitim İsteği Özeti',
       summaryItems: summaryItems,
-      showRequestData: true,
+      showRequestData: false,
       confirmButtonLabel: 'Gönder',
       cancelButtonLabel: 'Düzenle',
       onConfirm: () async {

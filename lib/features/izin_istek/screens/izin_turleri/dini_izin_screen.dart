@@ -637,7 +637,11 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
         // API çağrısını yap
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Dini'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Dini İzin',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
