@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
+import 'dart:io';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
+import 'package:esas_v1/common/providers/file_attachment_provider.dart';
+import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
+
+
+
+import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
@@ -16,7 +26,14 @@ import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.
 import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/core/models/result.dart';
+
+final satinAlmaDosyaEklemeProvider =
+    NotifierProvider<GenericFileAttachmentNotifier, FileAttachmentState>(
+      GenericFileAttachmentNotifier.new,
+    );
 
 class SatinAlmaDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -35,9 +52,30 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   bool _onaySureciExpanded = true;
   bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
+  List<SatinAlmaDetayUrunSatir>? _localUrunler;
+
+  // Vendor Edit Controllers
+  final TextEditingController _saticiFirmaController = TextEditingController();
+  final TextEditingController _saticiTelefonController = TextEditingController();
+  final TextEditingController _webSitesiController = TextEditingController();
+  bool _vendorFieldsInitialized = false;
+
+  // Payment Edit State
+  int? _selectedOdemeSekliId;
+  bool _isPesin = true;
+  int _vadeGun = 30;
+  bool _paymentFieldsInitialized = false;
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<FileAttachmentState>(satinAlmaDosyaEklemeProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        AppDialogs.showError(context, next.errorMessage!);
+        ref.read(satinAlmaDosyaEklemeProvider.notifier).clearError();
+      }
+    });
+
     // Note: The logic for satinAlmaDetayParalelProvider was established to load data in parallel.
     final paralelAsync = ref.watch(
       satinAlmaDetayParalelProvider(widget.talepId),
@@ -45,11 +83,33 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     final isLoading = paralelAsync.isLoading;
     final body = paralelAsync.when(
-      data: (paralelData) => _buildContent(
-        context,
-        paralelData.detay,
-        AsyncValue.data(paralelData.personel),
-      ),
+      data: (paralelData) {
+        _localUrunler ??= List.from(paralelData.detay.urunlerSatir);
+        
+        // Initialize vendor fields once
+        if (!_vendorFieldsInitialized) {
+          _saticiFirmaController.text = paralelData.detay.saticiFirma;
+          _saticiTelefonController.text = paralelData.detay.saticiTel ?? '';
+          _webSitesiController.text = paralelData.detay.webSitesi ?? '';
+          _vendorFieldsInitialized = true;
+        }
+
+        // Initialize payment fields once
+        if (!_paymentFieldsInitialized) {
+          _selectedOdemeSekliId = paralelData.detay.odemeSekliId;
+          _isPesin = paralelData.detay.pesin;
+          _vadeGun = paralelData.detay.odemeVadesiGun ?? 30;
+          if (_vadeGun == 0) _vadeGun = 30; // Default to 30 if 0 comes from API for non-pesin (safety)
+          _paymentFieldsInitialized = true;
+        }
+
+        return _buildContent(
+          context,
+          paralelData.detay,
+          AsyncValue.data(paralelData.personel),
+          paralelData.binalar,
+        );
+      },
       loading: () => const SizedBox.shrink(),
       error: (error, stack) => _buildError(context, error),
     );
@@ -103,6 +163,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     BuildContext context,
     SatinAlmaDetayResponse detay,
     AsyncValue<PersonelBilgiResponse> personelAsync,
+    List<SatinAlmaBina> binalar,
   ) {
     final adSoyad = detay.adSoyad.isNotEmpty
         ? detay.adSoyad
@@ -153,7 +214,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.shopping_cart_outlined,
-              title: 'Satınalma İstek Detayları',
+              title: 'Satın Alma İstek Detayları',
               isExpanded: _satinAlmaDetaylariExpanded,
               onTap: () {
                 setState(() {
@@ -162,11 +223,63 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildSatinAlmaDetayRows(detay),
+                children: _buildSatinAlmaDetayRows(detay, binalar),
               ),
             ),
             const SizedBox(height: 16),
             _buildUrunBilgileriAccordion(detay),
+
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Implement save logic
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                      ),
+                      child: const Text(
+                        'Ücret bilgilerini güncelle ve kaydet',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Implement price history logic
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1877F2), // Standard Blue
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                      ),
+                      child: const Text(
+                        'Fiyat Geçmişi',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
             _buildOnaySureciAccordion(),
             _buildOnayFormAccordion(),
@@ -209,18 +322,33 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     );
   }
 
-  List<Widget> _buildSatinAlmaDetayRows(SatinAlmaDetayResponse detay) {
+  List<Widget> _buildSatinAlmaDetayRows(
+    SatinAlmaDetayResponse detay,
+    List<SatinAlmaBina> binalar,
+  ) {
     final rows = <Widget>[];
     final items = <MapEntry<String, String>>[];
 
+    // Okul bilgisi
+    final okulIsimleri =
+        detay.binaId
+            .map((id) {
+              final bina = binalar.firstWhere(
+                (b) => b.id == id,
+                orElse:
+                    () =>
+                        SatinAlmaBina(id: -1, binaAdi: 'Bilinmiyor', binaKodu: ''),
+              );
+              return bina.binaAdi;
+            })
+            .where((name) => name != 'Bilinmiyor')
+            .join(', ');
+
+    items.add(
+      MapEntry('Hangi okul(lar) için', okulIsimleri.isNotEmpty ? okulIsimleri : '-'),
+    );
     items.add(MapEntry('Alımın Amacı', detay.aliminAmaci));
-    items.add(MapEntry('Satıcı Firma', detay.saticiFirma));
-    if (detay.saticiTel != null && detay.saticiTel!.isNotEmpty) {
-      items.add(MapEntry('Satıcı Telefon', detay.saticiTel!));
-    }
-    if (detay.webSitesi != null && detay.webSitesi!.isNotEmpty) {
-      items.add(MapEntry('Web Sitesi', detay.webSitesi!));
-    }
+    // Satıcı bilgileri artık editable olarak eklenecek, items listesinden çıkarıldı.
 
     // Date Formatting
     String teslimTarihiStr = detay.sonTeslimTarihi;
@@ -232,16 +360,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     } catch (_) {}
     items.add(MapEntry('Son Teslim Tarihi', teslimTarihiStr));
 
-    // Odeme Sekli - assuming 1: Nakit, 2: Kredi Kartı, 3: Havale/EFT based on previous knowledge or mocked map
-    final odemeSekliMap = {1: 'Nakit', 2: 'Kredi Kartı', 3: 'Havale/EFT'};
-    final odemeSekliStr = odemeSekliMap[detay.odemeSekliId] ?? 'Bilinmiyor';
-    items.add(MapEntry('Ödeme Şekli', odemeSekliStr));
 
-    if (!detay.pesin) {
-      items.add(MapEntry('Ödeme Vadesi', '${detay.odemeVadesiGun} Gün'));
-    } else {
-      items.add(MapEntry('Ödeme Vadesi', 'Peşin'));
-    }
 
     final genelToplamStr = NumberFormat(
       '#,##0.00',
@@ -257,7 +376,13 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
       final item = items[i];
       final isLast = i == items.length - 1;
 
-      final multiLineFields = ['Alımın Amacı', 'Web Sitesi', 'Dosya Açıklama'];
+      final multiLineFields = [
+        'Alımın Amacı',
+        'Web Sitesi',
+        'Dosya Açıklama',
+        'Hangi okul(lar) için',
+        'Satıcı Firma',
+      ];
       final multiLine = multiLineFields.contains(item.key);
 
       rows.add(
@@ -268,6 +393,27 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           multiLine: multiLine,
         ),
       );
+
+      // Alımın Amacı'ndan sonra editable alanları ekle
+      if (item.key == 'Alımın Amacı') {
+        rows.add(_buildEditableRow('Satıcı Firma', _saticiFirmaController));
+        rows.add(const Divider(height: 1, color: AppColors.border));
+        rows.add(_buildEditableRow('Satıcı Telefon', _saticiTelefonController));
+        rows.add(const Divider(height: 1, color: AppColors.border));
+        rows.add(_buildEditableRow('Web Sitesi', _webSitesiController));
+        rows.add(const Divider(height: 1, color: AppColors.border));
+        rows.add(const SizedBox(height: 12));
+      }
+
+      // Son Teslim Tarihi'nden sonra editable ödeme alanlarını ekle
+      if (item.key == 'Son Teslim Tarihi') {
+         rows.add(const SizedBox(height: 12));
+         rows.add(_buildEditableOdemeSekliRow());
+         rows.add(const Divider(height: 1, color: AppColors.border));
+         rows.add(_buildEditableOdemeVadesiRow());
+         rows.add(const Divider(height: 1, color: AppColors.border));
+         rows.add(const SizedBox(height: 12));
+      }
     }
 
     // Yüklenen dosya varsa göster
@@ -294,11 +440,38 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
       }
     }
 
+    // Dosya Ekleme Bölümü
+    final fileState = ref.watch(satinAlmaDosyaEklemeProvider);
+    
+    rows.add(
+      Padding(
+        padding: const EdgeInsets.only(top: 20),
+        child: FilePhotoUploadWidget<File>(
+          title: 'Dosya Ekleme (Fiyat Teklifi, Sözleşme vb.)',
+          buttonText: 'Dosya Seç',
+          files: fileState.files,
+          fileNameBuilder: (file) => file.path.split(Platform.pathSeparator).last,
+          onRemoveFile: (index) =>
+              ref.read(satinAlmaDosyaEklemeProvider.notifier).removeFile(index),
+          onPickCamera: () =>
+              ref.read(satinAlmaDosyaEklemeProvider.notifier).pickFiles(),
+          onPickGallery: () =>
+              ref.read(satinAlmaDosyaEklemeProvider.notifier).pickFiles(),
+          onPickFile: () =>
+              ref.read(satinAlmaDosyaEklemeProvider.notifier).pickFiles(),
+
+        ),
+      ),
+    );
+
     return rows;
   }
 
   Widget _buildUrunBilgileriAccordion(SatinAlmaDetayResponse detay) {
-    if (detay.urunlerSatir.isEmpty) {
+    // _localUrunler henüz initialize edilmediyse detaydan al (fail-safe)
+    final urunler = _localUrunler ?? detay.urunlerSatir;
+
+    if (urunler.isEmpty) {
       return _buildAccordion(
         icon: Icons.inventory_2_outlined,
         title: 'Ürün Bilgileri',
@@ -329,10 +502,10 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: detay.urunlerSatir.asMap().entries.map((entry) {
+        children: urunler.asMap().entries.map((entry) {
           final index = entry.key;
           final urun = entry.value;
-          final isLast = index == detay.urunlerSatir.length - 1;
+          final isLast = index == urunler.length - 1;
 
           final birimFiyatStr = NumberFormat(
             '#,##0.00',
@@ -358,88 +531,133 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.scaffoldBackground,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: Slidable(
+              endActionPane: ActionPane(
+                motion: const ScrollMotion(),
                 children: [
-                  // Kategori bilgisi
-                  Text(
-                    '${urun.satinAlmaAnaKategori} - ${urun.satinAlmaAltKategori}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
+                  SlidableAction(
+                    onPressed: (context) async {
+                      final initialBilgi = _toUrunBilgisi(urun);
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SatinAlmaUrunEkleScreen(
+                            initialBilgi: initialBilgi,
+                          ),
+                        ),
+                      );
 
-                  // Ürün Detayı
-                  if (urun.urunDetay.isNotEmpty) ...[
-                    Text(
-                      urun.urunDetay,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-
-                  // Miktar x Birim Fiyat
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textPrimary,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: '${urun.miktar.toInt()} Adet',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const TextSpan(text: ' × '),
-                        TextSpan(
-                          text: '$birimFiyatStr ${urun.paraBirimi}',
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Toplam Fiyat = Toplam TL Fiyat
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                      children: [
-                        TextSpan(text: '$toplamFiyatStr ${urun.paraBirimi}'),
-                        const TextSpan(
-                          text: ' × ',
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        TextSpan(text: dovizKuruStr),
-                        const TextSpan(
-                          text: ' = ',
-                          style: TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                        TextSpan(
-                          text: '$toplamTLFiyatStr TL',
-                          style: const TextStyle(color: AppColors.primary),
-                        ),
-                      ],
-                    ),
+                      if (result != null && result is SatinAlmaUrunBilgisi) {
+                        _updateUrunSatir(urun, result);
+                      }
+                    },
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    icon: Icons.edit,
+                    label: 'Düzenle',
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ],
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.scaffoldBackground,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Kategori bilgisi
+                          Text(
+                            '${urun.satinAlmaAnaKategori} - ${urun.satinAlmaAltKategori}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Ürün Detayı
+                          if (urun.urunDetay.isNotEmpty) ...[
+                            Text(
+                              urun.urunDetay,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+
+                          // Miktar x Birim Fiyat
+                          Text(
+                            '${urun.miktar.toInt()} ${() {
+                              final birimler = ref.watch(satinAlmaOlcuBirimleriProvider).asData?.value;
+                              if (birimler != null) {
+                                try {
+                                  return birimler.firstWhere((b) => b.id == urun.birimId).birimAdi;
+                                } catch (_) {}
+                              }
+                              return 'Adet'; // Fallback
+                            }()} x $birimFiyatStr ${urun.paraBirimi}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Hesaplama Satırı: Toplam Original x Kur = Toplam TL
+                          RichText(
+                            text: TextSpan(
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                              children: [
+                                TextSpan(text: '$toplamFiyatStr ${urun.paraBirimi}'),
+                                const TextSpan(text: ' x '),
+                                TextSpan(text: dovizKuruStr),
+                                const TextSpan(text: ' = '),
+                                TextSpan(
+                                  text: '$toplamTLFiyatStr TL',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Sürüklenebilir ikonu (Soft Double Arrow)
+                    Container(
+                      height: 28,
+                      width: 28,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.keyboard_double_arrow_left_rounded,
+                        size: 16,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -1452,5 +1670,312 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         ),
       ],
     );
+  }
+
+
+  Widget _buildEditableRow(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          TextFormField(
+            controller: controller,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.primary),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableOdemeSekliRow() {
+    final odemeSekliMap = {1: 'Nakit', 2: 'Kredi Kartı', 3: 'Havale/EFT'};
+    final currentLabel = odemeSekliMap[_selectedOdemeSekliId] ?? 'Seçiniz';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ödeme Şekli',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Ödeme Şekli Seçiniz',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...odemeSekliMap.entries.map((entry) {
+                          return ListTile(
+                            title: Text(entry.value),
+                            onTap: () {
+                              setState(() {
+                                _selectedOdemeSekliId = entry.key;
+                              });
+                              Navigator.pop(context);
+                            },
+                            trailing: _selectedOdemeSekliId == entry.key
+                                ? const Icon(Icons.check, color: AppColors.primary)
+                                : null,
+                          );
+                        }),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    currentLabel,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableOdemeVadesiRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ödeme Vadesi',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 16),
+                         const Text(
+                          'Ödeme Vadesi Seçiniz',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ListTile(
+                          title: const Text('Peşin'),
+                          onTap: () {
+                            setState(() {
+                              _isPesin = true;
+                            });
+                            Navigator.pop(context);
+                          },
+                          trailing: _isPesin
+                              ? const Icon(Icons.check, color: AppColors.primary)
+                              : null,
+                        ),
+                        ListTile(
+                          title: const Text('Vadeli'),
+                          onTap: () {
+                            setState(() {
+                              _isPesin = false;
+                            });
+                            Navigator.pop(context);
+                          },
+                          trailing: !_isPesin
+                              ? const Icon(Icons.check, color: AppColors.primary)
+                              : null,
+                        ),
+                       const SizedBox(height: 16),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _isPesin ? 'Peşin' : 'Vadeli',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                ],
+              ),
+            ),
+          ),
+          if (!_isPesin) ...[
+            const SizedBox(height: 12),
+            NumericSpinnerWidget(
+              label: 'Vade Süresi (Gün)',
+              initialValue: _vadeGun,
+              minValue: 1,
+              maxValue: 365,
+              compact: true,
+              onValueChanged: (val) {
+                setState(() {
+                  _vadeGun = val;
+                });
+              },
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  SatinAlmaUrunBilgisi _toUrunBilgisi(SatinAlmaDetayUrunSatir satir) {
+    // Fiyat ayrıştırma (Ana ve Küsurat)
+    final parts = satir.birimFiyati.toStringAsFixed(2).split('.');
+    final ana = parts[0];
+    final kusurat = parts.length > 1 ? parts[1] : '00';
+
+    // Toplam TL Fiyatı
+    final toplamTl = satir.miktar * satir.birimFiyati * satir.dovizKuru;
+    final topTlStr =
+        '${NumberFormat('#,##0.00', 'tr_TR').format(toplamTl)} TL';
+
+    return SatinAlmaUrunBilgisi(
+      anaKategori: satir.satinAlmaAnaKategori,
+      anaKategoriId: satir.satinAlmaAnaKategoriId,
+      altKategori: satir.satinAlmaAltKategori,
+      altKategoriId: satir.satinAlmaAltKategoriId,
+      urunDetay: satir.urunDetay,
+      miktar: satir.miktar,
+      olcuBirimiId: satir.birimId,
+      paraBirimi: satir.paraBirimi,
+      dovizKuru: satir.dovizKuru,
+      fiyatAna: ana,
+      fiyatKusurat: kusurat,
+      toplamTlFiyati: topTlStr,
+    );
+  }
+
+  void _updateUrunSatir(
+    SatinAlmaDetayUrunSatir oldSatir,
+    SatinAlmaUrunBilgisi newBilgi,
+  ) {
+    // Parse price
+    final fiyatAnaText = newBilgi.fiyatAna?.replaceAll('.', '') ?? '0';
+    final fiyatAna = double.tryParse(fiyatAnaText) ?? 0;
+    final fiyatKusurat = double.tryParse(newBilgi.fiyatKusurat ?? '0') ?? 0;
+    final birimFiyat = fiyatAna + (fiyatKusurat / 100);
+
+    final newSatir = SatinAlmaDetayUrunSatir(
+      id: oldSatir.id,
+      satinAlmaAnaKategoriId: oldSatir.satinAlmaAnaKategoriId,
+      satinAlmaAltKategoriId: oldSatir.satinAlmaAltKategoriId,
+      satinAlmaAnaKategori: oldSatir.satinAlmaAnaKategori,
+      satinAlmaAltKategori: oldSatir.satinAlmaAltKategori,
+      urunDetay: oldSatir.urunDetay,
+      miktar: newBilgi.miktar ?? oldSatir.miktar,
+      birimId: newBilgi.olcuBirimiId ?? oldSatir.birimId,
+      paraBirimi:
+          newBilgi.paraBirimiKod ?? newBilgi.paraBirimi ?? oldSatir.paraBirimi,
+      digerUrun: oldSatir.digerUrun,
+      birimFiyati: birimFiyat,
+      dovizKuru: newBilgi.dovizKuru ?? oldSatir.dovizKuru,
+    );
+
+    setState(() {
+      if (_localUrunler != null) {
+        final index = _localUrunler!.indexOf(oldSatir);
+        if (index != -1) {
+          _localUrunler![index] = newSatir;
+        }
+      }
+    });
   }
 }

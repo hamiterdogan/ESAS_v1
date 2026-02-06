@@ -324,17 +324,24 @@ final satinAlmaDetayParalelProvider = FutureProvider.autoDispose
       final results = await Future.wait([
         ref.watch(satinAlmaDetayProvider(id).future),
         ref.watch(personelBilgiProvider.future),
+        ref.watch(satinAlmaBinalarProvider.future),
       ]);
 
       return SatinAlmaDetayParalelData(
         detay: results[0] as SatinAlmaDetayResponse,
         personel: results[1] as PersonelBilgiResponse,
+        binalar: results[2] as List<SatinAlmaBina>,
       );
     });
 
 class SatinAlmaDetayParalelData {
   final SatinAlmaDetayResponse detay;
   final PersonelBilgiResponse personel;
+  final List<SatinAlmaBina> binalar;
 
-  SatinAlmaDetayParalelData({required this.detay, required this.personel});
+  SatinAlmaDetayParalelData({
+    required this.detay,
+    required this.personel,
+    required this.binalar,
+  });
 }

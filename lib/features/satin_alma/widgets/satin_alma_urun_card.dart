@@ -91,9 +91,35 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
       _kdvOrani = bilgi.kdvOrani;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _matchParaBirimiIfMissing();
         _updateToplamFiyat();
         _updateTlKurFiyati();
       });
+    }
+  }
+
+  Future<void> _matchParaBirimiIfMissing() async {
+    if (_selectedParaBirimi == null &&
+        widget.initialBilgi?.paraBirimi != null) {
+      final codeToCheck = widget.initialBilgi!.paraBirimi!;
+      try {
+        // Ensure data is loaded
+        final paraBirimleri = await ref.read(paraBirimlerProvider.future);
+        final match = paraBirimleri.firstWhere(
+          (pb) => pb.kod == codeToCheck || pb.birimAdi == codeToCheck,
+          orElse: () => ParaBirimi(id: 0, kod: '', birimAdi: '', sembol: ''),
+        );
+
+        if (match.id != 0 && mounted) {
+          setState(() {
+            _selectedParaBirimi = match;
+          });
+          // Para birimi bulunduktan sonra tekrar hesaplama tetiklenebilir
+          _updateToplamFiyat();
+        }
+      } catch (_) {
+        // Provider hatası veya bulunamama durumu, sessiz geç
+      }
     }
   }
 
@@ -263,6 +289,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    // Edit modunda kategori seçimi yapılamaz
+    if (widget.initialBilgi != null) return;
+
     final kategorilerAsync = ref.read(satinAlmaAnaKategorilerProvider);
 
     // Eğer data cache'de varsa direkt bottom sheet aç
@@ -352,6 +381,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
+
+    // Edit modunda alt kategori seçimi yapılamaz
+    if (widget.initialBilgi != null) return;
 
     if (_selectedAnaKategori == null) return;
     if (_selectedAnaKategori!.id == 0) {
@@ -984,25 +1016,64 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen para birimleri yükleme (Sadece auto-select için)
+    // Verilerin yüklenmesini tetikle ve izle
+    final birimlerAsync = ref.watch(satinAlmaOlcuBirimleriProvider);
+
+    // Auto-fix missing unit name (Eğer ID var ama İsim yoksa)
+    if (_selectedOlcuBirim != null &&
+        _selectedOlcuBirim!.birimAdi.isEmpty &&
+        _selectedOlcuBirim!.id != 0 &&
+        birimlerAsync.hasValue) {
+      final birimler = birimlerAsync.value!;
+      try {
+        final match = birimler.firstWhere((b) => b.id == _selectedOlcuBirim!.id);
+        // İsim eşleşti display için kullanacağız, state'i de güncelleyelim
+        if (match.birimAdi.isNotEmpty) {
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+                 if (mounted && _selectedOlcuBirim!.birimAdi.isEmpty) {
+                     setState(() {
+                         _selectedOlcuBirim = match;
+                     });
+                 }
+             });
+        }
+      } catch (_) {}
+    }
     ref.listen(paraBirimlerProvider, (previous, next) {
       final paraBirimleri = next.value;
       if (next.hasValue && paraBirimleri != null && paraBirimleri.isNotEmpty) {
         // İlk para birimini otomatik seç (TRY)
+        // İlk para birimini otomatik seç (TRY) veya initialBilgi'den eşleştir
         if (_selectedParaBirimi == null) {
-          final tryBirimi = paraBirimleri.firstWhere(
-            (p) => p.kod == 'TRY',
-            orElse: () => paraBirimleri.first,
-          );
+          ParaBirimi? selected;
+          // Initial bilgi varsa isme göre bulmaya çalış
+          if (widget.initialBilgi?.paraBirimi != null) {
+             try {
+               selected = paraBirimleri.firstWhere(
+                 (p) => p.birimAdi == widget.initialBilgi!.paraBirimi || p.kod == widget.initialBilgi!.paraBirimi,
+               );
+             } catch (_) {}
+          }
+          
+          if (selected == null) {
+            selected = paraBirimleri.firstWhere(
+              (p) => p.kod == 'TRY',
+              orElse: () => paraBirimleri.first,
+            );
+          }
+          
           setState(() {
-            _selectedParaBirimi = tryBirimi;
-            _dovizKuru = 1.0; // TRY'nin kuru her zaman 1.0
+            _selectedParaBirimi = selected;
+            _dovizKuru = widget.initialBilgi?.dovizKuru ?? 1.0; 
+            if(_selectedParaBirimi?.kod == 'TRY') _dovizKuru = 1.0;
           });
           _calculateToplamFiyat();
           _updateTlKurFiyati();
         }
       }
     });
+
+
 
     return Card(
       elevation: 2,
@@ -1138,7 +1209,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               focusNode: _urunDetayFocusNode,
               controller: _urunDetayController,
               autofocus: false,
-              readOnly: false,
+              readOnly: widget.initialBilgi != null,
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,
