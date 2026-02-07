@@ -29,6 +29,10 @@ import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_gecmisi.dart';
+import 'package:esas_v1/common/widgets/common_divider.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_arastirma_personel.dart';
+import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 
 final satinAlmaDosyaEklemeProvider =
     NotifierProvider<GenericFileAttachmentNotifier, FileAttachmentState>(
@@ -64,7 +68,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   int? _selectedOdemeSekliId;
   bool _isPesin = true;
   int _vadeGun = 30;
+  SatinAlmaFiyatArastirmaPersonel? _selectedFiyatArastirmaPersonel;
+  final TextEditingController _fiyatArastirmasiNotuController = TextEditingController();
   bool _paymentFieldsInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,47 +127,59 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     return Stack(
       children: [
-        Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          appBar: AppBar(
-            title: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Satın Alma İstek Detayı (${widget.talepId})',
-                style: const TextStyle(
-                  color: AppColors.textOnPrimary,
-                  fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            appBar: AppBar(
+              title: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Satın Alma İstek Detayı (${widget.talepId})',
+                  style: const TextStyle(
+                    color: AppColors.textOnPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                ),
               ),
-            ),
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: AppColors.textOnPrimary,
+              leading: IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: AppColors.textOnPrimary,
+                ),
+                onPressed: () {
+                  final router = GoRouter.of(context);
+                  if (router.canPop()) {
+                    router.pop();
+                  } else {
+                    context.go('/satin_alma');
+                  }
+                },
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
               ),
-              onPressed: () {
-                final router = GoRouter.of(context);
-                if (router.canPop()) {
-                  router.pop();
-                } else {
-                  context.go('/satin_alma');
-                }
-              },
-              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+              elevation: 0,
             ),
-            elevation: 0,
+            body: body,
           ),
-          body: body,
         ),
         if (isLoading) const BrandedLoadingOverlay(),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _saticiFirmaController.dispose();
+    _saticiTelefonController.dispose();
+    _webSitesiController.dispose();
+    _fiyatArastirmasiNotuController.dispose();
+    super.dispose();
   }
 
   Widget _buildContent(
@@ -249,7 +272,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 18),
                       ),
                       child: const Text(
-                        'Ücret bilgilerini güncelle ve kaydet',
+                        'Güncelle ve Kaydet',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                       ),
@@ -260,7 +283,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     flex: 1,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Implement price history logic
+                        _showFiyatGecmisiBottomSheet(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1877F2), // Standard Blue
@@ -274,6 +297,186 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                         'Fiyat Geçmişi',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: CommonDivider(),
+            ),
+            const SizedBox(height: 16),
+
+            // Price Research Assignment Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Person Selection
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Fiyat Araştırması Yapacak Kişi',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          GestureDetector(
+                            onTap: () => _showFiyatArastirmaPersonelBottomSheet(context),
+                            child: Container(
+                              height: 48,
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.white,
+                              ),
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _selectedFiyatArastirmaPersonel != null
+                                          ? '${_selectedFiyatArastirmaPersonel!.adi} ${_selectedFiyatArastirmaPersonel!.soyadi}'
+                                          : 'Seçiniz',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _selectedFiyatArastirmaPersonel != null
+                                            ? AppColors.textPrimary
+                                            : AppColors.textTertiary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: AppColors.textSecondary,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Note Input
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Not Ekle',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          SizedBox(
+                            height: 48,
+                            child: TextFormField(
+                              controller: _fiyatArastirmasiNotuController,
+                              decoration: InputDecoration(
+                                hintText: 'Notunuzu buraya giriniz...',
+                                hintStyle: const TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textTertiary,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 14),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppColors.border),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppColors.border),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: AppColors.primary),
+                                ),
+                                fillColor: Colors.white,
+                                filled: true,
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_selectedFiyatArastirmaPersonel == null) {
+                          AppDialogs.showError(
+                              context, 'Lütfen fiyat araştırması yapacak kişiyi seçiniz.');
+                          return;
+                        }
+
+                        // Show confirmation before sending if needed, or just send directly.
+                        // Ideally show loading.
+                        BrandedLoadingDialog.show(context);
+
+                        final result = await ref
+                            .read(satinAlmaRepositoryProvider)
+                            .fiyatArastir(
+                              satinAlmaId: widget.talepId,
+                              atanacakPersonelId:
+                                  _selectedFiyatArastirmaPersonel!.personelId,
+                              aciklama: _fiyatArastirmasiNotuController.text,
+                            );
+
+                        if (!context.mounted) return;
+                        BrandedLoadingDialog.hide(context);
+
+                        if (result is Success) {
+                          AppDialogs.showSuccess(
+                              context, 'Fiyat araştırması talebi başarıyla iletildi.', onOk: () {
+                             // Clear selections or just stay? User didn't specify.
+                             // Let's clear for now so they don't resend accidentally.
+                             setState(() {
+                               _selectedFiyatArastirmaPersonel = null;
+                               _fiyatArastirmasiNotuController.clear();
+                             });
+                          });
+                        } else if (result is Failure) {
+                          AppDialogs.showError(context, result.message);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Gönder',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -1977,5 +2180,486 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         }
       }
     });
+  }
+
+  void _showFiyatGecmisiBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Color(0xFFF4F6F8), // Modern light grey-blue background
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2.5),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.history_edu_rounded,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: const Text(
+                              'Fiyat Geçmişi',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 24),
+                            color: AppColors.textSecondary,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: FutureBuilder<List<SatinAlmaFiyatGecmisiItem>>(
+                  future: ref
+                      .read(satinAlmaRepositoryProvider)
+                      .getFiyatGecmisi(widget.talepId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: BrandedLoadingIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline_rounded,
+                                size: 48, color: AppColors.error.withOpacity(0.5)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Bir hata oluştu',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final items = snapshot.data ?? [];
+
+                    if (items.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.history_rounded,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'Henüz kayıt bulunamadı',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: items.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final islemTarihiFormatted = item.islemTarihi.isNotEmpty
+                            ? DateFormat('dd.MM.yyyy', 'tr_TR').format(
+                                DateTime.tryParse(item.islemTarihi) ??
+                                    DateTime.now())
+                            : '-';
+                        final islemSaatiFormatted = item.islemTarihi.isNotEmpty
+                            ? DateFormat('HH:mm').format(
+                                DateTime.tryParse(item.islemTarihi) ??
+                                    DateTime.now())
+                            : '';
+
+                        String sonTeslimTarihiFormatted = '-';
+                        if (item.sonTeslimTarihi.isNotEmpty) {
+                          final date = DateTime.tryParse(item.sonTeslimTarihi);
+                          if (date != null) {
+                            sonTeslimTarihiFormatted =
+                                DateFormat('dd.MM.yyyy').format(date);
+                          }
+                        }
+
+                        final genelToplamFormatted = NumberFormat(
+                          '#,##0.00',
+                          'tr_TR',
+                        ).format(item.genelToplam);
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blueGrey.withOpacity(0.08),
+                                blurRadius: 15,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today_rounded,
+                                                size: 14,
+                                                color: AppColors.textTertiary,
+                                              ),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                '$islemTarihiFormatted • $islemSaatiFormatted',
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            item.saticiFirma,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '$genelToplamFormatted ₺',
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.textPrimary,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: item.odemeSekli == 'Nakit'
+                                                ? const Color(0xFFE8F5E9)
+                                                : const Color(0xFFE3F2FD),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            item.odemeSekli,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: item.odemeSekli == 'Nakit'
+                                                  ? const Color(0xFF2E7D32)
+                                                  : const Color(0xFF1565C0),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFAFBFC),
+                                  border: Border(
+                                    top: BorderSide(color: Colors.grey[100]!),
+                                  ),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(16),
+                                    bottomRight: Radius.circular(16),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 12,
+                                          backgroundColor: Colors.white,
+                                          child: const Icon(
+                                              Icons.person_outline_rounded,
+                                              size: 14,
+                                              color: AppColors.textSecondary),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          item.adSoyad,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (item.sonTeslimTarihi.isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                              color: Colors.grey[200]!),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.event_available_rounded,
+                                              size: 14,
+                                              color: AppColors.textTertiary,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              sonTeslimTarihiFormatted,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFiyatArastirmaPersonelBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey[200]!),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Personel Seçiniz',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: FutureBuilder<List<SatinAlmaFiyatArastirmaPersonel>>(
+                  future: ref.read(satinAlmaRepositoryProvider).getFiyatArastirmaListesi(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: BrandedLoadingIndicator());
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Hata oluştu',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      );
+                    }
+
+                    final allItems = snapshot.data ?? [];
+                    // Filter out person with ID 4746 (EDA ALGÜLLÜ) as requested
+                    final items = allItems.where((p) => p.personelId != 4746).toList();
+
+                    if (items.isEmpty) {
+                      return const Center(
+                        child: Text('Personel bulunamadı'),
+                      );
+                    }
+
+                    return ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: items.length,
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.grey[200],
+                        height: 1,
+                        thickness: 1,
+                        indent: 16,
+                        endIndent: 16,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final isSelected = _selectedFiyatArastirmaPersonel?.personelId == item.personelId;
+
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                          title: Text(
+                            '${item.adi} ${item.soyadi}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                              : null,
+                          onTap: () {
+                            setState(() {
+                              _selectedFiyatArastirmaPersonel = item;
+                            });
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

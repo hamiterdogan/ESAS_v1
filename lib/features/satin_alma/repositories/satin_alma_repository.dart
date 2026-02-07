@@ -14,7 +14,10 @@ import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
+import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_gecmisi.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_arastirma_personel.dart';
 
 class SatinAlmaRepository {
   SatinAlmaRepository(this._dio);
@@ -243,6 +246,65 @@ class SatinAlmaRepository {
   Future<Result<void>> deleteTalep({required int id}) async {
     try {
       await _dio.delete('/SatinAlma/SatinAlmaSil', queryParameters: {'id': id});
+      return const Success(null);
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  Future<List<SatinAlmaFiyatGecmisiItem>> getFiyatGecmisi(
+    int satinAlmaId,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '/SatinAlma/FiyatGecmisiGetir',
+        data: {'satinAlmaId': satinAlmaId},
+      );
+
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return SatinAlmaFiyatGecmisiResponse.fromJson(data).fiyatGecmisi;
+      }
+      return const [];
+    } catch (e) {
+      // Hata durumunda boş liste dönüyoruz, isteğe göre throw da edilebilir
+      return const [];
+    }
+  }
+  Future<List<SatinAlmaFiyatArastirmaPersonel>> getFiyatArastirmaListesi() async {
+    try {
+      final response = await _dio.get('/SatinAlma/FiyatArastirmaListele');
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return SatinAlmaFiyatArastirmaListResponse.fromJson(data).fiyatArastirPersoneller;
+      }
+      return const [];
+    } catch (e) {
+      return const [];
+    }
+  }
+
+  Future<Result<void>> fiyatArastir({
+    required int satinAlmaId,
+    required int atanacakPersonelId,
+    required String aciklama,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/SatinAlma/FiyatArastir',
+        data: {
+          'satinAlmaId': satinAlmaId,
+          'atanacakPersonelId': atanacakPersonelId,
+          'aciklama': aciklama,
+        },
+      );
+
+      final responseData = response.data;
+      if (response.statusCode != 200 ||
+          (responseData is Map && responseData['basarili'] != true)) {
+        return Failure(responseData?['mesaj'] ?? 'İşlem başarısız.');
+      }
+
       return const Success(null);
     } catch (e) {
       return Failure(e.toString());

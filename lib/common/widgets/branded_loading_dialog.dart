@@ -21,7 +21,7 @@ class BrandedLoadingDialog {
                 color: AppColors.textOnPrimary.withValues(alpha: 0.05),
               ),
               alignment: Alignment.center,
-              child: const BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+              child: const BrandedLoadingIndicator(size: 153),
             ),
           ),
         );

@@ -8,7 +8,7 @@ class BrandedLoadingIndicator extends StatefulWidget {
   static const String defaultLogoAssetPath = 'assets/images/logo_icon.png';
 
   final double size;
-  final double strokeWidth;
+  final double? strokeWidth;
   final String logoAssetPath;
   final bool showOverlay;
   final double blurSigma;
@@ -17,7 +17,7 @@ class BrandedLoadingIndicator extends StatefulWidget {
   const BrandedLoadingIndicator({
     super.key,
     this.size = 72,
-    this.strokeWidth = 10,
+    this.strokeWidth,
     this.logoAssetPath = defaultLogoAssetPath,
     this.showOverlay = true,
     this.blurSigma = 0,
@@ -33,7 +33,7 @@ class BrandedLoadingOverlay extends StatelessWidget {
   final double blurSigma;
   final Color overlayColor;
   final double indicatorSize;
-  final double strokeWidth;
+  final double? strokeWidth;
   final String logoAssetPath;
 
   const BrandedLoadingOverlay({
@@ -41,7 +41,7 @@ class BrandedLoadingOverlay extends StatelessWidget {
     this.blurSigma = 0,
     this.overlayColor = const Color(0x66FFFFFF),
     this.indicatorSize = 153,
-    this.strokeWidth = 30,
+    this.strokeWidth,
     this.logoAssetPath = BrandedLoadingIndicator.defaultLogoAssetPath,
   });
 
@@ -111,6 +111,10 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
     // makes it nice and big. The ring is on the outside.
     // However, if the ring has significant thickness, we might need padding.
     // The previous implementation used size * 0.8.
+    
+    // Dynamic stroke width calculation: 8% of size if not provided
+    final double effectiveStrokeWidth = widget.strokeWidth ?? (widget.size * 0.08);
+    
     final logoSize = ((widget.size * 0.55).clamp(16, widget.size)).toDouble();
 
     final indicator = SizedBox(
@@ -128,7 +132,7 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   angle: _controller.value * 2 * math.pi,
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
-                      strokeWidth: 12,
+                      strokeWidth: effectiveStrokeWidth,
                       startColor: AppColors.gradientStart.withValues(
                         alpha: 1.0,
                       ),
