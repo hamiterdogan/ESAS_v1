@@ -208,7 +208,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
       if (mounted) {
         await ValidationUyariWidget.goster(
           context: context,
-          message: 'Dosya yüklündı: ${result.files.single.name}',
+          message: 'Dosya yüklendi: ${result.files.single.name}',
         );
       }
     }
