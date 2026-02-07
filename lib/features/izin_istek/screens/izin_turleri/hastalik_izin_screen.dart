@@ -748,7 +748,11 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
         // Bottom sheet'te verileri göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Hastalık İzni'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Hastalık İzni',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
