@@ -748,7 +748,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
         // Bottom sheet'te verileri göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Hastalık'),
+            IzinOzetItem(label: 'İzin Türü', value: 'Hastalık İzni'),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
@@ -773,6 +773,20 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
               multiLine: false,
             ),
             IzinOzetItem(
+              label: 'Girilmeyen Toplam Ders Saati',
+              value: _girileymeyenDersSaati.toString(),
+              multiLine: false,
+            ),
+            IzinOzetItem(
+              label: 'İzinde Bulunacağı Adres',
+              value: _adresController.text,
+            ),
+            IzinOzetItem(
+              label: 'Hastalık Durumu',
+              value: _acil ? 'Acil' : 'Acil değil',
+              multiLine: false,
+            ),
+            IzinOzetItem(
               label: 'Doktor Raporu',
               value: _doktorRaporuVar ? 'Var' : 'Yok',
               multiLine: false,
@@ -782,15 +796,6 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 label: 'Dosya Adı',
                 value: _doktorRaporuFile!.path.split('/').last.split('\\').last,
               ),
-            IzinOzetItem(
-              label: 'Girilmeyen Toplam Ders Saati',
-              value: _girileymeyenDersSaati.toString(),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'İzinde Bulunacağı Adres',
-              value: _adresController.text,
-            ),
           ];
 
           await showIzinOzetBottomSheet(
