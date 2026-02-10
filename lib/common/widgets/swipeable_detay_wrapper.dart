@@ -21,11 +21,14 @@ class SwipeableDetayWrapper extends ConsumerStatefulWidget {
   final int initialIndex;
   final bool isGelenKutusu;
 
+  final bool isTamamlanan;
+
   const SwipeableDetayWrapper({
     super.key,
     required this.talepList,
     required this.initialIndex,
     this.isGelenKutusu = false,
+    this.isTamamlanan = false,
   });
 
   @override
@@ -99,7 +102,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
         onayTipiLower.contains('satin')) {
       return 'Satın Alma Detayı';
     } else if (onayTipiLower.contains('teknik destek')) {
-      return 'Teknik Destek Detayı';
+      return 'Bilgi Teknolojileri İstek Detayı';
     } else if (onayTipiLower.contains('sarf malzeme')) {
       return 'Sarf Malzeme Detayı';
     } else if (onayTipiLower.contains('yiyecek') ||
@@ -122,26 +125,44 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       return IzinIstekDetayScreen(
         talepId: talep.onayKayitId,
         onayTipi: talep.onayTipi,
+        isTamamlanan: widget.isTamamlanan,
       );
     } else if (onayTipi.contains('araç') || onayTipi.contains('arac')) {
-      return AracIstekDetayScreen(talepId: talep.onayKayitId);
+      return AracIstekDetayScreen(
+        talepId: talep.onayKayitId,
+        isTamamlanan: widget.isTamamlanan,
+      );
     } else if (onayTipi.contains('dok')) {
       return DokumantasyonIstekDetayScreen(
         talepId: talep.onayKayitId,
         onayTipi: talep.onayTipi,
+        isTamamlanan: widget.isTamamlanan,
       );
     } else if (onayTipi.contains('satın') || onayTipi.contains('satin')) {
-      return SatinAlmaDetayScreen(talepId: talep.onayKayitId);
+      return SatinAlmaDetayScreen(
+        talepId: talep.onayKayitId,
+        isTamamlanan: widget.isTamamlanan,
+      );
     } else if (onayTipi.contains('teknik destek')) {
+      // Teknik destek ve Bilgi teknolojileri için isTamamlanan geçilmiyor (istenildiği gibi)
       return TeknikDestekDetayScreen(talepId: talep.onayKayitId);
     } else if (onayTipi.contains('sarf malzeme')) {
-      return SarfMalzemeDetayScreen(talepId: talep.onayKayitId);
+      return SarfMalzemeDetayScreen(
+        talepId: talep.onayKayitId,
+        isTamamlanan: widget.isTamamlanan,
+      );
     } else if (onayTipi.contains('yiyecek') ||
         onayTipi.contains('içecek') ||
         onayTipi.contains('icecek')) {
-      return YiyecekIcecekDetayScreen(talepId: talep.onayKayitId);
+      return YiyecekIcecekDetayScreen(
+        talepId: talep.onayKayitId,
+        isTamamlanan: widget.isTamamlanan,
+      );
     } else if (onayTipi.contains('eğitim') || onayTipi.contains('egitim')) {
-      return EgitimIstekDetayScreen(talepId: talep.onayKayitId);
+      return EgitimIstekDetayScreen(
+        talepId: talep.onayKayitId,
+        isTamamlanan: widget.isTamamlanan,
+      );
     }
 
     // Desteklenmeyen talep türü için boş ekran

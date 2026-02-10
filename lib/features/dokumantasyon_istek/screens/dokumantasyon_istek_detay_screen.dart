@@ -11,7 +11,7 @@ import 'package:esas_v1/features/dokumantasyon_istek/models/dokumantasyon_istek_
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
-import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
+
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart'; // Add Result model import
@@ -28,11 +28,13 @@ import 'package:intl/intl.dart';
 class DokumantasyonIstekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
   final String? onayTipi;
+  final bool isTamamlanan;
 
   const DokumantasyonIstekDetayScreen({
     super.key,
     required this.talepId,
     this.onayTipi,
+    this.isTamamlanan = false,
   });
 
   @override
@@ -239,51 +241,10 @@ class _DokumantasyonIstekDetayScreenState
           const SizedBox(height: 16),
 
           // 3. Onay Süreci
-          onayDurumuAsync.when(
-            data: (onayDurumu) => _buildAccordion(
-              icon: Icons.approval_outlined,
-              title: 'Onay Süreci',
-              isExpanded: _onayExpanded,
-              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildOnaySureciContent(onayDurumu),
-              ),
-            ),
-            loading: () => _buildAccordion(
-              icon: Icons.approval_outlined,
-              title: 'Onay Süreci',
-              isExpanded: _onayExpanded,
-              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
-              child: const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              ),
-            ),
-            error: (error, _) => _buildAccordion(
-              icon: Icons.approval_outlined,
-              title: 'Onay Süreci',
-              isExpanded: _onayExpanded,
-              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Onay süreci yüklenemedi',
-                  style: TextStyle(color: AppColors.error, fontSize: 15),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+
           onayDurumuAsync.when(
             data: (onayDurumu) {
-              if (!onayDurumu.onayFormuGoster) {
+              if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
                 return const SizedBox(height: 16);
               }
 
@@ -296,6 +257,8 @@ class _DokumantasyonIstekDetayScreenState
                     onTap: () =>
                         setState(() => _onayFormExpanded = !_onayFormExpanded),
                     child: OnayFormContent(
+                      gorevAtamaEnabled:
+                          onayDurumu.atamaGoster || widget.isTamamlanan,
                       onApprove: (aciklama) async {
                         final onaySureciId = onayDurumu
                             .siradakiOnayVerecekPersonel
@@ -597,7 +560,6 @@ class _DokumantasyonIstekDetayScreenState
                           );
                         }
                       },
-                      gorevAtamaEnabled: onayDurumu.atamaGoster,
                     ),
                   ),
                 ],
@@ -607,6 +569,50 @@ class _DokumantasyonIstekDetayScreenState
             error: (_, __) => const SizedBox(height: 16),
           ),
           const SizedBox(height: 20),
+
+          // 3. Onay Süreci
+          onayDurumuAsync.when(
+            data: (onayDurumu) => _buildAccordion(
+              icon: Icons.approval_outlined,
+              title: 'Onay Süreci',
+              isExpanded: _onayExpanded,
+              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _buildOnaySureciContent(onayDurumu),
+              ),
+            ),
+            loading: () => _buildAccordion(
+              icon: Icons.approval_outlined,
+              title: 'Onay Süreci',
+              isExpanded: _onayExpanded,
+              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              ),
+            ),
+            error: (error, _) => _buildAccordion(
+              icon: Icons.approval_outlined,
+              title: 'Onay Süreci',
+              isExpanded: _onayExpanded,
+              onTap: () => setState(() => _onayExpanded = !_onayExpanded),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Onay süreci yüklenemedi',
+                  style: TextStyle(color: AppColors.error, fontSize: 15),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // 4. Bildirim Gidecekler
           onayDurumuAsync.when(

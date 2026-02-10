@@ -614,7 +614,15 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
         // Bottom sheet'te özet göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Vefat'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Vefat İzni',
+              multiLine: false,
+            ),
+            IzinOzetItem(
+              label: 'Vefat Edenin Yakınlık Derecesi',
+              value: _yakinlikDerecesiController.text,
+            ),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',
               value: _formatDate(_baslangicTarihi!),
@@ -624,10 +632,6 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
               label: 'Bitiş Tarihi',
               value: _formatDate(_bitisTarihi!),
               multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Vefat Edenin Yakınlık Derecesi',
-              value: _yakinlikDerecesiController.text,
             ),
             IzinOzetItem(
               label: 'Girilmeyen Toplam Ders Saati',

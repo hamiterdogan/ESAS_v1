@@ -1633,6 +1633,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     : talep.onayTipi,
                 talepList: filteredTalepler,
                 indexInList: index,
+                isTamamlanan: widget.tip == 3,
                 onReturnIndex: (returnIndex) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToIndex(returnIndex, filteredTalepler.length);

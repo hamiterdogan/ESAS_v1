@@ -10,11 +10,12 @@ import 'package:esas_v1/common/widgets/swipeable_detay_wrapper.dart';
 class GelenKutusuKarti extends StatelessWidget {
   final Talep talep;
   final String? displayOnayTipi;
+  final bool isTamamlanan;
   final List<Talep>? talepList;
   final int? indexInList;
-  final ValueChanged<int>? onReturnIndex;
+  final Function(int)? onReturnIndex;
 
-  // PERFORMANCE: Pre-computed değerler - build'da hesaplama yerine constructor'da hesaplanıyor
+  // Computed values
   late final bool _isUnread;
   late final bool _isSatinAlma;
   late final Color _statusColor;
@@ -29,6 +30,7 @@ class GelenKutusuKarti extends StatelessWidget {
     this.talepList,
     this.indexInList,
     this.onReturnIndex,
+    this.isTamamlanan = false,
   }) {
     // Pre-compute all display values
     _isUnread = talep.okundu?.toLowerCase() == 'false';
@@ -179,6 +181,7 @@ class GelenKutusuKarti extends StatelessWidget {
                         talepList: talepList!,
                         initialIndex: indexInList!,
                         isGelenKutusu: true,
+                        isTamamlanan: isTamamlanan,
                       ),
                     ),
                   );

@@ -610,7 +610,11 @@ class _KurumGorevlendirmesiIzinScreenState
         // Bottom sheet'te özet göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Kurum Görevlendirmesi'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Kurum Görevlendirmesi',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: request.aciklama),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',

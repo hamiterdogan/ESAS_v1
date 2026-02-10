@@ -14,8 +14,13 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart'
 
 class SatinAlmaUrunCard extends ConsumerStatefulWidget {
   final SatinAlmaUrunBilgisi? initialBilgi;
+  final bool isViewOnly;
 
-  const SatinAlmaUrunCard({super.key, this.initialBilgi});
+  const SatinAlmaUrunCard({
+    super.key,
+    this.initialBilgi,
+    this.isViewOnly = false,
+  });
 
   @override
   ConsumerState<SatinAlmaUrunCard> createState() => SatinAlmaUrunCardState();
@@ -92,8 +97,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _matchParaBirimiIfMissing();
-        _updateToplamFiyat();
-        _updateTlKurFiyati();
+        // Para birimi varsa güncel döviz kurunu çek
+        if (_selectedParaBirimi != null &&
+            _selectedParaBirimi!.kod.isNotEmpty) {
+          _fetchDovizKuru(_selectedParaBirimi!.kod);
+        } else {
+          _updateToplamFiyat();
+          _updateTlKurFiyati();
+        }
       });
     }
   }
@@ -114,8 +125,12 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           setState(() {
             _selectedParaBirimi = match;
           });
-          // Para birimi bulunduktan sonra tekrar hesaplama tetiklenebilir
-          _updateToplamFiyat();
+          // Para birimi bulunduktan sonra güncel kuru çek
+          if (match.kod.isNotEmpty) {
+            await _fetchDovizKuru(match.kod);
+          } else {
+            _updateToplamFiyat();
+          }
         }
       } catch (_) {
         // Provider hatası veya bulunamama durumu, sessiz geç
@@ -767,16 +782,14 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                               color: AppColors.gradientStart,
                                             )
                                           : null,
-                                      onTap: () {
+                                      onTap: () async {
                                         setState(() {
                                           _selectedParaBirimi = item;
                                         });
 
-                                        // Seçim değiştiğinde mevcut değerlerle hemen hesapla
-                                        _updateToplamFiyat();
+                                        // Para birimi değiştiğinde önce kuru al, sonra hesapla
+                                        await _fetchDovizKuru(item.kod);
 
-                                        // Güncel kuru alıp tekrar hesapla
-                                        _fetchDovizKuru(item.kod);
                                         Navigator.pop(context);
                                       },
                                     );
@@ -937,8 +950,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         _tlKurFiyatiController.text = '0,00 TRY';
       }
     }
-    // TL toplam fiyatını da güncelle
-    _updateTlToplamFiyat();
+    // Kur güncellendiğinde tüm fiyatları yeniden hesapla
+    _updateToplamFiyat();
   }
 
   void _updateTlToplamFiyat() {
@@ -1026,16 +1039,18 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
         birimlerAsync.hasValue) {
       final birimler = birimlerAsync.value!;
       try {
-        final match = birimler.firstWhere((b) => b.id == _selectedOlcuBirim!.id);
+        final match = birimler.firstWhere(
+          (b) => b.id == _selectedOlcuBirim!.id,
+        );
         // İsim eşleşti display için kullanacağız, state'i de güncelleyelim
         if (match.birimAdi.isNotEmpty) {
-             WidgetsBinding.instance.addPostFrameCallback((_) {
-                 if (mounted && _selectedOlcuBirim!.birimAdi.isEmpty) {
-                     setState(() {
-                         _selectedOlcuBirim = match;
-                     });
-                 }
-             });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _selectedOlcuBirim!.birimAdi.isEmpty) {
+              setState(() {
+                _selectedOlcuBirim = match;
+              });
+            }
+          });
         }
       } catch (_) {}
     }
@@ -1048,32 +1063,39 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           ParaBirimi? selected;
           // Initial bilgi varsa isme göre bulmaya çalış
           if (widget.initialBilgi?.paraBirimi != null) {
-             try {
-               selected = paraBirimleri.firstWhere(
-                 (p) => p.birimAdi == widget.initialBilgi!.paraBirimi || p.kod == widget.initialBilgi!.paraBirimi,
-               );
-             } catch (_) {}
+            try {
+              selected = paraBirimleri.firstWhere(
+                (p) =>
+                    p.birimAdi == widget.initialBilgi!.paraBirimi ||
+                    p.kod == widget.initialBilgi!.paraBirimi,
+              );
+            } catch (_) {}
           }
-          
+
           if (selected == null) {
             selected = paraBirimleri.firstWhere(
               (p) => p.kod == 'TRY',
               orElse: () => paraBirimleri.first,
             );
           }
-          
+
           setState(() {
             _selectedParaBirimi = selected;
-            _dovizKuru = widget.initialBilgi?.dovizKuru ?? 1.0; 
-            if(_selectedParaBirimi?.kod == 'TRY') _dovizKuru = 1.0;
+            _dovizKuru = widget.initialBilgi?.dovizKuru ?? 1.0;
+            if (_selectedParaBirimi?.kod == 'TRY') _dovizKuru = 1.0;
           });
-          _calculateToplamFiyat();
-          _updateTlKurFiyati();
+
+          // Para birimi seçildikten sonra güncel kuru çek
+          if (_selectedParaBirimi != null &&
+              _selectedParaBirimi!.kod.isNotEmpty) {
+            _fetchDovizKuru(_selectedParaBirimi!.kod);
+          } else {
+            _calculateToplamFiyat();
+            _updateTlKurFiyati();
+          }
         }
       }
     });
-
-
 
     return Card(
       elevation: 2,
@@ -1103,7 +1125,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: _showAnaKategoriBottomSheet,
+              onTap: widget.isViewOnly ? null : _showAnaKategoriBottomSheet,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -1133,7 +1155,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    if (!widget.isViewOnly)
+                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
                   ],
                 ),
               ),
@@ -1155,7 +1178,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               ),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _showAltKategoriBottomSheet,
+                onTap: widget.isViewOnly ? null : _showAltKategoriBottomSheet,
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -1186,7 +1209,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                      if (!widget.isViewOnly)
+                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
                     ],
                   ),
                 ),
@@ -1209,7 +1233,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               focusNode: _urunDetayFocusNode,
               controller: _urunDetayController,
               autofocus: false,
-              readOnly: widget.initialBilgi != null,
+              readOnly: widget.initialBilgi != null || widget.isViewOnly,
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,
@@ -1242,17 +1266,20 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             const SizedBox(height: 16),
 
             // Miktar Spinner
-            NumericSpinnerWidget(
-              label: 'Miktar',
-              minValue: 1,
-              maxValue: 99999,
-              initialValue: _miktar,
-              onValueChanged: (value) {
-                setState(() {
-                  _miktar = value;
-                });
-                _calculateToplamFiyat();
-              },
+            IgnorePointer(
+              ignoring: widget.isViewOnly,
+              child: NumericSpinnerWidget(
+                label: 'Miktar',
+                minValue: 1,
+                maxValue: 99999,
+                initialValue: _miktar,
+                onValueChanged: (value) {
+                  setState(() {
+                    _miktar = value;
+                  });
+                  _calculateToplamFiyat();
+                },
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -1269,7 +1296,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: _showOlcuBirimBottomSheet,
+              onTap: widget.isViewOnly ? null : _showOlcuBirimBottomSheet,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -1299,7 +1326,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                    if (!widget.isViewOnly)
+                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
                   ],
                 ),
               ),
@@ -1334,6 +1362,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           controller: _fiyatAnaController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
+                          readOnly: widget.isViewOnly,
                           inputFormatters: [ThousandsInputFormatter()],
                           onChanged: (_) => _calculateToplamFiyat(),
                           decoration: InputDecoration(
@@ -1387,6 +1416,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           controller: _fiyatKusuratController,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
+                          readOnly: widget.isViewOnly,
                           inputFormatters: [
                             LengthLimitingTextInputFormatter(2),
                             FilteringTextInputFormatter.digitsOnly,
@@ -1431,15 +1461,17 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 CustomSwitchWidget(
                   value: _kdvDahilDegil,
                   label: 'KDV Ekle',
-                  onChanged: (v) {
-                    setState(() {
-                      _kdvDahilDegil = v;
-                      if (!v) {
-                        _kdvOrani = 0; // Reset rate if unchecked
-                      }
-                    });
-                    _calculateToplamFiyat();
-                  },
+                  onChanged: widget.isViewOnly
+                      ? null
+                      : (v) {
+                          setState(() {
+                            _kdvDahilDegil = v;
+                            if (!v) {
+                              _kdvOrani = 0; // Reset rate if unchecked
+                            }
+                          });
+                          _calculateToplamFiyat();
+                        },
                   compact: true,
                 ),
               ],
@@ -1459,7 +1491,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               ),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _showKdvOraniBottomSheet,
+                onTap: widget.isViewOnly ? null : _showKdvOraniBottomSheet,
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -1483,7 +1515,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                           fontSize: 16,
                         ),
                       ),
-                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                      if (!widget.isViewOnly)
+                        const Icon(Icons.arrow_drop_down, color: Colors.grey),
                     ],
                   ),
                 ),
@@ -1514,7 +1547,9 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                       ),
                       const SizedBox(height: 8),
                       GestureDetector(
-                        onTap: _showParaBirimiBottomSheet,
+                        onTap: widget.isViewOnly
+                            ? null
+                            : _showParaBirimiBottomSheet,
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -1546,10 +1581,11 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.grey,
-                              ),
+                              if (!widget.isViewOnly)
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.grey,
+                                ),
                             ],
                           ),
                         ),

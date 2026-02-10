@@ -16,8 +16,13 @@ import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.
 
 class AracIstekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
+  final bool isTamamlanan;
 
-  const AracIstekDetayScreen({super.key, required this.talepId});
+  const AracIstekDetayScreen({
+    super.key,
+    required this.talepId,
+    this.isTamamlanan = false,
+  });
 
   @override
   ConsumerState<AracIstekDetayScreen> createState() =>
@@ -160,8 +165,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
               _buildYolcuListesiAccordion(detay),
             if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
               const SizedBox(height: 16),
-            _buildOnaySureciAccordion(),
             _buildOnayFormAccordion(),
+            _buildOnaySureciAccordion(),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -536,7 +541,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster) {
+        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
           return const SizedBox(height: 16);
         }
 
@@ -553,6 +558,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                 });
               },
               child: OnayFormContent(
+                gorevAtamaEnabled: onayDurumu.atamaGoster || widget.isTamamlanan,
                 onApprove: (aciklama) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
@@ -831,7 +837,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

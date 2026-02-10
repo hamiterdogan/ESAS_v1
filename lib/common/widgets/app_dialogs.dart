@@ -156,4 +156,40 @@ class AppDialogs {
       ),
     );
   }
+  static Future<bool> showConfirmation(
+    BuildContext context,
+    String message, {
+    String? title,
+    String primaryText = 'Tamam',
+    String secondaryText = 'İptal',
+  }) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                const Icon(Icons.help_outline, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(title ?? 'Onay'),
+              ],
+            ),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(secondaryText),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textOnPrimary,
+                ),
+                child: Text(primaryText),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
 }

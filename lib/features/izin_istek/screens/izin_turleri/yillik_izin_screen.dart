@@ -610,7 +610,11 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
         // Bottom sheet'te özet göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Yıllık'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Yıllık İzin',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',

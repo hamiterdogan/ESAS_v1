@@ -193,7 +193,7 @@ class _TeknikDestekDetayScreenState
 
   String _buildDetayTitle(String? hizmetTuru) {
     final normalized = (hizmetTuru ?? '').trim();
-    final prefix = normalized.isNotEmpty ? normalized : 'Teknik Destek';
+    final prefix = normalized.isNotEmpty ? normalized : 'Bilgi Teknolojileri';
     return '$prefix İstek Detayı (${widget.talepId})';
   }
 
@@ -252,7 +252,7 @@ class _TeknikDestekDetayScreenState
             const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.build_outlined,
-              title: 'Teknik Destek İstek Detayları',
+              title: 'Bilgi Teknolojileri İstek Detayları',
               isExpanded: _teknikDestekDetaylariExpanded,
               onTap: () {
                 setState(() {
@@ -822,37 +822,90 @@ class _TeknikDestekDetayScreenState
                                 if (item.ekliDosya != null &&
                                     item.ekliDosya!.isNotEmpty) ...[
                                   const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.scaffoldBackground
-                                          .withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.attach_file,
-                                          size: 14,
-                                          color: AppColors.primary,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            item.ekliDosya!,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.primary,
-                                              decoration:
-                                                  TextDecoration.underline,
+                                  GestureDetector(
+                                    onTap: () async {
+                                      final fileName = item.ekliDosya!;
+                                      const String baseUrl =
+                                          'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
+                                      final String fileUrl =
+                                          '$baseUrl$fileName';
+
+                                      final lowerFileName = fileName
+                                          .toLowerCase();
+                                      final isImage =
+                                          lowerFileName.endsWith('.png') ||
+                                          lowerFileName.endsWith('.jpg') ||
+                                          lowerFileName.endsWith('.jpeg') ||
+                                          lowerFileName.endsWith('.bmp');
+                                      final isPdf = lowerFileName.endsWith(
+                                        '.pdf',
+                                      );
+
+                                      if (isPdf) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PdfViewerScreen(
+                                                  title: fileName,
+                                                  pdfUrl: fileUrl,
+                                                ),
+                                          ),
+                                        );
+                                      } else if (isImage) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ImageViewerScreen(
+                                                  title: fileName,
+                                                  imageUrl: fileUrl,
+                                                ),
+                                          ),
+                                        );
+                                      } else {
+                                        final uri = Uri.parse(fileUrl);
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        }
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.scaffoldBackground
+                                            .withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.attach_file,
+                                            size: 14,
+                                            color: AppColors.primary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              item.ekliDosya!,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.primary,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -907,6 +960,31 @@ class _TeknikDestekDetayScreenState
                                 ),
                               );
                               return; // Stop if message fails
+                            }
+                          }
+
+                          // 2. Upload Files (if any)
+                          if (_selectedFiles.isNotEmpty) {
+                            final uploadResult = await repo
+                                .teknikDestekCozumDosyaYukle(
+                                  onayKayitId: widget.talepId,
+                                  onayTipi: 'Teknik Destek',
+                                  files: _selectedFiles,
+                                  dosyaAciklama: 'Teknik Destek Çözüm Dosyası',
+                                );
+
+                            if (uploadResult is Failure) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Dosya yükleme hatası: ${uploadResult.message}',
+                                  ),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                              // We continue even if file upload fails, or should we stop?
+                              // For now, let's continue but warn the user.
                             }
                           }
 
@@ -980,12 +1058,13 @@ class _TeknikDestekDetayScreenState
 
                           // 2. Upload Files (if any)
                           if (_selectedFiles.isNotEmpty) {
-                            final uploadResult = await repo.dosyaYukle(
-                              onayKayitId: widget.talepId,
-                              onayTipi: 'Teknik Destek',
-                              files: _selectedFiles,
-                              dosyaAciklama: 'Teknik Destek Çözüm',
-                            );
+                            final uploadResult = await repo
+                                .teknikDestekCozumDosyaYukle(
+                                  onayKayitId: widget.talepId,
+                                  onayTipi: 'Teknik Destek',
+                                  files: _selectedFiles,
+                                  dosyaAciklama: 'Teknik Destek Çözüm Dosyası',
+                                );
 
                             if (uploadResult is Failure) {
                               if (!context.mounted) return;

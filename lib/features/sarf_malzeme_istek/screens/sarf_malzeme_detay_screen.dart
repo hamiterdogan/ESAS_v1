@@ -13,18 +13,20 @@ import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_provi
 import 'package:esas_v1/features/izin_istek/models/onay_durumu_model.dart';
 import 'package:esas_v1/features/izin_istek/models/personel_bilgi_model.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
-import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
-
-import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 
 class SarfMalzemeDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
+  final bool isTamamlanan;
 
-  const SarfMalzemeDetayScreen({super.key, required this.talepId});
+  const SarfMalzemeDetayScreen({
+    super.key,
+    required this.talepId,
+    this.isTamamlanan = false,
+  });
 
   @override
   ConsumerState<SarfMalzemeDetayScreen> createState() =>
@@ -174,8 +176,8 @@ class _SarfMalzemeDetayScreenState
             const SizedBox(height: 16),
             _buildUrunBilgileriAccordion(detay),
             const SizedBox(height: 16),
-            _buildOnaySureciAccordion(),
             _buildOnayFormAccordion(),
+            _buildOnaySureciAccordion(),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -681,7 +683,7 @@ class _SarfMalzemeDetayScreenState
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster) {
+        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
           return const SizedBox(height: 16);
         }
 
@@ -698,6 +700,8 @@ class _SarfMalzemeDetayScreenState
                 });
               },
               child: OnayFormContent(
+                gorevAtamaEnabled:
+                    onayDurumu.atamaGoster || widget.isTamamlanan,
                 onApprove: (aciklama) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
@@ -971,7 +975,6 @@ class _SarfMalzemeDetayScreenState
                     );
                   }
                 },
-                gorevAtamaEnabled: onayDurumu.atamaGoster,
               ),
             ),
             const SizedBox(height: 16),

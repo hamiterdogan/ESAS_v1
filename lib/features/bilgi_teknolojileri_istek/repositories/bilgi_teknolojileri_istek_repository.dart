@@ -220,6 +220,47 @@ class BilgiTeknolojileriIstekRepository {
       return Failure(e.toString());
     }
   }
+
+  Future<Result<void>> teknikDestekCozumDosyaYukle({
+    required int onayKayitId,
+    required String onayTipi,
+    required List<(String path, String fileName)> files,
+    required String dosyaAciklama,
+  }) async {
+    try {
+      final formData = FormData();
+      formData.fields.add(MapEntry('OnayKayitId', onayKayitId.toString()));
+      formData.fields.add(MapEntry('OnayTipi', onayTipi));
+      formData.fields.add(MapEntry('DosyaAciklama', dosyaAciklama));
+
+      for (final (filePath, fileName) in files) {
+        formData.files.add(
+          MapEntry(
+            'FormFile',
+            await MultipartFile.fromFile(filePath, filename: fileName),
+          ),
+        );
+      }
+
+      final response = await _dio.post(
+        '/Dosya/TeknikDestekCozumDosyaYukle',
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Dosya yükleme hatası: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
 }
 
 final bilgiTeknolojileriIstekRepositoryProvider =

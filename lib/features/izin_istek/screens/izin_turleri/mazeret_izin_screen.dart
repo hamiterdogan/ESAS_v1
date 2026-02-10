@@ -611,7 +611,11 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
         // Bottom sheet'te özet göster
         if (mounted) {
           final ozetItems = [
-            IzinOzetItem(label: 'İzin Türü', value: 'Mazeret'),
+            IzinOzetItem(
+              label: 'İzin Türü',
+              value: 'Mazeret İzni',
+              multiLine: false,
+            ),
             IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
             IzinOzetItem(
               label: 'Başlangıç Tarihi',

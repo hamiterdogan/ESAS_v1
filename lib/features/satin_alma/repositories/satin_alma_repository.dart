@@ -18,6 +18,7 @@ import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_gecmisi.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_arastirma_personel.dart';
+import 'package:esas_v1/features/satin_alma/models/satin_alma_guncelle_req.dart';
 
 class SatinAlmaRepository {
   SatinAlmaRepository(this._dio);
@@ -271,12 +272,16 @@ class SatinAlmaRepository {
       return const [];
     }
   }
-  Future<List<SatinAlmaFiyatArastirmaPersonel>> getFiyatArastirmaListesi() async {
+
+  Future<List<SatinAlmaFiyatArastirmaPersonel>>
+  getFiyatArastirmaListesi() async {
     try {
       final response = await _dio.get('/SatinAlma/FiyatArastirmaListele');
       final data = response.data;
       if (data is Map<String, dynamic>) {
-        return SatinAlmaFiyatArastirmaListResponse.fromJson(data).fiyatArastirPersoneller;
+        return SatinAlmaFiyatArastirmaListResponse.fromJson(
+          data,
+        ).fiyatArastirPersoneller;
       }
       return const [];
     } catch (e) {
@@ -303,6 +308,25 @@ class SatinAlmaRepository {
       if (response.statusCode != 200 ||
           (responseData is Map && responseData['basarili'] != true)) {
         return Failure(responseData?['mesaj'] ?? 'İşlem başarısız.');
+      }
+
+      return const Success(null);
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  Future<Result<void>> satinAlmaGuncelle(SatinAlmaGuncelleReq req) async {
+    try {
+      final response = await _dio.post(
+        '/SatinAlma/UrunGuncelle',
+        data: req.toJson(),
+      );
+
+      final responseData = response.data;
+      if (response.statusCode != 200 ||
+          (responseData is Map && responseData['basarili'] != true)) {
+        return Failure(responseData?['mesaj'] ?? 'Güncelleme başarısız.');
       }
 
       return const Success(null);

@@ -102,7 +102,10 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
   final FocusNode _aciklamaFocusNode = FocusNode();
   final FocusNode _gidilecekYerButtonFocusNode = FocusNode();
   final FocusNode _aracIstekNedeniFocusNode = FocusNode();
+  final FocusNode _gonderButtonFocusNode = FocusNode();
+
   final GlobalKey _gidilecekYerSectionKey = GlobalKey();
+  final GlobalKey _gonderButtonKey = GlobalKey();
   late final ScrollController _scrollController;
 
   bool get _hasOgrenciBaseCache {
@@ -124,6 +127,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     _aciklamaFocusNode.dispose();
     _gidilecekYerButtonFocusNode.dispose();
     _aracIstekNedeniFocusNode.dispose();
+    _gonderButtonFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -203,6 +207,18 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       _customAracIstekNedeniFocusNode.canRequestFocus = true;
       _aciklamaFocusNode.canRequestFocus = true;
     });
+  }
+
+
+  Future<void> _scrollToGonderButton() async {
+    final context = _gonderButtonKey.currentContext;
+    if (context == null) return;
+    await Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 1.0, 
+    );
   }
 
   void _syncDonusWithGidis({required int startHour, required int startMinute}) {
@@ -765,6 +781,12 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                         _selectedPersonelIds.clear();
                         _selectedPersonelIds.addAll(ids);
                       });
+                      // Selection made, focus on Gonder button
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        FocusScope.of(context).unfocus();
+                        _gonderButtonFocusNode.requestFocus();
+                        _scrollToGonderButton();
+                      });
                     },
                     onDataLoaded: (data) {
                       setState(() {
@@ -878,14 +900,18 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  GonderButtonWidget(
-                    onPressed: _submitForm,
-                    padding: 14.0,
-                    borderRadius: 8.0,
-                    textStyle: const TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                   Focus(
+                    focusNode: _gonderButtonFocusNode,
+                    child: GonderButtonWidget(
+                      buttonKey: _gonderButtonKey,
+                      onPressed: _submitForm,
+                      padding: 14.0,
+                      borderRadius: 8.0,
+                      textStyle: const TextStyle(
+                        color: AppColors.textOnPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -1910,6 +1936,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     FocusScope.of(context).unfocus();
     setState(() => _isActionInProgress = true);
 
+    bool selectionMade = false;
+
     try {
       BrandedLoadingDialog.show(context);
       // UI'nin dialog'u çizmesi için bir frame ver.
@@ -2016,6 +2044,8 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       final Set<String> tempSelectedItems = {};
 
       _currentFilterPage = '';
+
+      if (!mounted) return;
 
       if (!mounted) return;
 
@@ -2286,6 +2316,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                                 _selectedKulup.clear();
                                 _selectedTakim.clear();
                               });
+                              selectionMade = true;
                               FocusScope.of(context).unfocus();
                               Navigator.pop(context);
                             } else {
@@ -2381,6 +2412,14 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       );
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
+    }
+    
+    if (selectionMade) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+         FocusScope.of(context).unfocus();
+         _gonderButtonFocusNode.requestFocus();
+         _scrollToGonderButton();
+      });
     }
   }
 

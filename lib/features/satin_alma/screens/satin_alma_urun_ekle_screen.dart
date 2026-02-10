@@ -5,9 +5,14 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart'
 import 'package:esas_v1/features/satin_alma/widgets/satin_alma_urun_card.dart';
 
 class SatinAlmaUrunEkleScreen extends ConsumerStatefulWidget {
-  const SatinAlmaUrunEkleScreen({this.initialBilgi, super.key});
+  const SatinAlmaUrunEkleScreen({
+    this.initialBilgi,
+    this.isViewOnly = false,
+    super.key,
+  });
 
   final SatinAlmaUrunBilgisi? initialBilgi;
+  final bool isViewOnly;
 
   @override
   ConsumerState<SatinAlmaUrunEkleScreen> createState() =>
@@ -27,9 +32,11 @@ class _SatinAlmaUrunEkleScreenState
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
           child: Text(
-            widget.initialBilgi == null
-                ? 'Ürün / Hizmet Ekle'
-                : 'Ürün / Hizmet Düzenle',
+            widget.isViewOnly
+                ? 'Ürün / Hizmet Detayı'
+                : (widget.initialBilgi == null
+                      ? 'Ürün / Hizmet Ekle'
+                      : 'Ürün / Hizmet Düzenle'),
             style: const TextStyle(
               color: AppColors.textOnPrimary,
               fontWeight: FontWeight.w600,
@@ -52,6 +59,7 @@ class _SatinAlmaUrunEkleScreenState
             child: SatinAlmaUrunCard(
               key: _cardKey,
               initialBilgi: widget.initialBilgi,
+              isViewOnly: widget.isViewOnly,
             ),
           ),
         ),
@@ -72,9 +80,14 @@ class _SatinAlmaUrunEkleScreenState
               ),
               onPressed: () {
                 if (!mounted) return;
-                final bilgi = _cardKey.currentState?.getData();
-                if (bilgi != null) {
-                  Navigator.pop<SatinAlmaUrunBilgisi>(context, bilgi);
+                if (widget.isViewOnly) {
+                  // View-only modunda sadece kapat
+                  Navigator.pop(context);
+                } else {
+                  final bilgi = _cardKey.currentState?.getData();
+                  if (bilgi != null) {
+                    Navigator.pop<SatinAlmaUrunBilgisi>(context, bilgi);
+                  }
                 }
               },
               child: const Text(
