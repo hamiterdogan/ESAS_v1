@@ -9,6 +9,8 @@ import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_taleplerimi_getir_models.dart';
+// yiyecekIstekDetayProvider is in yiyecek_icecek_providers.dart which is already imported
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 
 class YiyecekIcecekTalepYonetimScreen extends ConsumerStatefulWidget {
   const YiyecekIcecekTalepYonetimScreen({super.key});
@@ -406,8 +408,16 @@ class _YiyecekIcecekTalepCard extends ConsumerWidget {
         ],
       ),
       child: GestureDetector(
-        onTap: () =>
-            context.push('/yiyecek_icecek_istek/detay/${talep.onayKayitId}'),
+        onTap: () {
+          ref.invalidate(yiyecekIstekDetayProvider(talep.onayKayitId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: talep.onayKayitId,
+              onayTipi: 'Yiyecek İçecek İstek',
+            )),
+          );
+          context.push('/yiyecek_icecek_istek/detay/${talep.onayKayitId}');
+        },
         child: card,
       ),
     );

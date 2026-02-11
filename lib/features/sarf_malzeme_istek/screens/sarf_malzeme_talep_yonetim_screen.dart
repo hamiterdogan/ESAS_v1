@@ -10,6 +10,8 @@ import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_talep.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
+// sarfMalzemeDetayProvider is in sarf_malzeme_providers.dart which is already imported
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 
 class SarfMalzemeTalepYonetimScreen extends ConsumerStatefulWidget {
   const SarfMalzemeTalepYonetimScreen({super.key});
@@ -90,7 +92,6 @@ class _SarfMalzemeTalepYonetimScreenState
 
   @override
   Widget build(BuildContext context) {
-    final ref = this.ref;
     return GenericTalepYonetimScreen<SarfMalzemeTalep>(
       config: TalepYonetimConfig<SarfMalzemeTalep>(
         title: 'Sarf Malzeme İsteklerini Yönet',
@@ -413,6 +414,13 @@ class _SarfMalzemeTalepCard extends ConsumerWidget {
       ),
       child: GestureDetector(
         onTap: () {
+          ref.invalidate(sarfMalzemeDetayProvider(talep.onayKayitId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: talep.onayKayitId,
+              onayTipi: 'Satın Alma',
+            )),
+          );
           Navigator.push(
             context,
             MaterialPageRoute(

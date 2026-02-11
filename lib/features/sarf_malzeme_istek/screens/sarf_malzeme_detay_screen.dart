@@ -683,13 +683,13 @@ class _SarfMalzemeDetayScreenState
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
-          return const SizedBox(height: 16);
+        if (widget.isTamamlanan || !onayDurumu.onayFormuGoster) {
+          return const SizedBox.shrink();
         }
 
         return Column(
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
               title: 'Onay',

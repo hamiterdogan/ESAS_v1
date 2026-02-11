@@ -357,7 +357,9 @@ class _BilgiTeknolojileriIstekScreenState
           if (!mounted) return;
           await IstekBasariliWidget.goster(
             context: context,
-            message: '${widget.baslik} isteğiniz oluşturulmuştur.',
+            message: widget.destekTuru == 'bilgiTek'
+                ? 'Bilgi Teknolojileri isteğiniz oluşturulmuştur.'
+                : '${widget.baslik} isteğiniz oluşturulmuştur.',
             onConfirm: () async {
               if (widget.destekTuru == 'bilgiTek') {
                 // Devam eden ve tamamlanan provider'ları invalidate et

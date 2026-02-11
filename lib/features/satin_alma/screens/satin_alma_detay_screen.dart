@@ -1463,8 +1463,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
-          return const SizedBox(height: 16);
+        if (widget.isTamamlanan || !onayDurumu.onayFormuGoster) {
+          return const SizedBox.shrink();
         }
 
         return Column(

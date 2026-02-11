@@ -9,6 +9,8 @@ import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
+import 'package:esas_v1/features/teknik_destek_istek/providers/teknik_destek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 
 /// Teknik Destek talep yönetim ekranı.
@@ -112,26 +114,28 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
     required this.helper,
   });
 
-  final AsyncValue<TalepYonetimResponse> taleplerAsync;
-  final Future<TalepYonetimResponse> Function() onRefresh;
+  final AsyncValue<TalepYonetimResponse?> taleplerAsync;
+  final Future<TalepYonetimResponse?> Function() onRefresh;
   final TalepYonetimHelper helper;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return taleplerAsync.when(
       data: (data) {
-        if (data.talepler.isEmpty) {
+        if (data?.talepler.isEmpty ?? true) {
           return helper.buildEmptyState(
             onRefresh: () => onRefresh().then((_) {}),
           );
         }
 
-        final filtered = data.talepler.where((talep) {
-          final hizmetTuru = talep.hizmetTuru?.toLowerCase().trim() ?? '';
-          return hizmetTuru == 'teknik hizmetler' ||
-              hizmetTuru == 'iç hizmetler' ||
-              hizmetTuru == 'ic hizmetler';
-        }).toList();
+        final filtered =
+            data?.talepler.where((talep) {
+              final hizmetTuru = talep.hizmetTuru?.toLowerCase().trim() ?? '';
+              return hizmetTuru == 'teknik hizmetler' ||
+                  hizmetTuru == 'iç hizmetler' ||
+                  hizmetTuru == 'ic hizmetler';
+            }).toList() ??
+            [];
 
         if (filtered.isEmpty) {
           return helper.buildEmptyState(
@@ -141,8 +145,10 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
 
         final sorted = [...filtered]
           ..sort((a, b) {
-            final aDate = DateTime.tryParse(a.olusturmaTarihi) ?? DateTime(0);
-            final bDate = DateTime.tryParse(b.olusturmaTarihi) ?? DateTime(0);
+            final aDate =
+                DateTime.tryParse(a.olusturmaTarihi ?? '') ?? DateTime(0);
+            final bDate =
+                DateTime.tryParse(b.olusturmaTarihi ?? '') ?? DateTime(0);
             return bDate.compareTo(aDate);
           });
 
@@ -212,6 +218,13 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
+            ref.invalidate(teknikDestekDetayProvider(talep.onayKayitId));
+            ref.invalidate(
+              onayDurumuProvider((
+                talepId: talep.onayKayitId,
+                onayTipi: 'Teknik Destek',
+              )),
+            );
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -268,7 +281,9 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              TalepYonetimHelper.getStatusIcon(talep.onayDurumu),
+                              TalepYonetimHelper.getStatusIcon(
+                                talep.onayDurumu,
+                              ),
                               size: 14,
                               color: statusColor,
                             ),

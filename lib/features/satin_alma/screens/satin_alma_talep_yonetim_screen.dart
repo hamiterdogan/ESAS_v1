@@ -10,6 +10,8 @@ import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
+// satinAlmaDetayProvider is defined in the repository file
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 
 /// Satın Alma talep yönetim ekranı.
 ///
@@ -411,7 +413,16 @@ class _SatinAlmaTalepCard extends ConsumerWidget {
           ),
         ],
       ),
-      onTap: () => context.push('/satin_alma/detay/${talep.onayKayitId}'),
+      onTap: () {
+        ref.invalidate(satinAlmaDetayProvider(talep.onayKayitId));
+        ref.invalidate(
+          onayDurumuProvider((
+            talepId: talep.onayKayitId,
+            onayTipi: 'Satın Alma',
+          )),
+        );
+        context.push('/satin_alma/detay/${talep.onayKayitId}');
+      },
       onDelete: isDeleteAvailable ? () => _deleteTalep(context, ref) : null,
     );
   }

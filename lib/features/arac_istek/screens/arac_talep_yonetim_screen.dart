@@ -7,6 +7,8 @@ import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProver
 
 /// Araç talep yönetim ekranı.
 ///
@@ -280,7 +282,16 @@ class _AracTalepCard extends ConsumerWidget {
       tarih: talep.olusturmaTarihi,
       title:
           'Araç Türü: ${talep.aracTuru?.isNotEmpty == true ? talep.aracTuru! : "Bilinmiyor"}',
-      onTap: () => context.push('/arac/detay/${talep.onayKayitId}'),
+      onTap: () {
+        ref.invalidate(aracIstekDetayProvider(talep.onayKayitId));
+        ref.invalidate(
+          onayDurumuProvider((
+            talepId: talep.onayKayitId,
+            onayTipi: 'Araç İstek',
+          )),
+        );
+        context.push('/arac/detay/${talep.onayKayitId}');
+      },
       onDelete: () => _deleteTalep(context, ref),
     );
   }

@@ -7,6 +7,8 @@ import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/features/izin_istek/screens/izin_istek_detay_screen.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 
 /// İzin talep yönetim ekranı.
 ///
@@ -264,13 +266,13 @@ class _IzinTalepListesi extends ConsumerWidget {
   }
 }
 
-class _IzinTalepCard extends StatelessWidget {
+class _IzinTalepCard extends ConsumerWidget {
   const _IzinTalepCard({required this.talep});
 
   final Talep talep;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -341,7 +343,24 @@ class _IzinTalepCard extends StatelessWidget {
           size: 16,
           color: AppColors.textTertiary,
         ),
-        onTap: () => _showTalepDetay(context, talep),
+        onTap: () {
+          ref.invalidate(izinIstekDetayProvider(talep.onayKayitId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: talep.onayKayitId,
+              onayTipi: talep.onayTipi,
+            )),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => IzinIstekDetayScreen(
+                talepId: talep.onayKayitId,
+                onayTipi: talep.onayTipi,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

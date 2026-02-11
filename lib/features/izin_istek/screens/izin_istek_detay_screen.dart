@@ -166,7 +166,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 15),
           // 2. Accordion - İzin Detayları
           _buildAccordion(
             icon: Icons.description_outlined,
@@ -182,10 +182,11 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
               children: _buildIzinDetayRows(detay),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 15),
           // 3. Accordion - Onay Süreci
           _buildOnayFormAccordion(),
           _buildOnaySureciAccordion(),
+          const SizedBox(height: 15),
           // 4. Accordion - Bildirim Gidecekler
           _buildBildirimGideceklerAccordion(),
         ],
@@ -266,13 +267,13 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
-          return const SizedBox(height: 16);
+        if (widget.isTamamlanan || !onayDurumu.onayFormuGoster) {
+          return const SizedBox.shrink();
         }
 
         return Column(
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
               title: 'Onay',
@@ -559,12 +560,12 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
           ],
         );
       },
-      loading: () => const SizedBox(height: 16),
-      error: (_, __) => const SizedBox(height: 16),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 

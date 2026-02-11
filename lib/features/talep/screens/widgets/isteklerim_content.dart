@@ -32,6 +32,15 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
+        // Tab değiştiğinde provider'ı invalidate et - güncel veri çek
+        ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
+        if (_tabController.index == 0) {
+          // Devam Eden tabına geçildi
+          ref.invalidate(devamEdenIsteklerimProvider);
+        } else {
+          // Tamamlanan tabına geçildi
+          ref.invalidate(tamamlananIsteklerimProvider);
+        }
         widget.onFilterStateChanged?.call();
       }
     });

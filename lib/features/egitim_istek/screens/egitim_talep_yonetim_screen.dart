@@ -10,6 +10,8 @@ import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/egitim_istek/models/egitim_talep_item.dart';
 import 'package:esas_v1/features/egitim_istek/providers/egitim_istek_providers.dart';
 import 'package:esas_v1/features/egitim_istek/repositories/egitim_istek_repository.dart';
+import 'package:esas_v1/features/egitim_istek/providers/egitim_istek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 
 class EgitimTalepYonetimScreen extends ConsumerStatefulWidget {
   const EgitimTalepYonetimScreen({super.key});
@@ -372,7 +374,16 @@ class _EgitimTalepCard extends ConsumerWidget {
         ],
       ),
       child: GestureDetector(
-        onTap: () => context.push('/egitim_istek/detay/${talep.onayKayitId}'),
+        onTap: () {
+          ref.invalidate(egitimIstekDetayProvider(talep.onayKayitId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: talep.onayKayitId,
+              onayTipi: 'Eğitim İstek',
+            )),
+          );
+          context.push('/egitim_istek/detay/${talep.onayKayitId}');
+        },
         child: card,
       ),
     );

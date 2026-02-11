@@ -145,7 +145,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             _buildAccordion(
               icon: Icons.directions_car_outlined,
               title: 'Araç İstek Detayları',
@@ -160,13 +160,14 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                 children: _buildAracDetayRows(detay),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
             if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
               _buildYolcuListesiAccordion(detay),
             if ((int.tryParse(detay.yolcuSayisi) ?? 0) > 0)
-              const SizedBox(height: 16),
+              const SizedBox(height: 15),
             _buildOnayFormAccordion(),
             _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -541,13 +542,12 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
     return onayDurumuAsync.when(
       data: (onayDurumu) {
-        if (!onayDurumu.onayFormuGoster && !widget.isTamamlanan) {
-          return const SizedBox(height: 16);
+        if (widget.isTamamlanan || !onayDurumu.onayFormuGoster) {
+          return const SizedBox.shrink();
         }
 
         return Column(
           children: [
-            const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
               title: 'Onay',
@@ -558,7 +558,8 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                 });
               },
               child: OnayFormContent(
-                gorevAtamaEnabled: onayDurumu.atamaGoster || widget.isTamamlanan,
+                gorevAtamaEnabled:
+                    onayDurumu.atamaGoster || widget.isTamamlanan,
                 onApprove: (aciklama) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
@@ -573,8 +574,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -585,15 +585,16 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
                         // Listeyi yenile ve geri dön
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -620,8 +621,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -632,14 +632,15 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -667,8 +668,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -679,14 +679,15 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -709,71 +710,70 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                   }
                 },
                 onAssign: (aciklama, selectedPersonel) async {
-                      if (selectedPersonel == null) return;
-                      final onaySureciId =
-                          onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                      if (onaySureciId == null) {
+                  if (selectedPersonel == null) return;
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+                  if (onaySureciId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Onay süreci ID bulunamadı!'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  try {
+                    final repository = ref.read(talepYonetimRepositoryProvider);
+                    final request = OnayDurumuGuncelleRequest(
+                      onayTipi: onayTipi,
+                      onayKayitId: widget.talepId,
+                      onaySureciId: onaySureciId,
+                      onay:
+                          true, // Görev atamada onay true mu gönderilmeli? Genelde onaylanmış gibi işlem görüp bir sonrakine geçmesi veya sadece atama yapılması backend mantığına bağlı.
+                      // Varsayım: Görev atama bir nevi onayla birlikte havale işlemidir.
+                      // Ancak Request modelde atanacakPersonelId varsa backend bunu görev atama olarak algılayacaktır.
+                      beklet: false,
+                      geriDon: false,
+                      aciklama: aciklama,
+                      atanacakPersonelId: selectedPersonel.personelId,
+                    );
+
+                    final result = await repository.onayDurumuGuncelle(request);
+
+                    if (!context.mounted) return;
+
+                    switch (result) {
+                      case Success():
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Onay süreci ID bulunamadı!'),
-                            backgroundColor: AppColors.error,
+                            content: Text('Görev atama başarıyla gerçekleşti'),
+                            backgroundColor: AppColors.success,
                           ),
                         );
-                        return;
-                      }
-
-                      try {
-                        final repository =
-                            ref.read(talepYonetimRepositoryProvider);
-                        final request = OnayDurumuGuncelleRequest(
-                          onayTipi: onayTipi,
-                          onayKayitId: widget.talepId,
-                          onaySureciId: onaySureciId,
-                          onay: true, // Görev atamada onay true mu gönderilmeli? Genelde onaylanmış gibi işlem görüp bir sonrakine geçmesi veya sadece atama yapılması backend mantığına bağlı.
-                          // Varsayım: Görev atama bir nevi onayla birlikte havale işlemidir. 
-                          // Ancak Request modelde atanacakPersonelId varsa backend bunu görev atama olarak algılayacaktır.
-                          beklet: false,
-                          geriDon: false,
-                          aciklama: aciklama,
-                          atanacakPersonelId: selectedPersonel.personelId,
-                        );
-
-                        final result =
-                            await repository.onayDurumuGuncelle(request);
-
-                        if (!context.mounted) return;
-
-                        switch (result) {
-                          case Success():
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Görev atama başarıyla gerçekleşti'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                            ref
-                                .read(devamEdenGelenKutusuProvider.notifier)
-                                .refresh();
-                            Navigator.pop(context);
-                          case Failure(message: final message):
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Hata: $message'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          case Loading():
-                            break;
-                        }
-                      } catch (e) {
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
+                        Navigator.pop(context);
+                      case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Hata: $e'),
+                            content: Text('Hata: $message'),
                             backgroundColor: AppColors.error,
                           ),
                         );
-                      }
-                    },
+                      case Loading():
+                        break;
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: $e'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                },
                 onHold: (aciklama, bekletKademe) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
@@ -788,8 +788,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -801,8 +800,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                       bekletKademe: bekletKademe,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -810,7 +808,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                       case Success():
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
+                            content: Text(
+                              'Bekleme işlemi başarıyla gerçekleşti',
+                            ),
                             backgroundColor: AppColors.success,
                           ),
                         );
@@ -839,12 +839,12 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 15),
           ],
         );
       },
-      loading: () => const SizedBox(height: 16),
-      error: (_, __) => const SizedBox(height: 16),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 

@@ -8,6 +8,8 @@ import 'package:esas_v1/common/widgets/talep_yonetim_helper.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
 import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_istek_detay_provider.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart'; // For onayDurumuProvider
 
 /// Dokümantasyon talep yönetim ekranı.
 ///
@@ -302,10 +304,19 @@ class _DokumantasyonTalepCard extends ConsumerWidget {
       onayDurumu: talep.onayDurumu,
       tarih: talep.olusturmaTarihi,
       title: _talepTuru,
-      onTap: () => context.push(
-        '/dokumantasyon/detay/${talep.onayKayitId}',
-        extra: talep.onayTipi,
-      ),
+      onTap: () {
+        ref.invalidate(dokumantasyonIstekDetayProvider(talep.onayKayitId));
+        ref.invalidate(
+          onayDurumuProvider((
+            talepId: talep.onayKayitId,
+            onayTipi: talep.onayTipi,
+          )),
+        );
+        context.push(
+          '/dokumantasyon/detay/${talep.onayKayitId}',
+          extra: talep.onayTipi,
+        );
+      },
       onDelete: () => _deleteTalep(context, ref),
     );
   }

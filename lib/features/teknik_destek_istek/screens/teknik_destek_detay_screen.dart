@@ -37,7 +37,7 @@ class _TeknikDestekDetayScreenState
   bool _personelBilgileriExpanded = true;
   bool _teknikDestekDetaylariExpanded = true;
   bool _hizmetBilgileriExpanded = true;
-  bool _onaySureciExpanded = true;
+
   bool _onayFormExpanded = true;
   bool _bildirimGideceklerExpanded = true;
 
@@ -267,8 +267,8 @@ class _TeknikDestekDetayScreenState
             ),
             const SizedBox(height: 16),
             _buildHizmetBilgileriAccordion(detay),
-            const SizedBox(height: 16),
-            _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
+
             _buildOnayFormAccordion(
               detay.cozumler,
               detay.surecTamamlandi,
@@ -673,62 +673,7 @@ class _TeknikDestekDetayScreenState
     );
   }
 
-  Widget _buildOnaySureciAccordion() {
-    const onayTipi = 'Teknik Destek';
-    final onayDurumuAsync = ref.watch(
-      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
-    );
 
-    return onayDurumuAsync.when(
-      data: (onayDurumu) => _buildAccordion(
-        icon: Icons.approval_outlined,
-        title: 'Onay Süreci',
-        isExpanded: _onaySureciExpanded,
-        onTap: () {
-          setState(() {
-            _onaySureciExpanded = !_onaySureciExpanded;
-          });
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _buildOnaySureciContent(onayDurumu),
-        ),
-      ),
-      loading: () => _buildAccordion(
-        icon: Icons.approval_outlined,
-        title: 'Onay Süreci',
-        isExpanded: _onaySureciExpanded,
-        onTap: () {
-          setState(() {
-            _onaySureciExpanded = !_onaySureciExpanded;
-          });
-        },
-        child: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
-          ),
-        ),
-      ),
-      error: (error, _) => _buildAccordion(
-        icon: Icons.approval_outlined,
-        title: 'Onay Süreci',
-        isExpanded: _onaySureciExpanded,
-        onTap: () {
-          setState(() {
-            _onaySureciExpanded = !_onaySureciExpanded;
-          });
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Onay süreci yüklenemedi',
-            style: TextStyle(color: AppColors.error),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildOnayFormAccordion(
     List<TeknikDestekCozum> cozumler,
@@ -749,7 +694,7 @@ class _TeknikDestekDetayScreenState
 
         return Column(
           children: [
-            const SizedBox(height: 16),
+
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
               title: 'Çözüm Süreci',
@@ -1255,296 +1200,7 @@ class _TeknikDestekDetayScreenState
     );
   }
 
-  List<Widget> _buildOnaySureciContent(OnayDurumuResponse onayDurumu) {
-    final List<Widget> widgets = [];
-    widgets.add(
-      _buildTalepEdenCard(
-        personelAdi: onayDurumu.talepEdenPerAdi,
-        gorevYeri: onayDurumu.talepEdenPerGorevYeri,
-        gorevi: onayDurumu.talepEdenPerGorev,
-        tarih: onayDurumu.talepEdenTarih,
-        isLast: onayDurumu.onayVerecekler.isEmpty,
-      ),
-    );
 
-    for (int i = 0; i < onayDurumu.onayVerecekler.length; i++) {
-      final personel = onayDurumu.onayVerecekler[i];
-      IconData icon;
-      Color iconColor;
-
-      if (personel.onay == true) {
-        icon = Icons.check_circle;
-        iconColor = AppColors.success;
-      } else if (personel.onay == false) {
-        icon = Icons.cancel;
-        iconColor = AppColors.error;
-      } else if (personel.geriGonderildi) {
-        icon = Icons.replay;
-        iconColor = AppColors.warning;
-      } else {
-        icon = Icons.hourglass_empty;
-        iconColor = AppColors.warning;
-      }
-
-      widgets.add(
-        _buildOnaySureciCard(
-          personelAdi: personel.personelAdi,
-          gorevYeri: personel.gorevYeri,
-          gorevi: personel.gorevi,
-          tarih: personel.islemTarihi,
-          durum: personel.onayDurumu,
-          aciklama: personel.aciklama,
-          icon: icon,
-          iconColor: iconColor,
-          isFirst: false,
-          isLast: i == onayDurumu.onayVerecekler.length - 1,
-        ),
-      );
-    }
-    return widgets;
-  }
-
-  Widget _buildTalepEdenCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    DateTime? tarih,
-    required bool isLast,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.gradientStart.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person_add_alt_1,
-                color: AppColors.gradientStart,
-                size: 22,
-              ),
-            ),
-            if (!isLast)
-              Container(width: 2, height: 70, color: AppColors.textTertiary),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  personelAdi,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.gradientStart.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.add_task,
-                        size: 18,
-                        color: AppColors.gradientStart,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Talep Oluşturuldu',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.gradientStart,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  gorevYeri,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  gorevi,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-                if (tarih != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 18,
-                        color: AppColors.textTertiary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOnaySureciCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    DateTime? tarih,
-    required String durum,
-    String? aciklama,
-    required IconData icon,
-    required Color iconColor,
-    required bool isFirst,
-    required bool isLast,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            if (!isLast)
-              Container(width: 2, height: 80, color: AppColors.textTertiary),
-          ],
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      personelAdi,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    if (durum.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          '($durum)',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: iconColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  gorevYeri,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  gorevi,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-                if (aciklama != null && aciklama.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Text(
-                      aciklama,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-                if (tarih != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 16,
-                        color: AppColors.textTertiary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        DateFormat('dd.MM.yyyy HH:mm').format(tarih),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '-';

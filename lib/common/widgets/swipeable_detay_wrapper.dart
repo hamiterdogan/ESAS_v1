@@ -12,6 +12,14 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_det
 import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.dart';
 import 'package:esas_v1/features/izin_istek/repositories/talep_yonetim_repository.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
+import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_istek_detay_provider.dart';
+import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
+import 'package:esas_v1/features/teknik_destek_istek/providers/teknik_destek_detay_provider.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
+import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
+import 'package:esas_v1/features/egitim_istek/providers/egitim_istek_detay_provider.dart';
 
 /// Swipeable detay wrapper - Talep listesinde sağa-sola kaydırma ile geçiş
 /// Temiz ve pürüzsüz geçiş animasyonu sağlar
@@ -47,8 +55,9 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
 
-    // İlk açılan sayfayı okundu olarak işaretle
+    // İlk açılan sayfanın provider'ını invalidate et - güncel veri çek
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _invalidateDetayProvider(widget.talepList[widget.initialIndex]);
       _markAsRead(widget.initialIndex);
     });
   }
@@ -84,6 +93,53 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
     } catch (e) {
       // Hata oluşursa sessizce göz ardı et
       debugPrint('Okundu işareti hatası: $e');
+    }
+  }
+
+  /// Talep türüne göre ilgili detay provider'ı invalidate et
+  void _invalidateDetayProvider(Talep talep) {
+    final onayTipiLower = talep.onayTipi.toLowerCase();
+    
+    // Onay durumu provider'ı için kullanılacak onay tipi
+    String? onayDurumuTipi;
+
+    if (onayTipiLower.contains('izin')) {
+      ref.invalidate(izinIstekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = talep.onayTipi;
+    } else if (onayTipiLower.contains('araç') || onayTipiLower.contains('arac')) {
+      ref.invalidate(aracIstekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Araç İstek';
+    } else if (onayTipiLower.contains('dok')) {
+      ref.invalidate(dokumantasyonIstekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = talep.onayTipi;
+    } else if (onayTipiLower.contains('satın') || onayTipiLower.contains('satin')) {
+      ref.invalidate(satinAlmaDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Satın Alma';
+    } else if (onayTipiLower.contains('teknik destek')) {
+      ref.invalidate(teknikDestekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Teknik Destek';
+    } else if (onayTipiLower.contains('sarf malzeme')) {
+      ref.invalidate(sarfMalzemeDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Satın Alma'; // Sarf Malzeme detay ekranında 'Satın Alma' kullanılıyor
+    } else if (onayTipiLower.contains('yiyecek') ||
+        onayTipiLower.contains('içecek') ||
+        onayTipiLower.contains('icecek')) {
+      ref.invalidate(yiyecekIstekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Yiyecek İçecek İstek';
+    } else if (onayTipiLower.contains('eğitim') || onayTipiLower.contains('egitim')) {
+      ref.invalidate(egitimIstekDetayProvider(talep.onayKayitId));
+      onayDurumuTipi = 'Eğitim İstek';
+    }
+
+    // Onay durumu provider'ını da invalidate et
+    if (onayDurumuTipi != null) {
+      ref.invalidate(onayDurumuProvider((talepId: talep.onayKayitId, onayTipi: onayDurumuTipi)));
+      
+      // Eğer talep.onayTipi belirlenen tipten farklıysa, onu da invalidate et (güvenlik için)
+      if (onayDurumuTipi != talep.onayTipi && 
+          onayDurumuTipi != talep.onayTipi.trim()) {
+        ref.invalidate(onayDurumuProvider((talepId: talep.onayKayitId, onayTipi: talep.onayTipi)));
+      }
     }
   }
 
@@ -214,7 +270,9 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
           pageSnapping: true,
           onPageChanged: (index) {
             setState(() => _currentIndex = index);
-            // Yeni sayfaya geçildiğinde okundu olarak işaretle
+            // Yeni sayfaya geçildiğinde provider'ı invalidate et - güncel veri çek
+            _invalidateDetayProvider(widget.talepList[index]);
+            // Yeni sayfayı okundu olarak işaretle
             _markAsRead(index);
           },
           itemCount: widget.talepList.length,
