@@ -248,7 +248,6 @@ class _TemizlikMalzemesiIstekScreenState
       request: req,
       talepTipi: 'Temizlik Malzemesi',
       ozetItems: ozetItems,
-      customJsonSnapshot: sarfReq.toJson(),
       onGonder: () async {
         // Call Repository
         final repo = ref.read(sarfMalzemeRepositoryProvider);
@@ -308,6 +307,7 @@ class _TemizlikMalzemesiIstekScreenState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

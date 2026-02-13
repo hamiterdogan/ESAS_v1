@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
-import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
+import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_turu.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_turleri/temizlik_malzemesi_istek_screen.dart';
@@ -19,40 +19,10 @@ class SarfMalzemeTuruSecimScreen extends ConsumerStatefulWidget {
 class _SarfMalzemeTuruSecimScreenState
     extends ConsumerState<SarfMalzemeTuruSecimScreen> {
   bool _isActionInProgress = false;
-  bool _turlerYuklendi = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        BrandedLoadingDialog.show(context);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final turlerAsync = ref.watch(allSarfMalzemeTurleriProvider);
-
-    // Türler yüklendiğinde loading dialog'u kapat
-    ref.listen(allSarfMalzemeTurleriProvider, (prev, next) {
-      next.when(
-        data: (_) {
-          if (mounted && !_turlerYuklendi) {
-            setState(() => _turlerYuklendi = true);
-            BrandedLoadingDialog.hide(context);
-          }
-        },
-        loading: () {},
-        error: (error, stack) {
-          if (mounted && !_turlerYuklendi) {
-            setState(() => _turlerYuklendi = true);
-            BrandedLoadingDialog.hide(context);
-          }
-        },
-      );
-    });
 
     return PopScope(
       canPop: true,
@@ -72,7 +42,7 @@ class _SarfMalzemeTuruSecimScreenState
           iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
         ),
         body: turlerAsync.when(
-          loading: () => const SizedBox.shrink(),
+          loading: () => const Center(child: BrandedLoadingIndicator(size: 56)),
           error: (error, stack) => Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

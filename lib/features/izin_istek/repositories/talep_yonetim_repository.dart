@@ -12,6 +12,7 @@ abstract class TalepYonetimRepository {
     required int tip,
     int pageIndex = 0,
     int pageSize = 20,
+    String? talepBaslangicTarihi,
   });
 
   Future<Result<IzinTalepleriResponse>> izinTaleplerimiGetir();
@@ -55,6 +56,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     required int tip,
     int pageIndex = 0,
     int pageSize = 20,
+    String? talepBaslangicTarihi,
   }) async {
     try {
       final requestModel = TalepGetirRequest(
@@ -62,6 +64,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
         onayTipi: '',
         pageIndex: pageIndex,
         pageSize: pageSize,
+        talepBaslangicTarihi: talepBaslangicTarihi,
       );
 
       final response = await dio.post(
@@ -118,11 +121,17 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<IzinTalepleriResponse>> izinTaleplerimiGetirByTip({
     required int tip,
+    String? talepBaslangicTarihi,
   }) async {
     try {
+      final Map<String, dynamic> data = {'tip': tip};
+      if (talepBaslangicTarihi != null) {
+        data['talepBaslangicTarihi'] = talepBaslangicTarihi;
+      }
+
       final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
-        data: '{"tip": $tip}',
+        data: data, // Dio handles Map to JSON conversion automatically usually, but let's check if we need stringify
         options: Options(contentType: 'application/json'),
       );
 

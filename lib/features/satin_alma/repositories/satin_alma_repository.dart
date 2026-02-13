@@ -14,7 +14,7 @@ import 'package:esas_v1/core/utils/riverpod_extensions.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_talep.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
-import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart';
+
 import 'package:http_parser/http_parser.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_gecmisi.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_fiyat_arastirma_personel.dart';
@@ -216,10 +216,18 @@ class SatinAlmaRepository {
     await _dio.post('/Finans/MerkezBankasiDovizKurlariniGuncelle');
   }
 
-  Future<List<SatinAlmaTalep>> getTalepler({required int tip}) async {
+  Future<List<SatinAlmaTalep>> getTalepler({
+    required int tip,
+    String? talepBaslangicTarihi,
+  }) async {
+    final Map<String, dynamic> requestData = {'tip': tip};
+    if (talepBaslangicTarihi != null) {
+      requestData['talepBaslangicTarihi'] = talepBaslangicTarihi;
+    }
+
     final response = await _dio.post(
       '/SatinAlma/SatinAlmaTaleplerimiGetir',
-      data: {'tip': tip},
+      data: requestData,
     );
 
     final data = response.data;

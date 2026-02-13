@@ -55,6 +55,7 @@ class PaginatedTalepState {
 class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
   static const int _pageSize = 20;
   final int tip;
+  String? _startDate;
 
   _PaginatedTalepNotifier(this.tip);
 
@@ -65,17 +66,22 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
     return const PaginatedTalepState(isInitialLoading: true);
   }
 
+  Future<void> updateDateFilter(String? newStartDate) async {
+    if (_startDate == newStartDate) return;
+
+    _startDate = newStartDate;
+    // Reset state and reload with new filter
+    state = const PaginatedTalepState(isInitialLoading: true);
+    await _fetchPage(0);
+  }
+
   Future<void> loadInitial() async {
     // If already initialized or loading, skip
     if (state.talepler.isNotEmpty ||
         (state.isLoading && !state.isInitialLoading)) {
-      print(
-        '🔄 [TalepProvider tip:$tip] loadInitial SKIPPED - hasData:${state.talepler.isNotEmpty}, isLoading:${state.isLoading}',
-      );
       return;
     }
 
-    print('🔄 [TalepProvider tip:$tip] loadInitial STARTING...');
     state = state.copyWith(isInitialLoading: true, errorMessage: null);
     await _fetchPage(0);
   }
@@ -92,31 +98,36 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
 
   Future<void> _fetchPage(int pageIndex) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
-    print('📡 [TalepProvider tip:$tip] Fetching page $pageIndex...');
 
     final repository = ref.read(talepYonetimRepositoryProvider);
+
+    // Tip 2 ve 3 (Gelen Kutusu) için diğer repository'lerden de veri çekilebilir
+    // Ancak mevcut yapıda repository içinde tek bir metod var gibi görünüyor.
+    // Gelen Kutusu için:
+    // tip 2: Devam Eden (Onay Bekleyenler) -> izinTaleplerimiGetirByTip(0) vs.
+    // tip 3: Tamamlanan (Onaylanan/Reddedilen) -> izinTaleplerimiGetirByTip(1) vs.
+    // Ancak burada 'taleplerimiGetir' metodu çağrılıyor. Bu metod arka planda hangi endpoint'i çağırıyor?
+    // 'taleplerimiGetir' metodu '/TalepYonetimi/TaleplerimiGetir' endpoint'ini çağırıyor.
+    // Bu endpoint muhtemelen tüm talep türlerini getiriyor.
 
     final result = await repository.taleplerimiGetir(
       tip: tip,
       pageIndex: pageIndex,
       pageSize: _pageSize,
-    );
-
-    print(
-      '📡 [TalepProvider tip:$tip] API result received: ${result.runtimeType}',
+      talepBaslangicTarihi: _startDate ??
+          DateTime.now()
+              .subtract(const Duration(days: 30))
+              .toUtc()
+              .toIso8601String(), // Default 1 month if not set
     );
 
     if (!ref.mounted) {
-      print('⚠️ [TalepProvider tip:$tip] NOT MOUNTED - aborting');
       return;
     }
 
     switch (result) {
       case Success(data: final data):
         final newTalepler = data.talepler;
-        print(
-          '✅ [TalepProvider tip:$tip] SUCCESS - ${newTalepler.length} items received',
-        );
         bool isLastPage = newTalepler.length < _pageSize;
 
         List<Talep> updatedList;
@@ -140,18 +151,13 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
           isInitialLoading: false,
           hasMore: !isLastPage,
         );
-        print(
-          '✅ [TalepProvider tip:$tip] State updated - total:${updatedList.length}, hasMore:${!isLastPage}',
-        );
       case Failure(message: final message):
-        print('❌ [TalepProvider tip:$tip] FAILURE - $message');
         state = state.copyWith(
           isLoading: false,
           isInitialLoading: false,
           errorMessage: message,
         );
       case Loading():
-        // Should not happen here usually
         break;
     }
   }

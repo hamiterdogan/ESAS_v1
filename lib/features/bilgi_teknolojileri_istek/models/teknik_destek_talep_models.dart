@@ -50,10 +50,15 @@ class TeknikDestekTalepEkleResponse {
   });
 
   factory TeknikDestekTalepEkleResponse.fromJson(Map<String, dynamic> json) {
+    final rawOnayKayitId = json['onayKayitId'];
+    final parsedOnayKayitId = rawOnayKayitId is int
+        ? rawOnayKayitId
+        : int.tryParse(rawOnayKayitId?.toString() ?? '') ?? 0;
+
     return TeknikDestekTalepEkleResponse(
       basarili: json['basarili'] ?? false,
       mesaj: json['mesaj'] ?? '',
-      onayKayitId: json['onayKayitId'] ?? 0,
+      onayKayitId: parsedOnayKayitId,
     );
   }
 

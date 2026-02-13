@@ -85,23 +85,28 @@ class _TeknikDeskekTalepYonetimScreenState
                   taleplerAsync: ref.watch(
                     teknikDestekDevamEdenTaleplerProvider,
                   ),
-                  onRefresh: () =>
-                      ref.refresh(teknikDestekDevamEdenTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
+                    return await ref.read(
+                      teknikDestekDevamEdenTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                 ),
         tamamlananBuilder:
-            (
-              ctx,
-              ref,
-              helper, {
-              filterPredicate,
-              onDurumlarUpdated,
-            }) => _TeknikDestekTalepListesi(
-              taleplerAsync: ref.watch(teknikDestekTamamlananTaleplerProvider),
-              onRefresh: () =>
-                  ref.refresh(teknikDestekTamamlananTaleplerProvider.future),
-              helper: helper,
-            ),
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
+                _TeknikDestekTalepListesi(
+                  taleplerAsync: ref.watch(
+                    teknikDestekTamamlananTaleplerProvider,
+                  ),
+                  onRefresh: () async {
+                    ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+                    return await ref.read(
+                      teknikDestekTamamlananTaleplerProvider.future,
+                    );
+                  },
+                  helper: helper,
+                ),
       ),
     );
   }
@@ -123,8 +128,14 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
     return taleplerAsync.when(
       data: (data) {
         if (data?.talepler.isEmpty ?? true) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -138,8 +149,14 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
             [];
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -153,7 +170,7 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.only(
               left: 8,

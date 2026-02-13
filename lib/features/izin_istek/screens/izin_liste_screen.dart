@@ -11,6 +11,7 @@ import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.da
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 import 'package:esas_v1/common/widgets/talep_filter_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 
 class IzinListeScreen extends ConsumerStatefulWidget {
   const IzinListeScreen({super.key});
@@ -396,9 +397,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
     return asyncValue.when(
       loading: () => const Center(
         child: SizedBox(
-          width: 153,
-          height: 153,
-          child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+          child: BrandedLoadingIndicator(),
         ),
       ),
       error: (error, stack) => Center(
@@ -429,6 +428,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
       data: (response) {
         // Mevcut izin türlerinin listesini güncelle (unique ve sıralı)
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           final izinTurleri =
               response.talepler
                   .map((t) => t.izinTuru)
@@ -579,14 +579,14 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
 }
 
 // İzin Talep Kartı Widget'ı
-class _IzinTalepKarti extends StatelessWidget {
+class _IzinTalepKarti extends ConsumerWidget {
   final dynamic talep;
   final VoidCallback onDelete;
 
   const _IzinTalepKarti({required this.talep, required this.onDelete});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final rawStatus = talep.onayDurumu;
     final statusColor = TalepYonetimHelper.getStatusColor(rawStatus);
     final statusIcon = TalepYonetimHelper.getStatusIcon(rawStatus);
@@ -661,6 +661,13 @@ class _IzinTalepKarti extends StatelessWidget {
                   slidable?.actionPaneType.value == ActionPaneType.none;
 
               if (isClosed) {
+                ref.invalidate(izinIstekDetayProvider(talep.onayKayitId));
+                ref.invalidate(
+                  onayDurumuProvider((
+                    talepId: talep.onayKayitId,
+                    onayTipi: talep.onayTipi,
+                  )),
+                );
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (ctx) => Scaffold(

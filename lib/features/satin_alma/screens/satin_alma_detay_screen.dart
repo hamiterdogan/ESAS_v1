@@ -622,6 +622,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             const SizedBox(height: 16),
             _buildOnayFormAccordion(),
             _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -1356,7 +1357,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),
@@ -1431,7 +1432,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),

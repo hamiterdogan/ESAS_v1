@@ -203,10 +203,16 @@ class SarfMalzemeRepository {
 
   Future<SarfMalzemeTalepResponse> sarfMalzemeTaleplerimiGetir({
     required int tip,
+    String? talepBaslangicTarihi,
   }) async {
+    final Map<String, dynamic> requestData = {'tip': tip};
+    if (talepBaslangicTarihi != null) {
+      requestData['talepBaslangicTarihi'] = talepBaslangicTarihi;
+    }
+
     final response = await _dio.post(
       '/SarfMalzeme/SarfMalzemeTaleplerimiGetir',
-      data: {'tip': tip},
+      data: requestData,
     );
 
     final data = response.data;

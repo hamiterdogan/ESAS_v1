@@ -1012,7 +1012,8 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
     rows.add(
       _buildInfoRow(
         'İzin Türü',
-        detay.izinSebebi.isNotEmpty ? detay.izinSebebi : '-',
+        _getFormattedIzinTuru(detay.izinSebebiId, detay.izinSebebi),
+        multiLine: false,
       ),
     );
     rows.add(
@@ -1465,5 +1466,28 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
         );
       },
     );
+  }
+
+  String _getFormattedIzinTuru(int id, String originalName) {
+    switch (id) {
+      case 1:
+        return 'Yıllık İzin';
+      case 2:
+        return 'Evlilik İzni';
+      case 3:
+        return 'Vefat İzni';
+      case 4:
+        return 'Hastalık İzni';
+      case 5:
+        return 'Mazeret İzni';
+      case 6:
+        return 'Dini İzin';
+      case 7:
+        return 'Doğum İzni';
+      case 8:
+        return 'Kurum Görevlendirmesi';
+      default:
+        return originalName.isNotEmpty ? originalName : '-';
+    }
   }
 }

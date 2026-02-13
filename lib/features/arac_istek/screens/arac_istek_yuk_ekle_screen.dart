@@ -895,11 +895,6 @@ class _AracIstekYukEkleScreenState
         multiLine: false,
       ),
       AracIstekOzetItem(
-        label: 'MEB',
-        value: 'Hayır',
-        multiLine: false,
-      ),
-      AracIstekOzetItem(
         label: 'Gidilecek Tarih',
         value: _formatDateShort(req.gidilecekTarih),
         multiLine: false,

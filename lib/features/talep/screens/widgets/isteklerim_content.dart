@@ -146,7 +146,7 @@ class IsteklerimListesi extends ConsumerStatefulWidget {
 
 class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   // Filtre değerleri - Çoklu seçim için Set kullanılıyor
-  String _selectedSure = 'Tümü';
+  String _selectedSure = '1 Ay';
   final Set<String> _selectedTalepTurleri = {};
   final Set<String> _selectedTalepDurumlari = {};
 
@@ -315,11 +315,34 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     final filteredTalepler = _getFilteredAndSortedTalepler(talepler);
 
     if (filteredTalepler.isEmpty) {
-      if (talepler.isEmpty) {
-        // Empty state vs handled by caller or specific empty widget here if desired
-      }
-
-      return const SizedBox.shrink();
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
+          final provider = widget.tip == 0
+              ? devamEdenIsteklerimProvider
+              : tamamlananIsteklerimProvider;
+          await ref.read(provider.notifier).refresh();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Yenilemek için ekranı aşağı çekin',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return RefreshIndicator(
@@ -661,10 +684,19 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         onPressed: () {
                           setModalState(() {
                             _currentFilterPage = null;
-                            _selectedSure = 'Tümü';
+                            _selectedSure = '1 Ay';
                             _selectedTalepTurleri.clear();
                             _selectedTalepDurumlari.clear();
                           });
+                          
+                          // Reset Date Filter in Provider
+                          final provider = widget.tip == 0
+                              ? devamEdenIsteklerimProvider
+                              : tamamlananIsteklerimProvider;
+
+                          // Reset to default (null will use provider default of 30 days)
+                          ref.read(provider.notifier).updateDateFilter(null);
+
                           // PERFORMANCE: setState kaldırıldı - modal state yeterli
                           widget.onFilterStateChanged?.call();
                         },
@@ -723,6 +755,36 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Apply Date Filter to Provider
+                        final provider = widget.tip == 0
+                            ? devamEdenIsteklerimProvider
+                            : tamamlananIsteklerimProvider;
+
+                        DateTime? startDate;
+                        switch (_selectedSure) {
+                          case '1 Hafta':
+                            startDate = DateTime.now().subtract(const Duration(days: 7));
+                            break;
+                          case '1 Ay':
+                            startDate = DateTime.now().subtract(const Duration(days: 30));
+                            break;
+                          case '3 Ay':
+                            startDate = DateTime.now().subtract(const Duration(days: 90));
+                            break;
+                          case '1 Yıl':
+                            startDate = DateTime.now().subtract(const Duration(days: 365));
+                            break;
+                          case 'Tümü':
+                          default:
+                            startDate = DateTime(2000);
+                            break;
+                        }
+
+                        // Update provider (triggers API call if changed)
+                        ref.read(provider.notifier).updateDateFilter(
+                              startDate.toUtc().toIso8601String(),
+                            );
+
                         // PERFORMANCE: Çift setState kaldırıldı, modal kapanınca rebuild olur
                         widget.onFilterStateChanged?.call();
                         Navigator.pop(context);

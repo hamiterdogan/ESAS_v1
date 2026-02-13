@@ -96,11 +96,17 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
   @override
   Future<Result<TalepYonetimResponse>> dokumantasyonTaleplerimiGetir({
     required int tip,
+    String? talepBaslangicTarihi,
   }) async {
     try {
+      final Map<String, dynamic> data = {'tip': tip};
+      if (talepBaslangicTarihi != null) {
+        data['talepBaslangicTarihi'] = talepBaslangicTarihi;
+      }
+
       final response = await _dio.post(
         '/DokumantasyonIstek/DokumantasyonTaleplerimiGetir',
-        data: '{"tip": $tip}',
+        data: data,
         options: Options(contentType: 'application/json'),
       );
 

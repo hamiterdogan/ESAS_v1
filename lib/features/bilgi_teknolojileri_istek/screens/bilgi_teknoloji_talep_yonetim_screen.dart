@@ -80,27 +80,31 @@ class _BilgiTeknolojiBilgiTalepYonetimScreenState
         enableFilter: true,
         onFilterTap: _showFilterBottomSheet,
         devamEdenBuilder:
-            (
-              ctx,
-              ref,
-              helper, {
-              filterPredicate,
-              onDurumlarUpdated,
-            }) => _TeknikDestekTalepListesi(
-              taleplerAsync: ref.watch(bilgiTeknolojiDevamEdenTaleplerProvider),
-              onRefresh: () =>
-                  ref.refresh(bilgiTeknolojiDevamEdenTaleplerProvider.future),
-              helper: helper,
-            ),
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
+                _TeknikDestekTalepListesi(
+                  taleplerAsync: ref.watch(
+                    bilgiTeknolojiDevamEdenTaleplerProvider,
+                  ),
+                  onRefresh: () async {
+                    ref.invalidate(bilgiTeknolojiDevamEdenTaleplerProvider);
+                    return await ref.read(
+                      bilgiTeknolojiDevamEdenTaleplerProvider.future,
+                    );
+                  },
+                  helper: helper,
+                ),
         tamamlananBuilder:
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
                 _TeknikDestekTalepListesi(
                   taleplerAsync: ref.watch(
                     bilgiTeknolojiTamamlananTaleplerProvider,
                   ),
-                  onRefresh: () => ref.refresh(
-                    bilgiTeknolojiTamamlananTaleplerProvider.future,
-                  ),
+                  onRefresh: () async {
+                    ref.invalidate(bilgiTeknolojiTamamlananTaleplerProvider);
+                    return await ref.read(
+                      bilgiTeknolojiTamamlananTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                 ),
       ),
@@ -124,8 +128,14 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
     return taleplerAsync.when(
       data: (data) {
         if (data?.talepler.isEmpty ?? true) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -139,7 +149,7 @@ class _TeknikDestekTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.only(
               left: 8,

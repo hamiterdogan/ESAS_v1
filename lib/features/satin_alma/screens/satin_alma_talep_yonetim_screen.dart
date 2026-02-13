@@ -174,8 +174,12 @@ class _SatinAlmaTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _SatinAlmaTalepListesi(
                 taleplerAsync: ref.watch(satinAlmaDevamEdenTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(satinAlmaDevamEdenTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
+                  return await ref.read(
+                    satinAlmaDevamEdenTaleplerProvider.future,
+                  );
+                },
                 helper: helper,
                 applyFilters: false,
                 selectedDuration: _selectedDuration,
@@ -192,8 +196,12 @@ class _SatinAlmaTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _SatinAlmaTalepListesi(
                 taleplerAsync: ref.watch(satinAlmaTamamlananTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(satinAlmaTamamlananTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(satinAlmaTamamlananTaleplerProvider);
+                  return await ref.read(
+                    satinAlmaTamamlananTaleplerProvider.future,
+                  );
+                },
                 helper: helper,
                 applyFilters: true,
                 selectedDuration: _selectedDuration,
@@ -319,8 +327,14 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
             : items;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -336,7 +350,7 @@ class _SatinAlmaTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.only(
               left: 8,

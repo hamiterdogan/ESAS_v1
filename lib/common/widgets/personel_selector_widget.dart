@@ -113,14 +113,7 @@ class _PersonelSelectorWidgetState
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (_isLoading)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                Icon(Icons.chevron_right, color: AppColors.textSecondary),
               ],
             ),
           ),
@@ -319,9 +312,10 @@ class _PersonelSelectorWidgetState
                               });
                               setState(() {});
                               widget.onSelectionChanged(_selectedPersonelIds);
-                              if (_selectedPersonelIds.isEmpty) {
-                                Navigator.pop(context);
-                              }
+                              // Auto-close removed per user request
+                              // if (_selectedPersonelIds.isEmpty) {
+                              //   Navigator.pop(context);
+                              // }
                             },
                           ),
                         );

@@ -178,6 +178,7 @@ class _SarfMalzemeDetayScreenState
             const SizedBox(height: 16),
             _buildOnayFormAccordion(),
             _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -618,8 +619,7 @@ class _SarfMalzemeDetayScreenState
   }
 
   Widget _buildOnaySureciAccordion() {
-    const onayTipi =
-        'Satın Alma'; // Using 'Satın Alma' as confirmed by repository logic
+    const onayTipi = 'Sarf Malzeme İstek';
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
     );
@@ -651,7 +651,7 @@ class _SarfMalzemeDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),
@@ -676,7 +676,7 @@ class _SarfMalzemeDetayScreenState
   }
 
   Widget _buildOnayFormAccordion() {
-    const onayTipi = 'Satın Alma';
+    const onayTipi = 'Sarf Malzeme İstek';
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
     );
@@ -718,7 +718,7 @@ class _SarfMalzemeDetayScreenState
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Satın Alma',
+                      onayTipi: 'Sarf Malzeme İstek',
                       onayKayitId: widget.talepId,
                       onaySureciId: onaySureciId,
                       onay: true,
@@ -764,7 +764,7 @@ class _SarfMalzemeDetayScreenState
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Satın Alma',
+                      onayTipi: 'Sarf Malzeme İstek',
                       onayKayitId: widget.talepId,
                       onaySureciId: onaySureciId,
                       onay: false,
@@ -1037,7 +1037,7 @@ class _SarfMalzemeDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),

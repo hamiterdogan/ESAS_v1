@@ -104,8 +104,12 @@ class _SarfMalzemeTalepYonetimScreenState
                   taleplerAsync: ref.watch(
                     sarfMalzemeDevamEdenTaleplerProvider,
                   ),
-                  onRefresh: () =>
-                      ref.refresh(sarfMalzemeDevamEdenTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(sarfMalzemeDevamEdenTaleplerProvider);
+                    return await ref.read(
+                      sarfMalzemeDevamEdenTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                   applyFilters: false,
                   selectedDuration: _selectedDuration,
@@ -120,8 +124,12 @@ class _SarfMalzemeTalepYonetimScreenState
                   taleplerAsync: ref.watch(
                     sarfMalzemeTamamlananTaleplerProvider,
                   ),
-                  onRefresh: () =>
-                      ref.refresh(sarfMalzemeTamamlananTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(sarfMalzemeTamamlananTaleplerProvider);
+                    return await ref.read(
+                      sarfMalzemeTamamlananTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                   applyFilters: true,
                   selectedDuration: _selectedDuration,
@@ -218,8 +226,14 @@ class _SarfMalzemeTalepListesi extends ConsumerWidget {
         }
 
         if (talepler.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -239,13 +253,19 @@ class _SarfMalzemeTalepListesi extends ConsumerWidget {
             : talepler;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(
@@ -418,7 +438,7 @@ class _SarfMalzemeTalepCard extends ConsumerWidget {
           ref.invalidate(
             onayDurumuProvider((
               talepId: talep.onayKayitId,
-              onayTipi: 'Satın Alma',
+              onayTipi: 'Sarf Malzeme İstek',
             )),
           );
           Navigator.push(

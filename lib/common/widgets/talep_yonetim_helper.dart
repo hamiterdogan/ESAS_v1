@@ -139,17 +139,14 @@ class TalepYonetimHelper {
     String message = 'Talep bulunamadı.',
     Future<void> Function()? onRefresh,
   }) {
-    final content = const SizedBox.shrink();
+    final content = SizedBox(height: MediaQuery.of(context).size.height - 200);
 
     if (onRefresh != null) {
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: content,
-          ),
+          child: content,
         ),
       );
     }

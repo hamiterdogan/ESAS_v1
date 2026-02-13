@@ -39,7 +39,7 @@ class AracTuruSecimScreen extends ConsumerWidget {
           child: SizedBox(
             width: 153,
             height: 153,
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
         error: (error, stack) => Center(

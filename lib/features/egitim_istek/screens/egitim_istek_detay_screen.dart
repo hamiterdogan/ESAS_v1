@@ -124,28 +124,24 @@ class _EgitimIstekDetayScreenState
   ) {
     // Initialize controller only once when data is available
     if (!_isControllerInitialized) {
-      _kurumUcretController.text =
-          detay.kurumunKarsiladigiUcret > 0
-              ? _formatNumber(detay.kurumunKarsiladigiUcret)
-              : '';
+      _kurumUcretController.text = detay.kurumunKarsiladigiUcret > 0
+          ? _formatNumber(detay.kurumunKarsiladigiUcret)
+          : '';
       _isControllerInitialized = true;
     }
 
     final currentKullaniciAdi = ref.watch(currentKullaniciAdiProvider);
     final isAerbil = currentKullaniciAdi == 'AERBIL';
 
-    final adSoyad =
-        detay.adSoyad.isNotEmpty
-            ? detay.adSoyad
-            : (personelAsync.value?.adSoyad ?? '-');
-    final gorevYeri =
-        detay.gorevYeri.isNotEmpty
-            ? detay.gorevYeri
-            : (personelAsync.value?.gorevYeri ?? '-');
-    final gorevi =
-        detay.gorevi.isNotEmpty
-            ? detay.gorevi
-            : (personelAsync.value?.gorev ?? '-');
+    final adSoyad = detay.adSoyad.isNotEmpty
+        ? detay.adSoyad
+        : (personelAsync.value?.adSoyad ?? '-');
+    final gorevYeri = detay.gorevYeri.isNotEmpty
+        ? detay.gorevYeri
+        : (personelAsync.value?.gorevYeri ?? '-');
+    final gorevi = detay.gorevi.isNotEmpty
+        ? detay.gorevi
+        : (personelAsync.value?.gorev ?? '-');
 
     final showEgitimAlacaklar =
         detay.topluIstek && detay.egitimAlacakPersoneller.isNotEmpty;
@@ -386,8 +382,11 @@ class _EgitimIstekDetayScreenState
   }
 
   String _formatNumber(num value) {
-    final formatter =
-        NumberFormat.currency(locale: 'tr_TR', symbol: '', decimalDigits: 2);
+    final formatter = NumberFormat.currency(
+      locale: 'tr_TR',
+      symbol: '',
+      decimalDigits: 2,
+    );
     return formatter.format(value).trim();
   }
 
@@ -431,10 +430,7 @@ class _EgitimIstekDetayScreenState
           ref.invalidate(egitimIstekDetayProvider(widget.talepId));
         case Failure(:final message):
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: AppColors.error,
-            ),
+            SnackBar(content: Text(message), backgroundColor: AppColors.error),
           );
         case Loading():
           break;
@@ -584,9 +580,7 @@ class _EgitimIstekDetayScreenState
                           gradient: AppColors.primaryGradient,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         alignment: Alignment.center,
                         child: const Text(
                           'Kaydet',
@@ -633,10 +627,7 @@ class _EgitimIstekDetayScreenState
         'Başlangıç Saati',
         _formatTimeString(detay.paylasimBaslangicSaati),
       ),
-      _buildInfoRow(
-        'Bitiş Saati',
-        _formatTimeString(detay.paylasimBitisSaati),
-      ),
+      _buildInfoRow('Bitiş Saati', _formatTimeString(detay.paylasimBitisSaati)),
       _buildInfoRow('Nerede yapılacak', detay.paylasimYeri, isLast: true),
     ];
   }
@@ -922,7 +913,7 @@ class _EgitimIstekDetayScreenState
             child: SizedBox(
               width: 80,
               height: 80,
-              child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+              child: const BrandedLoadingIndicator(),
             ),
           ),
         ),
@@ -988,8 +979,7 @@ class _EgitimIstekDetayScreenState
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Eğitim İstek',
                       onayKayitId: widget.talepId,
@@ -1000,15 +990,16 @@ class _EgitimIstekDetayScreenState
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
                         // Listeyi yenile ve geri dön
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1035,8 +1026,7 @@ class _EgitimIstekDetayScreenState
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Eğitim İstek',
                       onayKayitId: widget.talepId,
@@ -1047,14 +1037,15 @@ class _EgitimIstekDetayScreenState
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1082,8 +1073,7 @@ class _EgitimIstekDetayScreenState
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Eğitim İstek',
                       onayKayitId: widget.talepId,
@@ -1094,14 +1084,15 @@ class _EgitimIstekDetayScreenState
                       aciklama: aciklama,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1138,8 +1129,7 @@ class _EgitimIstekDetayScreenState
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Eğitim İstek',
                       onayKayitId: widget.talepId,
@@ -1151,8 +1141,7 @@ class _EgitimIstekDetayScreenState
                       atanacakPersonelId: selectedPersonel.personelId,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -1164,7 +1153,9 @@ class _EgitimIstekDetayScreenState
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -1199,8 +1190,7 @@ class _EgitimIstekDetayScreenState
                   }
 
                   try {
-                    final repository =
-                        ref.read(talepYonetimRepositoryProvider);
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Eğitim İstek',
                       onayKayitId: widget.talepId,
@@ -1212,8 +1202,7 @@ class _EgitimIstekDetayScreenState
                       bekletKademe: bekletKademe,
                     );
 
-                    final result =
-                        await repository.onayDurumuGuncelle(request);
+                    final result = await repository.onayDurumuGuncelle(request);
 
                     if (!context.mounted) return;
 
@@ -1221,7 +1210,9 @@ class _EgitimIstekDetayScreenState
                       case Success():
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Bekleme işlemi başarıyla gerçekleşti'),
+                            content: Text(
+                              'Bekleme işlemi başarıyla gerçekleşti',
+                            ),
                             backgroundColor: AppColors.success,
                           ),
                         );
@@ -1595,7 +1586,7 @@ class _EgitimIstekDetayScreenState
             child: SizedBox(
               width: 80,
               height: 80,
-              child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+              child: const BrandedLoadingIndicator(),
             ),
           ),
         ),

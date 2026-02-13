@@ -107,8 +107,12 @@ class _DokumantasyonTalepYonetimScreenState
                 taleplerAsync: ref.watch(
                   dokumantasyonDevamEdenTaleplerProvider,
                 ),
-                onRefresh: () =>
-                    ref.refresh(dokumantasyonDevamEdenTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+                  return await ref.read(
+                    dokumantasyonDevamEdenTaleplerProvider.future,
+                  );
+                },
                 helper: helper,
                 applyFilters: false,
                 selectedDuration: _selectedDuration,
@@ -124,8 +128,12 @@ class _DokumantasyonTalepYonetimScreenState
                 taleplerAsync: ref.watch(
                   dokumantasyonTamamlananTaleplerProvider,
                 ),
-                onRefresh: () =>
-                    ref.refresh(dokumantasyonTamamlananTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
+                  return await ref.read(
+                    dokumantasyonTamamlananTaleplerProvider.future,
+                  );
+                },
                 helper: helper,
                 applyFilters: true,
                 selectedDuration: _selectedDuration,
@@ -244,8 +252,14 @@ class _DokumantasyonTalepListesi extends ConsumerWidget {
             : data.talepler;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -258,7 +272,7 @@ class _DokumantasyonTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.only(
               left: 8,

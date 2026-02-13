@@ -673,8 +673,6 @@ class _TeknikDestekDetayScreenState
     );
   }
 
-
-
   Widget _buildOnayFormAccordion(
     List<TeknikDestekCozum> cozumler,
     bool surecTamamlandi,
@@ -694,7 +692,6 @@ class _TeknikDestekDetayScreenState
 
         return Column(
           children: [
-
             _buildAccordion(
               icon: Icons.assignment_turned_in_outlined,
               title: 'Çözüm Süreci',
@@ -767,92 +764,114 @@ class _TeknikDestekDetayScreenState
                                 if (item.ekliDosya != null &&
                                     item.ekliDosya!.isNotEmpty) ...[
                                   const SizedBox(height: 8),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      final fileName = item.ekliDosya!;
-                                      const String baseUrl =
-                                          'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
-                                      final String fileUrl =
-                                          '$baseUrl$fileName';
+                                  ...item.ekliDosya!
+                                      .split('|')
+                                      .map((dosya) => dosya.trim())
+                                      .where((dosya) => dosya.isNotEmpty)
+                                      .map(
+                                        (fileName) => Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 6,
+                                          ),
+                                          child: GestureDetector(
+                                            onTap: () async {
+                                              const String baseUrl =
+                                                  'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
+                                              final String fileUrl =
+                                                  '$baseUrl$fileName';
 
-                                      final lowerFileName = fileName
-                                          .toLowerCase();
-                                      final isImage =
-                                          lowerFileName.endsWith('.png') ||
-                                          lowerFileName.endsWith('.jpg') ||
-                                          lowerFileName.endsWith('.jpeg') ||
-                                          lowerFileName.endsWith('.bmp');
-                                      final isPdf = lowerFileName.endsWith(
-                                        '.pdf',
-                                      );
+                                              final lowerFileName = fileName
+                                                  .toLowerCase();
+                                              final isImage =
+                                                  lowerFileName.endsWith(
+                                                    '.png',
+                                                  ) ||
+                                                  lowerFileName.endsWith(
+                                                    '.jpg',
+                                                  ) ||
+                                                  lowerFileName.endsWith(
+                                                    '.jpeg',
+                                                  ) ||
+                                                  lowerFileName.endsWith(
+                                                    '.bmp',
+                                                  );
+                                              final isPdf = lowerFileName
+                                                  .endsWith('.pdf');
 
-                                      if (isPdf) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                PdfViewerScreen(
-                                                  title: fileName,
-                                                  pdfUrl: fileUrl,
-                                                ),
-                                          ),
-                                        );
-                                      } else if (isImage) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                ImageViewerScreen(
-                                                  title: fileName,
-                                                  imageUrl: fileUrl,
-                                                ),
-                                          ),
-                                        );
-                                      } else {
-                                        final uri = Uri.parse(fileUrl);
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(
-                                            uri,
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        }
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.scaffoldBackground
-                                            .withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(
-                                            Icons.attach_file,
-                                            size: 14,
-                                            color: AppColors.primary,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Flexible(
-                                            child: Text(
-                                              item.ekliDosya!,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: AppColors.primary,
-                                                decoration:
-                                                    TextDecoration.underline,
+                                              if (isPdf) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        PdfViewerScreen(
+                                                          title: fileName,
+                                                          pdfUrl: fileUrl,
+                                                        ),
+                                                  ),
+                                                );
+                                              } else if (isImage) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ImageViewerScreen(
+                                                          title: fileName,
+                                                          imageUrl: fileUrl,
+                                                        ),
+                                                  ),
+                                                );
+                                              } else {
+                                                final uri = Uri.parse(fileUrl);
+                                                if (await canLaunchUrl(uri)) {
+                                                  await launchUrl(
+                                                    uri,
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                }
+                                              }
+                                            },
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: AppColors
+                                                    .scaffoldBackground
+                                                    .withOpacity(0.5),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    Icons.attach_file,
+                                                    size: 14,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      fileName,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            AppColors.primary,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
                                 ],
                               ],
                             ),
@@ -1122,7 +1141,7 @@ class _TeknikDestekDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),
@@ -1199,8 +1218,6 @@ class _TeknikDestekDetayScreenState
       ],
     );
   }
-
-
 
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '-';

@@ -104,8 +104,10 @@ class _AracTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _AracTalepListesi(
                 taleplerAsync: ref.watch(aracDevamEdenTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(aracDevamEdenTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(aracDevamEdenTaleplerProvider);
+                  return await ref.read(aracDevamEdenTaleplerProvider.future);
+                },
                 helper: helper,
                 applyFilters: false,
                 selectedDuration: _selectedDuration,
@@ -119,8 +121,10 @@ class _AracTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _AracTalepListesi(
                 taleplerAsync: ref.watch(aracTamamlananTaleplerProvider),
-                onRefresh: () =>
-                    ref.refresh(aracTamamlananTaleplerProvider.future),
+                onRefresh: () async {
+                  ref.invalidate(aracTamamlananTaleplerProvider);
+                  return await ref.read(aracTamamlananTaleplerProvider.future);
+                },
                 helper: helper,
                 applyFilters: true,
                 selectedDuration: _selectedDuration,
@@ -231,8 +235,14 @@ class _AracTalepListesi extends ConsumerWidget {
             : data.talepler;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -245,7 +255,7 @@ class _AracTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.only(
               left: 8,

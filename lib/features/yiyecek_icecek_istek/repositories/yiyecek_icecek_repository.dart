@@ -59,11 +59,15 @@ class YiyecekIcecekRepository {
 
   Future<YiyecekIstekTaleplerimiGetirRes> getYiyecekIstekTaleplerim({
     required int tip,
+    String? talepBaslangicTarihi,
   }) async {
     try {
       final response = await dio.post(
         '/YiyecekIstek/YiyecekIstekTaleplerimiGetir',
-        data: YiyecekIstekTaleplerimiGetirReq(tip: tip).toJson(),
+        data: YiyecekIstekTaleplerimiGetirReq(
+          tip: tip,
+          talepBaslangicTarihi: talepBaslangicTarihi,
+        ).toJson(),
       );
 
       if (response.statusCode == 200) {

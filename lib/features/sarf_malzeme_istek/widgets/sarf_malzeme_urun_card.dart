@@ -70,6 +70,47 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
 
       _miktar = bilgi.miktar ?? 1;
     }
+
+    Future.microtask(_preloadAndAutoSelectAnaKategori);
+  }
+
+  Future<void> _preloadAndAutoSelectAnaKategori() async {
+    if (_selectedAnaKategori != null) return;
+
+    try {
+      List<SarfMalzemeAnaKategori> kategoriler;
+
+      if (widget.talepTuru.toLowerCase().contains('temizlik')) {
+        kategoriler = await ref.read(
+          sarfMalzemeTemizlikKategorilerProvider.future,
+        );
+      } else if (widget.talepTuru.toLowerCase().contains('kırtasiye') ||
+          widget.talepTuru.toLowerCase().contains('kirtasiye')) {
+        kategoriler = await ref.read(
+          sarfMalzemeKirtasiyeKategorilerProvider.future,
+        );
+      } else if (widget.talepTuru.toLowerCase().contains('promosyon')) {
+        kategoriler = await ref.read(
+          sarfMalzemePromosyonKategorilerProvider.future,
+        );
+      } else {
+        kategoriler = await ref.read(
+          sarfMalzemeYiyecekKategorilerProvider.future,
+        );
+      }
+
+      if (!mounted || _selectedAnaKategori != null || kategoriler.isEmpty)
+        return;
+
+      final firstCat = kategoriler.first;
+      setState(() {
+        _selectedAnaKategori = SatinAlmaAnaKategori(
+          id: firstCat.id,
+          kategori: firstCat.kategori,
+          aktif: firstCat.aktif,
+        );
+      });
+    } catch (_) {}
   }
 
   Future<SatinAlmaUrunBilgisi?> getData() async {

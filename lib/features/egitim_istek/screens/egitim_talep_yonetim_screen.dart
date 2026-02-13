@@ -100,8 +100,12 @@ class _EgitimTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
                 _EgitimTalepListesi(
                   taleplerAsync: ref.watch(egitimDevamEdenTaleplerProvider),
-                  onRefresh: () =>
-                      ref.refresh(egitimDevamEdenTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(egitimDevamEdenTaleplerProvider);
+                    return await ref.read(
+                      egitimDevamEdenTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                   applyFilters: false,
                   selectedDuration: _selectedDuration,
@@ -114,8 +118,12 @@ class _EgitimTalepYonetimScreenState
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
                 _EgitimTalepListesi(
                   taleplerAsync: ref.watch(egitimTamamlananTaleplerProvider),
-                  onRefresh: () =>
-                      ref.refresh(egitimTamamlananTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(egitimTamamlananTaleplerProvider);
+                    return await ref.read(
+                      egitimTamamlananTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                   applyFilters: true,
                   selectedDuration: _selectedDuration,
@@ -210,8 +218,14 @@ class _EgitimTalepListesi extends ConsumerWidget {
         }
 
         if (items.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -231,8 +245,14 @@ class _EgitimTalepListesi extends ConsumerWidget {
             : items;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -247,7 +267,7 @@ class _EgitimTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             itemCount: sorted.length,

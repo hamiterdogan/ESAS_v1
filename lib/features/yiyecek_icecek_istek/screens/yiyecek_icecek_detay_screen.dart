@@ -581,7 +581,7 @@ class _YiyecekIcecekDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),
@@ -1258,7 +1258,7 @@ class _YiyecekIcecekDetayScreenState
         child: const Center(
           child: Padding(
             padding: EdgeInsets.all(16),
-            child: BrandedLoadingIndicator(size: 153, strokeWidth: 24),
+            child: const BrandedLoadingIndicator(),
           ),
         ),
       ),

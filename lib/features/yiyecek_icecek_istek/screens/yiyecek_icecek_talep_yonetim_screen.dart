@@ -101,8 +101,12 @@ class _YiyecekIcecekTalepYonetimScreenState
                   taleplerAsync: ref.watch(
                     yiyecekIstekDevamEdenTaleplerProvider,
                   ),
-                  onRefresh: () =>
-                      ref.refresh(yiyecekIstekDevamEdenTaleplerProvider.future),
+                  onRefresh: () async {
+                    ref.invalidate(yiyecekIstekDevamEdenTaleplerProvider);
+                    return await ref.read(
+                      yiyecekIstekDevamEdenTaleplerProvider.future,
+                    );
+                  },
                   helper: helper,
                   applyFilters: false,
                   selectedDuration: _selectedDuration,
@@ -112,24 +116,25 @@ class _YiyecekIcecekTalepYonetimScreenState
                   onRequestTypesUpdated: _updateAvailableRequestTypes,
                 ),
         tamamlananBuilder:
-            (
-              ctx,
-              ref,
-              helper, {
-              filterPredicate,
-              onDurumlarUpdated,
-            }) => _YiyecekIcecekTalepListesi(
-              taleplerAsync: ref.watch(yiyecekIstekTamamlananTaleplerProvider),
-              onRefresh: () =>
-                  ref.refresh(yiyecekIstekTamamlananTaleplerProvider.future),
-              helper: helper,
-              applyFilters: true,
-              selectedDuration: _selectedDuration,
-              selectedRequestTypes: _selectedRequestTypes,
-              selectedStatuses: _selectedStatuses,
-              onDurumlarUpdated: _updateAvailableStatuses,
-              onRequestTypesUpdated: _updateAvailableRequestTypes,
-            ),
+            (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) =>
+                _YiyecekIcecekTalepListesi(
+                  taleplerAsync: ref.watch(
+                    yiyecekIstekTamamlananTaleplerProvider,
+                  ),
+                  onRefresh: () async {
+                    ref.invalidate(yiyecekIstekTamamlananTaleplerProvider);
+                    return await ref.read(
+                      yiyecekIstekTamamlananTaleplerProvider.future,
+                    );
+                  },
+                  helper: helper,
+                  applyFilters: true,
+                  selectedDuration: _selectedDuration,
+                  selectedRequestTypes: _selectedRequestTypes,
+                  selectedStatuses: _selectedStatuses,
+                  onDurumlarUpdated: _updateAvailableStatuses,
+                  onRequestTypesUpdated: _updateAvailableRequestTypes,
+                ),
       ),
     );
   }
@@ -216,8 +221,14 @@ class _YiyecekIcecekTalepListesi extends ConsumerWidget {
         }
 
         if (items.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -237,8 +248,14 @@ class _YiyecekIcecekTalepListesi extends ConsumerWidget {
             : items;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(
-            onRefresh: () => onRefresh().then((_) {}),
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
           );
         }
 
@@ -253,7 +270,7 @@ class _YiyecekIcecekTalepListesi extends ConsumerWidget {
           });
 
         return RefreshIndicator(
-          onRefresh: () => onRefresh().then((_) {}),
+          onRefresh: onRefresh,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             itemCount: sorted.length,

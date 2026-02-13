@@ -470,7 +470,7 @@ class _BilgiTeknolojileriIstekScreenState
       final repository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
       final result = await repository.dosyaYukle(
         onayKayitId: onayKayitId,
-        onayTipi: 'TeknikDestek',
+        onayTipi: 'Teknik Destek',
         files: filesToUpload,
         dosyaAciklama: _dosyaIcerikController.text.trim().isNotEmpty
             ? _dosyaIcerikController.text.trim()

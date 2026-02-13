@@ -18,11 +18,19 @@ class EgitimIstekRepository {
 
   EgitimIstekRepository(this._dio);
 
-  Future<List<EgitimTalepItem>> getTaleplerim({required int tip}) async {
+  Future<List<EgitimTalepItem>> getTaleplerim({
+    required int tip,
+    String? talepBaslangicTarihi,
+  }) async {
     try {
+      final Map<String, dynamic> data = {'tip': tip};
+      if (talepBaslangicTarihi != null) {
+        data['talepBaslangicTarihi'] = talepBaslangicTarihi;
+      }
+
       final response = await _dio.post(
         '/EgitimIstek/EgitimIstekTaleplerimiGetir',
-        data: {'tip': tip},
+        data: data,
       );
 
       if (response.statusCode == 200) {

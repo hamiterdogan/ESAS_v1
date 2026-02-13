@@ -1,11 +1,17 @@
 class YiyecekIstekTaleplerimiGetirReq {
   final int tip; // 0: Devam Eden, 1: Tamamlanan
+  final String? talepBaslangicTarihi;
 
-  YiyecekIstekTaleplerimiGetirReq({required this.tip});
+  YiyecekIstekTaleplerimiGetirReq({
+    required this.tip,
+    this.talepBaslangicTarihi,
+  });
 
   Map<String, dynamic> toJson() {
     return {
       'tip': tip,
+      if (talepBaslangicTarihi != null)
+        'talepBaslangicTarihi': talepBaslangicTarihi,
     };
   }
 }

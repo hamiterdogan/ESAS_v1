@@ -153,7 +153,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   // Filtre değerleri - Çoklu seçim için Set kullanılıyor
   final Set<String> _selectedTalepTurleri = {};
   final Set<String> _selectedTalepEdenler = {};
-  String _selectedTalepTarihi = 'Tümü';
+  String _selectedTalepTarihi = '1 Ay';
 
   // API'den gelen taleplerdeki "Talep Eden" kişilerin listesi
   List<String> _talepEdenKisiler = [];
@@ -667,11 +667,20 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                             _currentFilterPage = null;
                             _selectedTalepTurleri.clear();
                             _selectedTalepEdenler.clear();
-                            _selectedTalepTarihi = 'Tümü';
+                            _selectedTalepTarihi = '1 Ay';
                             _selectedTalepDurumlari.clear();
                             _selectedGorevler.clear();
                             _selectedGorevYerleri.clear();
                           });
+                          
+                          // Reset Date Filter in Provider
+                          final provider = widget.tip == 2
+                              ? devamEdenGelenKutusuProvider
+                              : tamamlananGelenKutusuProvider;
+                          
+                          // Reset to default (null will use provider default of 30 days)
+                          ref.read(provider.notifier).updateDateFilter(null);
+
                           // PERFORMANCE: setState kaldırıldı - modal state yeterli
                           widget.onFilterStateChanged?.call();
                         },
@@ -740,6 +749,37 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Apply Date Filter to Provider
+                        final provider = widget.tip == 2
+                            ? devamEdenGelenKutusuProvider
+                            : tamamlananGelenKutusuProvider;
+
+                        DateTime? startDate;
+                        switch (_selectedTalepTarihi) {
+                          case '1 Hafta':
+                            startDate = DateTime.now().subtract(const Duration(days: 7));
+                            break;
+                          case '1 Ay':
+                            startDate = DateTime.now().subtract(const Duration(days: 30));
+                            break;
+                          case '3 Ay':
+                            startDate = DateTime.now().subtract(const Duration(days: 90));
+                            break;
+                          case '1 Yıl':
+                            startDate = DateTime.now().subtract(const Duration(days: 365));
+                            break;
+                          case 'Tümü':
+                          default:
+                            // Use a very old date to represent "All"
+                            startDate = DateTime(2000);
+                            break;
+                        }
+
+                        // Update provider (triggers API call if changed)
+                        ref.read(provider.notifier).updateDateFilter(
+                              startDate.toUtc().toIso8601String(),
+                            );
+
                         // PERFORMANCE: setState kaldırıldı, modal kapanınca rebuild olur
                         widget.onFilterStateChanged?.call();
                         Navigator.pop(context);
@@ -1579,13 +1619,38 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
     // 6. Boş liste durumu
     if (filteredTalepler.isEmpty) {
-      // Eğer hiç data yoksa
-      if (taleplerListesi.isEmpty) {
-        // Veri yok ekranı
-        // ...
-      }
-
-      return const SizedBox.shrink();
+      // Boş durum için RefreshIndicator ile sarmalayarak pull-to-refresh özelliği ekle
+      return RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(provider.notifier).refresh();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height - 200,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 80,
+                    color: AppColors.textTertiary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Yenilemek için ekranı aşağı çekin',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textTertiary.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     // 7. Listeyi Oluştur

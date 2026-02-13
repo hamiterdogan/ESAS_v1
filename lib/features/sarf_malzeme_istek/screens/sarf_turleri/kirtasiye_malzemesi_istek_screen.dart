@@ -249,7 +249,6 @@ class _KirtasiyeMalzemesiIstekScreenState
       request: req,
       talepTipi: 'Kırtasiye Malzemesi',
       ozetItems: ozetItems,
-      customJsonSnapshot: sarfReq.toJson(),
       onGonder: () async {
         // Call Repository
         final repo = ref.read(sarfMalzemeRepositoryProvider);
@@ -309,6 +308,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

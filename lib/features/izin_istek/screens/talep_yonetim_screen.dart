@@ -103,9 +103,9 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen> {
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _IzinTalepListesi(
                 taleplerAsync: ref.watch(devamEdenIsteklerimLegacyProvider),
-                onRefresh: () {
+                onRefresh: () async {
                   ref.invalidate(devamEdenIsteklerimLegacyProvider);
-                  return Future.value();
+                  await ref.read(devamEdenIsteklerimLegacyProvider.future);
                 },
                 helper: helper,
                 applyFilters: false,
@@ -120,9 +120,9 @@ class _TalepYonetimScreenState extends ConsumerState<TalepYonetimScreen> {
             (ctx, ref, helper, {filterPredicate, onDurumlarUpdated}) {
               return _IzinTalepListesi(
                 taleplerAsync: ref.watch(tamamlananIsteklerimLegacyProvider),
-                onRefresh: () {
+                onRefresh: () async {
                   ref.invalidate(tamamlananIsteklerimLegacyProvider);
-                  return Future.value();
+                  await ref.read(tamamlananIsteklerimLegacyProvider.future);
                 },
                 helper: helper,
                 applyFilters: true,
@@ -226,7 +226,15 @@ class _IzinTalepListesi extends ConsumerWidget {
         }
 
         if (talepResponse.talepler.isEmpty) {
-          return helper.buildEmptyState(onRefresh: onRefresh);
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
+          );
         }
 
         final filtered = applyFilters
@@ -244,7 +252,15 @@ class _IzinTalepListesi extends ConsumerWidget {
             : talepResponse.talepler;
 
         if (filtered.isEmpty) {
-          return helper.buildEmptyState(onRefresh: onRefresh);
+          return RefreshIndicator(
+            onRefresh: onRefresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height - 200),
+              ],
+            ),
+          );
         }
 
         return RefreshIndicator(

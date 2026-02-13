@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/core/constants/dev_users.dart';
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
@@ -88,12 +89,106 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 builder: (context, ref, child) {
                   final kullaniciAdi = ref.watch(currentKullaniciAdiProvider);
                   return Center(
-                    child: Text(
-                      kullaniciAdi,
-                      style: const TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
+                    child: GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                          ),
+                          builder: (context) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Kullanıcı Değiştir (Dev)',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Flexible(
+                                    child: ListView.separated(
+                                      shrinkWrap: true,
+                                      itemCount: kDevUsers.length,
+                                      separatorBuilder:
+                                          (context, index) => const Divider(),
+                                      itemBuilder: (context, index) {
+                                        final user = kDevUsers[index];
+                                        return ListTile(
+                                          title: Text(
+                                            user.kullaniciAdi,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          onTap: () {
+                                            ref
+                                                .read(tokenProvider.notifier)
+                                                .setToken(user.token);
+                                            // Invalidate providers to force refresh
+                                            ref.invalidate(
+                                              talepYonetimRepositoryProvider,
+                                            );
+                                            ref.invalidate(
+                                              okunmayanTalepSayisiProvider,
+                                            );
+                                            // Invalidate list providers to fetch data for new user
+                                            ref.invalidate(
+                                              devamEdenIsteklerimProvider,
+                                            );
+                                            ref.invalidate(
+                                              tamamlananIsteklerimProvider,
+                                            );
+                                            ref.invalidate(
+                                              devamEdenGelenKutusuProvider,
+                                            );
+                                            ref.invalidate(
+                                              tamamlananGelenKutusuProvider,
+                                            );
+                                            ref.invalidate(
+                                              bilgiTeknolojileriOnayKayitIdSetProvider,
+                                            );
+                                            ref.invalidate(
+                                              bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider,
+                                            );
+                                            
+                                            // Optional: reset pages or navigation if needed
+                                            Navigator.pop(context);
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          kullaniciAdi,
+                          style: const TextStyle(
+                            color: AppColors.textOnPrimary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   );

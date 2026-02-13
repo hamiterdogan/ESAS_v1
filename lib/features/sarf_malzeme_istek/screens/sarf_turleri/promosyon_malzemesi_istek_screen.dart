@@ -249,7 +249,6 @@ class _PromosyonMalzemesiIstekScreenState
       request: req,
       talepTipi: 'Promosyon Malzemesi',
       ozetItems: ozetItems,
-      customJsonSnapshot: sarfReq.toJson(),
       onGonder: () async {
         // Call Repository
         final repo = ref.read(sarfMalzemeRepositoryProvider);
@@ -309,6 +308,7 @@ class _PromosyonMalzemesiIstekScreenState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

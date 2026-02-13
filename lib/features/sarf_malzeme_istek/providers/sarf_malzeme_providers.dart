@@ -54,7 +54,10 @@ final allSarfMalzemeTurleriProvider =
     FutureProvider.autoDispose<List<SarfMalzemeTuru>>((ref) async {
       ref.cacheFor(const Duration(minutes: 5)); // Cache for 5 minutes
       final repo = ref.read(sarfMalzemeRepositoryProvider);
-      return repo.getSarfMalzemeTurleri();
+      return repo.getSarfMalzemeTurleri().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => const [],
+      );
     });
 
 final sarfMalzemeDevamEdenTaleplerProvider =

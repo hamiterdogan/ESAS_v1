@@ -3,10 +3,22 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
 
+// Token Notifier
+class TokenNotifier extends Notifier<String> {
+  @override
+  String build() {
+    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiMTE1IiwiRW1haWwiOiJ0ZXN0aGFtaXQuZXJkb2dhbkBleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJIRVJET0dBTiIsIkdvcmV2SWQiOiI0NyIsIm5iZiI6MTc2OTU4NTQxOCwiZXhwIjoxODAwNjg5NDE4LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdCJ9.J4FpCUqqrFGCSoY7KaZe-H5JoN39Y6-UCEQAE7a4ltc';
+  }
+
+  void setToken(String token) {
+    state = token;
+  }
+}
+
 // Token Provider
-final tokenProvider = Provider<String>((ref) {
-  return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiNDM4NSIsIkVtYWlsIjoiZXNhc3Rlc3RAZXl1Ym9nbHUuazEyLnRyIiwiS3VsbGFuaWNpQWRpIjoiRklNSVIiLCJHb3JldklkIjoiMTI4IiwibmJmIjoxNzcwODEwNzQ0LCJleHAiOjE4MDE5MTQ3NDQsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3QiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0In0.O-2z1gwABS0IwKP1bP-cfTgnN-U1xY3ssVPkmf9SDKw';
-});
+final tokenProvider = NotifierProvider<TokenNotifier, String>(
+  TokenNotifier.new,
+);
 
 // Auth Error Notifier - Riverpod 3 pattern (StateProvider yerine)
 class AuthErrorNotifier extends Notifier<bool> {
@@ -39,7 +51,7 @@ final currentKullaniciAdiProvider = Provider<String>((ref) {
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio();
-  final token = ref.read(tokenProvider);
+  final token = ref.watch(tokenProvider);
 
   dio.options = BaseOptions(
     baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
@@ -54,7 +66,9 @@ final dioProvider = Provider<Dio>((ref) {
 
   // Sadece debug modda log interceptor aktif
   if (kDebugMode) {
-    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
+    dio.interceptors.add(
+      LogInterceptor(requestBody: false, responseBody: false),
+    );
   }
 
   dio.interceptors.add(

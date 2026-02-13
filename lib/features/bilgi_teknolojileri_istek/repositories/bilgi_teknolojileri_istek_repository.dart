@@ -34,11 +34,17 @@ class BilgiTeknolojileriIstekRepository {
   Future<Result<TalepYonetimResponse>> teknikDestekTaleplerimiGetir({
     required int tip, // 0: Devam eden, 1: Tamamlanan
     required int hizmetTuru,
+    String? talepBaslangicTarihi,
   }) async {
     try {
+      final Map<String, dynamic> data = {'tip': tip, 'hizmetTuru': hizmetTuru};
+      if (talepBaslangicTarihi != null) {
+        data['talepBaslangicTarihi'] = talepBaslangicTarihi;
+      }
+
       final response = await _dio.post(
         '/TeknikDestek/TeknikDestekTaleplerimiGetir',
-        data: '{"tip": $tip, "hizmetTuru": $hizmetTuru}',
+        data: data,
         options: Options(contentType: 'application/json'),
       );
 
@@ -132,6 +138,13 @@ class BilgiTeknolojileriIstekRepository {
       );
 
       if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['basarili'] == false) {
+          final message =
+              (data['mesaj'] ?? data['message'] ?? 'Dosya yükleme hatası')
+                  .toString();
+          return Failure(message);
+        }
         return const Success(null);
       }
 
@@ -140,6 +153,7 @@ class BilgiTeknolojileriIstekRepository {
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
       );
+    } catch (e) {
       return Failure(e.toString());
     }
   }
@@ -151,10 +165,7 @@ class BilgiTeknolojileriIstekRepository {
     try {
       final response = await _dio.post(
         '/TeknikDestek/AciklamaYaz',
-        data: {
-          'teknikDestekId': teknikDestekId,
-          'aciklama': aciklama,
-        },
+        data: {'teknikDestekId': teknikDestekId, 'aciklama': aciklama},
         options: Options(contentType: 'application/json'),
       );
 
@@ -179,10 +190,7 @@ class BilgiTeknolojileriIstekRepository {
     try {
       final response = await _dio.post(
         '/TeknikDestek/SurecTamamlandi',
-        data: {
-          'teknikDestekId': teknikDestekId,
-          'anketPuan': anketPuan,
-        },
+        data: {'teknikDestekId': teknikDestekId, 'anketPuan': anketPuan},
         options: Options(contentType: 'application/json'),
       );
 

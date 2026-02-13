@@ -137,7 +137,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
               body: body,
             ),
             if (isLoading)
-              const BrandedLoadingOverlay(indicatorSize: 153, strokeWidth: 24),
+              const BrandedLoadingOverlay(),
           ],
         ),
       ),

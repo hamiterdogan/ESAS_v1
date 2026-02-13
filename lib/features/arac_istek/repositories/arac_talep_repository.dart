@@ -56,6 +56,7 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
   @override
   Future<Result<TalepYonetimResponse>> aracTaleplerimiGetir({
     required int tip,
+    String? talepBaslangicTarihi,
   }) async {
     try {
       AppLogger.api(
@@ -64,10 +65,14 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
         url: '/AracIstek/AracTaleplerimiGetir',
       );
 
+      final Map<String, dynamic> data = {'tip': tip};
+      if (talepBaslangicTarihi != null) {
+        data['talepBaslangicTarihi'] = talepBaslangicTarihi;
+      }
+
       final response = await _dio.post(
         '/AracIstek/AracTaleplerimiGetir',
-        // Sunucu bu endpointte JSON string bekliyor; aynı izin istek yapısındaki gibi gönderiyoruz.
-        data: '{"tip": $tip}',
+        data: data,
         options: Options(contentType: 'application/json'),
       );
 

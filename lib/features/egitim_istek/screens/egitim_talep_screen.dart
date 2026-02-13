@@ -15,6 +15,7 @@ import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/features/egitim_istek/screens/egitim_ucretleri_screen.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:intl/intl.dart';
 
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
@@ -789,7 +790,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     label: null,
                     initialDay: _egitimGun,
                     initialHour: _egitimSaat,
-                    minDay: 0,
+                    minDay: 1,
                     maxDay: 999,
                     minHour: 1,
                     maxHour: 24,
@@ -825,7 +826,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                           _selectedPersonelIdsForTopluIstek.clear();
                           // Toplu istek kapatıldığında ücret ekranını 1 kişi için güncelle
                           if (_egitimUcretleriData != null) {
-                            _refreshEducationCostsScreen(1);
+                            _updateTotalCost(1);
                           }
                         }
                       });
@@ -848,7 +849,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
 
                           // Eğitim ücretleri ekranını güncelle
                           if (_egitimUcretleriData != null) {
-                            _refreshEducationCostsScreen(
+                            _updateTotalCost(
                               _getSelectedPersonelCount(),
                             );
                           }
@@ -1577,8 +1578,31 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                                 );
 
                             if (result != null) {
+                              // Calculate totals from parts
+                              final kisiBasiAna =
+                                  int.tryParse(result['kisiBasiToplamAna'] ?? '0') ??
+                                      0;
+                              final kisiBasiKusurat =
+                                  int.tryParse(result['kisiBasiToplamKusurat'] ?? '0') ??
+                                      0;
+                              final kisiBasiToplamTutar =
+                                  kisiBasiAna + (kisiBasiKusurat / 100.0);
+
+                              final genelToplamAna =
+                                  int.tryParse(result['genelToplamAna'] ?? '0') ??
+                                      0;
+                              final genelToplamKusurat =
+                                  int.tryParse(result['genelToplamKusurat'] ?? '0') ??
+                                      0;
+                              final genelToplamTutar =
+                                  genelToplamAna + (genelToplamKusurat / 100.0);
+
                               setState(() {
-                                _egitimUcretleriData = result;
+                                _egitimUcretleriData = {
+                                  ...result,
+                                  'kisiBasiToplamTutar': kisiBasiToplamTutar,
+                                  'genelToplamTutar': genelToplamTutar,
+                                };
                               });
                             }
 
@@ -1629,6 +1653,124 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                       ],
                     ),
+                  if (!_ucretsiz && _egitimUcretleriData != null) ...[
+                    const SizedBox(height: 16),
+                    Card(
+                      color: AppColors.textOnPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: AppColors.border, width: 1),
+                      ),
+                      margin: EdgeInsets.zero,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(12),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.gradientStart
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calculate_outlined,
+                                    color: AppColors.gradientStart,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Ücret Özeti',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Kişi Başı Toplam TL Ücret',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: AppColors.textSecondary,
+                                            ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['kisiBasiToplamTutar'] as double? ?? 0)} TL',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        'Genel Toplam TL Ücret',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: AppColors.textSecondary,
+                                            ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['genelToplamTutar'] as double? ?? 0)} TL',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.gradientStart,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   ],
                   const SizedBox(height: 16),
                   Column(
@@ -2448,27 +2590,26 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     );
   }
 
-  // Eğitim ücretleri ekranını personel sayısı değişikliği ile güncelle
-  Future<void> _refreshEducationCostsScreen(int personelCount) async {
-    if (!mounted || _egitimUcretleriData == null) return;
+  // Eğitim ücretleri genel toplamını personel sayısı değişikliği ile güncelle
+  void _updateTotalCost(int personelCount) {
+    if (_egitimUcretleriData == null) return;
 
-    // Mevcut eğitim ücretleri ekranını kapat ve yeni personel sayısı ile aç
-    final result = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EgitimUcretleriScreen(
-          initialData: _egitimUcretleriData,
-          selectedPersonelCount: personelCount,
-          shouldFocusInput: false,
-        ),
-      ),
-    );
+    final kisiBasiToplamTutar =
+        _egitimUcretleriData!['kisiBasiToplamTutar'] as double? ?? 0.0;
+    final genelToplamTutar = kisiBasiToplamTutar * personelCount;
 
-    if (result != null && mounted) {
-      setState(() {
-        _egitimUcretleriData = result;
-      });
-    }
+    final genelToplamAna = genelToplamTutar.floor();
+    final genelToplamKusurat =
+        ((genelToplamTutar - genelToplamAna) * 100).round();
+
+    setState(() {
+      _egitimUcretleriData = {
+        ..._egitimUcretleriData!,
+        'genelToplamTutar': genelToplamTutar,
+        'genelToplamAna': genelToplamAna.toString(),
+        'genelToplamKusurat': genelToplamKusurat.toString().padLeft(2, '0'),
+      };
+    });
   }
 
   // Seçili personel sayısını hesapla (toplu istek ve seçim durumuna göre)
