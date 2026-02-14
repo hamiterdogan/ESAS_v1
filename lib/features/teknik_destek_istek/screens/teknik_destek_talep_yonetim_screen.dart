@@ -421,7 +421,7 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
         ref.invalidate(teknikDestekTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet('Hata: ${result.message}', isError: true);
       }
@@ -435,9 +435,9 @@ class _TeknikDestekTalepCard extends ConsumerWidget {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Talebi Sil'),
+        title: const Text('İsteği Sil'),
         content: const Text(
-          'Bu teknik destek talebini silmek istediğinize emin misiniz?',
+          'Bu teknik destek isteğini silmek istediğinize emin misiniz?',
         ),
         actions: [
           TextButton(

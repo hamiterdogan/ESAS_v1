@@ -9,7 +9,7 @@ import 'package:esas_v1/features/egitim_istek/models/egitim_istek_detay_model.da
 import 'package:http_parser/http_parser.dart';
 
 final egitimIstekRepositoryProvider = Provider<EgitimIstekRepository>((ref) {
-  final dio = ref.read(dioProvider);
+  final dio = ref.watch(dioProvider);
   return EgitimIstekRepository(dio);
 });
 

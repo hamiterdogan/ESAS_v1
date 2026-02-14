@@ -2159,7 +2159,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           if (!mounted) return;
           await IstekBasariliWidget.goster(
             context: context,
-            message: 'Satın alma isteğiniz oluşturulmuştur.',
+            message: 'Satın alma isteğiniz gönderilmiştir.',
             onConfirm: () async {
               ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
               ref.invalidate(satinAlmaTamamlananTaleplerProvider);

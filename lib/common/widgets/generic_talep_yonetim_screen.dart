@@ -94,7 +94,7 @@ class _GenericTalepYonetimScreenState<T>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Talep Durumu',
+                          'İstek Durumu',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -231,7 +231,7 @@ class _GenericTalepYonetimScreenState<T>
                   onDurumlarUpdated: null,
                 ) ??
                 _helper.buildEmptyState(
-                  message: widget.config.emptyMessage ?? 'Talep bulunamadı.',
+                  message: widget.config.emptyMessage ?? 'İstek bulunamadı.',
                   onRefresh: () async => setState(() {}),
                 ),
             // Tamamlanan tab
@@ -247,7 +247,7 @@ class _GenericTalepYonetimScreenState<T>
                       : null,
                 ) ??
                 _helper.buildEmptyState(
-                  message: widget.config.emptyMessage ?? 'Talep bulunamadı.',
+                  message: widget.config.emptyMessage ?? 'İstek bulunamadı.',
                   onRefresh: () async => setState(() {}),
                 ),
           ],

@@ -27,7 +27,7 @@ class TalepFilterBottomSheet extends StatefulWidget {
     this.sheetTitle = 'Filtrele',
     this.durationTitle = 'Süre',
     this.requestTypeTitle = 'İstek Türü',
-    this.statusTitle = 'Talep Durumu',
+    this.statusTitle = 'İstek Durumu',
     this.allLabel = 'Tümü',
     this.requestTypeEmptyLabel = 'Henüz istek türü bilgisi yok',
   });

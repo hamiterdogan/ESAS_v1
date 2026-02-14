@@ -629,7 +629,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Evlilik izni isteğiniz oluşturulmuştur.',
+                message: 'Evlilik izni isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

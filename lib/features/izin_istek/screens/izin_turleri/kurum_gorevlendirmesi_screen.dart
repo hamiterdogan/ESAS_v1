@@ -667,7 +667,7 @@ class _KurumGorevlendirmesiIzinScreenState
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Kurum görevlendirmesi isteğiniz oluşturulmuştur.',
+                message: 'Kurum görevlendirmesi isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

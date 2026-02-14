@@ -93,6 +93,8 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
         kategoriler = await ref.read(
           sarfMalzemePromosyonKategorilerProvider.future,
         );
+        // Promosyon için otomatik seçim yapma
+        return;
       } else {
         kategoriler = await ref.read(
           sarfMalzemeYiyecekKategorilerProvider.future,
@@ -598,6 +600,9 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
   void _handleAutoSelect(AsyncValue<List<SarfMalzemeAnaKategori>> next) {
     if (next.hasValue && next.value != null && next.value!.isNotEmpty) {
       if (_selectedAnaKategori == null) {
+        // Promosyon için otomatik seçim yapma
+        if (widget.talepTuru.toLowerCase().contains('promosyon')) return;
+        
         final firstCat = next.value!.first;
         setState(() {
           _selectedAnaKategori = SatinAlmaAnaKategori(
@@ -677,7 +682,7 @@ class SarfMalzemeUrunCardState extends ConsumerState<SarfMalzemeUrunCard> {
                   children: [
                     Expanded(
                       child: Text(
-                        _selectedAnaKategori?.kategori ?? 'Ürün kategorisi',
+                        _selectedAnaKategori?.kategori ?? 'Seçiniz',
                         style: TextStyle(
                           color: _selectedAnaKategori == null
                               ? Colors.grey.shade600

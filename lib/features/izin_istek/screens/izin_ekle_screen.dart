@@ -2021,7 +2021,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
       if (!mounted) return;
       await IstekBasariliWidget.goster(
         context: context,
-        message: 'İzin isteğiniz oluşturulmuştur.',
+        message: 'İzin isteğiniz gönderilmiştir.',
         onConfirm: () async {
           ref.invalidate(devamEdenIsteklerimProvider);
           ref.invalidate(tamamlananIsteklerimProvider);

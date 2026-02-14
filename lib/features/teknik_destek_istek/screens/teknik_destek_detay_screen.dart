@@ -961,12 +961,7 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           if (result is Success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Talep başarıyla kapatıldı'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
+
                             ref
                                 .read(devamEdenGelenKutusuProvider.notifier)
                                 .refresh();

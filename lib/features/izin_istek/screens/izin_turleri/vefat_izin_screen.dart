@@ -660,7 +660,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Vefat izni isteğiniz oluşturulmuştur.',
+                message: 'Vefat izni isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

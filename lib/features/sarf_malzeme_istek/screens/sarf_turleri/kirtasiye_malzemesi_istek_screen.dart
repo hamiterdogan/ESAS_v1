@@ -282,7 +282,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                   const Icon(Icons.check_circle, color: Colors.green, size: 64),
                   const SizedBox(height: 24),
                   const Text(
-                    'Kırtasiye malzemesi istek talebiniz gönderilmiştir',
+                    'Kırtasiye malzemesi isteğiniz gönderilmiştir.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),

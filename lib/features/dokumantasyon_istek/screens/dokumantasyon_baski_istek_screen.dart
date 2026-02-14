@@ -823,7 +823,7 @@ class _DokumantasyonBaskiIstekScreenState
         if (!mounted) return;
         await IstekBasariliWidget.goster(
           context: context,
-          message: 'Dokümantasyon baskı isteğiniz oluşturulmuştur.',
+          message: 'Dokümantasyon baskı isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
             ref.invalidate(dokumantasyonTamamlananTaleplerProvider);

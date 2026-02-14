@@ -559,7 +559,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Doğum izni isteğiniz oluşturulmuştur.',
+                message: 'Doğum izni isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

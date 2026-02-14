@@ -124,7 +124,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
         if (!mounted) return;
         await IstekBasariliWidget.goster(
           context: context,
-          message: 'A4 kağıdı isteğiniz oluşturulmuştur.',
+          message: 'A4 kağıdı isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
             ref.invalidate(dokumantasyonTamamlananTaleplerProvider);

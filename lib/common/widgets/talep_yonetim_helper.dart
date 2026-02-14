@@ -136,7 +136,7 @@ class TalepYonetimHelper {
 
   /// Boş liste durumu widget'ı
   Widget buildEmptyState({
-    String message = 'Talep bulunamadı.',
+    String message = 'İstek bulunamadı.',
     Future<void> Function()? onRefresh,
   }) {
     final content = SizedBox(height: MediaQuery.of(context).size.height - 200);

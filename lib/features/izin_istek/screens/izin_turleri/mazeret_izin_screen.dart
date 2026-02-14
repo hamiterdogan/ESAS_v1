@@ -666,7 +666,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Mazeret izni isteğiniz oluşturulmuştur.',
+                message: 'Mazeret izni isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

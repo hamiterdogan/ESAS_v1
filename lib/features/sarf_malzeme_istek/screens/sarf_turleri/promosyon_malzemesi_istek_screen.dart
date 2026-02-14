@@ -160,7 +160,7 @@ class _PromosyonMalzemesiIstekScreenState
           context,
           MaterialPageRoute(
             builder: (context) =>
-                const SarfMalzemeUrunEkleScreen(talepTuru: 'Temizlik'),
+                const SarfMalzemeUrunEkleScreen(talepTuru: 'Promosyon'),
           ),
         );
 
@@ -282,7 +282,7 @@ class _PromosyonMalzemesiIstekScreenState
                   const Icon(Icons.check_circle, color: Colors.green, size: 64),
                   const SizedBox(height: 24),
                   const Text(
-                    'Promosyon malzemesi istek talebiniz gönderilmiştir',
+                    'Promosyon malzemesi isteğiniz gönderilmiştir.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),

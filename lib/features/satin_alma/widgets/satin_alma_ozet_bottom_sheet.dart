@@ -115,7 +115,7 @@ class _SatinAlmaOzetBottomSheetState
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Text(
-                                      'Satın Alma Talebi Detayları',
+                                      'Satın Alma İsteği Detayları',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class _SatinAlmaOzetBottomSheetState
         children: [
           Expanded(
             child: Text(
-              '${widget.talepTipi} Talebini Gönder',
+              '${widget.talepTipi} İsteğini Gönder',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

@@ -792,7 +792,7 @@ class _AracIstekYukEkleScreenState
         if (!mounted) return;
         await IstekBasariliWidget.goster(
           context: context,
-          message: 'Araç isteğiniz oluşturulmuştur.',
+          message: 'Araç isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(aracDevamEdenTaleplerProvider);
             ref.invalidate(aracTamamlananTaleplerProvider);

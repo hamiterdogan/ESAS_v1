@@ -681,7 +681,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Dini izin isteğiniz oluşturulmuştur.',
+                message: 'Dini izin isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

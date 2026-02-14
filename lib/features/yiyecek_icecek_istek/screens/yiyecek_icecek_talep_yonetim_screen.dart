@@ -442,7 +442,7 @@ class _YiyecekIcecekTalepCard extends ConsumerWidget {
 
   Future<void> _deleteTalep(BuildContext context, WidgetRef ref) async {
     final shouldDelete = await helper.showDeleteConfirmDialog(
-      content: 'Bu yiyecek içecek talebini silmek istediğinize emin misiniz?',
+      content: 'Bu yiyecek içecek isteğini silmek istediğinize emin misiniz?',
     );
 
     if (!shouldDelete) return;
@@ -456,7 +456,7 @@ class _YiyecekIcecekTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(yiyecekIstekDevamEdenTaleplerProvider);
         ref.invalidate(yiyecekIstekTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet(
           'Silme başarısız: ${result.message}',

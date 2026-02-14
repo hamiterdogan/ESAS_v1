@@ -822,7 +822,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
               if (!mounted) return;
               await IstekBasariliWidget.goster(
                 context: context,
-                message: 'Hastalık izni isteğiniz oluşturulmuştur.',
+                message: 'Hastalık izni isteğiniz gönderilmiştir.',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

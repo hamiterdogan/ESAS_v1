@@ -345,7 +345,7 @@ class SatinAlmaRepository {
 }
 
 final satinAlmaRepositoryProvider = Provider<SatinAlmaRepository>((ref) {
-  final dio = ref.read(dioProvider);
+  final dio = ref.watch(dioProvider);
   return SatinAlmaRepository(dio);
 });
 

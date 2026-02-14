@@ -43,7 +43,7 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => const BilgiTeknolojileriIstekScreen(
                     destekTuru: 'icHizmet',
-                    baslik: 'İç Hizmetler İstek',
+                    baslik: 'İç Hizmetler Destek',
                   ),
                 ),
               );
@@ -60,7 +60,7 @@ class TeknikDestekTuruSecimScreen extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) => const BilgiTeknolojileriIstekScreen(
                     destekTuru: 'teknik',
-                    baslik: 'Teknik Hizmetler İstek',
+                    baslik: 'Teknik Hizmetler Destek',
                   ),
                 ),
               );

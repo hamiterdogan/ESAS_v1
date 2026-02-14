@@ -114,7 +114,7 @@ class _TeknikDestekOzetBottomSheetState
                               const SizedBox(width: 12),
                               const Expanded(
                                 child: Text(
-                                  'Talep Detayları',
+                                  'İstek Detayları',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -155,7 +155,7 @@ class _TeknikDestekOzetBottomSheetState
         children: [
           Expanded(
             child: Text(
-              '${widget.talepTipi} Talebini Gönder',
+              '${widget.talepTipi} İsteğini Gönder',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

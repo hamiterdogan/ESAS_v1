@@ -163,6 +163,7 @@ class _YiyecekIcecekDetayScreenState
             const SizedBox(height: 16),
             _buildOnayFormAccordion(),
             _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
             _buildBildirimGideceklerAccordion(),
           ],
         ),
@@ -1029,7 +1030,7 @@ class _YiyecekIcecekDetayScreenState
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Talep Oluşturuldu',
+                        'İstek Oluşturuldu',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

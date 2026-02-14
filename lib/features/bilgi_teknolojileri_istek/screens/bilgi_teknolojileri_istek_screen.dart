@@ -358,8 +358,8 @@ class _BilgiTeknolojileriIstekScreenState
           await IstekBasariliWidget.goster(
             context: context,
             message: widget.destekTuru == 'bilgiTek'
-                ? 'Bilgi Teknolojileri isteğiniz oluşturulmuştur.'
-                : '${widget.baslik} isteğiniz oluşturulmuştur.',
+                ? 'Bilgi Teknolojileri isteğiniz gönderilmiştir.'
+                : '${widget.baslik.replaceAll(' İstek', '')} isteğiniz gönderilmiştir.',
             onConfirm: () async {
               if (widget.destekTuru == 'bilgiTek') {
                 // Devam eden ve tamamlanan provider'ları invalidate et
@@ -375,6 +375,15 @@ class _BilgiTeknolojileriIstekScreenState
                 context.go('/bilgi_teknolojileri');
                 return;
               }
+
+              if (!context.mounted) return;
+              
+              // Teknik Destek için provider'ları invalidate et
+              ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
+              ref.invalidate(teknikDestekTamamlananTaleplerProvider);
+
+              // Provider'ın yeni data yüklemesini bekle
+              await Future.delayed(const Duration(milliseconds: 300));
 
               if (!context.mounted) return;
               Navigator.of(context).popUntil((route) => route.isFirst);

@@ -273,7 +273,7 @@ class BilgiTeknolojileriIstekRepository {
 
 final bilgiTeknolojileriIstekRepositoryProvider =
     Provider<BilgiTeknolojileriIstekRepository>((ref) {
-      final dio = ref.read(dioProvider);
+      final dio = ref.watch(dioProvider);
       return BilgiTeknolojileriIstekRepository(dio);
     });
 

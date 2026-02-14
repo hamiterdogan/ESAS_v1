@@ -669,7 +669,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
               await IstekBasariliWidget.goster(
                 context: context,
                 message:
-                    'Yıllık izin isteğiniz oluşturulmuştur.\n\n$infoMessage',
+                    'Yıllık izin isteğiniz gönderilmiştir.\n\n$infoMessage',
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);

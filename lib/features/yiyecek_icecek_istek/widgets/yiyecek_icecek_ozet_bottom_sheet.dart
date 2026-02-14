@@ -115,7 +115,7 @@ class _YiyecekIcecekOzetBottomSheetState
                                   const SizedBox(width: 12),
                                   const Expanded(
                                     child: Text(
-                                      'Yiyecek İçecek Talebi Detayları',
+                                      'Yiyecek İçecek İsteği Detayları',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class _YiyecekIcecekOzetBottomSheetState
         children: [
           Expanded(
             child: Text(
-              '${widget.talepTipi} Talebini Gönder',
+              '${widget.talepTipi} İsteğini Gönder',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -191,52 +191,7 @@ class _YiyecekIcecekOzetBottomSheetState
       );
     }
 
-    // API Request Data Section
-    rows.add(const SizedBox(height: 16));
-    rows.add(
-      Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.scaffoldBackground,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'API Request Data',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.textOnPrimary,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppColors.borderDark),
-              ),
-              child: Text(
-                _formatJsonData(
-                  widget.customJsonSnapshot ?? widget.request.toJson(),
-                ),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                  color: AppColors.textPrimary,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+
 
     return rows;
   }

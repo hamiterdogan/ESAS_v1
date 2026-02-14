@@ -281,7 +281,7 @@ class _TemizlikMalzemesiIstekScreenState
                   const Icon(Icons.check_circle, color: Colors.green, size: 64),
                   const SizedBox(height: 24),
                   const Text(
-                    'Temizlik malzemesi istek talebiniz gönderilmiştir',
+                    'Temizlik malzemesi isteğiniz gönderilmiştir.',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),

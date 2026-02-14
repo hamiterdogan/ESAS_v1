@@ -3537,7 +3537,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
         if (!mounted) return;
         await IstekBasariliWidget.goster(
           context: context,
-          message: 'Eğitim isteğiniz oluşturulmuştur.',
+          message: 'Eğitim isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(egitimDevamEdenTaleplerProvider);
             ref.invalidate(egitimTamamlananTaleplerProvider);

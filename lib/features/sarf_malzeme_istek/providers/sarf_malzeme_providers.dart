@@ -12,7 +12,7 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 
 final sarfMalzemeRepositoryProvider = Provider<SarfMalzemeRepository>((ref) {
-  final dio = ref.read(dioProvider);
+  final dio = ref.watch(dioProvider);
   return SarfMalzemeRepository(dio);
 });
 

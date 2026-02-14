@@ -857,13 +857,14 @@ class _YiyecekIcecekIstekScreenState
         // Repository method returns void currently and throws exception on error.
         // We need to wrap it to be safe or update repository to return Result.
         // Since existing repository method matches what we expect (exception on failure), we can just call it.
+        print('Yiyecek İçecek İstek Datası: ${req.toJson()}');
         await repo.yiyecekIstekEkle(req);
       },
       onSuccess: () async {
         if (!mounted) return;
         await IstekBasariliWidget.goster(
           context: context,
-          message: 'Yiyecek içecek isteğiniz oluşturulmuştur.',
+          message: 'Yiyecek içecek isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(yiyecekIstekDevamEdenTaleplerProvider);
             ref.invalidate(yiyecekIstekTamamlananTaleplerProvider);

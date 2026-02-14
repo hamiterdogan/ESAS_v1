@@ -73,10 +73,10 @@ class YiyecekIcecekRepository {
       if (response.statusCode == 200) {
         return YiyecekIstekTaleplerimiGetirRes.fromJson(response.data);
       } else {
-        throw Exception('Talepler yüklenemedi: ${response.statusCode}');
+        throw Exception('İstekler yüklenemedi: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Talepler yüklenirken hata oluştu: $e');
+      throw Exception('İstekler yüklenirken hata oluştu: $e');
     }
   }
 

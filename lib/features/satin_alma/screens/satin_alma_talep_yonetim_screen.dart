@@ -443,8 +443,8 @@ class _SatinAlmaTalepCard extends ConsumerWidget {
 
   Future<void> _deleteTalep(BuildContext context, WidgetRef ref) async {
     final shouldDelete = await helper.showDeleteConfirmDialog(
-      title: 'Talebi Sil',
-      content: 'Bu satın alma talebini silmek istediğinize emin misiniz?',
+      title: 'İsteği Sil',
+      content: 'Bu satın alma isteğini silmek istediğinize emin misiniz?',
     );
     if (shouldDelete != true) return;
 
@@ -457,7 +457,7 @@ class _SatinAlmaTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
         ref.invalidate(satinAlmaTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet('Hata: ${result.message}', isError: true);
       }

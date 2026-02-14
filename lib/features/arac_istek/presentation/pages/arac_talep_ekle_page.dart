@@ -24,7 +24,7 @@ class AracTalepEklePage extends ConsumerWidget {
       if (next.isSuccess) {
         IstekBasariliWidget.goster(
           context: context,
-          message: 'Araç isteğiniz oluşturulmuştur.',
+          message: 'Araç isteğiniz gönderilmiştir.',
           onConfirm: () async {
             ref.invalidate(arac_list_providers.aracDevamEdenTaleplerProvider);
             ref.invalidate(arac_list_providers.aracTamamlananTaleplerProvider);
