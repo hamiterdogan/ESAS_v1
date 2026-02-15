@@ -425,7 +425,7 @@ class _EgitimTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(egitimDevamEdenTaleplerProvider);
         ref.invalidate(egitimTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet(
           'Silme başarısız: ${result.message}',

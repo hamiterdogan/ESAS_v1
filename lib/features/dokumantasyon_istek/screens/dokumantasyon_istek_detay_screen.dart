@@ -1348,7 +1348,7 @@ class _DokumantasyonIstekDetayScreenState
                       ),
                       const SizedBox(width: 4),
                       const Text(
-                        'Talep Oluşturuldu',
+                        'İstek Oluşturuldu',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

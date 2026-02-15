@@ -432,7 +432,7 @@ class _IzinTalepDetaySheet extends StatelessWidget {
                   children: [
                     _buildDetaySection(
                       icon: Icons.person_outline,
-                      title: 'Talep Eden Kişi',
+                      title: 'İstek Yapan Kişi',
                       items: [
                         _DetayItem(
                           label: 'Ad Soyad',
@@ -451,9 +451,9 @@ class _IzinTalepDetaySheet extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildDetaySection(
                       icon: Icons.info_outline,
-                      title: 'Talep Bilgileri',
+                      title: 'İstek Bilgileri',
                       items: [
-                        _DetayItem(label: 'Talep Türü', value: talep.onayTipi),
+                        _DetayItem(label: 'İstek Türü', value: talep.onayTipi),
                         _DetayItem(
                           label: 'Kayıt ID',
                           value: talep.onayKayitId.toString(),
@@ -558,7 +558,7 @@ class _IzinTalepDetaySheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'İzin Talep Detayı',
+                  'İzin İstek Detayı',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

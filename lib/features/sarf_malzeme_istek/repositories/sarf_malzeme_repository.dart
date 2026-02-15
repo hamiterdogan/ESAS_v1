@@ -250,7 +250,7 @@ class SarfMalzemeRepository {
       final responseData = response.data;
       if (response.statusCode != 200 ||
           (responseData is Map && responseData['basarili'] != true)) {
-        return Failure(responseData?['mesaj'] ?? 'Talep silinemedi.');
+        return Failure(responseData?['mesaj'] ?? 'İstek silinemedi.');
       }
 
       return const Success(null);

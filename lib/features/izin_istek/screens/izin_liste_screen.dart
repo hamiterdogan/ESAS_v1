@@ -523,9 +523,9 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('İzin Talebini İptal Et'),
+        title: const Text('İzin İsteğini İptal Et'),
         content: const Text(
-          'Bu izin talebini silmek istediğinizden emin misiniz?',
+          'Bu izin isteğini silmek istediğinizden emin misiniz?',
         ),
         actions: [
           TextButton(
@@ -554,7 +554,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('İzin talebi başarıyla iptal edildi'),
+            content: Text('İzin isteği başarıyla iptal edildi'),
             backgroundColor: AppColors.success,
           ),
         );

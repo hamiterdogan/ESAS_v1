@@ -351,7 +351,7 @@ class _DokumantasyonTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
         ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet('Hata: ${result.message}', isError: true);
       }

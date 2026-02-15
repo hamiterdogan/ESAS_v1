@@ -1228,7 +1228,7 @@ class _SarfMalzemeDetayScreenState
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Talep Oluşturuldu',
+                        'İstek Oluşturuldu',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,

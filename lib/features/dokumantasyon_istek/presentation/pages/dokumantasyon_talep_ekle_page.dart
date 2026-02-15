@@ -19,7 +19,7 @@ class DokumantasyonTalepEklePage extends ConsumerWidget {
       if (next.isSuccess) {
         AppDialogs.showSuccess(
           context,
-          'Talebiniz alındı.',
+          'İsteğiniz alındı.',
           onOk: () {
             Navigator.pop(context);
           },

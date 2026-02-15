@@ -470,7 +470,7 @@ class _SarfMalzemeTalepCard extends ConsumerWidget {
       if (result is Success) {
         ref.invalidate(sarfMalzemeDevamEdenTaleplerProvider);
         ref.invalidate(sarfMalzemeTamamlananTaleplerProvider);
-        helper.showInfoBottomSheet('Talep başarıyla silindi');
+        helper.showInfoBottomSheet('İstek başarıyla silindi');
       } else if (result is Failure) {
         helper.showInfoBottomSheet(
           'Silme başarısız: ${result.message}',
