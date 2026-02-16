@@ -56,6 +56,11 @@ class _DokumantasyonBaskiIstekScreenState
   List<String> _baskiBoyutlari = [];
   bool _isLoadingBaskiBoyutlari = false;
 
+  // Teslim Alınacak Yer
+  String? _selectedTeslimYeri;
+  List<String> _teslimYerleri = [];
+  bool _isLoadingTeslimYerleri = false;
+
   // Toggles
   bool _isRenkliBaski = false;
   bool _isArkaliOnlu = false;
@@ -91,6 +96,7 @@ class _DokumantasyonBaskiIstekScreenState
   final FocusNode _aciklamaFocusNode = FocusNode();
   final FocusNode _dokumanTuruFocusNode = FocusNode();
   final GlobalKey _dokumanTuruSectionKey = GlobalKey();
+  final GlobalKey _teslimYeriSectionKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -103,6 +109,49 @@ class _DokumantasyonBaskiIstekScreenState
 
     _fetchDokumanTurleri();
     _fetchBaskiBoyutlari();
+    _fetchTeslimYerleri();
+  }
+
+  Future<void> _fetchTeslimYerleri() async {
+    setState(() {
+      _isLoadingTeslimYerleri = true;
+    });
+
+    try {
+      final dio = ref.read(dioProvider);
+      final response = await dio.get('/DokumantasyonIstek/TeslimAlinacakYer');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data is List ? response.data : [];
+        setState(() {
+          _teslimYerleri = data.map((e) => e.toString()).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching teslim yerleri: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Teslim yerleri yüklenemedi: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingTeslimYerleri = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _scrollToTeslimYeriSection() async {
+    final ctx = _teslimYeriSectionKey.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      alignment: 0.1,
+    );
   }
 
   @override
@@ -629,6 +678,93 @@ class _DokumantasyonBaskiIstekScreenState
     });
   }
 
+  void _showTeslimYeriBottomSheet() async {
+    // Enhanced focus control
+    _dosyaIcerikFocusNode.canRequestFocus = false;
+    _aciklamaFocusNode.canRequestFocus = false;
+    FocusScope.of(context).unfocus();
+
+    if (_isActionInProgress) return;
+    setState(() => _isActionInProgress = true);
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.textOnPrimary,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Teslim Alınacak Yer Seçiniz',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              if (_isLoadingTeslimYerleri)
+                const SizedBox(
+                  height: 120,
+                  child: BrandedLoadingOverlay(
+                    indicatorSize: 48,
+                    strokeWidth: 6,
+                  ),
+                )
+              else if (_teslimYerleri.isEmpty)
+                const Center(child: Text('Teslim yeri bulunamadı'))
+              else
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: _teslimYerleri.length,
+                    separatorBuilder: (_, __) => Divider(
+                      height: 0.5,
+                      thickness: 0.5,
+                      color: Colors.grey.shade300,
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = _teslimYerleri[index];
+                      return ListTile(
+                        leading: _selectedTeslimYeri == item
+                            ? const Icon(
+                                Icons.check,
+                                color: AppColors.gradientStart,
+                              )
+                            : const SizedBox(width: 24),
+                        title: Text(item),
+                        onTap: () {
+                          setState(() {
+                            _selectedTeslimYeri = item;
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              const SizedBox(height: 50),
+            ],
+          ),
+        );
+      },
+    ).whenComplete(() {
+      if (mounted) setState(() => _isActionInProgress = false);
+    });
+
+    // Ensure keyboard stays hidden after BottomSheet closes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+        _dosyaIcerikFocusNode.canRequestFocus = true;
+        _aciklamaFocusNode.canRequestFocus = true;
+      }
+    });
+  }
+
   void _submit() {
     if (_isActionInProgress) return;
 
@@ -644,6 +780,22 @@ class _DokumantasyonBaskiIstekScreenState
             if (!mounted) return;
             _dokumanTuruFocusNode.requestFocus();
             _showDokumanTuruBottomSheet();
+          });
+        },
+      );
+      return;
+    }
+
+    if (_selectedTeslimYeri == null) {
+      ValidationUyariWidget.goster(
+        context: context,
+        message: 'Lütfen teslim alınacak yeri seçiniz',
+        onDismiss: () async {
+          if (!mounted) return;
+          await _scrollToTeslimYeriSection();
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (!mounted) return;
+            _showTeslimYeriBottomSheet(); // Bottom sheet açılıyor, klavye zaten focus yönetimi ile kapanıyor
           });
         },
       );
@@ -722,6 +874,7 @@ class _DokumantasyonBaskiIstekScreenState
       toplamSayfa: _baskiAdedi * _sayfaSayisi,
       ogrenciSayisi: totalStudents,
       okullarSatir: okullarSatir,
+      teslimAlinacakYer: _selectedTeslimYeri ?? '',
     );
 
     // Summary Items
@@ -735,6 +888,11 @@ class _DokumantasyonBaskiIstekScreenState
       GenericSummaryItem(
         label: 'Doküman Türü',
         value: _selectedDokumanTuru?.tur ?? '-',
+        multiLine: false,
+      ),
+      GenericSummaryItem(
+        label: 'Teslim Alınacak Yer',
+        value: _selectedTeslimYeri ?? '-',
         multiLine: false,
       ),
       GenericSummaryItem(
@@ -1106,6 +1264,64 @@ class _DokumantasyonBaskiIstekScreenState
                         const Icon(Icons.arrow_drop_down, color: Colors.grey),
                       ],
                     ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Teslim Alınacak Yer
+                KeyedSubtree(
+                  key: _teslimYeriSectionKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Teslim Alınacak Yer',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize: (Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.fontSize ??
+                                  14) +
+                              1,
+                          color: AppColors.primaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: _showTeslimYeriBottomSheet,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.textOnPrimary,
+                            border: Border.all(
+                              color: AppColors.borderStandartColor,
+                              width: 0.75,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _selectedTeslimYeri ?? 'Seçiniz',
+                                style: TextStyle(
+                                  color: _selectedTeslimYeri == null
+                                      ? Colors.grey.shade600
+                                      : AppColors.textPrimary,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down,
+                                  color: Colors.grey),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),

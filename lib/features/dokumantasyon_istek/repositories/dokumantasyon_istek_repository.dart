@@ -36,12 +36,33 @@ abstract class DokumantasyonIstekRepository {
   Future<Result<void>> dokumantasyonIstekGuncelle({
     required DokumantasyonIstekGuncelleReq request,
   });
+  Future<Result<List<String>>> teslimAlinacakYerleriGetir();
 }
 
 class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
   final Dio _dio;
 
   DokumantasyonIstekRepositoryImpl({required Dio dio}) : _dio = dio;
+
+  @override
+  Future<Result<List<String>>> teslimAlinacakYerleriGetir() async {
+    try {
+      final response = await _dio.get('/DokumantasyonIstek/TeslimAlinacakYer');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data is List ? response.data : [];
+        return Success(data.map((e) => e.toString()).toList());
+      }
+
+      return Failure('Hata: ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(
+        e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',
+      );
+    } catch (e) {
+      return Failure(e.toString());
+    }
+  }
 
   @override
   Future<Result<void>> dokumantasyonIstekEkle({

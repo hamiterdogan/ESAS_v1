@@ -961,6 +961,12 @@ class _DokumantasyonIstekDetayScreenState
       // ... Other read-only fields ...
       rows.add(
         _buildInfoRow(
+          'Teslim Alınacak Yer',
+          detay.teslimAlinacakYer.isNotEmpty ? detay.teslimAlinacakYer : '-',
+        ),
+      );
+      rows.add(
+        _buildInfoRow(
           'Açıklama',
           detay.aciklama.isNotEmpty ? detay.aciklama : '-',
           multiLine: true,
@@ -1131,7 +1137,14 @@ class _DokumantasyonIstekDetayScreenState
       ),
     );
 
-    // 9. Açıklama
+    // 9. Açıklama (Before: Teslim Alınacak Yer)
+    rows.add(
+      _buildInfoRow(
+        'Teslim Alınacak Yer',
+        detay.teslimAlinacakYer.isNotEmpty ? detay.teslimAlinacakYer : '-',
+      ),
+    );
+
     rows.add(
       _buildInfoRow(
         'Açıklama',

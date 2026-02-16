@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
+import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/constants/dev_users.dart';
@@ -9,6 +10,7 @@ import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
+import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 /// Ana sayfa - Tab navigation ile Ana Sayfa, İsteklerim ve Gelen Kutusu
 class HomeScreen extends ConsumerStatefulWidget {
@@ -83,6 +85,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           actions: [
+            // Bildirim ikonu (bell) + badge
+            Consumer(
+              builder: (context, ref, child) {
+                final bildirimSayisi = ref.watch(okunmamisBildirimSayisiProvider);
+                final count = bildirimSayisi.when(
+                  data: (data) => data,
+                  error: (_, __) => 0,
+                  loading: () => 0,
+                );
+                return IconButton(
+                  icon: count > 0
+                      ? Badge(
+                          label: Text(
+                            count > 99 ? '99+' : count.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          child: const Icon(
+                            Icons.notifications_outlined,
+                            color: AppColors.textOnPrimary,
+                            size: 26,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.textOnPrimary,
+                          size: 26,
+                        ),
+                  onPressed: () => context.push('/bildirimler'),
+                  tooltip: 'Bildirimler',
+                );
+              },
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 16, top: 8),
               child: Consumer(

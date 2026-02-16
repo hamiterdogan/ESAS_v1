@@ -1,4 +1,4 @@
-package com.example.esas_v1
+package com.esas_v1
 
 import io.flutter.embedding.android.FlutterActivity
 

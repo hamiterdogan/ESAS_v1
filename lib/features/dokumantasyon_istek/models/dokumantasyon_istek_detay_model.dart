@@ -24,6 +24,7 @@ class DokumantasyonIstekDetayResponse {
   final List<DokumantasyonOkulSatir> okullarSatir;
   final int? ogrenciSayisi;
   final DateTime? olusturmaTarihi;
+  final String teslimAlinacakYer;
 
   const DokumantasyonIstekDetayResponse({
     required this.id,
@@ -51,6 +52,7 @@ class DokumantasyonIstekDetayResponse {
     required this.okullarSatir,
     required this.ogrenciSayisi,
     required this.olusturmaTarihi,
+    required this.teslimAlinacakYer,
   });
 
   factory DokumantasyonIstekDetayResponse.fromJson(Map<String, dynamic> json) {
@@ -107,6 +109,7 @@ class DokumantasyonIstekDetayResponse {
       okullarSatir: okullar,
       ogrenciSayisi: parseInt(map['ogrenciSayisi']),
       olusturmaTarihi: parseDate(map['olusturmaTarihi']),
+      teslimAlinacakYer: map['teslimAlinacakYer']?.toString() ?? '',
     );
   }
 

@@ -24,6 +24,7 @@ import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_ekle_req
 import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_providers.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
+import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 
 class TemizlikMalzemesiIstekScreen extends ConsumerStatefulWidget {
   const TemizlikMalzemesiIstekScreen({super.key});
@@ -1317,90 +1318,110 @@ class _TemizlikMalzemesiIstekScreenState
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Builder(
-                                            builder: (context) {
-                                              final anaKategori =
-                                                  (urun.anaKategori ?? '')
-                                                      .trim();
-                                              final altKategori =
-                                                  (urun.altKategori ?? '')
-                                                      .trim();
-                                              final urunDetay =
-                                                  (urun.urunDetay ?? '').trim();
-
-                                              final miktar = urun.miktar ?? 0;
-                                              final birim =
-                                                  ((urun.olcuBirimi ?? '')
-                                                              .trim()
-                                                              .isNotEmpty
-                                                          ? urun.olcuBirimi
-                                                          : urun.olcuBirimiKisaltma)
-                                                      ?.trim();
-
-                                              String line3 =
-                                                  '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
-
-                                              // Display logic based on user request:
-                                              // "Ürün Alt Kategorisi" (Bold)
-                                              // "Ürün Detayı" (Font +1 -> 15)
-                                              // "Miktar Birim" (Font +1 -> 15)
-
-                                              // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
-                                              final titleText =
-                                                  altKategori.isNotEmpty
-                                                  ? altKategori
-                                                  : anaKategori;
-                                              // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
-
-                                              return Column(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(
-                                                    titleText,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                  if (urunDetay.isNotEmpty) ...[
-                                                    const SizedBox(height: 6),
-                                                    Text(
-                                                      urunDetay,
-                                                      style: TextStyle(
-                                                        fontSize:
-                                                            15, // +1px as requested
-                                                        color: Colors
-                                                            .grey
-                                                            .shade800,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                  const SizedBox(height: 6),
-                                                  Text(
-                                                    line3,
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          15, // +1px as requested
-                                                      color:
-                                                          Colors.grey.shade700,
-                                                    ),
+                                                  Builder(
+                                                    builder: (context) {
+                                                      final anaKategori =
+                                                          (urun.anaKategori ??
+                                                                  '')
+                                                              .trim();
+                                                      final altKategori =
+                                                          (urun.altKategori ??
+                                                                  '')
+                                                              .trim();
+                                                      final urunDetay =
+                                                          (urun.urunDetay ?? '')
+                                                              .trim();
+
+                                                      final miktar =
+                                                          urun.miktar ?? 0;
+                                                      final birim =
+                                                          ((urun.olcuBirimi ??
+                                                                          '')
+                                                                      .trim()
+                                                                      .isNotEmpty
+                                                                  ? urun.olcuBirimi
+                                                                  : urun.olcuBirimiKisaltma)
+                                                              ?.trim();
+
+                                                      String line3 =
+                                                          '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
+
+                                                      // Display logic based on user request:
+                                                      // "Ürün Alt Kategorisi" (Bold)
+                                                      // "Ürün Detayı" (Font +1 -> 15)
+                                                      // "Miktar Birim" (Font +1 -> 15)
+
+                                                      // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
+                                                      final titleText =
+                                                          altKategori.isNotEmpty
+                                                              ? altKategori
+                                                              : anaKategori;
+                                                      // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
+
+                                                      return Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            titleText,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.black,
+                                                            ),
+                                                          ),
+                                                          if (urunDetay
+                                                              .isNotEmpty) ...[
+                                                            const SizedBox(
+                                                                height: 6),
+                                                            Text(
+                                                              urunDetay,
+                                                              style: TextStyle(
+                                                                fontSize:
+                                                                    15, // +1px as requested
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade800,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                          const SizedBox(
+                                                              height: 6),
+                                                          Text(
+                                                            line3,
+                                                            style: TextStyle(
+                                                              fontSize:
+                                                                  15, // +1px as requested
+                                                              color: Colors.grey
+                                                                  .shade700,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
                                                   ),
                                                 ],
-                                              );
-                                            },
-                                          ),
-                                        ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const CardDuzenlemeIkon(),
+                                          ],
+                                        ),
                                       ),
-                                    ),
                                   ),
                                 ),
                               ),

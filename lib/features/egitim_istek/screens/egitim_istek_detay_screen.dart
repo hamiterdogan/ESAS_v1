@@ -285,6 +285,7 @@ class _EgitimIstekDetayScreenState
             const SizedBox(height: 16),
             _buildOnayFormAccordion(),
             _buildOnaySureciAccordion(),
+            const SizedBox(height: 15),
             _buildBildirimGideceklerAccordion(),
           ],
         ),

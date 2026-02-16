@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316264164023",
+    "project_id": "eyubogluesas",
+    "storage_bucket": "eyubogluesas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316264164023:android:e9d85176aa072964b93b32",
+        "android_client_info": {
+          "package_name": "com.esas_v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhsFbU1cwdrgYcP4-cZmVgnwn_63C3AR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

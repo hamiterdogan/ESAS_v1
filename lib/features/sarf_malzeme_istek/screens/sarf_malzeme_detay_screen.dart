@@ -987,7 +987,7 @@ class _SarfMalzemeDetayScreenState
   }
 
   Widget _buildBildirimGideceklerAccordion() {
-    const onayTipi = 'Satın Alma';
+    const onayTipi = 'Sarf Malzeme İstek';
     final onayDurumuAsync = ref.watch(
       onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
     );

@@ -32,12 +32,17 @@ import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolo
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolojileri_istek_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/teknik_destek_turu_secim_screen.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep_yonetim_screen.dart';
+import 'package:esas_v1/features/bildirim/screens/bildirim_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
   debugLogDiagnostics: true,
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/bildirimler',
+      builder: (context, state) => const BildirimScreen(),
+    ),
 
     GoRoute(
       path: '/arac_istek',

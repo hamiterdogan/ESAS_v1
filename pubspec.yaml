@@ -25,6 +25,9 @@ dependencies:
   image_picker: ^1.1.2
   shimmer: ^3.0.0
   scrollable_positioned_list: ^0.3.8
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
+  flutter_local_notifications: ^18.0.1
   # state_notifier removed - using Riverpod 3 Notifier pattern
 
 dev_dependencies:

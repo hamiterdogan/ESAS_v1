@@ -13,6 +13,8 @@ class DokumantasyonBaskiIstekReq {
   final int toplamSayfa;
   final int ogrenciSayisi;
   final List<OkulSatirItem> okullarSatir;
+  final String teslimAlinacakYer;
+  final String driveLink;
 
   // New fields for JSON payload
   final String departman;
@@ -34,10 +36,11 @@ class DokumantasyonBaskiIstekReq {
     required this.toplamSayfa,
     required this.ogrenciSayisi,
     required this.okullarSatir,
+    required this.teslimAlinacakYer,
+    this.driveLink = '',
     this.departman = '', // Default to empty based on sample
     this.paket = 0, // Default to 0 based on sample
-    this.a4Talebi =
-        true, // Defaulting to true, or infer from kagitTalebi if needed
+    this.a4Talebi = true, // Defaulting to true, or infer from kagitTalebi if needed
   });
 
   Map<String, dynamic> toJson() {
@@ -58,6 +61,8 @@ class DokumantasyonBaskiIstekReq {
       'olusturmaTarihi': DateTime.now().toIso8601String(),
       'okullarSatir': okullarSatir.map((e) => e.toJson()).toList(),
       'ogrenciSayisi': ogrenciSayisi,
+      'teslimAlinacakYer': teslimAlinacakYer,
+      'driveLink': driveLink,
     };
   }
 }

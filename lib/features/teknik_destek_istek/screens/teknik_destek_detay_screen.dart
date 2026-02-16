@@ -39,7 +39,7 @@ class _TeknikDestekDetayScreenState
   bool _hizmetBilgileriExpanded = true;
 
   bool _onayFormExpanded = true;
-  bool _bildirimGideceklerExpanded = true;
+
 
   // File Upload State
   final List<(String path, String fileName)> _selectedFiles = [];
@@ -274,7 +274,7 @@ class _TeknikDestekDetayScreenState
               detay.surecTamamlandi,
               detay.personelId,
             ),
-            _buildBildirimGideceklerAccordion(),
+
           ],
         ),
       ),
@@ -1085,134 +1085,7 @@ class _TeknikDestekDetayScreenState
     );
   }
 
-  Widget _buildBildirimGideceklerAccordion() {
-    const onayTipi = 'Teknik Destek';
-    final onayDurumuAsync = ref.watch(
-      onayDurumuProvider((talepId: widget.talepId, onayTipi: onayTipi)),
-    );
 
-    return onayDurumuAsync.when(
-      data: (onayDurumu) => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: onayDurumu.bildirimGidecekler.isEmpty
-            ? const Text(
-                'Bildirim gidecek personel bulunmamaktadır.',
-                style: TextStyle(color: AppColors.textPrimary),
-              )
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: onayDurumu.bildirimGidecekler.asMap().entries.map((
-                  entry,
-                ) {
-                  final index = entry.key;
-                  final p = entry.value;
-                  final isLast =
-                      index == onayDurumu.bildirimGidecekler.length - 1;
-                  return _buildBildirimPersonelCard(
-                    personelAdi: p.personelAdi,
-                    gorevYeri: p.gorevYeri,
-                    gorevi: p.gorevi,
-                    isLast: isLast,
-                  );
-                }).toList(),
-              ),
-      ),
-      loading: () => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: const BrandedLoadingIndicator(),
-          ),
-        ),
-      ),
-      error: (error, _) => _buildAccordion(
-        icon: Icons.notifications_outlined,
-        title: 'Bildirim Gidecekler',
-        isExpanded: _bildirimGideceklerExpanded,
-        onTap: () {
-          setState(() {
-            _bildirimGideceklerExpanded = !_bildirimGideceklerExpanded;
-          });
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Bildirim gidecekler yüklenemedi',
-            style: TextStyle(color: AppColors.error),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBildirimPersonelCard({
-    required String personelAdi,
-    required String gorevYeri,
-    required String gorevi,
-    required bool isLast,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 30),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      personelAdi,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      gorevi,
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      gorevYeri,
-                      style: TextStyle(
-                        color: AppColors.textTertiary,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!isLast) ...[
-          const SizedBox(height: 12),
-          const Divider(height: 1, thickness: 0.5, color: AppColors.border),
-          const SizedBox(height: 12),
-        ],
-      ],
-    );
-  }
 
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '-';
