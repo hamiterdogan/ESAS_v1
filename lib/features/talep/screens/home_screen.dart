@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/constants/dev_users.dart';
+import 'package:esas_v1/core/theme/theme_provider.dart';
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
@@ -85,6 +86,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
           actions: [
+            // Dark / Light mode toggle butonu
+            Consumer(
+              builder: (context, ref, _) {
+                final isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
+                return IconButton(
+                  tooltip: isDark ? 'Açık mod' : 'Karanlık mod',
+                  icon: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) => RotationTransition(
+                      turns: animation,
+                      child: FadeTransition(opacity: animation, child: child),
+                    ),
+                    child: Icon(
+                      isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                      key: ValueKey(isDark),
+                      color: AppColors.textOnPrimary,
+                      size: 24,
+                    ),
+                  ),
+                  onPressed: () =>
+                      ref.read(themeModeProvider.notifier).toggleTheme(),
+                );
+              },
+            ),
             // Bildirim ikonu (bell) + badge
             Consumer(
               builder: (context, ref, child) {

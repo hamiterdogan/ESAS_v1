@@ -6,10 +6,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/routing/router.dart';
 import 'core/network/dio_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/services/notification_service.dart';
 import 'features/bildirim/providers/notification_providers.dart';
-import 'common/widgets/branded_loading_indicator.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +35,6 @@ class _AppRootState extends State<AppRoot> {
 
   Future<void> _init() async {
     await Firebase.initializeApp();
-    // Diğer kritik beklemeleri buraya ekleyebiliriz
   }
 
   @override
@@ -83,8 +82,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Bildirim servisini ve token kaydını başlat
+    // Kaydedilmiş tema tercihini yükle
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(themeModeProvider.notifier).initTheme();
       _initNotificationService();
     });
   }
@@ -136,11 +136,15 @@ class _MyAppState extends ConsumerState<MyApp> {
       }
     });
 
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'ESAS - İzin İstek',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
