@@ -147,15 +147,21 @@ class _EgitimIstekDetayScreenState
         detay.topluIstek && detay.egitimAlacakPersoneller.isNotEmpty;
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          60 + MediaQuery.of(context).padding.bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(egitimIstekDetayProvider(widget.talepId));
+          ref.invalidate(
+            onayDurumuProvider((talepId: widget.talepId, onayTipi: 'Eğitim İstek')),
+          );
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            60 + MediaQuery.of(context).padding.bottom,
+          ),
           children: [
             _buildAccordion(
               icon: Icons.person_outline,

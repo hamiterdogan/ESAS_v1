@@ -186,9 +186,34 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   String? _currentFilterPage;
 
   bool get isFilterActive =>
-      _selectedSure != 'Tümü' ||
+      (_selectedSure != 'Tümü' && _selectedSure != '1 Ay') ||
       _selectedTalepTurleri.isNotEmpty ||
       _selectedTalepDurumlari.isNotEmpty;
+
+  String _resolveTeknikBilgiLabel(Talep talep) {
+    final onayTipiLower = talep.onayTipi.toLowerCase();
+    if (!onayTipiLower.contains('teknik destek')) {
+      return talep.onayTipi;
+    }
+
+    final hizmetTuruLower = (talep.hizmetTuru ?? '').toLowerCase().trim();
+
+    if (hizmetTuruLower.contains('bilgi teknoloj')) {
+      return 'Bilgi Teknolojileri';
+    }
+
+    if (hizmetTuruLower.contains('teknik hizmet') ||
+        hizmetTuruLower.contains('iç hizmet') ||
+        hizmetTuruLower.contains('ic hizmet')) {
+      return 'Teknik Destek';
+    }
+
+    if (_bilgiTekOnayKayitIds.contains(talep.onayKayitId)) {
+      return 'Bilgi Teknolojileri';
+    }
+
+    return 'Teknik Destek';
+  }
 
   @override
   void initState() {
@@ -390,19 +415,11 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
             }
 
             final talep = filteredTalepler[index];
-            final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
-              'teknik destek',
-            );
-            final shouldShowBilgiTeknolojileri =
-                isTeknikDestek &&
-                bilgiTekOnayKayitIds.contains(talep.onayKayitId);
 
             return RepaintBoundary(
               child: TalepKarti(
                 talep: talep,
-                displayOnayTipi: shouldShowBilgiTeknolojileri
-                    ? 'Bilgi Teknolojileri'
-                    : talep.onayTipi,
+                displayOnayTipi: _resolveTeknikBilgiLabel(talep),
                 talepList: filteredTalepler,
                 indexInList: index,
                 onReturnIndex: (returnIndex) {
@@ -688,7 +705,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                             _selectedTalepTurleri.clear();
                             _selectedTalepDurumlari.clear();
                           });
-                          
+
                           // Reset Date Filter in Provider
                           final provider = widget.tip == 0
                               ? devamEdenIsteklerimProvider
@@ -763,16 +780,24 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         DateTime? startDate;
                         switch (_selectedSure) {
                           case '1 Hafta':
-                            startDate = DateTime.now().subtract(const Duration(days: 7));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 7),
+                            );
                             break;
                           case '1 Ay':
-                            startDate = DateTime.now().subtract(const Duration(days: 30));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 30),
+                            );
                             break;
                           case '3 Ay':
-                            startDate = DateTime.now().subtract(const Duration(days: 90));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 90),
+                            );
                             break;
                           case '1 Yıl':
-                            startDate = DateTime.now().subtract(const Duration(days: 365));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 365),
+                            );
                             break;
                           case 'Tümü':
                           default:
@@ -781,7 +806,9 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
                         }
 
                         // Update provider (triggers API call if changed)
-                        ref.read(provider.notifier).updateDateFilter(
+                        ref
+                            .read(provider.notifier)
+                            .updateDateFilter(
                               startDate.toUtc().toIso8601String(),
                             );
 

@@ -44,6 +44,8 @@ abstract class TalepYonetimRepository {
   });
 
   Future<Result<void>> onayDurumuGuncelle(OnayDurumuGuncelleRequest request);
+
+  Future<Result<void>> onaySureciGorevAtama(OnaySureciGorevAtamaReq request);
 }
 
 class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
@@ -387,6 +389,26 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
       }
 
       return Failure('Hata (OnayDurumuGuncelle): ${response.statusCode}');
+    } on DioException catch (e) {
+      return Failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<void>> onaySureciGorevAtama(
+    OnaySureciGorevAtamaReq request,
+  ) async {
+    try {
+      final response = await dio.post(
+        '/TalepYonetimi/OnaySureciGorevAtama',
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return const Success(null);
+      }
+
+      return Failure('Hata: ${response.statusCode}');
     } on DioException catch (e) {
       return Failure(e.message ?? 'Bağlantı hatası');
     } catch (e) {

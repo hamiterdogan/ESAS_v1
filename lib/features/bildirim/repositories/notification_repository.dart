@@ -8,6 +8,10 @@ abstract class NotificationRepository {
   Future<Result<TokenKaydetResponse>> tokenKaydet({
     required String fcmToken,
     required String platform,
+    required String deviceId,
+    required String deviceBrand,
+    required String deviceModel,
+    required String osVersion,
   });
 
   Future<Result<BildirimListResponse>> bildirimListesiGetir({
@@ -39,13 +43,21 @@ class NotificationRepositoryImpl extends BaseRepository
   Future<Result<TokenKaydetResponse>> tokenKaydet({
     required String fcmToken,
     required String platform,
+    required String deviceId,
+    required String deviceBrand,
+    required String deviceModel,
+    required String osVersion,
   }) async {
     try {
       final response = await _dio.post(
-        '/Bildirim/TokenKaydet',
+        '/Notification/RegisterToken',
         data: {
           'fcmToken': fcmToken,
           'platform': platform,
+          'deviceId': deviceId,
+          'deviceBrand': deviceBrand,
+          'deviceModel': deviceModel,
+          'osVersion': osVersion,
         },
       );
       return handleResponse(

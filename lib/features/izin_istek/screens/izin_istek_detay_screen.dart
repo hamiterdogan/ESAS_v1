@@ -132,10 +132,19 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
 
   Widget _buildContent(BuildContext context, IzinIstekDetayResponse detay) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final resolvedOnayTipi = (widget.onayTipi ?? '').trim().isNotEmpty
+        ? widget.onayTipi!.trim()
+        : 'İzin İstek';
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(izinIstekDetayProvider(widget.talepId));
+        ref.invalidate(
+          onayDurumuProvider((talepId: widget.talepId, onayTipi: resolvedOnayTipi)),
+        );
+      },
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
         children: [
           // 1. Accordion - Personel Bilgileri
           _buildAccordion(

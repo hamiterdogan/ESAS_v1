@@ -99,20 +99,22 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
   /// Talep türüne göre ilgili detay provider'ı invalidate et
   void _invalidateDetayProvider(Talep talep) {
     final onayTipiLower = talep.onayTipi.toLowerCase();
-    
+
     // Onay durumu provider'ı için kullanılacak onay tipi
     String? onayDurumuTipi;
 
     if (onayTipiLower.contains('izin')) {
       ref.invalidate(izinIstekDetayProvider(talep.onayKayitId));
       onayDurumuTipi = talep.onayTipi;
-    } else if (onayTipiLower.contains('araç') || onayTipiLower.contains('arac')) {
+    } else if (onayTipiLower.contains('araç') ||
+        onayTipiLower.contains('arac')) {
       ref.invalidate(aracIstekDetayProvider(talep.onayKayitId));
       onayDurumuTipi = 'Araç İstek';
     } else if (onayTipiLower.contains('dok')) {
       ref.invalidate(dokumantasyonIstekDetayProvider(talep.onayKayitId));
       onayDurumuTipi = talep.onayTipi;
-    } else if (onayTipiLower.contains('satın') || onayTipiLower.contains('satin')) {
+    } else if (onayTipiLower.contains('satın') ||
+        onayTipiLower.contains('satin')) {
       ref.invalidate(satinAlmaDetayProvider(talep.onayKayitId));
       onayDurumuTipi = 'Satın Alma';
     } else if (onayTipiLower.contains('teknik destek')) {
@@ -120,32 +122,71 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       onayDurumuTipi = 'Teknik Destek';
     } else if (onayTipiLower.contains('sarf malzeme')) {
       ref.invalidate(sarfMalzemeDetayProvider(talep.onayKayitId));
-      onayDurumuTipi = 'Satın Alma'; // Sarf Malzeme detay ekranında 'Satın Alma' kullanılıyor
+      onayDurumuTipi =
+          'Satın Alma'; // Sarf Malzeme detay ekranında 'Satın Alma' kullanılıyor
     } else if (onayTipiLower.contains('yiyecek') ||
         onayTipiLower.contains('içecek') ||
         onayTipiLower.contains('icecek')) {
       ref.invalidate(yiyecekIstekDetayProvider(talep.onayKayitId));
       onayDurumuTipi = 'Yiyecek İçecek İstek';
-    } else if (onayTipiLower.contains('eğitim') || onayTipiLower.contains('egitim')) {
+    } else if (onayTipiLower.contains('eğitim') ||
+        onayTipiLower.contains('egitim')) {
       ref.invalidate(egitimIstekDetayProvider(talep.onayKayitId));
       onayDurumuTipi = 'Eğitim İstek';
     }
 
     // Onay durumu provider'ını da invalidate et
     if (onayDurumuTipi != null) {
-      ref.invalidate(onayDurumuProvider((talepId: talep.onayKayitId, onayTipi: onayDurumuTipi)));
-      
+      ref.invalidate(
+        onayDurumuProvider((
+          talepId: talep.onayKayitId,
+          onayTipi: onayDurumuTipi,
+        )),
+      );
+
       // Eğer talep.onayTipi belirlenen tipten farklıysa, onu da invalidate et (güvenlik için)
-      if (onayDurumuTipi != talep.onayTipi && 
+      if (onayDurumuTipi != talep.onayTipi &&
           onayDurumuTipi != talep.onayTipi.trim()) {
-        ref.invalidate(onayDurumuProvider((talepId: talep.onayKayitId, onayTipi: talep.onayTipi)));
+        ref.invalidate(
+          onayDurumuProvider((
+            talepId: talep.onayKayitId,
+            onayTipi: talep.onayTipi,
+          )),
+        );
       }
     }
   }
 
+  String _resolveTeknikBilgiBaslik(String? hizmetTuru) {
+    final hizmetTuruLower = (hizmetTuru ?? '').toLowerCase().trim();
+    if (hizmetTuruLower.contains('bilgi teknoloj')) {
+      return 'Bilgi Teknolojileri İstek Detayı';
+    }
+    if (hizmetTuruLower.contains('teknik hizmet') ||
+        hizmetTuruLower.contains('iç hizmet') ||
+        hizmetTuruLower.contains('ic hizmet')) {
+      return 'Teknik Destek İstek Detayı';
+    }
+    return 'Teknik Destek İstek Detayı';
+  }
+
+  String _resolveTeknikBilgiBaslikFromTalep(Talep talep) {
+    final fromHizmetTuru = talep.hizmetTuru;
+    if ((fromHizmetTuru ?? '').trim().isNotEmpty) {
+      return _resolveTeknikBilgiBaslik(fromHizmetTuru);
+    }
+
+    final fromAction = talep.actionAdi;
+    if ((fromAction ?? '').trim().isNotEmpty) {
+      return _resolveTeknikBilgiBaslik(fromAction);
+    }
+
+    return 'Teknik Destek İstek Detayı';
+  }
+
   /// Talep türüne göre Türkçe başlık döndür
-  String _getDetayBaslik(String onayTipi) {
-    final onayTipiLower = onayTipi.toLowerCase();
+  String _getDetayBaslik(Talep talep) {
+    final onayTipiLower = talep.onayTipi.toLowerCase();
 
     if (onayTipiLower.contains('izin')) {
       return 'İzin İstek Detayı';
@@ -158,7 +199,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
         onayTipiLower.contains('satin')) {
       return 'Satın Alma Detayı';
     } else if (onayTipiLower.contains('teknik destek')) {
-      return 'Bilgi Teknolojileri İstek Detayı';
+      return _resolveTeknikBilgiBaslik(talep.hizmetTuru);
     } else if (onayTipiLower.contains('sarf malzeme')) {
       return 'Sarf Malzeme Detayı';
     } else if (onayTipiLower.contains('yiyecek') ||
@@ -232,6 +273,19 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
   @override
   Widget build(BuildContext context) {
     final currentTalep = widget.talepList[_currentIndex];
+    final onayTipiLower = currentTalep.onayTipi.toLowerCase();
+
+    final teknikDetayAsync = onayTipiLower.contains('teknik destek')
+        ? ref.watch(teknikDestekDetayProvider(currentTalep.onayKayitId))
+        : null;
+
+    final detayBaslik = onayTipiLower.contains('teknik destek')
+        ? teknikDetayAsync?.maybeWhen(
+                data: (detay) => _resolveTeknikBilgiBaslik(detay.hizmetTuru),
+                orElse: () => _resolveTeknikBilgiBaslikFromTalep(currentTalep),
+              ) ??
+              _resolveTeknikBilgiBaslikFromTalep(currentTalep)
+        : _getDetayBaslik(currentTalep);
 
     return PopScope(
       canPop: false,
@@ -252,7 +306,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
             onPressed: () => Navigator.of(context).pop(_currentIndex),
           ),
           title: Text(
-            '${_getDetayBaslik(currentTalep.onayTipi)} (${currentTalep.onayKayitId})',
+            '$detayBaslik (${currentTalep.onayKayitId})',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

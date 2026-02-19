@@ -28,6 +28,8 @@ dependencies:
   firebase_core: ^3.12.1
   firebase_messaging: ^15.2.4
   flutter_local_notifications: ^18.0.1
+  device_info_plus: ^12.3.0
+  shared_preferences: ^2.3.4
   # state_notifier removed - using Riverpod 3 Notifier pattern
 
 dev_dependencies:

@@ -36,7 +36,7 @@ import 'package:esas_v1/features/bildirim/screens/bildirim_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
-  debugLogDiagnostics: true,
+  debugLogDiagnostics: false,
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     GoRoute(

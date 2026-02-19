@@ -30,10 +30,13 @@ class IzinDetayScreen extends ConsumerWidget {
         ),
       ),
       data: (detay) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(izinDetayProvider(izinId));
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 60),
             children: [
               // Personel Bilgileri
               _buildSection('Personel Bilgileri', [

@@ -40,7 +40,6 @@ class _TeknikDestekDetayScreenState
 
   bool _onayFormExpanded = true;
 
-
   // File Upload State
   final List<(String path, String fileName)> _selectedFiles = [];
   final ImagePicker _picker = ImagePicker();
@@ -192,9 +191,24 @@ class _TeknikDestekDetayScreenState
   }
 
   String _buildDetayTitle(String? hizmetTuru) {
-    final normalized = (hizmetTuru ?? '').trim();
-    final prefix = normalized.isNotEmpty ? normalized : 'Bilgi Teknolojileri';
+    final prefix = _getHizmetBaslik(hizmetTuru);
     return '$prefix İstek Detayı (${widget.talepId})';
+  }
+
+  String _getHizmetBaslik(String? hizmetTuru) {
+    final normalized = (hizmetTuru ?? '').toLowerCase().trim();
+
+    if (normalized.contains('bilgi teknoloj')) {
+      return 'Bilgi Teknolojileri';
+    }
+
+    if (normalized.contains('teknik hizmet') ||
+        normalized.contains('iç hizmet') ||
+        normalized.contains('ic hizmet')) {
+      return 'Teknik Destek';
+    }
+
+    return 'Teknik Destek';
   }
 
   Widget _buildContent(
@@ -211,15 +225,24 @@ class _TeknikDestekDetayScreenState
         : (personelAsync.value?.gorev ?? '-');
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          60 + MediaQuery.of(context).padding.bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(teknikDestekDetayParalelProvider(widget.talepId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: widget.talepId,
+              onayTipi: 'Teknik Destek',
+            )),
+          );
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            60 + MediaQuery.of(context).padding.bottom,
+          ),
           children: [
             _buildAccordion(
               icon: Icons.person_outline,
@@ -252,7 +275,7 @@ class _TeknikDestekDetayScreenState
             const SizedBox(height: 16),
             _buildAccordion(
               icon: Icons.build_outlined,
-              title: 'Bilgi Teknolojileri İstek Detayları',
+              title: '${_getHizmetBaslik(detay.hizmetTuru)} İstek Detayları',
               isExpanded: _teknikDestekDetaylariExpanded,
               onTap: () {
                 setState(() {
@@ -274,7 +297,6 @@ class _TeknikDestekDetayScreenState
               detay.surecTamamlandi,
               detay.personelId,
             ),
-
           ],
         ),
       ),
@@ -961,7 +983,6 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           if (result is Success) {
-
                             ref
                                 .read(devamEdenGelenKutusuProvider.notifier)
                                 .refresh();
@@ -1084,8 +1105,6 @@ class _TeknikDestekDetayScreenState
       error: (_, __) => const SizedBox(height: 16),
     );
   }
-
-
 
   String _formatDate(String dateString) {
     if (dateString.isEmpty) return '-';

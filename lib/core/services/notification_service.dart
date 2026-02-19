@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/core/services/device_registration_service.dart';
 import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
@@ -50,16 +51,17 @@ class NotificationService {
 
   /// Servisi başlat
   Future<void> initialize() async {
-    // Background handler kaydet
+    // Background handler kaydet (sync, hemen)
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // İzin iste
-    await _requestPermission();
+    // İzin isteği, local notifications kurulumu ve başlangıç mesajını paralel çalıştır
+    final results = await Future.wait([
+      _requestPermission(),
+      _setupLocalNotifications(),
+      _messaging.getInitialMessage(),
+    ]);
 
-    // Local notifications kur
-    await _setupLocalNotifications();
-
-    // Android notification channel oluştur
+    // Android notification channel (local notifications hazır olduktan sonra)
     await _createNotificationChannel();
 
     // Foreground mesaj dinle
@@ -69,7 +71,7 @@ class NotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
     // App tamamen kapalıyken bildirime tıklama
-    final initialMessage = await _messaging.getInitialMessage();
+    final initialMessage = results[2] as RemoteMessage?;
     if (initialMessage != null) {
       _handleMessageOpenedApp(initialMessage);
     }
@@ -84,26 +86,36 @@ class NotificationService {
     _ref = ref;
   }
 
-  /// FCM Token'ı al ve API'ye kaydet
+  /// FCM Token'ı al ve API'ye cihaz bilgileriyle birlikte kaydet.
+  /// Aynı token daha önce kaydedilmişse API çağrısı yapılmaz.
   Future<String?> getAndRegisterToken(NotificationRepository repo) async {
     try {
       final token = await _messaging.getToken();
       if (token != null) {
         if (kDebugMode) {
-          print('🔑 FCM Token: $token');
+          print('\n🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+          print('🔥 FCM Token: $token');
+          print('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥\n');
         }
 
-        final platform = Platform.isIOS ? 'ios' : 'android';
-        await repo.tokenKaydet(fcmToken: token, platform: platform);
+        await DeviceRegistrationService().registerDevice(
+          fcmToken: token,
+          repo: repo,
+        );
       }
 
-      // Token yenilendiğinde tekrar kaydet
+      // Token yenilendiğinde eski kaydı sıfırla ve yeniden kayıt yap
       _messaging.onTokenRefresh.listen((newToken) async {
         if (kDebugMode) {
           print('🔄 FCM Token yenilendi: $newToken');
         }
-        final platform = Platform.isIOS ? 'ios' : 'android';
-        await repo.tokenKaydet(fcmToken: newToken, platform: platform);
+        // Eski kaydı sil, yeni token'ı zorla kaydet
+        await DeviceRegistrationService().clearRegistration();
+        await DeviceRegistrationService().registerDevice(
+          fcmToken: newToken,
+          repo: repo,
+          forceRefresh: true,
+        );
       });
 
       return token;
@@ -141,29 +153,30 @@ class NotificationService {
 
   /// Local notifications kur
   Future<void> _setupLocalNotifications() async {
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
 
     // iOS notification categories (aksiyon butonları için)
     final List<DarwinNotificationCategory> darwinNotificationCategories =
         <DarwinNotificationCategory>[
-      DarwinNotificationCategory(
-        'ONAY_BEKLIYOR',
-        actions: <DarwinNotificationAction>[
-          DarwinNotificationAction.plain('onayla', 'Onayla'),
-          DarwinNotificationAction.plain(
-            'reddet',
-            'Reddet',
-            options: <DarwinNotificationActionOption>{
-              DarwinNotificationActionOption.destructive,
+          DarwinNotificationCategory(
+            'ONAY_BEKLIYOR',
+            actions: <DarwinNotificationAction>[
+              DarwinNotificationAction.plain('onayla', 'Onayla'),
+              DarwinNotificationAction.plain(
+                'reddet',
+                'Reddet',
+                options: <DarwinNotificationActionOption>{
+                  DarwinNotificationActionOption.destructive,
+                },
+              ),
+            ],
+            options: <DarwinNotificationCategoryOption>{
+              DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
             },
           ),
-        ],
-        options: <DarwinNotificationCategoryOption>{
-          DarwinNotificationCategoryOption.hiddenPreviewShowTitle,
-        },
-      )
-    ];
+        ];
 
     final iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -171,7 +184,7 @@ class NotificationService {
       requestSoundPermission: true,
       notificationCategories: darwinNotificationCategories,
     );
-    
+
     final settings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
@@ -187,7 +200,8 @@ class NotificationService {
   Future<void> _createNotificationChannel() async {
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(_channel);
   }
 
@@ -241,7 +255,9 @@ class NotificationService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      categoryIdentifier: aksiyonTipi == 'onay_bekliyor' ? 'ONAY_BEKLIYOR' : null,
+      categoryIdentifier: aksiyonTipi == 'onay_bekliyor'
+          ? 'ONAY_BEKLIYOR'
+          : null,
     );
 
     final details = NotificationDetails(
@@ -255,7 +271,7 @@ class NotificationService {
     _localNotifications.show(
       message.hashCode,
       notification.title,
-      notification.body,
+      notification.body?.replaceAll('<br />', '\n'),
       details,
       payload: payload,
     );
@@ -347,7 +363,9 @@ class NotificationService {
 
   /// Bildirim action button handler (Onayla/Reddet)
   Future<void> _handleNotificationAction(
-      String actionId, String? payload) async {
+    String actionId,
+    String? payload,
+  ) async {
     if (payload == null || _ref == null) return;
 
     final data = _decodePayload(payload);

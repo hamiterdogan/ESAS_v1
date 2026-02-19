@@ -212,10 +212,35 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
   bool get isFilterActive =>
       _selectedTalepTurleri.isNotEmpty ||
       _selectedTalepEdenler.isNotEmpty ||
-      _selectedTalepTarihi != 'Tümü' ||
+      (_selectedTalepTarihi != 'Tümü' && _selectedTalepTarihi != '1 Ay') ||
       _selectedTalepDurumlari.isNotEmpty ||
       _selectedGorevler.isNotEmpty ||
       _selectedGorevYerleri.isNotEmpty;
+
+  String _resolveTeknikBilgiLabel(Talep talep) {
+    final onayTipiLower = talep.onayTipi.toLowerCase();
+    if (!onayTipiLower.contains('teknik destek')) {
+      return talep.onayTipi;
+    }
+
+    final hizmetTuruLower = (talep.hizmetTuru ?? '').toLowerCase().trim();
+
+    if (hizmetTuruLower.contains('bilgi teknoloj')) {
+      return 'Bilgi Teknolojileri';
+    }
+
+    if (hizmetTuruLower.contains('teknik hizmet') ||
+        hizmetTuruLower.contains('iç hizmet') ||
+        hizmetTuruLower.contains('ic hizmet')) {
+      return 'Teknik Destek';
+    }
+
+    if (_bilgiTekOnayKayitIds.contains(talep.onayKayitId)) {
+      return 'Bilgi Teknolojileri';
+    }
+
+    return 'Teknik Destek';
+  }
 
   @override
   void initState() {
@@ -672,12 +697,12 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                             _selectedGorevler.clear();
                             _selectedGorevYerleri.clear();
                           });
-                          
+
                           // Reset Date Filter in Provider
                           final provider = widget.tip == 2
                               ? devamEdenGelenKutusuProvider
                               : tamamlananGelenKutusuProvider;
-                          
+
                           // Reset to default (null will use provider default of 30 days)
                           ref.read(provider.notifier).updateDateFilter(null);
 
@@ -757,16 +782,24 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                         DateTime? startDate;
                         switch (_selectedTalepTarihi) {
                           case '1 Hafta':
-                            startDate = DateTime.now().subtract(const Duration(days: 7));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 7),
+                            );
                             break;
                           case '1 Ay':
-                            startDate = DateTime.now().subtract(const Duration(days: 30));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 30),
+                            );
                             break;
                           case '3 Ay':
-                            startDate = DateTime.now().subtract(const Duration(days: 90));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 90),
+                            );
                             break;
                           case '1 Yıl':
-                            startDate = DateTime.now().subtract(const Duration(days: 365));
+                            startDate = DateTime.now().subtract(
+                              const Duration(days: 365),
+                            );
                             break;
                           case 'Tümü':
                           default:
@@ -776,7 +809,9 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
                         }
 
                         // Update provider (triggers API call if changed)
-                        ref.read(provider.notifier).updateDateFilter(
+                        ref
+                            .read(provider.notifier)
+                            .updateDateFilter(
                               startDate.toUtc().toIso8601String(),
                             );
 
@@ -1692,19 +1727,11 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
             }
 
             final talep = filteredTalepler[index];
-            final isTeknikDestek = talep.onayTipi.toLowerCase().contains(
-              'teknik destek',
-            );
-            final shouldShowBilgiTeknolojileri =
-                isTeknikDestek &&
-                _bilgiTekOnayKayitIds.contains(talep.onayKayitId);
 
             return RepaintBoundary(
               child: GelenKutusuKarti(
                 talep: talep,
-                displayOnayTipi: shouldShowBilgiTeknolojileri
-                    ? 'Bilgi Teknolojileri'
-                    : talep.onayTipi,
+                displayOnayTipi: _resolveTeknikBilgiLabel(talep),
                 talepList: filteredTalepler,
                 indexInList: index,
                 isTamamlanan: widget.tip == 3,

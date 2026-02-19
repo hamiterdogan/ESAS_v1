@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
-import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
@@ -21,6 +20,7 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart'
 import 'package:esas_v1/features/satin_alma/models/satin_alma_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
+import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_urun_ekle_screen.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
@@ -45,6 +45,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final TextEditingController _alimAmaciController = TextEditingController();
   final FocusNode _alimAmaciFocusNode = FocusNode();
   final GlobalKey _alimAmaciKey = GlobalKey();
+  final GlobalKey _urunEkleKey = GlobalKey();
   final TextEditingController _saticiFirmaController = TextEditingController();
   final TextEditingController _saticiTelefonController =
       TextEditingController();
@@ -60,8 +61,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final List<PlatformFile> _selectedFiles = [];
   final TextEditingController _fiyatTeklifIcerikController =
       TextEditingController();
-  final FocusNode _urunEkleButtonFocusNode = FocusNode();
-  final GlobalKey _urunEkleButtonKey = GlobalKey();
 
   double _parseMoneyToDouble(String value) {
     final cleaned = value
@@ -141,8 +140,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text('Dosya seçimi başarısız: $e')));
       }
-    } finally {
-      _unlockInputsAfterSheet();
     }
   }
 
@@ -165,8 +162,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
         );
       }
-    } finally {
-      _unlockInputsAfterSheet();
     }
   }
 
@@ -189,8 +184,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           SnackBar(content: Text('Fotoğraf seçimi başarısız: $e')),
         );
       }
-    } finally {
-      _unlockInputsAfterSheet();
     }
   }
 
@@ -460,7 +453,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     _searchBinaController.dispose();
     _genelToplamController.dispose();
     _fiyatTeklifIcerikController.dispose();
-    _urunEkleButtonFocusNode.dispose();
     super.dispose();
   }
 
@@ -1342,8 +1334,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
+                                      child: Padding(
+                                       padding: const EdgeInsets.all(16.0),
                                       child: Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
@@ -1362,11 +1354,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                         (urun.altKategori ?? '')
                                                             .trim();
                                                     final urunDetay =
-                                                        (urun.urunDetay ?? '')
-                                                            .trim();
+                                                        (urun.urunDetay ?? '').trim();
 
-                                                    final miktar =
-                                                        urun.miktar ?? 0;
+                                                    final miktar = urun.miktar ?? 0;
                                                     final birim =
                                                         ((urun.olcuBirimiKisaltma ??
                                                                         '')
@@ -1377,38 +1367,27 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ?.trim();
 
                                                     final paraKod =
-                                                        (urun.paraBirimiKod ??
-                                                                '')
+                                                        (urun.paraBirimiKod ?? '')
                                                             .trim();
                                                     final displayParaKod =
-                                                        paraKod.toUpperCase() ==
-                                                            'TRY'
+                                                        paraKod.toUpperCase() == 'TRY'
                                                         ? 'TL'
                                                         : paraKod;
 
                                                     final fiyatAna =
-                                                        (urun.fiyatAna ?? '')
-                                                            .trim();
+                                                        (urun.fiyatAna ?? '').trim();
                                                     final fiyatKusurat =
-                                                        (urun.fiyatKusurat ??
-                                                                '')
+                                                        (urun.fiyatKusurat ?? '')
                                                             .trim();
 
                                                     // Birim fiyatı KDV dahil olarak hesapla
-                                                    double birimFiyatDouble =
-                                                        0.0;
+                                                    double birimFiyatDouble = 0.0;
                                                     try {
                                                       final fiyatAnaDouble =
                                                           double.tryParse(
                                                             fiyatAna
-                                                                .replaceAll(
-                                                                  '.',
-                                                                  '',
-                                                                )
-                                                                .replaceAll(
-                                                                  ',',
-                                                                  '.',
-                                                                ),
+                                                                .replaceAll('.', '')
+                                                                .replaceAll(',', '.'),
                                                           ) ??
                                                           0;
                                                       final fiyatKusuratDouble =
@@ -1418,30 +1397,25 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                           0;
                                                       birimFiyatDouble =
                                                           fiyatAnaDouble +
-                                                          (fiyatKusuratDouble /
-                                                              100);
+                                                          (fiyatKusuratDouble / 100);
 
                                                       // KDV ekle
                                                       if (urun.kdvDahilDegil &&
                                                           urun.kdvOrani > 0) {
                                                         birimFiyatDouble +=
                                                             birimFiyatDouble *
-                                                            (urun.kdvOrani /
-                                                                100);
+                                                            (urun.kdvOrani / 100);
                                                       }
                                                     } catch (e) {
                                                       birimFiyatDouble = 0.0;
                                                     }
 
-                                                    final numberFormat =
-                                                        NumberFormat(
-                                                          '#,##0.00',
-                                                          'tr_TR',
-                                                        );
-                                                    final birimFiyat =
-                                                        numberFormat.format(
-                                                          birimFiyatDouble,
-                                                        );
+                                                    final numberFormat = NumberFormat(
+                                                      '#,##0.00',
+                                                      'tr_TR',
+                                                    );
+                                                    final birimFiyat = numberFormat
+                                                        .format(birimFiyatDouble);
 
                                                     final toplamFiyat =
                                                         (urun.toplamFiyat ?? '')
@@ -1449,8 +1423,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive:
-                                                                    false,
+                                                                caseSensitive: false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1460,8 +1433,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive:
-                                                                    false,
+                                                                caseSensitive: false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1471,8 +1443,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive:
-                                                                    false,
+                                                                caseSensitive: false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1480,8 +1451,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                     String line3 =
                                                         '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
                                                     if (birimFiyat.isNotEmpty ||
-                                                        displayParaKod
-                                                            .isNotEmpty) {
+                                                        displayParaKod.isNotEmpty) {
                                                       final birimFiyatHasPara =
                                                           birimFiyat
                                                               .toUpperCase()
@@ -1521,9 +1491,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                     final line4 =
                                                         displayParaKod
                                                                 .toUpperCase()
-                                                                .contains(
-                                                                  'TRY',
-                                                                ) ||
+                                                                .contains('TRY') ||
                                                             displayParaKod
                                                                 .toUpperCase()
                                                                 .contains('TL')
@@ -1533,25 +1501,24 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
                                                     return Column(
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                          CrossAxisAlignment.start,
                                                       children: [
                                                         RichText(
                                                           text: TextSpan(
                                                             style: const TextStyle(
-                                                              fontSize: 15,
+                                                              fontSize: 16,
                                                               color: AppColors
                                                                   .textPrimary,
                                                             ),
                                                             children: [
                                                               TextSpan(
-                                                                text:
-                                                                    anaKategori,
-                                                                style: const TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                ),
+                                                                text: anaKategori,
+                                                                style:
+                                                                    const TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                    ),
                                                               ),
                                                               if (altKategori
                                                                   .isNotEmpty)
@@ -1570,45 +1537,35 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ],
                                                           ),
                                                         ),
-                                                        if (urunDetay
-                                                            .isNotEmpty) ...[
-                                                          const SizedBox(
-                                                            height: 4,
-                                                          ),
+                                                        if (urunDetay.isNotEmpty) ...[
+                                                          const SizedBox(height: 6),
                                                           Text(
                                                             urunDetay,
                                                             style: TextStyle(
-                                                              fontSize: 13,
+                                                              fontSize: 14,
                                                               color: Colors
                                                                   .grey
                                                                   .shade800,
                                                             ),
                                                           ),
                                                         ],
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
+                                                        const SizedBox(height: 6),
                                                         Text(
                                                           line3,
                                                           style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: Colors
-                                                                .grey
-                                                                .shade700,
+                                                            fontSize: 14,
+                                                            color:
+                                                                Colors.grey.shade700,
                                                           ),
                                                         ),
-                                                        if (line4
-                                                            .isNotEmpty) ...[
-                                                          const SizedBox(
-                                                            height: 4,
-                                                          ),
+                                                        if (line4.isNotEmpty) ...[
+                                                          const SizedBox(height: 6),
                                                           Text(
                                                             line4,
                                                             style: const TextStyle(
-                                                              fontSize: 13,
+                                                              fontSize: 14,
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
+                                                                  FontWeight.w600,
                                                               color: AppColors
                                                                   .gradientStart,
                                                             ),
@@ -1635,287 +1592,274 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Ürün/Hizmet Ekle Butonu
-                    Padding(
-                      key: _urunEkleButtonKey,
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      child: Focus(
-                        focusNode: _urunEkleButtonFocusNode,
-                        child: InkWell(
-                          onTap: () async {
-                            FocusScope.of(context).unfocus();
-                            final result =
-                                await Navigator.push<SatinAlmaUrunBilgisi>(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SatinAlmaUrunEkleScreen(),
-                              ),
-                            );
+                  ],
+                  Padding(
+                    key: _urunEkleKey,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: InkWell(
+                      onTap: () async {
+                        final result =
+                            await Navigator.push<SatinAlmaUrunBilgisi>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const SatinAlmaUrunEkleScreen(),
+                          ),
+                        );
 
-                            if (mounted) {
-                              // Klavye kapalı kalsın ve focus butona geçsin
-                              FocusScope.of(context).unfocus();
-                              _urunEkleButtonFocusNode.requestFocus();
-                              // Butona scroll ol
-                              await _scrollToWidget(_urunEkleButtonKey);
+                        if (result != null) {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            _urunler.add(result);
+                            _updateGenelToplam();
+                          });
+                          
+                          // Scroll to the button after frame is rendered
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (_urunEkleKey.currentContext != null) {
+                              Scrollable.ensureVisible(
+                                _urunEkleKey.currentContext!,
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                alignment: 0.5,
+                              );
                             }
-
-                            if (result != null) {
-                              setState(() {
-                                _urunler.add(result);
-                                _updateGenelToplam();
-                              });
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _urunEkleButtonFocusNode.hasFocus
-                                  ? AppColors.primarySurface
-                                  : AppColors.textOnPrimary,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: _urunEkleButtonFocusNode.hasFocus
-                                    ? AppColors.primary
-                                    : AppColors.borderStandartColor,
-                                width: _urunEkleButtonFocusNode.hasFocus
-                                    ? 1.5
-                                    : 0.75,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Ürün/Hizmet Ekle',
-                                  style: TextStyle(
-                                    color: _urunEkleButtonFocusNode.hasFocus
-                                        ? AppColors.primary
-                                        : AppColors.textPrimary,
-                                    fontWeight:
-                                        _urunEkleButtonFocusNode.hasFocus
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Text(
-                                  '+',
-                                  style: TextStyle(
-                                    color: _urunEkleButtonFocusNode.hasFocus
-                                        ? AppColors.primary
-                                        : AppColors.textPrimary,
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w300,
-                                    height: 1.0,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
-                      child: Divider(height: 1, color: Colors.grey.shade400),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Genel Toplam',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                        color: AppColors.inputLabelColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _genelToplamController,
-                      readOnly: true,
-                      decoration: InputDecoration(
-                        hintText: '0,00 TL',
-                        filled: true,
-                        fillColor: AppColors.textOnPrimary,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: AppColors.borderStandartColor,
-                            width: 0.75,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: AppColors.borderStandartColor,
-                            width: 0.75,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppColors.gradientStart,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
+                          });
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
                           vertical: 12,
                         ),
+                        decoration: BoxDecoration(
+                          color: AppColors.textOnPrimary,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.borderStandartColor,
+                            width: 0.75,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Ürün/Hizmet Ekle',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Text(
+                              '+',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w300,
+                                height: 1.0,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  ),
 
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Genel Toplam',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _genelToplamController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: '0,00 TL',
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: OdemeSekliWidget(
+                          title: 'Ödeme Şekli',
+                          selectedOdemeTuru: _selectedOdemeTuru,
+                          onOdemeTuruSelected: (val) {
+                            setState(() {
+                              _selectedOdemeTuru = val;
+                            });
+                          },
+                          onBeforeShowSheet: _lockAndUnfocusInputs,
+                          onAfterHideSheet: _unlockInputsAfterSheet,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      CustomSwitchWidget(
+                        value: _vadeli,
+                        label: 'Vadeli',
+                        onChanged: (v) {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            _vadeli = v;
+                            if (!v) {
+                              _odemeVadesi = 1;
+                            }
+                          });
+                        },
+                        compact: true,
+                      ),
+                    ],
+                  ),
+                  if (_vadeli) ...[
                     const SizedBox(height: 16),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: OdemeSekliWidget(
-                            title: 'Ödeme Şekli',
-                            selectedOdemeTuru: _selectedOdemeTuru,
-                            onOdemeTuruSelected: (val) {
-                              setState(() {
-                                _selectedOdemeTuru = val;
-                              });
-                            },
-                            onBeforeShowSheet: _lockAndUnfocusInputs,
-                            onAfterHideSheet: _unlockInputsAfterSheet,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        CustomSwitchWidget(
-                          value: _vadeli,
-                          label: 'Vadeli',
-                          onChanged: (v) {
-                            FocusScope.of(context).unfocus();
+                        NumericSpinnerWidget(
+                          label: 'Ödeme Vadesi',
+                          minValue: 1,
+                          maxValue: 999,
+                          initialValue: _odemeVadesi,
+                          onValueChanged: (value) {
                             setState(() {
-                              _vadeli = v;
-                              if (!v) {
-                                _odemeVadesi = 1;
-                              }
+                              _odemeVadesi = value;
                             });
                           },
-                          compact: true,
+                        ),
+                        const SizedBox(width: 20),
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Gün',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.inputLabelColor,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    if (_vadeli) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          NumericSpinnerWidget(
-                            label: 'Ödeme Vadesi',
-                            minValue: 1,
-                            maxValue: 999,
-                            initialValue: _odemeVadesi,
-                            onValueChanged: (value) {
-                              setState(() {
-                                _odemeVadesi = value;
-                              });
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 12),
-                            child: Text(
-                              'Gün',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.inputLabelColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
-                      child: Divider(height: 1, color: Colors.grey.shade400),
-                    ),
-                    const SizedBox(height: 24),
-                    // Fiyat Teklifi / Sözleşme Ekle
-                    FilePhotoUploadWidget<PlatformFile>(
-                      title: 'Fiyat Teklifi / Sözleşme Ekle',
-                      buttonText: 'Dosya/Fotoğraf Yükle',
-                      files: _selectedFiles,
-                      fileNameBuilder: (file) => file.name,
-                      onRemoveFile: _removeFile,
-                      onPickCamera: _pickFromCamera,
-                      onPickGallery: _pickFromGallery,
-                      onPickFile: _pickFiles,
-                      titleColor: AppColors.inputLabelColor,
-                    ),
-                    const SizedBox(height: 24),
-                    // Dosyaların İçeriğini Belirtiniz
-                    Text(
-                      'Dosyaların İçeriğini Belirtiniz',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontSize:
-                            (Theme.of(context).textTheme.titleSmall?.fontSize ??
-                                14) +
-                            1,
-                        color: AppColors.inputLabelColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _fiyatTeklifIcerikController,
-                      maxLines: 1,
-                      decoration: InputDecoration(
-                        hintText: 'Dosya içeriği hakkında bilgi veriniz',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
-                        contentPadding: const EdgeInsets.all(12),
-                        filled: true,
-                        fillColor: AppColors.textOnPrimary,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: AppColors.borderStandartColor,
-                            width: 0.75,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color: AppColors.borderStandartColor,
-                            width: 0.75,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppColors.gradientStart,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    GonderButtonWidget(
-                      onPressed: _submitForm,
-                      padding: 14.0,
-                      borderRadius: 8.0,
-                      textStyle: const TextStyle(
-                        color: AppColors.textOnPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 50),
                   ],
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
+                    child: Divider(height: 1, color: Colors.grey.shade400),
+                  ),
+                  const SizedBox(height: 24),
+                  // Fiyat Teklifi / Sözleşme Ekle
+                  FilePhotoUploadWidget<PlatformFile>(
+                    title: 'Fiyat Teklifi / Sözleşme Ekle',
+                    buttonText: 'Dosya/Fotoğraf Yükle',
+                    files: _selectedFiles,
+                    fileNameBuilder: (file) => file.name,
+                    onRemoveFile: _removeFile,
+                    onPickCamera: _pickFromCamera,
+                    onPickGallery: _pickFromGallery,
+                    onPickFile: _pickFiles,
+                    titleColor: AppColors.inputLabelColor,
+                  ),
+                  const SizedBox(height: 24),
+                  // Dosyaların İçeriğini Belirtiniz
+                  Text(
+                    'Dosyaların İçeriğini Belirtiniz',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontSize:
+                          (Theme.of(context).textTheme.titleSmall?.fontSize ??
+                              14) +
+                          1,
+                      color: AppColors.inputLabelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _fiyatTeklifIcerikController,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      hintText: 'Dosya içeriği hakkında bilgi veriniz',
+                      hintStyle: TextStyle(color: Colors.grey.shade400),
+                      contentPadding: const EdgeInsets.all(12),
+                      filled: true,
+                      fillColor: AppColors.textOnPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: AppColors.borderStandartColor,
+                          width: 0.75,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.gradientStart,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  GonderButtonWidget(
+                    onPressed: _submitForm,
+                    padding: 14.0,
+                    borderRadius: 8.0,
+                    textStyle: const TextStyle(
+                      color: AppColors.textOnPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),
@@ -2184,9 +2128,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           birimFiyati: birimFiyat,
           urunDetay: u.urunDetay ?? '',
           miktar: u.miktar ?? 1,
-          paraBirimi: (u.paraBirimiKod == null || u.paraBirimiKod!.isEmpty)
-              ? 'TRY'
-              : u.paraBirimiKod,
+          paraBirimi: u.paraBirimiKod,
         );
       }).toList();
 

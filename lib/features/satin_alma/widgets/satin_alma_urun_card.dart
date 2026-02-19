@@ -106,15 +106,41 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           _updateTlKurFiyati();
         }
       });
+    } else {
+      // Yeni kayıt ise varsayılan para birimini ayarla
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeDefaultCurrency();
+      });
+    }
+  }
+
+  Future<void> _initializeDefaultCurrency() async {
+    if (_selectedParaBirimi != null) return;
+
+    try {
+      final paraBirimleri = await ref.read(paraBirimlerProvider.future);
+      final defaultCurrency = paraBirimleri.firstWhere(
+        (pb) => pb.kod == 'TRY',
+        orElse: () => ParaBirimi(id: 0, kod: '', birimAdi: '', sembol: ''),
+      );
+
+      if (defaultCurrency.id != 0 && mounted) {
+        setState(() {
+          _selectedParaBirimi = defaultCurrency;
+        });
+        _updateToplamFiyat();
+      }
+    } catch (_) {
+      // Provider hatası, sessiz geç
     }
   }
 
   Future<void> _matchParaBirimiIfMissing() async {
-    // Eğer düzenleme modundaysa ve para birimi varsa, onu bulup set et
     if (_selectedParaBirimi == null &&
         widget.initialBilgi?.paraBirimi != null) {
       final codeToCheck = widget.initialBilgi!.paraBirimi!;
       try {
+        // Ensure data is loaded
         final paraBirimleri = await ref.read(paraBirimlerProvider.future);
         final match = paraBirimleri.firstWhere(
           (pb) => pb.kod == codeToCheck || pb.birimAdi == codeToCheck,
@@ -125,37 +151,16 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
           setState(() {
             _selectedParaBirimi = match;
           });
+          // Para birimi bulunduktan sonra güncel kuru çek
           if (match.kod.isNotEmpty) {
             await _fetchDovizKuru(match.kod);
           } else {
             _updateToplamFiyat();
           }
         }
-      } catch (_) {}
-    }
-    // Eğer yeni ekleme modundaysa (veya para birimi yoksa) varsayılan olarak TRY/TL seç
-    else if (_selectedParaBirimi == null) {
-      try {
-        final paraBirimleri = await ref.read(paraBirimlerProvider.future);
-        // Genelde 'TRY' veya 'TL' koduyla olur, ikisini de deneriz
-        final defaultMatch = paraBirimleri.firstWhere(
-          (pb) =>
-              pb.kod.toUpperCase() == 'TRY' ||
-              pb.kod.toUpperCase() == 'TL' ||
-              pb.birimAdi.toUpperCase() == 'TÜRK LİRASI',
-          orElse: () => ParaBirimi(id: 0, kod: '', birimAdi: '', sembol: ''),
-        );
-
-        if (defaultMatch.id != 0 && mounted) {
-          setState(() {
-            _selectedParaBirimi = defaultMatch;
-            // TL için kur genelde 1'dir ama yine de tetikleyebiliriz veya direkt 1 set edebiliriz
-            _dovizKuru = 1.0;
-          });
-          _updateToplamFiyat();
-          _updateTlKurFiyati();
-        }
-      } catch (_) {}
+      } catch (_) {
+        // Provider hatası veya bulunamama durumu, sessiz geç
+      }
     }
   }
 
@@ -191,62 +196,19 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
 
   bool validateForm() {
     if (_selectedAnaKategori == null) {
-      _showErrorBottomSheet(
-        'Ürün kategorisi seçiniz',
-        onDismiss: () {
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _showAnaKategoriBottomSheet();
-          });
-        },
-      );
+      _showErrorBottomSheet('Ürün kategorisi seçiniz');
       return false;
     }
     if (_selectedAltKategori == null) {
-      _showErrorBottomSheet(
-        'Alt kategorisi seçiniz',
-        onDismiss: () {
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _showAltKategoriBottomSheet();
-          });
-        },
-      );
+      _showErrorBottomSheet('Alt kategorisi seçiniz');
       return false;
     }
     if (_selectedOlcuBirim == null) {
-      _showErrorBottomSheet(
-        'Birim seçiniz',
-        onDismiss: () {
-          // Delay slightly to ensure previous sheet is fully closed
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _showOlcuBirimBottomSheet();
-          });
-        },
-      );
-      return false;
-    }
-    if (_selectedParaBirimi == null) {
-      _showErrorBottomSheet(
-        'Para birimi seçiniz',
-        onDismiss: () {
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) _showParaBirimiBottomSheet();
-          });
-        },
-      );
+      _showErrorBottomSheet('Birim seçiniz');
       return false;
     }
     if (_urunDetayController.text.isEmpty) {
-      _showErrorBottomSheet(
-        'Ürün detay bilgisi giriniz',
-        onDismiss: () {
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (mounted) {
-              FocusScope.of(context).unfocus();
-              _urunDetayFocusNode.requestFocus();
-            }
-          });
-        },
-      );
+      _showErrorBottomSheet('Ürün detay bilgisi giriniz');
       return false;
     }
     if (_kdvDahilDegil && _kdvOrani == 0) {
@@ -271,7 +233,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     super.dispose();
   }
 
-  void _showErrorBottomSheet(String message, {VoidCallback? onDismiss}) async {
+  void _showErrorBottomSheet(String message) async {
     _urunDetayFocusNode.canRequestFocus = false;
     _urunDetayFocusNode.unfocus();
     FocusScope.of(context).unfocus();
@@ -309,11 +271,21 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  message,
-                  textAlign: TextAlign.center,
+                  'Uyarı',
                   style: Theme.of(
                     context,
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize:
+                        (Theme.of(context).textTheme.bodyMedium?.fontSize ??
+                            14) +
+                        3,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -347,7 +319,6 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).unfocus();
       _urunDetayFocusNode.canRequestFocus = true;
-      onDismiss?.call();
     });
   }
 
@@ -359,6 +330,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    // Edit modunda kategori seçimi yapılamaz
+    if (widget.initialBilgi != null) return;
 
     final kategorilerAsync = ref.read(satinAlmaAnaKategorilerProvider);
 
@@ -450,6 +423,8 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
     // 🔒 Critical: Wait 1 frame for focus state to settle
     await Future.delayed(Duration.zero);
 
+    // Edit modunda alt kategori seçimi yapılamaz
+    if (widget.initialBilgi != null) return;
 
     if (_selectedAnaKategori == null) return;
     if (_selectedAnaKategori!.id == 0) {
@@ -1284,7 +1259,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
               focusNode: _urunDetayFocusNode,
               controller: _urunDetayController,
               autofocus: false,
-              readOnly: widget.isViewOnly,
+              readOnly: widget.initialBilgi != null || widget.isViewOnly,
               decoration: InputDecoration(
                 hintText: 'Ürün detayını giriniz',
                 filled: true,

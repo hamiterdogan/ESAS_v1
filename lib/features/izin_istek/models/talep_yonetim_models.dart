@@ -247,3 +247,26 @@ class OnayDurumuGuncelleRequest {
     };
   }
 }
+
+class OnaySureciGorevAtamaReq {
+  final int onayKayitId;
+  final int gorevAtanacakPersonelId;
+  final String onayTipi;
+  final String aciklama;
+
+  OnaySureciGorevAtamaReq({
+    required this.onayKayitId,
+    required this.gorevAtanacakPersonelId,
+    required this.onayTipi,
+    required this.aciklama,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'onayKayitId': onayKayitId,
+      'gorevAtanacakPersonelId': gorevAtanacakPersonelId,
+      'onayTipi': onayTipi,
+      'aciklama': aciklama,
+    };
+  }
+}

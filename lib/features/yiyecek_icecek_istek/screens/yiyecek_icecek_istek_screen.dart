@@ -12,6 +12,7 @@ import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_ikram_data.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_ikram_ekle_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_ekle_req.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
@@ -815,6 +816,17 @@ class _YiyecekIcecekIstekScreenState
       YiyecekIcecekOzetItem(label: 'Etkinlik Tarihi', value: tarihStr),
     );
 
+    // Etkinlik Saati - saat bilgisini ikramlardan al
+    final saatBilgileri = _addedIkramlar
+        .map((ikram) => '${ikram.baslangicSaati}-${ikram.bitisSaati}')
+        .join(', ');
+    ozetItems.add(
+      YiyecekIcecekOzetItem(
+        label: 'Etkinlik Saati',
+        value: saatBilgileri.isNotEmpty ? saatBilgileri : '-',
+      ),
+    );
+
     ozetItems.add(
       YiyecekIcecekOzetItem(label: 'Dönem', value: _selectedDonem ?? '-'),
     );
@@ -833,11 +845,11 @@ class _YiyecekIcecekIstekScreenState
       ),
     );
 
-    // Ikram Summary
+    // Ikram Summary - sadece kişi sayısı ve ikram bilgileri
     final ikramOzetleri = _addedIkramlar
         .map((ikram) {
           String treats = ikram.secilenIkramlar.join(', ');
-          return 'Saat: ${ikram.baslangicSaati}-${ikram.bitisSaati} | Kişi: ${ikram.kurumIciAdet + ikram.kurumDisiAdet} | $treats';
+          return 'Kişi: ${ikram.kurumIciAdet + ikram.kurumDisiAdet} | $treats';
         })
         .join('\n\n');
 
@@ -1493,37 +1505,46 @@ class _YiyecekIcecekIstekScreenState
                               ),
                             ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                ikram.secilenIkramlar.join(", "),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: AppColors.textPrimary,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ikram.secilenIkramlar.join(", "),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${ikram.toplamAdet} kişi',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 15),
+                                        Text(
+                                          '${ikram.baslangicSaati} - ${ikram.bitisSaati}',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(
-                                    '${ikram.toplamAdet} kişi',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Text(
-                                    '${ikram.baslangicSaati} - ${ikram.bitisSaati}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              const SizedBox(width: 12),
+                              const CardDuzenlemeIkon(),
                             ],
                           ),
                         ),

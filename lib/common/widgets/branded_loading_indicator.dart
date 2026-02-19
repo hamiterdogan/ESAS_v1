@@ -133,10 +133,8 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
                   child: CustomPaint(
                     painter: _SegmentedRingPainter(
                       strokeWidth: effectiveStrokeWidth,
-                      startColor: AppColors.gradientStart.withValues(
-                        alpha: 1.0,
-                      ),
-                      endColor: AppColors.gradientEnd.withValues(alpha: 0.3),
+                      startColor: AppColors.gradientStart.withOpacity(1.0),
+                      endColor: AppColors.gradientEnd.withOpacity(0.3),
                       segmentCount: 3,
                     ),
                   ),
@@ -211,8 +209,8 @@ class _SegmentedRingPainter extends CustomPainter {
 
       segmentPaint.shader = SweepGradient(
         colors: [
-          startColor.withValues(alpha: 1.0),
-          endColor.withValues(alpha: 0.2),
+          startColor.withOpacity(1.0),
+          endColor.withOpacity(0.2),
         ],
         tileMode: TileMode.clamp,
       ).createShader(rect);

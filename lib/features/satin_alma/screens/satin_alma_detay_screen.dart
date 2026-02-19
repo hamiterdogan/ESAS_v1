@@ -231,15 +231,24 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
         : (personelAsync.value?.gorev ?? '-');
 
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          60 + MediaQuery.of(context).padding.bottom,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(satinAlmaDetayParalelProvider(widget.talepId));
+          ref.invalidate(
+            onayDurumuProvider((
+              talepId: widget.talepId,
+              onayTipi: 'Satın Alma',
+            )),
+          );
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            60 + MediaQuery.of(context).padding.bottom,
+          ),
           children: [
             _buildAccordion(
               icon: Icons.person_outline,
@@ -1483,6 +1492,56 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               child: OnayFormContent(
                 gorevAtamaEnabled:
                     onayDurumu.atamaGoster || widget.isTamamlanan,
+                onAssign: (aciklama, personel) async {
+                  if (personel == null) return;
+
+                  final onaySureciId =
+                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
+
+                  if (onaySureciId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Onay süreci ID bulunamadı!'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (!context.mounted) return;
+                  BrandedLoadingDialog.show(context);
+
+                  final req = OnaySureciGorevAtamaReq(
+                    onayKayitId: widget.talepId,
+                    gorevAtanacakPersonelId: personel.personelId,
+                    onayTipi: 'Satın Alma',
+                    aciklama: aciklama,
+                  );
+
+                  final result = await ref
+                      .read(talepYonetimRepositoryProvider)
+                      .onaySureciGorevAtama(req);
+
+                  if (!context.mounted) return;
+                  BrandedLoadingDialog.hide(context);
+
+                  if (result is Success) {
+                    AppDialogs.showSuccess(
+                      context,
+                      'Görev ataması başarıyla yapıldı.',
+                      onOk: () {
+                        ref.invalidate(
+                          onayDurumuProvider((
+                            talepId: widget.talepId,
+                            onayTipi: 'Satın Alma',
+                          )),
+                        );
+                      },
+                    );
+                  } else if (result is Failure) {
+                    AppDialogs.showError(context, result.message);
+                  }
+                },
                 onApprove: (aciklama) async {
                   final onaySureciId =
                       onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
@@ -1624,68 +1683,6 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                     }
                   } catch (e) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                  }
-                },
-                onAssign: (aciklama, selectedPersonel) async {
-                  if (selectedPersonel == null) return;
-                  final onaySureciId =
-                      onayDurumu.siradakiOnayVerecekPersonel?.onaySureciId;
-                  if (onaySureciId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Onay süreci ID bulunamadı!'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                    return;
-                  }
-
-                  try {
-                    final repository = ref.read(talepYonetimRepositoryProvider);
-                    final request = OnayDurumuGuncelleRequest(
-                      onayTipi: 'Satın Alma',
-                      onayKayitId: widget.talepId,
-                      onaySureciId: onaySureciId,
-                      onay: true,
-                      beklet: false,
-                      geriDon: false,
-                      aciklama: aciklama,
-                      atanacakPersonelId: selectedPersonel.personelId,
-                    );
-
-                    final result = await repository.onayDurumuGuncelle(request);
-
-                    if (!context.mounted) return;
-
-                    switch (result) {
-                      case Success():
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Görev atama başarıyla gerçekleşti'),
-                            backgroundColor: AppColors.success,
-                          ),
-                        );
-                        ref
-                            .read(devamEdenGelenKutusuProvider.notifier)
-                            .refresh();
-                        Navigator.pop(context);
-                      case Failure(message: final message):
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Hata: $message'),
-                            backgroundColor: AppColors.error,
-                          ),
-                        );
-                      case Loading():
-                        break;
-                    }
-                  } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Hata: $e'),
@@ -2685,177 +2682,154 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.blueGrey.withOpacity(0.08),
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
+                                color: Colors.blueGrey.withOpacity(0.1),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
                               ),
                             ],
                           ),
+                          clipBehavior: Clip.antiAlias,
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16),
+                              // — Gradient header with personel + tarih —
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.gradientStart,
+                                      AppColors.gradientEnd,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(
+                                        Icons.person_outline_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today_rounded,
-                                                size: 14,
-                                                color: AppColors.textTertiary,
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                '$islemTarihiFormatted • $islemSaatiFormatted',
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
                                           Text(
-                                            item.saticiFirma,
+                                            item.adSoyad,
                                             style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.textPrimary,
-                                              height: 1.3,
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '$islemTarihiFormatted  $islemSaatiFormatted',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white.withOpacity(
+                                                0.85,
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          '$genelToplamFormatted ₺',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w900,
-                                            color: AppColors.textPrimary,
-                                            letterSpacing: -0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: item.odemeSekli == 'Nakit'
-                                                ? const Color(0xFFE8F5E9)
-                                                : const Color(0xFFE3F2FD),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item.odemeSekli,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w700,
-                                              color: item.odemeSekli == 'Nakit'
-                                                  ? const Color(0xFF2E7D32)
-                                                  : const Color(0xFF1565C0),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
                                   ],
                                 ),
                               ),
+
+                              // — Genel Toplam highlight —
                               Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFAFBFC),
-                                  border: Border(
-                                    top: BorderSide(color: Colors.grey[100]!),
-                                  ),
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(16),
-                                    bottomRight: Radius.circular(16),
-                                  ),
-                                ),
+                                width: double.infinity,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
-                                  vertical: 12,
+                                  vertical: 14,
+                                ),
+                                color: AppColors.gradientStart.withOpacity(
+                                  0.06,
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 12,
-                                          backgroundColor: Colors.white,
-                                          child: const Icon(
-                                            Icons.person_outline_rounded,
-                                            size: 14,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          item.adSoyad,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (item.sonTeslimTarihi.isNotEmpty)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          border: Border.all(
-                                            color: Colors.grey[200]!,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.event_available_rounded,
-                                              size: 14,
-                                              color: AppColors.textTertiary,
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              sonTeslimTarihiFormatted,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                    const Text(
+                                      'Genel Toplam',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
                                       ),
+                                    ),
+                                    Text(
+                                      '$genelToplamFormatted ₺',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.gradientEnd,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // — Detail rows —
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  14,
+                                  16,
+                                  6,
+                                ),
+                                child: Column(
+                                  children: [
+                                    _buildFiyatGecmisiRow(
+                                      Icons.local_shipping_outlined,
+                                      'Teslim Tarihi',
+                                      sonTeslimTarihiFormatted,
+                                    ),
+                                    _buildFiyatGecmisiRow(
+                                      Icons.store_outlined,
+                                      'Firma',
+                                      item.saticiFirma.isNotEmpty
+                                          ? item.saticiFirma
+                                          : '-',
+                                    ),
+                                    _buildFiyatGecmisiRow(
+                                      Icons.payment_outlined,
+                                      'Ödeme Türü',
+                                      item.pesin ? 'Peşin' : 'Vadeli',
+                                    ),
+                                    if (item.odemeVadesiGun != null &&
+                                        item.odemeVadesiGun != 0)
+                                      _buildFiyatGecmisiRow(
+                                        Icons.schedule_outlined,
+                                        'Vade (Gün)',
+                                        '${item.odemeVadesiGun}',
+                                      ),
+                                    _buildFiyatGecmisiRow(
+                                      Icons.account_balance_outlined,
+                                      'Ödeme Şekli',
+                                      item.odemeSekli,
+                                      isLast: true,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -2871,6 +2845,56 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFiyatGecmisiRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool isLast = false,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 8 : 0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.gradientStart.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppColors.gradientStart),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!isLast) Divider(height: 1, color: Colors.grey[100]),
+        ],
+      ),
     );
   }
 
