@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/services/device_registration_service.dart';
 import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
+import 'package:esas_v1/core/routing/router.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 /// Background mesaj handler (top-level function olmalı)
@@ -38,6 +40,9 @@ class NotificationService {
 
   // Riverpod ref - initialization sırasında set edilir
   WidgetRef? _ref;
+
+  // Uygulama kapalıyken tıklanan bildirim için bekleyen route
+  String? _pendingRoute;
 
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -71,9 +76,11 @@ class NotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
     // App tamamen kapalıyken bildirime tıklama
+    // → route'u pending olarak sakla, HomeScreen mount olduktan sonra navigate et
     final initialMessage = results[2] as RemoteMessage?;
     if (initialMessage != null) {
-      _handleMessageOpenedApp(initialMessage);
+      final data = initialMessage.data;
+      _storeAsPendingRoute(data);
     }
 
     if (kDebugMode) {
@@ -84,6 +91,51 @@ class NotificationService {
   /// Riverpod ref'i set et (ProviderScope içinden çağrılır)
   void setRef(WidgetRef ref) {
     _ref = ref;
+  }
+
+  /// Uygulama kapalıyken tıklanan bildirim route'unu pending olarak sakla
+  void _storeAsPendingRoute(Map<String, dynamic> data) {
+    Map<String, dynamic> resolved = data;
+    final payloadStr = data['payload'];
+    if (payloadStr is String && payloadStr.isNotEmpty) {
+      try {
+        final parsed = jsonDecode(payloadStr);
+        if (parsed is Map<String, dynamic>) resolved = parsed;
+      } catch (_) {}
+    }
+
+    final onayTipi =
+        resolved['onayTipi'] as String? ?? resolved['OnayTipi'] as String?;
+    final onayKayitIdRaw = resolved['onayKayitId'] ?? resolved['OnayKayitId'];
+    final onayKayitId = onayKayitIdRaw is int
+        ? onayKayitIdRaw
+        : int.tryParse(onayKayitIdRaw?.toString() ?? '');
+
+    if (onayTipi != null && onayKayitId != null) {
+      _pendingRoute = _getRouteFromOnayTipi(onayTipi, onayKayitId);
+    }
+
+    if (_pendingRoute == null) {
+      final bildirimTipi = resolved['bildirimTipi'] as String?;
+      final talepId = int.tryParse(resolved['talepId']?.toString() ?? '');
+      if (bildirimTipi != null && talepId != null) {
+        _pendingRoute = _getRouteFromBildirimTipi(bildirimTipi, talepId);
+      }
+    }
+
+    if (kDebugMode) print('📌 Pending route saklandı: $_pendingRoute');
+  }
+
+  /// HomeScreen mount olduktan sonra pending route'u tüket ve navigate et
+  void consumePendingRoute() {
+    final route = _pendingRoute;
+    if (route == null) return;
+    _pendingRoute = null;
+    if (kDebugMode) print('🚀 Pending route tüketiliyor: $route');
+    // postFrameCallback: HomeScreen tam olarak render olduktan sonra push et
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigateTo(route);
+    });
   }
 
   /// FCM Token'ı al ve API'ye cihaz bilgileriyle birlikte kaydet.
@@ -307,26 +359,96 @@ class NotificationService {
 
   /// Data'dan navigasyon yap
   void _navigateFromData(Map<String, dynamic> data) {
-    final bildirimTipi = data['bildirimTipi'] as String?;
-    final talepIdStr = data['talepId'] as String?;
+    if (kDebugMode) print('🗺️ _navigateFromData: $data');
+
+    // FCM data might have a 'payload' key containing a nested JSON string.
+    // jsonDecode properly converts unicode escapes (e.g. \u0131 → ı).
+    Map<String, dynamic> resolved = data;
+    final payloadStr = data['payload'];
+    if (payloadStr is String && payloadStr.isNotEmpty) {
+      try {
+        final parsed = jsonDecode(payloadStr);
+        if (parsed is Map<String, dynamic>) resolved = parsed;
+      } catch (_) {}
+    }
+
+    // New format: onayTipi + onayKayitId
+    final onayTipi =
+        resolved['onayTipi'] as String? ?? resolved['OnayTipi'] as String?;
+    final onayKayitIdRaw = resolved['onayKayitId'] ?? resolved['OnayKayitId'];
+    final onayKayitId = onayKayitIdRaw is int
+        ? onayKayitIdRaw
+        : int.tryParse(onayKayitIdRaw?.toString() ?? '');
+
+    if (onayTipi != null && onayKayitId != null) {
+      final route = _getRouteFromOnayTipi(onayTipi, onayKayitId);
+      if (route != null) {
+        if (kDebugMode) print('🚀 Deep link → $route');
+        _navigateTo(route);
+        return;
+      }
+    }
+
+    // Fallback: old format bildirimTipi + talepId
+    final bildirimTipi =
+        resolved['bildirimTipi'] as String? ?? data['bildirimTipi'] as String?;
+    final talepIdStr =
+        resolved['talepId'] as String? ?? data['talepId'] as String?;
     final talepId = int.tryParse(talepIdStr ?? '');
 
-    if (bildirimTipi == null || talepId == null) {
-      // Bildirimler sayfasına git
-      _navigateTo('/bildirimler');
-      return;
+    if (bildirimTipi != null && talepId != null) {
+      final route = _getRouteFromBildirimTipi(bildirimTipi, talepId);
+      if (route != null) {
+        _navigateTo(route);
+        return;
+      }
     }
 
-    // Deep link route oluştur
-    final route = _getRouteFromBildirimTipi(bildirimTipi, talepId);
-    if (route != null) {
-      _navigateTo(route);
-    } else {
-      _navigateTo('/bildirimler');
-    }
+    _navigateTo('/bildirimler');
   }
 
-  /// Bildirim tipinden route hesapla
+  /// onayTipi (Turkish human-readable) → route
+  String? _getRouteFromOnayTipi(String onayTipi, int onayKayitId) {
+    final n = _normalizeOnayTipi(onayTipi);
+    if (n.contains('satinalma')) return '/satin_alma/detay/$onayKayitId';
+    if (n.contains('izin')) return '/izin/detay/$onayKayitId';
+    if (n.contains('arac') || n.contains('arac'))
+      return '/arac/detay/$onayKayitId';
+    if (n.contains('dokumantasyon') || n.contains('dokuman')) {
+      return '/dokumantasyon/detay/$onayKayitId';
+    }
+    if (n.contains('egitim')) return '/egitim_istek/detay/$onayKayitId';
+    if (n.contains('yiyecek') || n.contains('icecek')) {
+      return '/yiyecek_icecek_istek/detay/$onayKayitId';
+    }
+    if (n.contains('sarfmalzeme') || n.contains('sarf')) {
+      return '/sarf_malzeme_istek';
+    }
+    if (n.contains('bilgiteknoloji')) return '/bilgi_teknolojileri';
+    if (n.contains('teknikdestek') || n.contains('teknik'))
+      return '/teknik_destek';
+    if (kDebugMode) print('⚠️ Bilinmeyen onayTipi: $onayTipi (normalized: $n)');
+    return null;
+  }
+
+  /// Türkçe karakterleri normalize et (karşılaştırma için)
+  String _normalizeOnayTipi(String s) => s
+      .replaceAll('İ', 'I')
+      .replaceAll('Ğ', 'G')
+      .replaceAll('Ü', 'U')
+      .replaceAll('Ş', 'S')
+      .replaceAll('Ö', 'O')
+      .replaceAll('Ç', 'C')
+      .toLowerCase()
+      .replaceAll('ı', 'i')
+      .replaceAll('ğ', 'g')
+      .replaceAll('ü', 'u')
+      .replaceAll('ş', 's')
+      .replaceAll('ö', 'o')
+      .replaceAll('ç', 'c')
+      .replaceAll(' ', '');
+
+  /// Bildirim tipinden route hesapla (eski format)
   String? _getRouteFromBildirimTipi(String bildirimTipi, int talepId) {
     switch (bildirimTipi) {
       case 'satin_alma':
@@ -354,10 +476,12 @@ class NotificationService {
 
   /// Route'a git
   void _navigateTo(String route) {
-    // GoRouter kullanarak navigasyon
-    final context = navigatorKey.currentContext;
-    if (context != null) {
-      GoRouter.of(context).push(route);
+    // Use appRouter directly — navigatorKey is not bound to GoRouter
+    try {
+      appRouter.push(route);
+      if (kDebugMode) print('✅ Navigated to $route');
+    } catch (e) {
+      if (kDebugMode) print('❌ Navigation failed: $e');
     }
   }
 

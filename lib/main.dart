@@ -6,10 +6,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/routing/router.dart';
 import 'core/network/dio_provider.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/theme_provider.dart';
 import 'core/constants/app_colors.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/auth_storage_service.dart';
 import 'features/bildirim/providers/notification_providers.dart';
+import 'common/widgets/branded_loading_indicator.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,7 @@ class _AppRootState extends State<AppRoot> {
 
   Future<void> _init() async {
     await Firebase.initializeApp();
+    // Token loading will be handled in MyApp initState
   }
 
   @override
@@ -43,7 +45,7 @@ class _AppRootState extends State<AppRoot> {
       future: _initialization,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          return const MyApp();
+          return ProviderScope(child: const MyApp());
         }
 
         // Açılış (Splash) ekranı
@@ -82,11 +84,22 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Kaydedilmiş tema tercihini yükle
+    // Load token from storage and initialize notification service
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(themeModeProvider.notifier).initTheme();
-      _initNotificationService();
+      _loadTokenAndInit();
     });
+  }
+
+  Future<void> _loadTokenAndInit() async {
+    // Load saved token from storage
+    final storage = AuthStorageService();
+    final savedToken = await storage.getToken();
+    if (savedToken != null && savedToken.isNotEmpty) {
+      ref.read(tokenProvider.notifier).setToken(savedToken);
+    }
+
+    // Then init notification service
+    _initNotificationService();
   }
 
   Future<void> _initNotificationService() async {
@@ -113,38 +126,37 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // 401 hatası dinle ve kullanıcıyı bilgilendir
+    // 401 hatası dinle: kullanıcıyı bilgilendir ve login'e yönlendir
     ref.listen<bool>(authErrorProvider, (previous, hasError) {
       if (hasError && previous != true) {
-        // Navigasyon context'i olmadan global key ile erişiyoruz
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          // Storage'ı temizle ve token provider'ı sıfırla
+          await AuthStorageService().clear();
+          ref.read(tokenProvider.notifier).setToken('');
+
+          // Login ekranına yönlendir
+          appRouter.go('/login');
+
+          // Snackbar ile kullanıcıyı bilgilendir
           final messenger = rootScaffoldMessengerKey.currentState;
-          if (messenger != null) {
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Oturum süresi doldu. Lütfen tekrar giriş yapın.',
-                ),
-                backgroundColor: AppColors.error,
-                duration: Duration(seconds: 5),
-              ),
-            );
-          }
+          messenger?.showSnackBar(
+            const SnackBar(
+              content: Text('Oturum süresi doldu. Lütfen tekrar giriş yapın.'),
+              backgroundColor: AppColors.error,
+              duration: Duration(seconds: 5),
+            ),
+          );
         });
-        // Reset auth error state
+        // Auth hata durumunu sıfırla
         ref.read(authErrorProvider.notifier).setError(false);
       }
     });
-
-    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       title: 'ESAS - İzin İstek',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: themeMode,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/features/auth/screens/login_screen.dart';
 import 'package:esas_v1/features/talep/screens/home_screen.dart';
 import 'package:esas_v1/features/talep/screens/empty_talep_screen.dart';
 import 'package:esas_v1/features/satin_alma/screens/satin_alma_talep_screen.dart';
@@ -35,9 +36,10 @@ import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep
 import 'package:esas_v1/features/bildirim/screens/bildirim_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   debugLogDiagnostics: false,
   routes: [
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     GoRoute(
       path: '/bildirimler',

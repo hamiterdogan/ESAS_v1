@@ -2,12 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
+import 'package:esas_v1/core/services/auth_storage_service.dart';
 
 // Token Notifier
 class TokenNotifier extends Notifier<String> {
   @override
   String build() {
-    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiMTE1IiwiRW1haWwiOiJ0ZXN0aGFtaXQuZXJkb2dhbkBleXVib2dsdS5rMTIudHIiLCJLdWxsYW5pY2lBZGkiOiJIRVJET0dBTiIsIkdvcmV2SWQiOiI0NyIsIm5iZiI6MTc2OTU4NTQxOCwiZXhwIjoxODAwNjg5NDE4LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdCJ9.J4FpCUqqrFGCSoY7KaZe-H5JoN39Y6-UCEQAE7a4ltc';
+    // Başlangıçta boş; main.dart'ta storage'dan yüklenir
+    return '';
   }
 
   void setToken(String token) {
