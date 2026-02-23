@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -43,6 +44,9 @@ class NotificationService {
 
   // Uygulama kapalıyken tıklanan bildirim için bekleyen route
   String? _pendingRoute;
+
+  // onTokenRefresh listener subscription — her login'de cancel + yeniden oluşturulur
+  StreamSubscription<String>? _tokenRefreshSubscription;
 
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -160,12 +164,16 @@ class NotificationService {
         );
       }
 
-      // Token yenilendiğinde eski kaydı sıfırla ve yeniden kayıt yap
-      _messaging.onTokenRefresh.listen((newToken) async {
+      // Eski listener'ı iptal et → eski repo/JWT closure'larını kaldır
+      await _tokenRefreshSubscription?.cancel();
+      _tokenRefreshSubscription = null;
+
+      // Yeni listener: sadece güncel repo referansını tutan tek listener
+      _tokenRefreshSubscription =
+          _messaging.onTokenRefresh.listen((newToken) async {
         if (kDebugMode) {
           print('🔄 FCM Token yenilendi: $newToken');
         }
-        // Eski kaydı sil, yeni token'ı zorla kaydet
         await DeviceRegistrationService().clearRegistration();
         await DeviceRegistrationService().registerDevice(
           fcmToken: newToken,

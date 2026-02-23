@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,6 +14,7 @@ import 'core/services/auth_storage_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/utils/jwt_decoder.dart';
 import 'features/bildirim/providers/notification_providers.dart';
+import 'features/bildirim/repositories/notification_repository.dart';
 import 'common/widgets/branded_loading_indicator.dart';
 
 void main() {
@@ -80,7 +83,6 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-  bool _tokenRegistered = false;
   bool _initialized = false;
 
   @override
@@ -110,42 +112,49 @@ class _MyAppState extends ConsumerState<MyApp> {
       } else {
         ref.read(tokenProvider.notifier).setToken(savedToken);
         authStateNotifier.value = true;
-        // 4. FCM kaydı sadece authenticated kullanıcı için
-        _initNotificationService();
       }
     } else {
       ref.read(tokenProvider.notifier).setToken('');
       authStateNotifier.value = false;
-      // Bildirimleri başlat ama token register etme
-      _initNotificationServiceOnly();
+    }
+
+    // 4. Bildirim servisini başlat (izinler, kanallar, foreground listener'lar)
+    await _initNotificationServiceOnly();
+
+    // 5. Kullanıcı zaten authenticated ise → FCM token'ı kaydedilmiş JWT ile kaydet
+    //    ⚡ Riverpod provider zincirine güvenmiyoruz; doğrudan fresh Dio oluşturuyoruz.
+    if (savedToken != null && savedToken.isNotEmpty && !JwtDecoder.isExpired(savedToken)) {
+      unawaited(_registerFcmTokenWithJwt(savedToken));
     }
   }
 
-  Future<void> _initNotificationService() async {
-    if (_initialized) return;
-    _initialized = true;
-
-    unawaited(
-      NotificationService().initialize().then((_) => _registerFcmToken()),
-    );
-  }
-
-  /// Sadece servisi başlat, token register etme (login olmamış kullanıcı için)
+  /// Bildirim servisini başlat (sadece izinler, kanallar, listener'lar).
   Future<void> _initNotificationServiceOnly() async {
     if (_initialized) return;
     _initialized = true;
-    unawaited(NotificationService().initialize());
+    await NotificationService().initialize();
   }
 
-  Future<void> _registerFcmToken() async {
-    if (_tokenRegistered) return;
-    _tokenRegistered = true;
-
-    final notificationService = NotificationService();
-    notificationService.setRef(ref);
-
-    final repo = ref.read(notificationRepositoryProvider);
-    await notificationService.getAndRegisterToken(repo);
+  /// Kaydedilmiş JWT ile doğrudan fresh Dio oluşturup RegisterToken çağır.
+  /// Riverpod provider zincirine güvenmez.
+  Future<void> _registerFcmTokenWithJwt(String jwt) async {
+    try {
+      final freshDio = Dio(BaseOptions(
+        baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $jwt',
+        },
+      ));
+      final freshRepo = NotificationRepositoryImpl(dio: freshDio);
+      await NotificationService().getAndRegisterToken(freshRepo);
+      if (kDebugMode) print('✅ App restart: RegisterToken (freshDio) tamamlandı.');
+    } catch (e) {
+      if (kDebugMode) print('⚠️ App restart RegisterToken hatası: $e');
+    }
   }
 
   @override
