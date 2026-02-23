@@ -55,15 +55,19 @@ final dioProvider = Provider<Dio>((ref) {
   final dio = Dio();
   final token = ref.watch(tokenProvider);
 
+  final headers = <String, String>{
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  if (token.isNotEmpty) {
+    headers['Authorization'] = 'Bearer $token';
+  }
+
   dio.options = BaseOptions(
     baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
+    headers: headers,
   );
 
   // Sadece debug modda log interceptor aktif
@@ -76,12 +80,38 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
+        final authHeader = options.headers['Authorization']?.toString() ?? '';
+        final requestToken = authHeader.startsWith('Bearer ')
+            ? authHeader.substring(7)
+            : authHeader;
+        options.extra['requestToken'] = requestToken;
         handler.next(options);
       },
       onError: (error, handler) {
         if (error.response?.statusCode == 401) {
-          // Token geçersiz veya süresi dolmuş
-          // authErrorProvider'ı true yap - UI bunu dinleyip kullanıcıyı bilgilendirecek
+          final path = error.requestOptions.path;
+          final requestToken =
+              error.requestOptions.extra['requestToken']?.toString() ?? '';
+          final currentToken = ref.read(tokenProvider);
+
+          // Public login endpointinde 401 beklenebilir (yanlış şifre vb.), global logout tetikleme.
+          if (path.contains('/Kullanici/GirisYap')) {
+            handler.next(error);
+            return;
+          }
+
+          // İstek token'ı güncel token ile eşleşmiyorsa bu stale bir request'tir; logout tetikleme.
+          if (requestToken.isNotEmpty &&
+              currentToken.isNotEmpty &&
+              requestToken != currentToken) {
+            if (kDebugMode) {
+              print('ℹ️ 401 stale request ignore edildi (eski token).');
+            }
+            handler.next(error);
+            return;
+          }
+
+          // Token geçersiz veya süresi dolmuş (güncel token için)
           ref.read(authErrorProvider.notifier).setError(true);
           if (kDebugMode) {
             print('⚠️ 401 Unauthorized - Token expired or invalid');

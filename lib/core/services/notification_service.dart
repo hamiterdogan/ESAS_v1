@@ -48,6 +48,9 @@ class NotificationService {
   // onTokenRefresh listener subscription — her login'de cancel + yeniden oluşturulur
   StreamSubscription<String>? _tokenRefreshSubscription;
 
+  // RegisterToken çağrılarında stale akışları engellemek için sürüm sayacı
+  int _registerFlowVersion = 0;
+
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'esas_notifications',
@@ -149,6 +152,8 @@ class NotificationService {
     bool forceRefresh = false,
   }) async {
     try {
+      final flowVersion = ++_registerFlowVersion;
+
       final token = await _messaging.getToken();
       if (token != null) {
         if (kDebugMode) {
@@ -157,11 +162,32 @@ class NotificationService {
           print('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥\n');
         }
 
-        await DeviceRegistrationService().registerDevice(
+        final isRegistered = await DeviceRegistrationService().registerDevice(
           fcmToken: token,
           repo: repo,
           forceRefresh: forceRefresh,
         );
+        if (!isRegistered) {
+          if (kDebugMode) {
+            print('❌ RegisterToken çağrısı başarısız.');
+          }
+          return null;
+        }
+      } else {
+        if (kDebugMode) {
+          print(
+            '❌ FCM token alınamadı (null). RegisterToken çağrısı yapılamadı.',
+          );
+        }
+        return null;
+      }
+
+      // Bu sırada daha yeni bir register akışı başladıysa eski akış listener kurmamalı
+      if (flowVersion != _registerFlowVersion) {
+        if (kDebugMode) {
+          print('ℹ️ Eski register akışı listener kurmadan sonlandırıldı.');
+        }
+        return token;
       }
 
       // Eski listener'ı iptal et → eski repo/JWT closure'larını kaldır
@@ -169,8 +195,12 @@ class NotificationService {
       _tokenRefreshSubscription = null;
 
       // Yeni listener: sadece güncel repo referansını tutan tek listener
-      _tokenRefreshSubscription =
-          _messaging.onTokenRefresh.listen((newToken) async {
+      _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((
+        newToken,
+      ) async {
+        // Listener stale ise hiçbir işlem yapma
+        if (flowVersion != _registerFlowVersion) return;
+
         if (kDebugMode) {
           print('🔄 FCM Token yenilendi: $newToken');
         }
@@ -189,6 +219,13 @@ class NotificationService {
       }
       return null;
     }
+  }
+
+  /// Logout veya kullanıcı değişiminde eski token refresh listener'ını tamamen sıfırla.
+  Future<void> resetRegistrationFlow() async {
+    _registerFlowVersion++;
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
   }
 
   /// İzin iste

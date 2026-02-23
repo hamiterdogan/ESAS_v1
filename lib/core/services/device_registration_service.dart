@@ -27,7 +27,7 @@ class DeviceRegistrationService {
   /// [fcmToken] zaten kaydedilmişse (SharedPreferences'de aynı token varsa)
   /// API çağrısı yapılmaz. [forceRefresh] true ise kayıt durumuna bakılmaksızın
   /// her zaman API'ye gönderilir.
-  Future<void> registerDevice({
+  Future<bool> registerDevice({
     required String fcmToken,
     required NotificationRepository repo,
     bool forceRefresh = false,
@@ -40,7 +40,7 @@ class DeviceRegistrationService {
         if (kDebugMode) {
           print('📱 Cihaz daha önce kaydedilmiş, atlanıyor.');
         }
-        return;
+        return true;
       }
     }
 
@@ -73,12 +73,14 @@ class DeviceRegistrationService {
         if (kDebugMode) {
           print('✅ Cihaz başarıyla kaydedildi.');
         }
+        return true;
       case Failure(:final message):
         if (kDebugMode) {
           print('❌ Cihaz kaydı başarısız: $message');
         }
+        return false;
       case Loading():
-        break;
+        return false;
     }
   }
 

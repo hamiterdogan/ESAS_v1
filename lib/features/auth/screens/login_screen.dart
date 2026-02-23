@@ -8,6 +8,7 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/routing/router.dart';
 import 'package:esas_v1/core/services/auth_storage_service.dart';
 import 'package:esas_v1/core/services/notification_service.dart';
+import 'package:esas_v1/core/utils/jwt_decoder.dart';
 import 'package:esas_v1/features/auth/providers/auth_providers.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
@@ -94,16 +95,47 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // ⚡ KRİTİK: Riverpod provider zincirine güvenmiyoruz.
       // Yeni JWT ile doğrudan yeni bir Dio + Repository oluşturup
       // RegisterToken'ı bu taze instance ile çağırıyoruz.
-      final freshDio = Dio(BaseOptions(
-        baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer ${response.token}',
-        },
-      ));
+      final freshDio = Dio(
+        BaseOptions(
+          baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${response.token}',
+          },
+        ),
+      );
+
+      if (kDebugMode) {
+        freshDio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              if (options.path == '/Notification/RegisterToken') {
+                final authHeader =
+                    options.headers['Authorization']?.toString() ?? '';
+                final token = authHeader.startsWith('Bearer ')
+                    ? authHeader.substring(7)
+                    : authHeader;
+                final masked = token.length > 20
+                    ? '${token.substring(0, 10)}...${token.substring(token.length - 10)}'
+                    : token;
+                final pid = JwtDecoder.getPersonelId(token);
+                final kullaniciAdi = JwtDecoder.getKullaniciAdi(token);
+                print(
+                  '🛰️ RegisterToken Authorization (masked): Bearer $masked',
+                );
+                print(
+                  '🧾 RegisterToken JWT çözümleme → personelId: $pid, kullaniciAdi: $kullaniciAdi',
+                );
+              }
+              handler.next(options);
+            },
+          ),
+        );
+      }
+
       final freshRepo = NotificationRepositoryImpl(dio: freshDio);
 
       if (kDebugMode) {
@@ -112,10 +144,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         print('   KullanıcıAdı: ${response.kullaniciAdi}');
       }
 
-      await NotificationService().getAndRegisterToken(
-        freshRepo,
-        forceRefresh: true,
-      );
+      final registeredFcmToken = await NotificationService()
+          .getAndRegisterToken(freshRepo, forceRefresh: true);
+
+      if (registeredFcmToken == null || registeredFcmToken.isEmpty) {
+        _showHataBilgisi(
+          'Bildirim kaydı tamamlanamadı. Lütfen internet bağlantınızı kontrol edip tekrar giriş yapın.',
+        );
+        return;
+      }
 
       if (!mounted) return;
       context.go('/');

@@ -5,6 +5,7 @@ import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/routing/router.dart';
 import 'package:esas_v1/core/services/auth_storage_service.dart';
 import 'package:esas_v1/core/services/device_registration_service.dart';
+import 'package:esas_v1/core/services/notification_service.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 /// Merkezi oturum yönetimi servisi.
@@ -24,6 +25,8 @@ class AuthService {
   ///
   /// [ref] Riverpod ref'i (provider invalidation için)
   Future<void> logout(WidgetRef ref) async {
+    await NotificationService().resetRegistrationFlow();
+
     try {
       // 1. Backend'e UnregisterToken (best-effort — hata olursa devam et)
       await _unregisterFromBackend(ref);
@@ -65,6 +68,8 @@ class AuthService {
 
   /// Tam logout (401 handler gibi noktalarda WidgetRef ile kullanılır).
   Future<void> logoutWithoutRef(WidgetRef ref) async {
+    await NotificationService().resetRegistrationFlow();
+
     try {
       await FirebaseMessaging.instance.deleteToken();
       if (kDebugMode) print('🗑️ FCM token Firebase\'den silindi.');
