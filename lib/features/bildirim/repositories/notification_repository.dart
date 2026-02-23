@@ -31,6 +31,9 @@ abstract class NotificationRepository {
     required String onayTipi,
     required String aksiyon, // "onayla" veya "reddet"
   });
+
+  /// Cihazın FCM token kaydını backend'den siler (logout).
+  Future<Result<bool>> tokenSil({required String deviceId});
 }
 
 class NotificationRepositoryImpl extends BaseRepository
@@ -77,15 +80,11 @@ class NotificationRepositoryImpl extends BaseRepository
     try {
       final response = await _dio.get(
         '/Bildirim/BildirimListesi',
-        queryParameters: {
-          'pageIndex': pageIndex,
-          'pageSize': pageSize,
-        },
+        queryParameters: {'pageIndex': pageIndex, 'pageSize': pageSize},
       );
       return handleResponse(
         response,
-        (data) =>
-            BildirimListResponse.fromJson(data as Map<String, dynamic>),
+        (data) => BildirimListResponse.fromJson(data as Map<String, dynamic>),
       );
     } on DioException catch (e) {
       return handleError(e);
@@ -96,15 +95,12 @@ class NotificationRepositoryImpl extends BaseRepository
   Future<Result<int>> okunmamisSayisiGetir() async {
     try {
       final response = await _dio.get('/Bildirim/OkunmamisSayisi');
-      return handleResponse(
-        response,
-        (data) {
-          if (data is Map<String, dynamic>) {
-            return data['okunmamisSayisi'] as int? ?? 0;
-          }
-          return 0;
-        },
-      );
+      return handleResponse(response, (data) {
+        if (data is Map<String, dynamic>) {
+          return data['okunmamisSayisi'] as int? ?? 0;
+        }
+        return 0;
+      });
     } on DioException catch (e) {
       return handleError(e);
     }
@@ -155,6 +151,19 @@ class NotificationRepositoryImpl extends BaseRepository
         (data) =>
             BildirimAksiyonResponse.fromJson(data as Map<String, dynamic>),
       );
+    } on DioException catch (e) {
+      return handleError(e);
+    }
+  }
+
+  @override
+  Future<Result<bool>> tokenSil({required String deviceId}) async {
+    try {
+      final response = await _dio.post(
+        '/Notification/UnregisterToken',
+        data: {'deviceId': deviceId},
+      );
+      return handleResponse(response, (_) => true);
     } on DioException catch (e) {
       return handleError(e);
     }

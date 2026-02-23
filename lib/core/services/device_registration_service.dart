@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
 
@@ -19,6 +20,7 @@ class DeviceRegistrationService {
   DeviceRegistrationService._internal();
 
   static const String _registeredTokenKey = 'device_registered_fcm_token';
+  static const String _deviceIdKey = 'device_unique_id';
 
   /// Cihazı kaydet.
   ///
@@ -86,6 +88,18 @@ class DeviceRegistrationService {
     await prefs.remove(_registeredTokenKey);
   }
 
+  /// Cihazın kalıcı benzersiz kimliğini döndürür.
+  /// İlk çağrıda UUID v4 üretilir ve SharedPreferences'e kaydedilir.
+  Future<String> getDeviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final existing = prefs.getString(_deviceIdKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+    final newId = const Uuid().v4();
+    await prefs.setString(_deviceIdKey, newId);
+    if (kDebugMode) print('📱 Yeni DeviceId üretildi: $newId');
+    return newId;
+  }
+
   // ---------------------------------------------------------------------------
   // Cihaz bilgilerini platform bazlı topla
   // ---------------------------------------------------------------------------
@@ -93,26 +107,25 @@ class DeviceRegistrationService {
   Future<_DeviceInfo> _collectDeviceInfo() async {
     final plugin = DeviceInfoPlugin();
 
+    // Tüm platformlarda bizim ürettiğimiz UUID kullanılır.
+    // Platform native ID'ler (android.id, identifierForVendor) kullanılmaz.
+    final deviceId = await getDeviceId();
+
     if (Platform.isAndroid) {
       final android = await plugin.androidInfo;
-      // android.id boş olabilir (emülatör veya bazı cihazlar); fingerprint ile fallback
-      final deviceId = (android.id.isNotEmpty)
-          ? android.id
-          : android.fingerprint.isNotEmpty
-              ? android.fingerprint
-              : 'android_unknown';
       return _DeviceInfo(
         platform: 'android',
         deviceId: deviceId,
         deviceBrand: android.brand,
         deviceModel: android.model,
-        osVersion: 'Android ${android.version.release} (SDK ${android.version.sdkInt})',
+        osVersion:
+            'Android ${android.version.release} (SDK ${android.version.sdkInt})',
       );
     } else if (Platform.isIOS) {
       final ios = await plugin.iosInfo;
       return _DeviceInfo(
         platform: 'iOS',
-        deviceId: ios.identifierForVendor ?? 'ios_unknown',
+        deviceId: deviceId,
         deviceBrand: 'Apple',
         deviceModel: ios.utsname.machine,
         osVersion: 'iOS ${ios.systemVersion}',
@@ -121,7 +134,7 @@ class DeviceRegistrationService {
       // Web / masaüstü – zorunlu alan, varsayılan değer gönder
       return _DeviceInfo(
         platform: 'other',
-        deviceId: 'web_or_desktop',
+        deviceId: deviceId,
         deviceBrand: 'unknown',
         deviceModel: 'unknown',
         osVersion: 'unknown',

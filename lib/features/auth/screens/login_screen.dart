@@ -1,10 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/core/routing/router.dart';
 import 'package:esas_v1/core/services/auth_storage_service.dart';
+import 'package:esas_v1/core/services/notification_service.dart';
 import 'package:esas_v1/features/auth/providers/auth_providers.dart';
+import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,8 +19,13 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _kullaniciAdiController = TextEditingController(text: 'herdogan');
-  final _sifreController = TextEditingController(text: 'schpenaur');
+  // Varsayılan kimlik bilgileri sadece debug modda doldurulur
+  final _kullaniciAdiController = TextEditingController(
+    text: kDebugMode ? 'herdogan' : '',
+  );
+  final _sifreController = TextEditingController(
+    text: kDebugMode ? 'schpenaur' : '',
+  );
   bool _sifreGizli = true;
   bool _isLoading = false;
 
@@ -54,18 +63,56 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         return;
       }
 
-      // Başarılı giriş: token'ı storage'a kaydet ve provider'a bildir
+      if (!response.basarili) {
+        _showHataBilgisi(
+          response.token.isEmpty
+              ? 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.'
+              : 'Giriş yapılamadı. Lütfen tekrar deneyin.',
+        );
+        return;
+      }
+
+      // Başarılı giriş: bilgileri kaydet ve state'leri güncelle
       final storage = ref.read(authStorageServiceProvider);
+
+      // Yeni oturum başlamadan önce eski token/cache izlerini temizle
+      await storage.clear();
+      ref.read(tokenProvider.notifier).setToken('');
+      ref.invalidate(dioProvider);
+      ref.invalidate(notificationRepositoryProvider);
+
       await storage.saveLogin(response);
       ref.read(tokenProvider.notifier).setToken(response.token);
+      authStateNotifier.value = true;
+
+      // Yeni JWT ile Dio/Repository instance'larını zorunlu olarak yeniden oluştur
+      ref.invalidate(dioProvider);
+      ref.invalidate(notificationRepositoryProvider);
+
+      // Her login'de RegisterToken endpoint'ini mutlaka çağır.
+      // Backend Authorization header'daki JWT'yi çözerek kullanıcı eşleşmesini günceller.
+      final notifRepo = ref.read(notificationRepositoryProvider);
+      await NotificationService().getAndRegisterToken(
+        notifRepo,
+        forceRefresh: true,
+      );
 
       if (!mounted) return;
       context.go('/');
-    } catch (e) {
+    } on Exception catch (e) {
       if (!mounted) return;
-      _showHataBilgisi(
-        'Bağlantı hatası oluştu. Lütfen internet bağlantınızı kontrol edin.',
-      );
+      final msg = e.toString().toLowerCase();
+      if (msg.contains('timeout') || msg.contains('süre')) {
+        _showHataBilgisi(
+          'Bağlantı zaman aşımı. Lütfen internet bağlantınızı kontrol edin.',
+        );
+      } else if (msg.contains('connection') || msg.contains('socket')) {
+        _showHataBilgisi(
+          'Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.',
+        );
+      } else {
+        _showHataBilgisi('Bağlantı hatası oluştu. Lütfen tekrar deneyin.');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

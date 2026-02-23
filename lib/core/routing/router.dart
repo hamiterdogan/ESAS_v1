@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/features/auth/screens/login_screen.dart';
 import 'package:esas_v1/features/talep/screens/home_screen.dart';
@@ -34,13 +35,32 @@ import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolo
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/teknik_destek_turu_secim_screen.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/bildirim/screens/bildirim_screen.dart';
+import 'package:esas_v1/features/profil/screens/profil_screen.dart';
+
+/// GoRouter'a auth durumu değişimlerini bildirmek için kullanılır.
+/// Login/logout gerçekleştiğinde bu notifier güncellenir.
+final authStateNotifier = ValueNotifier<bool>(false);
 
 final appRouter = GoRouter(
   initialLocation: '/login',
   debugLogDiagnostics: false,
+  refreshListenable: authStateNotifier,
+  redirect: (context, state) {
+    final isAuthenticated = authStateNotifier.value;
+    final isGoingToLogin = state.matchedLocation == '/login';
+
+    // Authenticated değilse ve login sayfasına gitmiyorsa → login'e yönlendir
+    if (!isAuthenticated && !isGoingToLogin) return '/login';
+
+    // Zaten authenticated ve login sayfasına gidiyorsa → ana sayfaya yönlendir
+    if (isAuthenticated && isGoingToLogin) return '/';
+
+    return null;
+  },
   routes: [
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(path: '/profil', builder: (context, state) => const ProfilScreen()),
     GoRoute(
       path: '/bildirimler',
       builder: (context, state) => const BildirimScreen(),

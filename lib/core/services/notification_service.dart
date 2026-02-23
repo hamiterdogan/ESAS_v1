@@ -139,8 +139,11 @@ class NotificationService {
   }
 
   /// FCM Token'ı al ve API'ye cihaz bilgileriyle birlikte kaydet.
-  /// Aynı token daha önce kaydedilmişse API çağrısı yapılmaz.
-  Future<String?> getAndRegisterToken(NotificationRepository repo) async {
+  /// [forceRefresh] true ise cache kontrolü atlanır ve API her durumda çağrılır.
+  Future<String?> getAndRegisterToken(
+    NotificationRepository repo, {
+    bool forceRefresh = false,
+  }) async {
     try {
       final token = await _messaging.getToken();
       if (token != null) {
@@ -153,6 +156,7 @@ class NotificationService {
         await DeviceRegistrationService().registerDevice(
           fcmToken: token,
           repo: repo,
+          forceRefresh: forceRefresh,
         );
       }
 

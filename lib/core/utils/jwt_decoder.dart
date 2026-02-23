@@ -61,4 +61,29 @@ class JwtDecoder {
       return null;
     }
   }
+
+  /// JWT token'ın son kullanma tarihini döndürür (exp claim'den).
+  /// Token geçersizse null döner.
+  static DateTime? getExpiration(String token) {
+    try {
+      if (token.isEmpty) return null;
+      final payload = decode(token);
+      final exp = payload['exp'];
+      if (exp == null) return null;
+      final expInt = exp is int ? exp : int.tryParse(exp.toString());
+      if (expInt == null) return null;
+      return DateTime.fromMillisecondsSinceEpoch(expInt * 1000, isUtc: true);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Token'ın süresi dolmuş mu?
+  /// Boş token veya parse edilemeyen token → true (dolmuş sayılır)
+  static bool isExpired(String token) {
+    if (token.isEmpty) return true;
+    final expiration = getExpiration(token);
+    if (expiration == null) return true;
+    return DateTime.now().toUtc().isAfter(expiration);
+  }
 }

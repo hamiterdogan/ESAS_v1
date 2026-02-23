@@ -9,6 +9,8 @@ import 'core/theme/app_theme.dart';
 import 'core/constants/app_colors.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/auth_storage_service.dart';
+import 'core/services/auth_service.dart';
+import 'core/utils/jwt_decoder.dart';
 import 'features/bildirim/providers/notification_providers.dart';
 import 'common/widgets/branded_loading_indicator.dart';
 
@@ -91,26 +93,48 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _loadTokenAndInit() async {
-    // Load saved token from storage
     final storage = AuthStorageService();
-    final savedToken = await storage.getToken();
-    if (savedToken != null && savedToken.isNotEmpty) {
-      ref.read(tokenProvider.notifier).setToken(savedToken);
-    }
 
-    // Then init notification service
-    _initNotificationService();
+    // 1. Eski SharedPreferences token'ı SecureStorage'a taşı (tek seferlik migrasyon)
+    await storage.migrateIfNeeded();
+
+    // 2. Kaydedilmiş token'ı oku
+    final savedToken = await storage.getToken();
+
+    if (savedToken != null && savedToken.isNotEmpty) {
+      // 3. JWT expiry kontrolü: süresi dolmuşsa temizle
+      if (JwtDecoder.isExpired(savedToken)) {
+        await storage.clear();
+        ref.read(tokenProvider.notifier).setToken('');
+        authStateNotifier.value = false;
+      } else {
+        ref.read(tokenProvider.notifier).setToken(savedToken);
+        authStateNotifier.value = true;
+        // 4. FCM kaydı sadece authenticated kullanıcı için
+        _initNotificationService();
+      }
+    } else {
+      ref.read(tokenProvider.notifier).setToken('');
+      authStateNotifier.value = false;
+      // Bildirimleri başlat ama token register etme
+      _initNotificationServiceOnly();
+    }
   }
 
   Future<void> _initNotificationService() async {
     if (_initialized) return;
     _initialized = true;
 
-    // Servisi başlat (izin iste vs.) — token kaydı ile paralel
-    // Fire-and-forget: açılışı bloklamayacak şekilde arka planda çalışır
     unawaited(
       NotificationService().initialize().then((_) => _registerFcmToken()),
     );
+  }
+
+  /// Sadece servisi başlat, token register etme (login olmamış kullanıcı için)
+  Future<void> _initNotificationServiceOnly() async {
+    if (_initialized) return;
+    _initialized = true;
+    unawaited(NotificationService().initialize());
   }
 
   Future<void> _registerFcmToken() async {
@@ -130,22 +154,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     ref.listen<bool>(authErrorProvider, (previous, hasError) {
       if (hasError && previous != true) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          // Storage'ı temizle ve token provider'ı sıfırla
-          await AuthStorageService().clear();
-          ref.read(tokenProvider.notifier).setToken('');
-
-          // Login ekranına yönlendir
-          appRouter.go('/login');
-
-          // Snackbar ile kullanıcıyı bilgilendir
-          final messenger = rootScaffoldMessengerKey.currentState;
-          messenger?.showSnackBar(
-            const SnackBar(
-              content: Text('Oturum süresi doldu. Lütfen tekrar giriş yapın.'),
-              backgroundColor: AppColors.error,
-              duration: Duration(seconds: 5),
-            ),
-          );
+          // AuthService aracılığıyla tam logout (FCM deleteToken + UnregisterToken + temizlik)
+          await AuthService().logoutWithoutRef(ref);
         });
         // Auth hata durumunu sıfırla
         ref.read(authErrorProvider.notifier).setError(false);

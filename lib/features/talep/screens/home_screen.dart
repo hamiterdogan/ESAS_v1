@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/constants/dev_users.dart';
+import 'package:esas_v1/core/services/auth_service.dart';
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
@@ -24,6 +26,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
   late final PageController _pageController;
+  bool _isLogoutLoading = false;
 
   // GlobalKey'ler filtre işlemlerine erişim için
   final GlobalKey<IsteklerimContentState> _isteklerimKey = GlobalKey();
@@ -94,84 +97,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     return Center(
                       child: GestureDetector(
                         onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
+                          if (kDebugMode) {
+                            // Debug modda: kullanıcı değiştirme menüsü
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
                               ),
-                            ),
-                            builder: (context) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 20,
-                                ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      'Kullanıcı Değiştir (Dev)',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryDark,
+                              builder: (context) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 20,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Kullanıcı Değiştir (Dev)',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryDark,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Flexible(
-                                      child: ListView.separated(
-                                        shrinkWrap: true,
-                                        itemCount: kDevUsers.length,
-                                        separatorBuilder: (context, index) =>
-                                            const Divider(),
-                                        itemBuilder: (context, index) {
-                                          final user = kDevUsers[index];
-                                          return ListTile(
-                                            title: Text(
-                                              user.kullaniciAdi,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
+                                      const SizedBox(height: 10),
+                                      Flexible(
+                                        child: ListView.separated(
+                                          shrinkWrap: true,
+                                          itemCount: kDevUsers.length,
+                                          separatorBuilder: (context, index) =>
+                                              const Divider(),
+                                          itemBuilder: (context, index) {
+                                            final user = kDevUsers[index];
+                                            return ListTile(
+                                              title: Text(
+                                                user.kullaniciAdi,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                               ),
-                                            ),
-                                            onTap: () {
-                                              ref
-                                                  .read(tokenProvider.notifier)
-                                                  .setToken(user.token);
-                                              ref.invalidate(
-                                                talepYonetimRepositoryProvider,
-                                              );
-                                              ref.invalidate(
-                                                okunmayanTalepSayisiProvider,
-                                              );
-                                              ref.invalidate(
-                                                devamEdenIsteklerimProvider,
-                                              );
-                                              ref.invalidate(
-                                                tamamlananIsteklerimProvider,
-                                              );
-                                              ref.invalidate(
-                                                devamEdenGelenKutusuProvider,
-                                              );
-                                              ref.invalidate(
-                                                tamamlananGelenKutusuProvider,
-                                              );
-                                              ref.invalidate(
-                                                bilgiTeknolojileriOnayKayitIdSetProvider,
-                                              );
-                                              ref.invalidate(
-                                                bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider,
-                                              );
-                                              Navigator.pop(context);
-                                            },
-                                          );
-                                        },
+                                              onTap: () {
+                                                ref
+                                                    .read(
+                                                      tokenProvider.notifier,
+                                                    )
+                                                    .setToken(user.token);
+                                                ref.invalidate(
+                                                  talepYonetimRepositoryProvider,
+                                                );
+                                                ref.invalidate(
+                                                  okunmayanTalepSayisiProvider,
+                                                );
+                                                ref.invalidate(
+                                                  devamEdenIsteklerimProvider,
+                                                );
+                                                ref.invalidate(
+                                                  tamamlananIsteklerimProvider,
+                                                );
+                                                ref.invalidate(
+                                                  devamEdenGelenKutusuProvider,
+                                                );
+                                                ref.invalidate(
+                                                  tamamlananGelenKutusuProvider,
+                                                );
+                                                ref.invalidate(
+                                                  bilgiTeknolojileriOnayKayitIdSetProvider,
+                                                );
+                                                ref.invalidate(
+                                                  bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider,
+                                                );
+                                                Navigator.pop(context);
+                                              },
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            // Production modda: profil ekranına git
+                            context.push('/profil');
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(left: 12),
@@ -258,6 +269,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 false))
                     ? Icons.filter_alt
                     : Icons.filter_alt_outlined,
+              ),
+            // Çıkış butonu — her zaman görünür
+            if (_isLogoutLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.textOnPrimary,
+                    ),
+                  ),
+                ),
+              )
+            else
+              IconButton(
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  color: AppColors.textOnPrimary,
+                  size: 24,
+                ),
+                tooltip: 'Çıkış Yap',
+                onPressed: _logout,
               ),
           ],
         ),
@@ -426,6 +462,108 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
+  }
+
+  Future<void> _logout() async {
+    final confirmed = await _showLogoutConfirmation();
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isLogoutLoading = true);
+    // AuthService: UnregisterToken → deleteToken() → clear storage → /login
+    await AuthService().logout(ref);
+    // logout() içinde appRouter.go('/login') çağrıldığı için mounted kontrolüne gerek yok
+  }
+
+  Future<bool> _showLogoutConfirmation() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.logout_rounded,
+                color: AppColors.primaryDark,
+                size: 56,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Çıkış Yap',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Oturumu kapatmak istediğinize emin misiniz?',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(
+                          color: AppColors.primaryDark,
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Vazgeç',
+                        style: TextStyle(
+                          color: AppColors.primaryDark,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Çıkış Yap',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return result == true;
   }
 
   void _showExitConfirmationBottomSheet() {
