@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:esas_v1/core/services/auth_storage_service.dart';
 import 'package:esas_v1/core/services/notification_service.dart';
 import 'package:esas_v1/features/auth/providers/auth_providers.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
+import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -89,11 +91,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ref.invalidate(dioProvider);
       ref.invalidate(notificationRepositoryProvider);
 
-      // Her login'de RegisterToken endpoint'ini mutlaka çağır.
-      // Backend Authorization header'daki JWT'yi çözerek kullanıcı eşleşmesini günceller.
-      final notifRepo = ref.read(notificationRepositoryProvider);
+      // ⚡ KRİTİK: Riverpod provider zincirine güvenmiyoruz.
+      // Yeni JWT ile doğrudan yeni bir Dio + Repository oluşturup
+      // RegisterToken'ı bu taze instance ile çağırıyoruz.
+      final freshDio = Dio(BaseOptions(
+        baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${response.token}',
+        },
+      ));
+      final freshRepo = NotificationRepositoryImpl(dio: freshDio);
+
+      if (kDebugMode) {
+        print('🔑 RegisterToken çağrısı yeni JWT ile yapılıyor...');
+        print('   PersonelId: ${response.personelId}');
+        print('   KullanıcıAdı: ${response.kullaniciAdi}');
+      }
+
       await NotificationService().getAndRegisterToken(
-        notifRepo,
+        freshRepo,
         forceRefresh: true,
       );
 
