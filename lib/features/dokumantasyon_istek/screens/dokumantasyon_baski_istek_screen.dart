@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,6 +27,7 @@ import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_
 import 'package:esas_v1/common/widgets/branded_loading_dialog.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class DokumantasyonBaskiIstekScreen extends ConsumerStatefulWidget {
   const DokumantasyonBaskiIstekScreen({super.key});
@@ -973,8 +974,17 @@ class _DokumantasyonBaskiIstekScreenState
           files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
         );
 
-        if (result is Failure) {
+        if (result is Failure<int>) {
           throw Exception(result.message);
+        } else if (result is Success<int>) {
+          if (result.data > 0) {
+            final emailService = ref.read(emailServiceProvider);
+            await emailService.emailIcerikOlustur(
+              id: result.data,
+              kategori: 'Dokümantasyon İstek',
+              aksiyon: 'Oluşturuldu',
+            );
+          }
         }
       },
       onSuccess: () async {
@@ -985,8 +995,6 @@ class _DokumantasyonBaskiIstekScreenState
           onConfirm: () async {
             ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
             ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/dokumantasyon_istek');
           },

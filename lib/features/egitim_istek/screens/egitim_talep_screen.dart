@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
@@ -3094,7 +3095,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       'egitimSuresiGun': _egitimGun.toString(),
       'egitimSuresiSaat': _egitimSaat.toString(),
       'girilmeyenToplamDersSaati': _girileymeyenDersSaati,
-      'egitiminAdi': _secilenEgitimAdi ?? '',
+      'egitiminAdi': _secilenEgitimAdi == 'DİĞER' ? '0' : (_secilenEgitimAdi ?? ''),
       'sirketAdi': _egitimSirketiAdi,
       'egitimIcerigi': _egitimKonusu,
       'webSitesi': _webSitesi.trim().isEmpty ? '' : _webSitesi.trim(),
@@ -3531,6 +3532,15 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
 
         if (result is Failure<int>) {
           throw Exception(result.message);
+        } else if (result is Success<int>) {
+          if (result.data > 0) {
+            final emailService = ref.read(emailServiceProvider);
+            await emailService.emailIcerikOlustur(
+              id: result.data,
+              kategori: 'Eğitim İstek',
+              aksiyon: 'Oluşturuldu',
+            );
+          }
         }
       },
       onSuccess: () async {
@@ -3541,8 +3551,6 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           onConfirm: () async {
             ref.invalidate(egitimDevamEdenTaleplerProvider);
             ref.invalidate(egitimTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/egitim_istek');
           },

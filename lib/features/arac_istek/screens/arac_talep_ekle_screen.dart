@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,6 +16,7 @@ import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart'
 import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class AracTalepEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -1031,8 +1032,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
               ref.invalidate(aracDevamEdenTaleplerProvider);
               ref.invalidate(aracTamamlananTaleplerProvider);
               if (!context.mounted) return;
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              if (!context.mounted) return;
               context.go('/arac_istek');
             },
           );
@@ -1073,7 +1072,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                   ref.invalidate(aracTamamlananTaleplerProvider);
 
                   // Tüm önceki ekranları temizleyip doğrudan Araç Taleplerini Yönet'e git
-                  Navigator.of(context).popUntil((route) => route.isFirst);
                   Future.delayed(const Duration(milliseconds: 100), () {
                     if (mounted) {
                       context.go('/arac_istek');
@@ -1392,7 +1390,15 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     final result = await repo.aracIstekEkle(req);
 
     switch (result) {
-      case Success():
+      case Success(:final data):
+        if (data != null && data > 0) {
+          final emailService = ref.read(emailServiceProvider);
+          await emailService.emailIcerikOlustur(
+            id: data,
+            kategori: 'Araç İstek',
+            aksiyon: 'Oluşturuldu',
+          );
+        }
         return;
       case Failure(:final message):
         throw Exception('Araç isteği gönderilemedi: $message');

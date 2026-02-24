@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/common/index.dart';
@@ -116,7 +116,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
               null, // A4 request usually has no file, but API might require param presence
         );
 
-        if (result is Failure) {
+        if (result is Failure<int>) {
           throw Exception(result.message);
         }
       },
@@ -128,8 +128,6 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
           onConfirm: () async {
             ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
             ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/dokumantasyon_istek');
           },

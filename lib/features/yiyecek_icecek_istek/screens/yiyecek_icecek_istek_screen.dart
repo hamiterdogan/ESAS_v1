@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,6 +21,7 @@ import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 // Add this for Success/Failure checks
 
 class YiyecekIcecekIstekScreen extends ConsumerStatefulWidget {
@@ -786,7 +787,7 @@ class _YiyecekIcecekIstekScreenState
       etkinlikTarihi:
           _selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
       donem: _selectedDonem ?? 'string',
-      etkinlikAdi: _selectedEtkinlik ?? 'string',
+      etkinlikAdi: _selectedEtkinlik == 'Diğer' ? '0' : (_selectedEtkinlik ?? 'string'),
       etkinlikAdiDiger: _selectedEtkinlik == 'Diğer'
           ? _customEtkinlikController.text
           : 'string',
@@ -866,11 +867,18 @@ class _YiyecekIcecekIstekScreenState
       onGonder: () async {
         // Actual API submission logic moved here (minus the loading dialog which is handled by wrapper)
         final repo = ref.read(yiyecekIcecekRepositoryProvider);
-        // Repository method returns void currently and throws exception on error.
-        // We need to wrap it to be safe or update repository to return Result.
-        // Since existing repository method matches what we expect (exception on failure), we can just call it.
+        final emailService = ref.read(emailServiceProvider);
+        
         print('Yiyecek İçecek İstek Datası: ${req.toJson()}');
-        await repo.yiyecekIstekEkle(req);
+        final onayKayitId = await repo.yiyecekIstekEkle(req);
+        
+        if (onayKayitId > 0) {
+          await emailService.emailIcerikOlustur(
+            id: onayKayitId,
+            kategori: 'Yiyecek İçecek',
+            aksiyon: 'Oluşturuldu',
+          );
+        }
       },
       onSuccess: () async {
         if (!mounted) return;
@@ -880,8 +888,6 @@ class _YiyecekIcecekIstekScreenState
           onConfirm: () async {
             ref.invalidate(yiyecekIstekDevamEdenTaleplerProvider);
             ref.invalidate(yiyecekIstekTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/yiyecek_icecek_istek');
           },

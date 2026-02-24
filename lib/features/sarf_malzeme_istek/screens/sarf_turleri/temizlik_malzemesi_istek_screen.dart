@@ -25,6 +25,7 @@ import 'package:esas_v1/features/sarf_malzeme_istek/providers/sarf_malzeme_provi
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class TemizlikMalzemesiIstekScreen extends ConsumerStatefulWidget {
   const TemizlikMalzemesiIstekScreen({super.key});
@@ -254,13 +255,22 @@ class _TemizlikMalzemesiIstekScreenState
         final repo = ref.read(sarfMalzemeRepositoryProvider);
         final result = await repo.sarfMalzemeEkle(sarfReq);
 
-        if (result is Failure) {
+        if (result is Failure<int>) {
           if (!mounted) return;
           await ValidationUyariWidget.goster(
             context: context,
             message: 'Hata: ${result.message}',
           );
           return;
+        } else if (result is Success<int>) {
+          if (result.data > 0) {
+            final emailService = ref.read(emailServiceProvider);
+            await emailService.emailIcerikOlustur(
+              id: result.data,
+              kategori: 'Temizlik Malzemesi',
+              aksiyon: 'Oluşturuldu',
+            );
+          }
         }
       },
       onSuccess: () async {

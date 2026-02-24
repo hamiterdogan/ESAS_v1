@@ -42,14 +42,22 @@ class YiyecekIcecekRepository {
     }
   }
 
-  Future<void> yiyecekIstekEkle(YiyecekIstekEkleReq req) async {
+  Future<int> yiyecekIstekEkle(YiyecekIstekEkleReq req) async {
     try {
       final response = await dio.post(
         '/YiyecekIstek/YiyecekIstekEkle',
         data: req.toJson(),
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 200) {
+        if (response.data != null && response.data is Map) {
+          final onayKayitId = response.data['onayKayitId'];
+          if (onayKayitId != null) {
+            return int.tryParse(onayKayitId.toString()) ?? 0;
+          }
+        }
+        return 0;
+      } else {
         throw Exception('İstek gönderilemedi: ${response.statusCode}');
       }
     } catch (e) {

@@ -20,7 +20,7 @@ abstract class AracTalepRepository {
   Future<Result<List<GidilecekYer>>> gidilecekYerleriGetir();
 
   /// Yeni araç isteği oluştur
-  Future<Result<void>> aracIstekEkle(AracIstekEkleReq request);
+  Future<Result<int>> aracIstekEkle(AracIstekEkleReq request);
 
   /// Araç istek nedenleri dropdown'ı için verileri getir
   Future<Result<List<AracIstekNedeniItem>>> aracIstekNedenleriGetir();
@@ -212,7 +212,7 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
   }
 
   @override
-  Future<Result<void>> aracIstekEkle(AracIstekEkleReq request) async {
+  Future<Result<int>> aracIstekEkle(AracIstekEkleReq request) async {
     try {
       AppLogger.api(
         'AracIstekEkle çağrısı',
@@ -226,7 +226,18 @@ class AracTalepRepositoryImpl implements AracTalepRepository {
       );
 
       if (response.statusCode == 200) {
-        return const Success(null);
+        final data = response.data;
+        if (data is Map) {
+          if (data['basarili'] == true) {
+            return Success(data['onayKayitId'] ?? 0);
+          } else if (data['basarili'] == false) {
+            return Failure(data['mesaj'] ?? 'Hata oluştu');
+          }
+          if (data['onayKayitId'] != null) {
+            return Success(data['onayKayitId'] as int);
+          }
+        }
+        return const Success(0);
       }
 
       return Failure('Hata: ${response.statusCode}');

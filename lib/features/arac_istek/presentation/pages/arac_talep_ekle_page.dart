@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/common/widgets/primary_app_bar.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -28,8 +28,6 @@ class AracTalepEklePage extends ConsumerWidget {
           onConfirm: () async {
             ref.invalidate(arac_list_providers.aracDevamEdenTaleplerProvider);
             ref.invalidate(arac_list_providers.aracTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/arac_istek');
           },

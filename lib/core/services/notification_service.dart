@@ -45,11 +45,8 @@ class NotificationService {
   // Uygulama kapalıyken tıklanan bildirim için bekleyen route
   String? _pendingRoute;
 
-  // onTokenRefresh listener subscription — her login'de cancel + yeniden oluşturulur
+  // FCM token yenileme listener'ı (resetRegistrationFlow için)
   StreamSubscription<String>? _tokenRefreshSubscription;
-
-  // RegisterToken çağrılarında stale akışları engellemek için sürüm sayacı
-  int _registerFlowVersion = 0;
 
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -152,8 +149,6 @@ class NotificationService {
     bool forceRefresh = false,
   }) async {
     try {
-      final flowVersion = ++_registerFlowVersion;
-
       final token = await _messaging.getToken();
       if (token != null) {
         if (kDebugMode) {
@@ -182,28 +177,14 @@ class NotificationService {
         return null;
       }
 
-      // Bu sırada daha yeni bir register akışı başladıysa eski akış listener kurmamalı
-      if (flowVersion != _registerFlowVersion) {
-        if (kDebugMode) {
-          print('ℹ️ Eski register akışı listener kurmadan sonlandırıldı.');
-        }
-        return token;
-      }
-
-      // Eski listener'ı iptal et → eski repo/JWT closure'larını kaldır
-      await _tokenRefreshSubscription?.cancel();
-      _tokenRefreshSubscription = null;
-
-      // Yeni listener: sadece güncel repo referansını tutan tek listener
+      // Token yenilendiğinde eski kaydı sıfırla ve yeniden kayıt yap
       _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((
         newToken,
       ) async {
-        // Listener stale ise hiçbir işlem yapma
-        if (flowVersion != _registerFlowVersion) return;
-
         if (kDebugMode) {
           print('🔄 FCM Token yenilendi: $newToken');
         }
+        // Eski kaydı sil, yeni token'ı zorla kaydet
         await DeviceRegistrationService().clearRegistration();
         await DeviceRegistrationService().registerDevice(
           fcmToken: newToken,
@@ -221,11 +202,16 @@ class NotificationService {
     }
   }
 
-  /// Logout veya kullanıcı değişiminde eski token refresh listener'ını tamamen sıfırla.
+  /// Tüm kayıt akışını sıfırlar (logout/unauthorized senaryolarında).
+  /// Eski listener'ı iptal eder ve Firebase'den token'ı siler.
   Future<void> resetRegistrationFlow() async {
-    _registerFlowVersion++;
     await _tokenRefreshSubscription?.cancel();
     _tokenRefreshSubscription = null;
+    try {
+      await _messaging.deleteToken();
+    } catch (e) {
+      if (kDebugMode) print('⚠️ FCM deleteToken hatası: $e');
+    }
   }
 
   /// İzin iste
@@ -335,6 +321,7 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
+      styleInformation: BigTextStyleInformation(notification.body ?? ''),
       // Onay bekleyen bildirimler için action button'ları
       actions: aksiyonTipi == 'onay_bekliyor'
           ? <AndroidNotificationAction>[

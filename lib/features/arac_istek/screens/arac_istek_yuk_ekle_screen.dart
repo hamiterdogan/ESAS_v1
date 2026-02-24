@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -796,8 +796,6 @@ class _AracIstekYukEkleScreenState
           onConfirm: () async {
             ref.invalidate(aracDevamEdenTaleplerProvider);
             ref.invalidate(aracTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
             if (!context.mounted) return;
             context.go('/arac_istek');
           },

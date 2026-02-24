@@ -114,7 +114,7 @@ class SarfMalzemeRepository {
         .toList();
   }
 
-  Future<Result<void>> sarfMalzemeEkle(SarfMalzemeEkleReq req) async {
+  Future<Result<int>> sarfMalzemeEkle(SarfMalzemeEkleReq req) async {
     try {
       final response = await _dio.post(
         '/SarfMalzeme/SarfMalzemeEkle',
@@ -195,7 +195,7 @@ class SarfMalzemeRepository {
         }
       }
 
-      return const Success(null);
+      return Success(onayKayitId);
     } catch (e) {
       return Failure(e.toString());
     }

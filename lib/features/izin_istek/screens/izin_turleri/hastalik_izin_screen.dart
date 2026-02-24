@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -12,6 +12,7 @@ import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -814,8 +815,17 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 request,
                 file: _doktorRaporuVar ? _doktorRaporuFile : null,
               );
-              if (result is Failure) {
+              if (result is Failure<int>) {
                 throw Exception(result.message);
+              } else if (result is Success<int>) {
+                if (result.data > 0) {
+                  final emailService = ref.read(emailServiceProvider);
+                  await emailService.emailIcerikOlustur(
+                    id: result.data,
+                    kategori: 'İzin İstek',
+                    aksiyon: 'Oluşturuldu',
+                  );
+                }
               }
             },
             onSuccess: () async {
@@ -826,8 +836,6 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                 onConfirm: () async {
                   ref.invalidate(devamEdenIsteklerimProvider);
                   ref.invalidate(tamamlananIsteklerimProvider);
-                  if (!context.mounted) return;
-                  Navigator.of(context).popUntil((route) => route.isFirst);
                   if (!context.mounted) return;
                   context.go('/izin_istek');
                 },

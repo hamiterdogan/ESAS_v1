@@ -35,14 +35,6 @@ class AuthService {
         print('⚠️ Backend UnregisterToken hatası (devam ediliyor): $e');
     }
 
-    try {
-      // 2. Firebase FCM token'ını tamamen yok et
-      await FirebaseMessaging.instance.deleteToken();
-      if (kDebugMode) print('🗑️ FCM token Firebase\'den silindi.');
-    } catch (e) {
-      if (kDebugMode) print('⚠️ FCM deleteToken hatası (devam ediliyor): $e');
-    }
-
     // 3. Local FCM kayıt işaretini temizle (sonraki login'de yeniden register olsun)
     await DeviceRegistrationService().clearRegistration();
 
@@ -69,13 +61,6 @@ class AuthService {
   /// Tam logout (401 handler gibi noktalarda WidgetRef ile kullanılır).
   Future<void> logoutWithoutRef(WidgetRef ref) async {
     await NotificationService().resetRegistrationFlow();
-
-    try {
-      await FirebaseMessaging.instance.deleteToken();
-      if (kDebugMode) print('🗑️ FCM token Firebase\'den silindi.');
-    } catch (e) {
-      if (kDebugMode) print('⚠️ FCM deleteToken hatası: $e');
-    }
 
     await DeviceRegistrationService().clearRegistration();
     await AuthStorageService().clear();

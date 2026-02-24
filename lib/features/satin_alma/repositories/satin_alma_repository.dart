@@ -25,7 +25,7 @@ class SatinAlmaRepository {
 
   final Dio _dio;
 
-  Future<Result<void>> satinAlmaEkle(SatinAlmaEkleReq req) async {
+  Future<Result<int>> satinAlmaEkle(SatinAlmaEkleReq req) async {
     try {
       // Step 1: Create satın alma request - send JSON
       final response = await _dio.post(
@@ -114,7 +114,7 @@ class SatinAlmaRepository {
         }
       }
 
-      return const Success(null);
+      return Success(onayKayitId);
     } catch (e) {
       return Failure(e.toString());
     }

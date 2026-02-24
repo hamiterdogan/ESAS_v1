@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +27,7 @@ import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:esas_v1/common/index.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class BilgiTeknolojileriIstekScreen extends ConsumerStatefulWidget {
   final String destekTuru;
@@ -368,9 +369,6 @@ class _BilgiTeknolojileriIstekScreenState
 
                 // Provider'ın yeni data yüklemesini bekle
                 await Future.delayed(const Duration(milliseconds: 300));
-
-                if (!context.mounted) return;
-                Navigator.of(context).popUntil((route) => route.isFirst);
                 if (!context.mounted) return;
                 context.go('/bilgi_teknolojileri');
                 return;
@@ -384,9 +382,6 @@ class _BilgiTeknolojileriIstekScreenState
 
               // Provider'ın yeni data yüklemesini bekle
               await Future.delayed(const Duration(milliseconds: 300));
-
-              if (!context.mounted) return;
-              Navigator.of(context).popUntil((route) => route.isFirst);
               if (!context.mounted) return;
               context.go('/teknik_destek');
             },
@@ -434,6 +429,14 @@ class _BilgiTeknolojileriIstekScreenState
         if (response.basarili) {
           if (_selectedFiles.isNotEmpty) {
             await _uploadFiles(response.onayKayitId);
+          }
+          if (response.onayKayitId > 0) {
+            final emailService = ref.read(emailServiceProvider);
+            await emailService.emailIcerikOlustur(
+              id: response.onayKayitId,
+              kategori: widget.baslik,
+              aksiyon: 'Oluşturuldu',
+            );
           }
         } else {
           throw Exception(response.mesaj);

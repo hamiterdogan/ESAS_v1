@@ -82,14 +82,12 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   bool _initialized = false;
+  bool _isReady = false; // Token kontrolü tamamlanana kadar ekranda kalacak
 
   @override
   void initState() {
     super.initState();
-    // Load token from storage and initialize notification service
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadTokenAndInit();
-    });
+    _loadTokenAndInit();
   }
 
   Future<void> _loadTokenAndInit() async {
@@ -121,6 +119,13 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     // RegisterToken çağrısı login akışında zorunlu olarak yapılır.
     // App start'ta otomatik register yapmayarak eski JWT ile yarış durumlarını engelleriz.
+    
+    // İşlemler tamamlandı, UI'yi aç
+    if (mounted) {
+      setState(() {
+        _isReady = true;
+      });
+    }
   }
 
   /// Bildirim servisini başlat (sadece izinler, kanallar, listener'lar).
@@ -143,6 +148,20 @@ class _MyAppState extends ConsumerState<MyApp> {
         ref.read(authErrorProvider.notifier).setError(false);
       }
     });
+
+    // Token okuması ve yönlendirme tamamlanana kadar Splash göster
+    if (!_isReady) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Image.asset('assets/images/logo_icon.png', width: 120),
+          ),
+        ),
+      );
+    }
 
     return MaterialApp.router(
       scaffoldMessengerKey: rootScaffoldMessengerKey,

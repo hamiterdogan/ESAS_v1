@@ -10,7 +10,7 @@ import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 
 abstract class DokumantasyonIstekRepository {
-  Future<Result<void>> dokumantasyonIstekEkle({
+  Future<Result<int>> dokumantasyonIstekEkle({
     required int paket,
     required String aciklama,
     required DateTime teslimTarihi,
@@ -18,7 +18,7 @@ abstract class DokumantasyonIstekRepository {
     String? formFile,
   });
 
-  Future<Result<void>> dokumantasyonBaskiIstekEkle({
+  Future<Result<int>> dokumantasyonBaskiIstekEkle({
     required DokumantasyonBaskiIstekReq request,
     List<File>? files,
   });
@@ -65,7 +65,7 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
   }
 
   @override
-  Future<Result<void>> dokumantasyonIstekEkle({
+  Future<Result<int>> dokumantasyonIstekEkle({
     required int paket,
     required String aciklama,
     required DateTime teslimTarihi,
@@ -101,7 +101,11 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
       );
 
       if (response.statusCode == 200) {
-        return const Success(null);
+        final data = response.data;
+        if (data is Map && data['onayKayitId'] != null) {
+          return Success(data['onayKayitId'] as int);
+        }
+        return const Success(0);
       }
 
       return Failure('Hata: ${response.statusCode}');
@@ -217,7 +221,7 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
   }
 
   @override
-  Future<Result<void>> dokumantasyonBaskiIstekEkle({
+  Future<Result<int>> dokumantasyonBaskiIstekEkle({
     required DokumantasyonBaskiIstekReq request,
     List<File>? files,
   }) async {
@@ -312,7 +316,7 @@ class DokumantasyonIstekRepositoryImpl implements DokumantasyonIstekRepository {
         }
       }
 
-      return const Success(null);
+      return Success(onayKayitId);
     } on DioException catch (e) {
       return Failure(
         e.response?.data?.toString() ?? e.message ?? 'Bağlantı hatası',

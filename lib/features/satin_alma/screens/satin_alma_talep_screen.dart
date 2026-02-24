@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
@@ -31,6 +31,7 @@ import 'package:esas_v1/common/widgets/odeme_sekli_widget.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class SatinAlmaTalepScreen extends ConsumerStatefulWidget {
   const SatinAlmaTalepScreen({super.key});
@@ -2168,7 +2169,15 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
             if (!mounted) return;
 
             switch (result) {
-              case Success():
+              case Success(:final data):
+                if (data != null && data > 0) {
+                  final emailService = ref.read(emailServiceProvider);
+                  await emailService.emailIcerikOlustur(
+                    id: data,
+                    kategori: 'Satın Alma',
+                    aksiyon: 'Oluşturuldu',
+                  );
+                }
                 return;
               case Failure(message: final msg):
                 throw Exception(msg);
@@ -2189,8 +2198,6 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
             onConfirm: () async {
               ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
               ref.invalidate(satinAlmaTamamlananTaleplerProvider);
-              if (!context.mounted) return;
-              Navigator.of(context).popUntil((route) => route.isFirst);
               if (!context.mounted) return;
               context.go('/satin_alma');
             },

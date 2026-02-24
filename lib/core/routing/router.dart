@@ -42,7 +42,7 @@ import 'package:esas_v1/features/profil/screens/profil_screen.dart';
 final authStateNotifier = ValueNotifier<bool>(false);
 
 final appRouter = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/',
   debugLogDiagnostics: false,
   refreshListenable: authStateNotifier,
   redirect: (context, state) {

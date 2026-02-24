@@ -1,4 +1,4 @@
-import 'package:esas_v1/core/constants/app_colors.dart';
+﻿import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +16,7 @@ import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class IzinEkleFormState {
   final DateTime baslangicTarihi;
@@ -2016,6 +2017,15 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           message: 'Hata: $message',
         );
         return;
+      } else if (result case Success(:final data)) {
+        if (data != null && data > 0) {
+          final emailService = ref.read(emailServiceProvider);
+          await emailService.emailIcerikOlustur(
+            id: data,
+            kategori: 'İzin İstek',
+            aksiyon: 'Oluşturuldu',
+          );
+        }
       }
 
       if (!mounted) return;
@@ -2025,8 +2035,6 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         onConfirm: () async {
           ref.invalidate(devamEdenIsteklerimProvider);
           ref.invalidate(tamamlananIsteklerimProvider);
-          if (!context.mounted) return;
-          Navigator.of(context).popUntil((route) => route.isFirst);
           if (!context.mounted) return;
           context.go('/izin_istek');
         },

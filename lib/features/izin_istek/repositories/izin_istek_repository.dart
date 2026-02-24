@@ -20,7 +20,7 @@ abstract class IzinIstekRepository {
   Future<Result<List<DiniGun>>> getDiniGunler(int personelId);
 
   /// Yeni izin isteği oluşturur (dosya ile birlikte gönderilebilir)
-  Future<Result<void>> izinIstekEkle(IzinIstekEkleReq request, {File? file});
+  Future<Result<int>> izinIstekEkle(IzinIstekEkleReq request, {File? file});
 
   /// İzin detayını getirir
   Future<Result<IzinIstekDetay>> getIzinDetay(int id);
@@ -119,7 +119,7 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
   }
 
   @override
-  Future<Result<void>> izinIstekEkle(
+  Future<Result<int>> izinIstekEkle(
     IzinIstekEkleReq request, {
     File? file,
   }) async {
@@ -207,7 +207,7 @@ class IzinIstekRepositoryImpl implements IzinIstekRepository {
         }
       }
 
-      return const Success(null);
+      return Success(onayKayitId);
     } on DioException catch (e) {
       // Sunucudan gelen hata mesajını çıkar
       String errorMessage = 'Sunucu hatası oluştu';
