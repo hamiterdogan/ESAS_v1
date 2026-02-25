@@ -21,6 +21,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class TeknikDestekDetayScreen extends ConsumerStatefulWidget {
   final int talepId;
@@ -1059,6 +1060,16 @@ class _TeknikDestekDetayScreenState
                               // We don't return here because the message was sent successfully
                             }
                           }
+
+                          if (!context.mounted) return;
+
+                          // Email notification logic
+                          final emailService = ref.read(emailServiceProvider);
+                          await emailService.emailIcerikOlustur(
+                            id: widget.talepId,
+                            kategori: 'Teknik Destek',
+                            aksiyon: 'Devam Ediyor',
+                          );
 
                           if (!context.mounted) return;
 

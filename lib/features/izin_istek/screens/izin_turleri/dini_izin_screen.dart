@@ -37,6 +37,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
   int _secilenDiniGunIndex = 0;
   String? _secilenDiniGunAdi;
   bool _onay = false;
+  bool _isSubmitting = false;
   bool _birGunlukIzin = false;
   Personel? _secilenPersonel;
   bool _basaksiAdinaIstekte = false;
@@ -524,6 +525,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   GonderButtonWidget(
                     onPressed: _onay ? _submitForm : null,
                     enabled: _onay,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -542,6 +544,9 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_formKey.currentState?.validate() ?? false) {
       // Açıklama zorunlu kontrolü (en az 30 karakter)
       if (_aciklamaController.text.length < 30) {
@@ -716,6 +721,9 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           );
         }
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

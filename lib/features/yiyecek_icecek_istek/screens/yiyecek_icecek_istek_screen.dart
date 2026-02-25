@@ -54,6 +54,7 @@ class _YiyecekIcecekIstekScreenState
   final FocusNode _submitFocusNode = FocusNode();
 
   final List<YiyecekIcecekIkramData> _addedIkramlar = [];
+  bool _isSubmitting = false;
 
   // Initial values for form data tracking
   late DateTime? _initialSelectedDate;
@@ -621,6 +622,9 @@ class _YiyecekIcecekIstekScreenState
   }
 
   Future<void> _validateAndSubmit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     // 1. Dönem Kontrolü
     if (_selectedDonem == null) {
       FocusScope.of(context).unfocus();
@@ -720,10 +724,13 @@ class _YiyecekIcecekIstekScreenState
     }
 
     // Validasyon başarılı, özet ekranını göster
-    _showSummary();
+    await _showSummary();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
-  void _showSummary() async {
+  Future<void> _showSummary() async {
     // Prepare Data
     // Map selected bina codes to IDs
     final binalar = ref.read(satinAlmaBinalarProvider).asData?.value ?? [];
@@ -1638,6 +1645,7 @@ class _YiyecekIcecekIstekScreenState
                 const SizedBox(height: 24),
                 GonderButtonWidget(
                   onPressed: () => _validateAndSubmit(),
+                  isLoading: _isSubmitting,
                   padding: 14.0,
                   borderRadius: 8.0,
                   textStyle: const TextStyle(

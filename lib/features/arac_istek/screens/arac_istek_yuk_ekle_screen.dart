@@ -58,6 +58,9 @@ class _AracIstekYukEkleScreenState
   late final int _initialDonusSaat;
   late final int _initialDonusDakika;
 
+  // Double-tap prevention for submit
+  bool _isSubmitting = false;
+
   @override
   void dispose() {
     _mesafeController.dispose();
@@ -712,13 +715,18 @@ class _AracIstekYukEkleScreenState
                   // Gönder Butonu
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: _isSubmitting
+                          ? LinearGradient(colors: [
+                              AppColors.gradientStart.withValues(alpha: 0.4),
+                              AppColors.gradientEnd.withValues(alpha: 0.4),
+                            ])
+                          : AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _submitForm,
+                        onPressed: _isSubmitting ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -748,6 +756,9 @@ class _AracIstekYukEkleScreenState
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     // Form validasyonu
     if (_entries.isEmpty) {
       await ValidationUyariWidget.goster(
@@ -780,7 +791,7 @@ class _AracIstekYukEkleScreenState
     final ozetItems = _buildAracIstekOzetItems(req);
 
     _lockAndUnfocusInputs();
-    showAracIstekOzetBottomSheet(
+    await showAracIstekOzetBottomSheet(
       context: context,
       request: req,
       talepTipi: 'Yük',
@@ -809,6 +820,9 @@ class _AracIstekYukEkleScreenState
         );
       },
     );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Future<void> _sendAracIstek(AracIstekEkleReq req) async {

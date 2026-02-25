@@ -38,6 +38,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
   int _bitisDakika = 30;
   int _girileymeyenDersSaati = 0;
   bool _onay = false;
+  bool _isSubmitting = false;
   bool _birGunlukIzin = false;
   Personel? _secilenPersonel;
   bool _basaksiAdinaIstekte = false;
@@ -489,6 +490,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                   GonderButtonWidget(
                     onPressed: _onay ? _submitForm : null,
                     enabled: _onay,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -507,6 +509,9 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_formKey.currentState?.validate() ?? false) {
       if (_baslangicTarihi == null) {
         await ValidationUyariWidget.goster(
@@ -701,6 +706,9 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
           );
         }
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

@@ -82,6 +82,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   bool _egitimTurleriYuklendi = false;
   double _aldigiEgitimUcreti = 0;
   bool _agreeWithDocuments = false;
+  bool _isSubmitting = false;
 
   final Set<int> _selectedPersonelIdsForTopluIstek = {};
   final Set<int> _selectedPersonelIdsForPaylasum = {};
@@ -2053,7 +2054,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                   const SizedBox(height: 16),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: _agreeWithDocuments
+                      gradient: (_agreeWithDocuments && !_isSubmitting)
                           ? AppColors.primaryGradient
                           : LinearGradient(
                               colors: [
@@ -2066,7 +2067,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: _agreeWithDocuments ? _submitForm : null,
+                        onPressed: (_agreeWithDocuments && !_isSubmitting) ? _submitForm : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -2646,6 +2647,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     // 1️⃣ Eğitimin Adı seçimi zorunlu validasyonu
     if (_secilenEgitimAdi == null) {
       await _scrollAndFocusToWidget(_egitimAdiKey, null);
@@ -2877,7 +2881,10 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     }
 
     // Form gönderme işlemi - Özet ekranını göster
-    _showSummaryAndSubmit();
+    await _showSummaryAndSubmit();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   String? _getEgitimSonrasiPaylasimMissingErrorType() {

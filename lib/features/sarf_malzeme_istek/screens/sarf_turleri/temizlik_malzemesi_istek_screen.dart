@@ -48,6 +48,7 @@ class _TemizlikMalzemesiIstekScreenState
       TextEditingController();
   final GlobalKey _gonderButtonKey = GlobalKey();
   final FocusNode _gonderButtonFocusNode = FocusNode();
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -496,7 +497,13 @@ class _TemizlikMalzemesiIstekScreenState
   void _removeFile(int index) {}
 
   Future<void> _submitForm() async {
-    await _scrollToWidget(_gonderButtonKey);
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await _scrollToWidget(_gonderButtonKey);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Future<void> _pickFiles() async {
@@ -1581,6 +1588,7 @@ class _TemizlikMalzemesiIstekScreenState
                     child: GonderButtonWidget(
                       buttonKey: _gonderButtonKey,
                       onPressed: _submitForm,
+                      isLoading: _isSubmitting,
                       padding: 14.0,
                       borderRadius: 8.0,
                     ),

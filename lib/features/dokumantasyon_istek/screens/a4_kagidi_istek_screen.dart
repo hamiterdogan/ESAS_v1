@@ -27,6 +27,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
   late DateTime _initialTeslimTarihi;
   late DateTime _teslimTarihi;
   int _paketAdedi = 1;
+  bool _isSubmitting = false;
   late final TextEditingController _aciklamaController;
 
   @override
@@ -58,7 +59,10 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
     return AppDialogs.showFormExitConfirm(context);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     FocusScope.of(context).unfocus();
 
     // Açıklama validation
@@ -97,7 +101,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
       ),
     ];
 
-    showGenericSummaryBottomSheet(
+    await showGenericSummaryBottomSheet(
       context: context,
       requestData: requestData,
       title: 'A4 Kağıdı İstek',
@@ -137,6 +141,9 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
         _showStatusBottomSheet(error, isError: true);
       },
     );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   void _showDateInfo() {
@@ -238,6 +245,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 50),
             child: GonderButtonWidget(
               onPressed: _submit,
+              isLoading: _isSubmitting,
               padding: 14.0,
               borderRadius: 8.0,
               textStyle: const TextStyle(

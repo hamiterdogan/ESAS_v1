@@ -1868,6 +1868,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         hastalikYazinizFocusNode,
         diniGunAciklamaFocusNode,
       ),
+      isLoading: _isActionInProgress,
       padding: 14.0,
       borderRadius: 8.0,
       textStyle: const TextStyle(

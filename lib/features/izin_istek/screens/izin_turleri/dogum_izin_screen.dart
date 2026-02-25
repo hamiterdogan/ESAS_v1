@@ -34,6 +34,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
   DateTime? _tahminiDogumTarihi;
   int _girileymeyenDersSaati = 0;
   bool _onay = false;
+  bool _isSubmitting = false;
   Personel? _secilenPersonel;
   bool _basaksiAdinaIstekte = false;
 
@@ -408,6 +409,7 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
                   GonderButtonWidget(
                     onPressed: _onay ? _submitForm : null,
                     enabled: _onay,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -426,6 +428,9 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_formKey.currentState?.validate() ?? false) {
       // Açıklama zorunlu kontrolü (en az 30 karakter)
       if (_aciklamaController.text.length < 30) {
@@ -594,6 +599,9 @@ class _DogumIzinScreenState extends ConsumerState<DogumIzinScreen> {
           );
         }
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

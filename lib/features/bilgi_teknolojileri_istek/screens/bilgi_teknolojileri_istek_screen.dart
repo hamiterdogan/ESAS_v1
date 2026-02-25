@@ -51,6 +51,7 @@ class _BilgiTeknolojileriIstekScreenState
   final FocusNode _dosyaIcerikFocusNode = FocusNode();
   final List<BilgiTeknolojileriHizmetData> _addedHizmetler = [];
   final bool _isMultiSelect = false;
+  bool _isSubmitting = false;
 
   // Yeni eklenen field'lar
   final Set<String> _selectedBinaKodlari = <String>{};
@@ -241,6 +242,9 @@ class _BilgiTeknolojileriIstekScreenState
   }
 
   Future<void> _validateAndSubmit() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_selectedBinaKodlari.isEmpty) {
       _showWarningBottomSheet(
         'İsteğin yapılacağı okul/bina seçimi gerekmektedir.',
@@ -277,6 +281,9 @@ class _BilgiTeknolojileriIstekScreenState
 
     // Build request and show özet
     await _showOzetAndSubmit();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Future<void> _showOzetAndSubmit() async {
@@ -1146,6 +1153,7 @@ class _BilgiTeknolojileriIstekScreenState
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: GonderButtonWidget(
                 onPressed: _validateAndSubmit,
+                isLoading: _isSubmitting,
                 padding: 14.0,
                 borderRadius: 8.0,
                 textStyle: const TextStyle(

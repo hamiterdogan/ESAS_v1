@@ -766,7 +766,7 @@ class _DokumantasyonBaskiIstekScreenState
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (_isActionInProgress) return;
 
     // Validations
@@ -957,9 +957,10 @@ class _DokumantasyonBaskiIstekScreenState
       );
     }
 
-    setState(() => _isActionInProgress = false);
+    setState(() => _isActionInProgress = true);
 
-    showGenericSummaryBottomSheet(
+    try {
+    await showGenericSummaryBottomSheet(
       context: context,
       requestData: request
           .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
@@ -1004,6 +1005,9 @@ class _DokumantasyonBaskiIstekScreenState
         ValidationUyariWidget.goster(context: context, message: error);
       },
     );
+    } finally {
+      if (mounted) setState(() => _isActionInProgress = false);
+    }
   }
 
   @override
@@ -1515,6 +1519,7 @@ class _DokumantasyonBaskiIstekScreenState
                 const SizedBox(height: 32),
                 GonderButtonWidget(
                   onPressed: _submit,
+                  isLoading: _isActionInProgress,
                   padding: 14.0,
                   borderRadius: 8.0,
                   textStyle: const TextStyle(

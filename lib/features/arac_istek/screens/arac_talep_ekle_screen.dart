@@ -906,6 +906,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     child: GonderButtonWidget(
                       buttonKey: _gonderButtonKey,
                       onPressed: _submitForm,
+                      isLoading: _isActionInProgress,
                       padding: 14.0,
                       borderRadius: 8.0,
                       textStyle: const TextStyle(
@@ -1015,7 +1016,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       final request = _buildAracIstekEkleReq();
       final ozetItems = _buildAracIstekOzetItems(request);
 
-      showAracIstekOzetBottomSheet(
+      await showAracIstekOzetBottomSheet(
         context: context,
         request: request,
         talepTipi: 'Binek',

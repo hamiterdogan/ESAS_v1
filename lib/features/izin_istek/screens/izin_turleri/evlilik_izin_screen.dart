@@ -36,6 +36,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
   DateTime? _evlilikTarihi;
   int _girileymeyenDersSaati = 0;
   bool _onay = false;
+  bool _isSubmitting = false;
   Personel? _secilenPersonel;
   bool _basaksiAdinaIstekte = false;
 
@@ -461,6 +462,7 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
                   GonderButtonWidget(
                     onPressed: _onay ? _submitForm : null,
                     enabled: _onay,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -479,6 +481,9 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_formKey.currentState?.validate() ?? false) {
       // Form validasyonları
       if (_baslangicTarihi == null) {
@@ -664,6 +669,9 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
           );
         }
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

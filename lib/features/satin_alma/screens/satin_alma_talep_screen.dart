@@ -56,6 +56,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   final TextEditingController _genelToplamController = TextEditingController();
   OdemeTuru? _selectedOdemeTuru;
   bool _vadeli = false;
+  bool _isSubmitting = false;
   int _odemeVadesi = 1;
   DateTime _teslimTarihi = DateTime.now();
   final List<SatinAlmaUrunBilgisi> _urunler = [];
@@ -1852,6 +1853,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                   const SizedBox(height: 32),
                   GonderButtonWidget(
                     onPressed: _submitForm,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -2038,6 +2040,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_alimAmaciController.text.trim().isEmpty) {
       FocusScope.of(context).unfocus();
       await Future.delayed(Duration.zero);
@@ -2219,6 +2224,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
           message: 'Beklenmeyen hata: $e',
         );
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 }

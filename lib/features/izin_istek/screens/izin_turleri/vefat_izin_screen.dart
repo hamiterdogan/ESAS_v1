@@ -34,6 +34,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   DateTime? _bitisTarihi;
   int _girileymeyenDersSaati = 0;
   bool _onay = false;
+  bool _isSubmitting = false;
   bool _birGunlukIzin = false;
   Personel? _secilenPersonel;
   final bool _basaksiAdinaIstekte = false;
@@ -516,6 +517,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   GonderButtonWidget(
                     onPressed: _onay ? _submitForm : null,
                     enabled: _onay,
+                    isLoading: _isSubmitting,
                     padding: 14.0,
                     borderRadius: 8.0,
                     textStyle: const TextStyle(
@@ -534,6 +536,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
     if (_formKey.currentState?.validate() ?? false) {
       if (_baslangicTarihi == null) {
         await ValidationUyariWidget.goster(
@@ -695,6 +700,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           );
         }
       }
+    }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
