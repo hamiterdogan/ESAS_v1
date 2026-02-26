@@ -1,12 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
-import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/common/index.dart';
-import 'package:esas_v1/common/widgets/common_divider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_ekle_req.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
@@ -189,11 +186,11 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
         if (_hasFormData()) {
           final shouldPop = await _showExitConfirmationDialog();
           if (shouldPop && context.mounted) {
-            context.pop();
+            Navigator.of(context).pop();
           }
         } else {
           if (context.mounted) {
-            context.pop();
+            Navigator.of(context).pop();
           }
         }
       },
@@ -484,192 +481,200 @@ class _EvlilikIzinScreenState extends ConsumerState<EvlilikIzinScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Form validasyonları
-      if (_baslangicTarihi == null) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Başlangıç tarihi seçiniz',
-        );
-        return;
-      }
-
-      if (_bitisTarihi == null) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Bitiş tarihi seçiniz',
-        );
-        return;
-      }
-
-      if (_evlilikTarihi == null) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Evlilik tarihi seçiniz',
-        );
-        return;
-      }
-
-      // Açıklama minimum 30 karakter kontrolü
-      if (_aciklamaController.text.length < 30) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-        );
-        _aciklamaFocusNode.requestFocus();
-        return;
-      }
-
-      // Adres boş kontrolü
-      if (_adresController.text.isEmpty) {
-        setState(() {
-          _adresHatali = true;
-        });
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen izin süresince bulunacağınız adresi giriniz',
-        );
-        _adresFocusNode.requestFocus();
-        return;
-      }
-
-      // Eş adı boş kontrolü
-      if (_esAdiController.text.isEmpty) {
-        setState(() {
-          _esAdiHatali = true;
-        });
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eşinizin adını giriniz',
-        );
-        _esAdiFocusNode.requestFocus();
-        return;
-      }
-
-      // Başlangıç tarihi bitiş tarihinden sonra olamaz
-      if (_baslangicTarihi!.isAfter(_bitisTarihi!)) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message:
-              'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
-        );
-        return;
-      }
-
-      try {
-        // Token'dan personel ID'sini al
-        final dolduranPersonelId = ref.read(currentPersonelIdProvider);
-
-        // Evlilik izin sebep ID: 2
-        const int izinSebebiId = 2;
-
-        // baskaPersonelId: toggle aktif ise seçilen personel id, değilse 0
-        final int baskaPersonelIdValue =
-            _basaksiAdinaIstekte && _secilenPersonel != null
-            ? _secilenPersonel!.personelId
-            : 0;
-
-        // IzinIstekEkleReq oluştur - API'nin beklediği format
-        final request = IzinIstekEkleReq(
-          izinSebebiId: izinSebebiId,
-          izinBaslangicTarihi: _baslangicTarihi!,
-          izinBitisTarihi: _bitisTarihi!,
-          aciklama: _aciklamaController.text,
-          izindeBulunacagiAdres: _adresController.text,
-          izindeGirilmeyenToplamDersSaati: _girileymeyenDersSaati,
-          baskaPersonelId: baskaPersonelIdValue,
-          dolduranPersonelId: dolduranPersonelId,
-          evlilikTarihi: _evlilikTarihi,
-          esAdi: _esAdiController.text,
-        );
-
-        // Bottom sheet'te verileri göster
-        if (mounted) {
-          final ozetItems = [
-            IzinOzetItem(
-              label: 'İzin Türü',
-              value: 'Evlilik İzni İstek',
-              multiLine: false,
-            ),
-            IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
-            IzinOzetItem(
-              label: 'Başlangıç Tarihi',
-              value: _formatDate(_baslangicTarihi!),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Bitiş Tarihi',
-              value: _formatDate(_bitisTarihi!),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Evlilik Tarihi',
-              value: _formatDate(_evlilikTarihi!),
-              multiLine: false,
-            ),
-            IzinOzetItem(label: 'Eş Adı', value: _esAdiController.text),
-            IzinOzetItem(
-              label: 'Girilmeyen Toplam Ders Saati',
-              value: _girileymeyenDersSaati.toString(),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'İzinde Bulunacağı Adres',
-              value: _adresController.text,
-            ),
-          ];
-
-          await showIzinOzetBottomSheet(
-            context: context,
-            request: request,
-            izinTipi: 'Evlilik',
-            ozetItems: ozetItems,
-            onGonder: () async {
-              final repo = ref.read(izinIstekRepositoryProvider);
-              final result = await repo.izinIstekEkle(request);
-              if (result is Failure<int>) {
-                throw Exception(result.message);
-              } else if (result is Success<int>) {
-                if (result.data > 0) {
-                  final emailService = ref.read(emailServiceProvider);
-                  await emailService.emailIcerikOlustur(
-                    id: result.data,
-                    kategori: 'İzin İstek',
-                    aksiyon: 'Oluşturuldu',
-                  );
-                }
-              }
-            },
-            onSuccess: () async {
-              if (!mounted) return;
-              await IstekBasariliWidget.goster(
-                context: context,
-                message: 'Evlilik izni isteğiniz gönderilmiştir.',
-                onConfirm: () async {
-                  ref.invalidate(devamEdenIsteklerimProvider);
-                  ref.invalidate(tamamlananIsteklerimProvider);
-                  if (!context.mounted) return;
-                  context.go('/izin_istek');
-                },
-              );
-            },
-            onError: (error) async {
-              await ValidationUyariWidget.goster(
-                context: context,
-                message: 'Hata: $error',
-              );
-            },
-          );
-        }
-      } catch (e) {
-        if (mounted) {
+      if (_formKey.currentState?.validate() ?? false) {
+        // Form validasyonları
+        if (_baslangicTarihi == null) {
           await ValidationUyariWidget.goster(
             context: context,
-            message: 'Hata oluştu: $e',
+            message: 'Başlangıç tarihi seçiniz',
           );
+          return;
+        }
+
+        if (_bitisTarihi == null) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Bitiş tarihi seçiniz',
+          );
+          return;
+        }
+
+        if (_evlilikTarihi == null) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Evlilik tarihi seçiniz',
+          );
+          return;
+        }
+
+        // Açıklama minimum 30 karakter kontrolü
+        if (_aciklamaController.text.length < 30) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          );
+          _aciklamaFocusNode.requestFocus();
+          return;
+        }
+
+        // Adres boş kontrolü
+        if (_adresController.text.isEmpty) {
+          setState(() {
+            _adresHatali = true;
+          });
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen izin süresince bulunacağınız adresi giriniz',
+          );
+          _adresFocusNode.requestFocus();
+          return;
+        }
+
+        // Eş adı boş kontrolü
+        if (_esAdiController.text.isEmpty) {
+          setState(() {
+            _esAdiHatali = true;
+          });
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen eşinizin adını giriniz',
+          );
+          _esAdiFocusNode.requestFocus();
+          return;
+        }
+
+        // Başlangıç tarihi bitiş tarihinden sonra olamaz
+        if (_baslangicTarihi!.isAfter(_bitisTarihi!)) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message:
+                'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
+          );
+          return;
+        }
+
+        try {
+          // Token'dan personel ID'sini al
+          final dolduranPersonelId = ref.read(currentPersonelIdProvider);
+
+          // Evlilik izin sebep ID: 2
+          const int izinSebebiId = 2;
+
+          // baskaPersonelId: toggle aktif ise seçilen personel id, değilse 0
+          final int baskaPersonelIdValue =
+              _basaksiAdinaIstekte && _secilenPersonel != null
+              ? _secilenPersonel!.personelId
+              : 0;
+
+          // IzinIstekEkleReq oluştur - API'nin beklediği format
+          final request = IzinIstekEkleReq(
+            izinSebebiId: izinSebebiId,
+            izinBaslangicTarihi: _baslangicTarihi!,
+            izinBitisTarihi: _bitisTarihi!,
+            aciklama: _aciklamaController.text,
+            izindeBulunacagiAdres: _adresController.text,
+            izindeGirilmeyenToplamDersSaati: _girileymeyenDersSaati,
+            baskaPersonelId: baskaPersonelIdValue,
+            dolduranPersonelId: dolduranPersonelId,
+            evlilikTarihi: _evlilikTarihi,
+            esAdi: _esAdiController.text,
+          );
+
+          // Bottom sheet'te verileri göster
+          if (mounted) {
+            final ozetItems = [
+              IzinOzetItem(
+                label: 'İzin Türü',
+                value: 'Evlilik İzni İstek',
+                multiLine: false,
+              ),
+              IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
+              IzinOzetItem(
+                label: 'Başlangıç Tarihi',
+                value: _formatDate(_baslangicTarihi!),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Bitiş Tarihi',
+                value: _formatDate(_bitisTarihi!),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Evlilik Tarihi',
+                value: _formatDate(_evlilikTarihi!),
+                multiLine: false,
+              ),
+              IzinOzetItem(label: 'Eş Adı', value: _esAdiController.text),
+              IzinOzetItem(
+                label: 'Girilmeyen Toplam Ders Saati',
+                value: _girileymeyenDersSaati.toString(),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'İzinde Bulunacağı Adres',
+                value: _adresController.text,
+              ),
+            ];
+
+            await showIzinOzetBottomSheet(
+              context: context,
+              request: request,
+              izinTipi: 'Evlilik',
+              ozetItems: ozetItems,
+              onGonder: () async {
+                final repo = ref.read(izinIstekRepositoryProvider);
+                final result = await repo.izinIstekEkle(request);
+                if (result is Failure<int>) {
+                  throw Exception(result.message);
+                } else if (result is Success<int>) {
+                  if (result.data > 0) {
+                    final emailService = ref.read(emailServiceProvider);
+                    await emailService.emailIcerikOlustur(
+                      id: result.data,
+                      kategori: 'İzin İstek',
+                      aksiyon: 'Oluşturuldu',
+                    );
+                  }
+                }
+              },
+              onSuccess: () async {
+                if (!mounted) return;
+                await IstekBasariliWidget.goster(
+                  context: context,
+                  message: 'Evlilik izni isteğiniz gönderilmiştir.',
+                  onConfirm: () async {
+                    ref.invalidate(devamEdenIsteklerimProvider);
+                    ref.invalidate(tamamlananIsteklerimProvider);
+                    if (!context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    var poppedRouteCount = 0;
+                    navigator.popUntil((route) {
+                      if (route.isFirst || poppedRouteCount >= 2) {
+                        return true;
+                      }
+                      poppedRouteCount++;
+                      return false;
+                    });
+                  },
+                );
+              },
+              onError: (error) async {
+                await ValidationUyariWidget.goster(
+                  context: context,
+                  message: 'Hata: $error',
+                );
+              },
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            await ValidationUyariWidget.goster(
+              context: context,
+              message: 'Hata oluştu: $e',
+            );
+          }
         }
       }
-    }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

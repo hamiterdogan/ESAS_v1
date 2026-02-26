@@ -245,42 +245,45 @@ class _BilgiTeknolojileriIstekScreenState
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    if (_selectedBinaKodlari.isEmpty) {
-      _showWarningBottomSheet(
-        'İsteğin yapılacağı okul/bina seçimi gerekmektedir.',
-      );
-      if (!mounted) return;
-      await _scrollToOkulSecimSection();
-      _okulFocusNode.requestFocus();
-      return;
-    }
-
-    if (_aciklamaController.text.trim().isEmpty) {
-      _showWarningBottomSheet('İstek açıklaması gerekmektedir.');
-      return;
-    }
-
-    if (_addedHizmetler.isEmpty) {
-      await _showWarningBottomSheet('En az bir hizmet eklemesi gerekmektedir.');
-      if (!mounted) return;
-      final result = await Navigator.push<BilgiTeknolojileriHizmetData>(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              BilgiTeknolojileriHizmetEkleScreen(destekTuru: widget.destekTuru),
-        ),
-      );
-
-      if (result != null && mounted) {
-        setState(() {
-          _addedHizmetler.add(result);
-        });
+      if (_selectedBinaKodlari.isEmpty) {
+        _showWarningBottomSheet(
+          'İsteğin yapılacağı okul/bina seçimi gerekmektedir.',
+        );
+        if (!mounted) return;
+        await _scrollToOkulSecimSection();
+        _okulFocusNode.requestFocus();
+        return;
       }
-      return;
-    }
 
-    // Build request and show özet
-    await _showOzetAndSubmit();
+      if (_aciklamaController.text.trim().isEmpty) {
+        _showWarningBottomSheet('İstek açıklaması gerekmektedir.');
+        return;
+      }
+
+      if (_addedHizmetler.isEmpty) {
+        await _showWarningBottomSheet(
+          'En az bir hizmet eklemesi gerekmektedir.',
+        );
+        if (!mounted) return;
+        final result = await Navigator.push<BilgiTeknolojileriHizmetData>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BilgiTeknolojileriHizmetEkleScreen(
+              destekTuru: widget.destekTuru,
+            ),
+          ),
+        );
+
+        if (result != null && mounted) {
+          setState(() {
+            _addedHizmetler.add(result);
+          });
+        }
+        return;
+      }
+
+      // Build request and show özet
+      await _showOzetAndSubmit();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -382,7 +385,7 @@ class _BilgiTeknolojileriIstekScreenState
               }
 
               if (!context.mounted) return;
-              
+
               // Teknik Destek için provider'ları invalidate et
               ref.invalidate(teknikDestekDevamEdenTaleplerProvider);
               ref.invalidate(teknikDestekTamamlananTaleplerProvider);

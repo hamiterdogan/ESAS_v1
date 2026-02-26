@@ -1336,8 +1336,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                      child: Padding(
-                                       padding: const EdgeInsets.all(16.0),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
                                       child: Row(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
@@ -1356,9 +1356,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                         (urun.altKategori ?? '')
                                                             .trim();
                                                     final urunDetay =
-                                                        (urun.urunDetay ?? '').trim();
+                                                        (urun.urunDetay ?? '')
+                                                            .trim();
 
-                                                    final miktar = urun.miktar ?? 0;
+                                                    final miktar =
+                                                        urun.miktar ?? 0;
                                                     final birim =
                                                         ((urun.olcuBirimiKisaltma ??
                                                                         '')
@@ -1369,27 +1371,38 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ?.trim();
 
                                                     final paraKod =
-                                                        (urun.paraBirimiKod ?? '')
+                                                        (urun.paraBirimiKod ??
+                                                                '')
                                                             .trim();
                                                     final displayParaKod =
-                                                        paraKod.toUpperCase() == 'TRY'
+                                                        paraKod.toUpperCase() ==
+                                                            'TRY'
                                                         ? 'TL'
                                                         : paraKod;
 
                                                     final fiyatAna =
-                                                        (urun.fiyatAna ?? '').trim();
+                                                        (urun.fiyatAna ?? '')
+                                                            .trim();
                                                     final fiyatKusurat =
-                                                        (urun.fiyatKusurat ?? '')
+                                                        (urun.fiyatKusurat ??
+                                                                '')
                                                             .trim();
 
                                                     // Birim fiyatı KDV dahil olarak hesapla
-                                                    double birimFiyatDouble = 0.0;
+                                                    double birimFiyatDouble =
+                                                        0.0;
                                                     try {
                                                       final fiyatAnaDouble =
                                                           double.tryParse(
                                                             fiyatAna
-                                                                .replaceAll('.', '')
-                                                                .replaceAll(',', '.'),
+                                                                .replaceAll(
+                                                                  '.',
+                                                                  '',
+                                                                )
+                                                                .replaceAll(
+                                                                  ',',
+                                                                  '.',
+                                                                ),
                                                           ) ??
                                                           0;
                                                       final fiyatKusuratDouble =
@@ -1399,25 +1412,30 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                           0;
                                                       birimFiyatDouble =
                                                           fiyatAnaDouble +
-                                                          (fiyatKusuratDouble / 100);
+                                                          (fiyatKusuratDouble /
+                                                              100);
 
                                                       // KDV ekle
                                                       if (urun.kdvDahilDegil &&
                                                           urun.kdvOrani > 0) {
                                                         birimFiyatDouble +=
                                                             birimFiyatDouble *
-                                                            (urun.kdvOrani / 100);
+                                                            (urun.kdvOrani /
+                                                                100);
                                                       }
                                                     } catch (e) {
                                                       birimFiyatDouble = 0.0;
                                                     }
 
-                                                    final numberFormat = NumberFormat(
-                                                      '#,##0.00',
-                                                      'tr_TR',
-                                                    );
-                                                    final birimFiyat = numberFormat
-                                                        .format(birimFiyatDouble);
+                                                    final numberFormat =
+                                                        NumberFormat(
+                                                          '#,##0.00',
+                                                          'tr_TR',
+                                                        );
+                                                    final birimFiyat =
+                                                        numberFormat.format(
+                                                          birimFiyatDouble,
+                                                        );
 
                                                     final toplamFiyat =
                                                         (urun.toplamFiyat ?? '')
@@ -1425,7 +1443,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive: false,
+                                                                caseSensitive:
+                                                                    false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1435,7 +1454,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive: false,
+                                                                caseSensitive:
+                                                                    false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1445,7 +1465,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             .replaceAll(
                                                               RegExp(
                                                                 r'\bTRY\b',
-                                                                caseSensitive: false,
+                                                                caseSensitive:
+                                                                    false,
                                                               ),
                                                               'TL',
                                                             );
@@ -1453,7 +1474,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                     String line3 =
                                                         '$miktar${(birim ?? '').isNotEmpty ? ' $birim' : ''}';
                                                     if (birimFiyat.isNotEmpty ||
-                                                        displayParaKod.isNotEmpty) {
+                                                        displayParaKod
+                                                            .isNotEmpty) {
                                                       final birimFiyatHasPara =
                                                           birimFiyat
                                                               .toUpperCase()
@@ -1493,7 +1515,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                     final line4 =
                                                         displayParaKod
                                                                 .toUpperCase()
-                                                                .contains('TRY') ||
+                                                                .contains(
+                                                                  'TRY',
+                                                                ) ||
                                                             displayParaKod
                                                                 .toUpperCase()
                                                                 .contains('TL')
@@ -1503,7 +1527,8 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
                                                     return Column(
                                                       crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
+                                                          CrossAxisAlignment
+                                                              .start,
                                                       children: [
                                                         RichText(
                                                           text: TextSpan(
@@ -1514,13 +1539,13 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ),
                                                             children: [
                                                               TextSpan(
-                                                                text: anaKategori,
-                                                                style:
-                                                                    const TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                    ),
+                                                                text:
+                                                                    anaKategori,
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
                                                               ),
                                                               if (altKategori
                                                                   .isNotEmpty)
@@ -1539,8 +1564,11 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ],
                                                           ),
                                                         ),
-                                                        if (urunDetay.isNotEmpty) ...[
-                                                          const SizedBox(height: 6),
+                                                        if (urunDetay
+                                                            .isNotEmpty) ...[
+                                                          const SizedBox(
+                                                            height: 6,
+                                                          ),
                                                           Text(
                                                             urunDetay,
                                                             style: TextStyle(
@@ -1551,23 +1579,30 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                                             ),
                                                           ),
                                                         ],
-                                                        const SizedBox(height: 6),
+                                                        const SizedBox(
+                                                          height: 6,
+                                                        ),
                                                         Text(
                                                           line3,
                                                           style: TextStyle(
                                                             fontSize: 14,
-                                                            color:
-                                                                Colors.grey.shade700,
+                                                            color: Colors
+                                                                .grey
+                                                                .shade700,
                                                           ),
                                                         ),
-                                                        if (line4.isNotEmpty) ...[
-                                                          const SizedBox(height: 6),
+                                                        if (line4
+                                                            .isNotEmpty) ...[
+                                                          const SizedBox(
+                                                            height: 6,
+                                                          ),
                                                           Text(
                                                             line4,
                                                             style: const TextStyle(
                                                               fontSize: 14,
                                                               fontWeight:
-                                                                  FontWeight.w600,
+                                                                  FontWeight
+                                                                      .w600,
                                                               color: AppColors
                                                                   .gradientStart,
                                                             ),
@@ -1602,12 +1637,12 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                       onTap: () async {
                         final result =
                             await Navigator.push<SatinAlmaUrunBilgisi>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const SatinAlmaUrunEkleScreen(),
-                          ),
-                        );
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SatinAlmaUrunEkleScreen(),
+                              ),
+                            );
 
                         if (result != null) {
                           FocusScope.of(context).unfocus();
@@ -1615,7 +1650,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                             _urunler.add(result);
                             _updateGenelToplam();
                           });
-                          
+
                           // Scroll to the button after frame is rendered
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             if (_urunEkleKey.currentContext != null) {
@@ -2043,188 +2078,191 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    if (_alimAmaciController.text.trim().isEmpty) {
-      FocusScope.of(context).unfocus();
-      await Future.delayed(Duration.zero);
-      await _scrollToWidget(_alimAmaciKey);
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: 'Lütfen alımın amacını belirtiniz.',
-      );
-
-      if (mounted) {
-        _alimAmaciFocusNode.canRequestFocus = true;
-        FocusScope.of(context).requestFocus(_alimAmaciFocusNode);
-      }
-      return;
-    }
-
-    if (_urunler.isEmpty) {
-      FocusScope.of(context).unfocus();
-      // Show warning bottom sheet first
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: 'Lütfen en az 1 ürün ekleyiniz.',
-      );
-
-      // After warning is dismissed, navigate to Ürün Ekle
-      if (mounted) {
+      if (_alimAmaciController.text.trim().isEmpty) {
         FocusScope.of(context).unfocus();
-        final result = await Navigator.push<SatinAlmaUrunBilgisi>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const SatinAlmaUrunEkleScreen(),
-          ),
-        );
-
-        if (result != null) {
-          setState(() {
-            _urunler.add(result);
-            _updateGenelToplam();
-          });
-        }
-      }
-      return;
-    }
-
-    final phoneError = _validatePhone(_saticiTelefonController.text);
-    if (phoneError != null) {
-      await ValidationUyariWidget.goster(context: context, message: phoneError);
-      return;
-    }
-
-    final websiteError = _validateWebsite(_webSitesiController.text);
-    if (websiteError != null) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: websiteError,
-      );
-      return;
-    }
-
-    try {
-      int odemeSekliId = _selectedOdemeTuru?.id ?? 0;
-
-      final binalar = await ref.read(satinAlmaBinalarProvider.future);
-      List<int> binaIds = [];
-      if (_selectedBinaKodlari.isNotEmpty) {
-        binaIds = binalar
-            .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
-            .map((b) => b.id)
-            .toList();
-      }
-
-      final urunSatirlar = _urunler.map((u) {
-        double birimFiyat = 0;
-        try {
-          final ana =
-              double.tryParse(
-                (u.fiyatAna ?? '0').replaceAll('.', '').replaceAll(',', '.'),
-              ) ??
-              0;
-          final kusurat = double.tryParse(u.fiyatKusurat ?? '0') ?? 0;
-          birimFiyat = ana + (kusurat / 100);
-        } catch (_) {}
-
-        return SatinAlmaUrunSatir(
-          satinAlmaAltKategoriId: u.altKategoriId,
-          digerUrun: '',
-          birimId: u.olcuBirimiId,
-          satinAlmaAnaKategoriId: u.anaKategoriId,
-          birimFiyati: birimFiyat,
-          urunDetay: u.urunDetay ?? '',
-          miktar: u.miktar ?? 1,
-          paraBirimi: u.paraBirimiKod,
-        );
-      }).toList();
-
-      final req = SatinAlmaEkleReq(
-        formFiles: _selectedFiles,
-        pesin: !_vadeli,
-        sonTeslimTarihi: _teslimTarihi,
-        aliminAmaci: _alimAmaciController.text,
-        odemeSekliId: odemeSekliId,
-        webSitesi: _webSitesiController.text,
-        saticiTel: _saticiTelefonController.text,
-        binaId: binaIds,
-        odemeVadesiGun: _vadeli ? _odemeVadesi : 0,
-        urunSatirlar: urunSatirlar,
-        saticiFirma: _saticiFirmaController.text,
-        genelToplam: _parseMoneyToDouble(_genelToplamController.text),
-        dosyaAciklama: _fiyatTeklifIcerikController.text,
-      );
-
-      final ozetItems = _buildSatinAlmaOzetItems(binalar, req);
-
-      if (!mounted) return;
-
-      _lockAndUnfocusInputs();
-
-      await showSatinAlmaOzetBottomSheet(
-        context: context,
-        request: req,
-        talepTipi: 'Satın Alma',
-        ozetItems: ozetItems,
-        onGonder: () async {
-          BrandedLoadingDialog.show(context);
-          try {
-            final repo = ref.read(satinAlmaRepositoryProvider);
-            final result = await repo.satinAlmaEkle(req);
-
-            if (!mounted) return;
-
-            switch (result) {
-              case Success(:final data):
-                if (data != null && data > 0) {
-                  final emailService = ref.read(emailServiceProvider);
-                  await emailService.emailIcerikOlustur(
-                    id: data,
-                    kategori: 'Satın Alma',
-                    aksiyon: 'Oluşturuldu',
-                  );
-                }
-                return;
-              case Failure(message: final msg):
-                throw Exception(msg);
-              case Loading():
-                throw Exception('Talep gönderilemedi');
-            }
-          } finally {
-            if (mounted) {
-              BrandedLoadingDialog.hide(context);
-            }
-          }
-        },
-        onSuccess: () async {
-          if (!mounted) return;
-          await IstekBasariliWidget.goster(
-            context: context,
-            message: 'Satın alma isteğiniz gönderilmiştir.',
-            onConfirm: () async {
-              ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
-              ref.invalidate(satinAlmaTamamlananTaleplerProvider);
-              if (!context.mounted) return;
-              context.go('/satin_alma');
-            },
-          );
-        },
-        onError: (error) async {
-          await ValidationUyariWidget.goster(
-            context: context,
-            message: 'Hata: $error',
-          );
-        },
-      );
-
-      _unlockInputsAfterSheet();
-    } catch (e) {
-      if (mounted) {
+        await Future.delayed(Duration.zero);
+        await _scrollToWidget(_alimAmaciKey);
         await ValidationUyariWidget.goster(
           context: context,
-          message: 'Beklenmeyen hata: $e',
+          message: 'Lütfen alımın amacını belirtiniz.',
         );
+
+        if (mounted) {
+          _alimAmaciFocusNode.canRequestFocus = true;
+          FocusScope.of(context).requestFocus(_alimAmaciFocusNode);
+        }
+        return;
       }
-    }
+
+      if (_urunler.isEmpty) {
+        FocusScope.of(context).unfocus();
+        // Show warning bottom sheet first
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 1 ürün ekleyiniz.',
+        );
+
+        // After warning is dismissed, navigate to Ürün Ekle
+        if (mounted) {
+          FocusScope.of(context).unfocus();
+          final result = await Navigator.push<SatinAlmaUrunBilgisi>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SatinAlmaUrunEkleScreen(),
+            ),
+          );
+
+          if (result != null) {
+            setState(() {
+              _urunler.add(result);
+              _updateGenelToplam();
+            });
+          }
+        }
+        return;
+      }
+
+      final phoneError = _validatePhone(_saticiTelefonController.text);
+      if (phoneError != null) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: phoneError,
+        );
+        return;
+      }
+
+      final websiteError = _validateWebsite(_webSitesiController.text);
+      if (websiteError != null) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: websiteError,
+        );
+        return;
+      }
+
+      try {
+        int odemeSekliId = _selectedOdemeTuru?.id ?? 0;
+
+        final binalar = await ref.read(satinAlmaBinalarProvider.future);
+        List<int> binaIds = [];
+        if (_selectedBinaKodlari.isNotEmpty) {
+          binaIds = binalar
+              .where((b) => _selectedBinaKodlari.contains(b.binaKodu))
+              .map((b) => b.id)
+              .toList();
+        }
+
+        final urunSatirlar = _urunler.map((u) {
+          double birimFiyat = 0;
+          try {
+            final ana =
+                double.tryParse(
+                  (u.fiyatAna ?? '0').replaceAll('.', '').replaceAll(',', '.'),
+                ) ??
+                0;
+            final kusurat = double.tryParse(u.fiyatKusurat ?? '0') ?? 0;
+            birimFiyat = ana + (kusurat / 100);
+          } catch (_) {}
+
+          return SatinAlmaUrunSatir(
+            satinAlmaAltKategoriId: u.altKategoriId,
+            digerUrun: '',
+            birimId: u.olcuBirimiId,
+            satinAlmaAnaKategoriId: u.anaKategoriId,
+            birimFiyati: birimFiyat,
+            urunDetay: u.urunDetay ?? '',
+            miktar: u.miktar ?? 1,
+            paraBirimi: u.paraBirimiKod,
+          );
+        }).toList();
+
+        final req = SatinAlmaEkleReq(
+          formFiles: _selectedFiles,
+          pesin: !_vadeli,
+          sonTeslimTarihi: _teslimTarihi,
+          aliminAmaci: _alimAmaciController.text,
+          odemeSekliId: odemeSekliId,
+          webSitesi: _webSitesiController.text,
+          saticiTel: _saticiTelefonController.text,
+          binaId: binaIds,
+          odemeVadesiGun: _vadeli ? _odemeVadesi : 0,
+          urunSatirlar: urunSatirlar,
+          saticiFirma: _saticiFirmaController.text,
+          genelToplam: _parseMoneyToDouble(_genelToplamController.text),
+          dosyaAciklama: _fiyatTeklifIcerikController.text,
+        );
+
+        final ozetItems = _buildSatinAlmaOzetItems(binalar, req);
+
+        if (!mounted) return;
+
+        _lockAndUnfocusInputs();
+
+        await showSatinAlmaOzetBottomSheet(
+          context: context,
+          request: req,
+          talepTipi: 'Satın Alma',
+          ozetItems: ozetItems,
+          onGonder: () async {
+            BrandedLoadingDialog.show(context);
+            try {
+              final repo = ref.read(satinAlmaRepositoryProvider);
+              final result = await repo.satinAlmaEkle(req);
+
+              if (!mounted) return;
+
+              switch (result) {
+                case Success(:final data):
+                  if (data != null && data > 0) {
+                    final emailService = ref.read(emailServiceProvider);
+                    await emailService.emailIcerikOlustur(
+                      id: data,
+                      kategori: 'Satın Alma',
+                      aksiyon: 'Oluşturuldu',
+                    );
+                  }
+                  return;
+                case Failure(message: final msg):
+                  throw Exception(msg);
+                case Loading():
+                  throw Exception('Talep gönderilemedi');
+              }
+            } finally {
+              if (mounted) {
+                BrandedLoadingDialog.hide(context);
+              }
+            }
+          },
+          onSuccess: () async {
+            if (!mounted) return;
+            await IstekBasariliWidget.goster(
+              context: context,
+              message: 'Satın alma isteğiniz gönderilmiştir.',
+              onConfirm: () async {
+                ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
+                ref.invalidate(satinAlmaTamamlananTaleplerProvider);
+                if (!context.mounted) return;
+                context.go('/satin_alma');
+              },
+            );
+          },
+          onError: (error) async {
+            await ValidationUyariWidget.goster(
+              context: context,
+              message: 'Hata: $error',
+            );
+          },
+        );
+
+        _unlockInputsAfterSheet();
+      } catch (e) {
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Beklenmeyen hata: $e',
+          );
+        }
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

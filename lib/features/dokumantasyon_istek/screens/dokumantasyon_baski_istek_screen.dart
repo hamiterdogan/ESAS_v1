@@ -863,6 +863,7 @@ class _DokumantasyonBaskiIstekScreenState
       baskiAdedi: _baskiAdedi,
       kagitTalebi: _baskiBoyutu,
       dokumanTuru: _selectedDokumanTuru?.tur ?? '',
+      a4Talebi: false,
       aciklama: _aciklamaController.text,
       baskiTuru: _isRenkliBaski ? 'Renkli Baskı' : 'Siyah-Beyaz Baskı',
       onluArkali: _isArkaliOnlu,
@@ -960,51 +961,51 @@ class _DokumantasyonBaskiIstekScreenState
     setState(() => _isActionInProgress = true);
 
     try {
-    await showGenericSummaryBottomSheet(
-      context: context,
-      requestData: request
-          .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
-      title: 'Dokümantasyon Baskı İstek',
-      summaryItems: summaryItems,
-      showRequestData: false,
-      cancelButtonLabel: 'Düzenle',
-      onConfirm: () async {
-        final repo = ref.read(dokumantasyonIstekRepositoryProvider);
-        final result = await repo.dokumantasyonBaskiIstekEkle(
-          request: request,
-          files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
-        );
+      await showGenericSummaryBottomSheet(
+        context: context,
+        requestData: request
+            .toJson(), // Use toJson for generic display if needed, but we already manually built summaryItems
+        title: 'Dokümantasyon Baskı İstek',
+        summaryItems: summaryItems,
+        showRequestData: false,
+        cancelButtonLabel: 'Düzenle',
+        onConfirm: () async {
+          final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+          final result = await repo.dokumantasyonBaskiIstekEkle(
+            request: request,
+            files: _selectedFiles.isNotEmpty ? _selectedFiles : null,
+          );
 
-        if (result is Failure<int>) {
-          throw Exception(result.message);
-        } else if (result is Success<int>) {
-          if (result.data > 0) {
-            final emailService = ref.read(emailServiceProvider);
-            await emailService.emailIcerikOlustur(
-              id: result.data,
-              kategori: 'Dokümantasyon İstek',
-              aksiyon: 'Oluşturuldu',
-            );
+          if (result is Failure<int>) {
+            throw Exception(result.message);
+          } else if (result is Success<int>) {
+            if (result.data > 0) {
+              final emailService = ref.read(emailServiceProvider);
+              await emailService.emailIcerikOlustur(
+                id: result.data,
+                kategori: 'Dokümantasyon İstek',
+                aksiyon: 'Oluşturuldu',
+              );
+            }
           }
-        }
-      },
-      onSuccess: () async {
-        if (!mounted) return;
-        await IstekBasariliWidget.goster(
-          context: context,
-          message: 'Dokümantasyon baskı isteğiniz gönderilmiştir.',
-          onConfirm: () async {
-            ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
-            ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            context.go('/dokumantasyon_istek');
-          },
-        );
-      },
-      onError: (error) {
-        ValidationUyariWidget.goster(context: context, message: error);
-      },
-    );
+        },
+        onSuccess: () async {
+          if (!mounted) return;
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: 'Dokümantasyon baskı isteğiniz gönderilmiştir.',
+            onConfirm: () async {
+              ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+              ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
+              if (!context.mounted) return;
+              context.go('/dokumantasyon_istek');
+            },
+          );
+        },
+        onError: (error) {
+          ValidationUyariWidget.goster(context: context, message: error);
+        },
+      );
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
     }
@@ -1289,10 +1290,10 @@ class _DokumantasyonBaskiIstekScreenState
                       Text(
                         'Teslim Alınacak Yer',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize: (Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.fontSize ??
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
                                   14) +
                               1,
                           color: AppColors.primaryLight,
@@ -1327,8 +1328,10 @@ class _DokumantasyonBaskiIstekScreenState
                                   fontSize: 16,
                                 ),
                               ),
-                              const Icon(Icons.arrow_drop_down,
-                                  color: Colors.grey),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.grey,
+                              ),
                             ],
                           ),
                         ),

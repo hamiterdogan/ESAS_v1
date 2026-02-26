@@ -1348,12 +1348,10 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                 Builder(
                                                   builder: (context) {
                                                     final anaKategori =
-                                                        (urun.anaKategori ??
-                                                                '')
+                                                        (urun.anaKategori ?? '')
                                                             .trim();
                                                     final altKategori =
-                                                        (urun.altKategori ??
-                                                                '')
+                                                        (urun.altKategori ?? '')
                                                             .trim();
                                                     final urunDetay =
                                                         (urun.urunDetay ?? '')
@@ -1362,8 +1360,7 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                     final miktar =
                                                         urun.miktar ?? 0;
                                                     final birim =
-                                                        ((urun.olcuBirimi ??
-                                                                        '')
+                                                        ((urun.olcuBirimi ?? '')
                                                                     .trim()
                                                                     .isNotEmpty
                                                                 ? urun.olcuBirimi
@@ -1381,8 +1378,8 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                     // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
                                                     final titleText =
                                                         altKategori.isNotEmpty
-                                                            ? altKategori
-                                                            : anaKategori;
+                                                        ? altKategori
+                                                        : anaKategori;
                                                     // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
 
                                                     return Column(
@@ -1394,17 +1391,19 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                           titleText,
                                                           style:
                                                               const TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                Colors.black,
-                                                          ),
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
                                                         ),
                                                         if (urunDetay
                                                             .isNotEmpty) ...[
                                                           const SizedBox(
-                                                              height: 6),
+                                                            height: 6,
+                                                          ),
                                                           Text(
                                                             urunDetay,
                                                             style: TextStyle(
@@ -1417,13 +1416,15 @@ class _KirtasiyeMalzemesiIstekScreenState
                                                           ),
                                                         ],
                                                         const SizedBox(
-                                                            height: 6),
+                                                          height: 6,
+                                                        ),
                                                         Text(
                                                           line3,
                                                           style: TextStyle(
                                                             fontSize:
                                                                 15, // +1px as requested
-                                                            color: Colors.grey
+                                                            color: Colors
+                                                                .grey
                                                                 .shade700,
                                                           ),
                                                         ),

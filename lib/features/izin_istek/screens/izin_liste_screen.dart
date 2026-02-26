@@ -396,9 +396,7 @@ class _IzinTalepleriListesiState extends ConsumerState<_IzinTalepleriListesi> {
 
     return asyncValue.when(
       loading: () => const Center(
-        child: SizedBox(
-          child: BrandedLoadingIndicator(),
-        ),
+        child: BrandedLoadingIndicator(size: 150),
       ),
       error: (error, stack) => Center(
         child: Column(
@@ -591,7 +589,6 @@ class _IzinTalepKarti extends ConsumerWidget {
     final statusColor = TalepYonetimHelper.getStatusColor(rawStatus);
     final statusIcon = TalepYonetimHelper.getStatusIcon(rawStatus);
     final statusText = TalepYonetimHelper.getStatusText(rawStatus);
-
 
     String tarihStr = '';
     try {
@@ -803,6 +800,4 @@ class _IzinTalepKarti extends ConsumerWidget {
       ),
     );
   }
-
-
 }

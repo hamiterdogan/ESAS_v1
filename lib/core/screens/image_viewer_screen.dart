@@ -17,8 +17,7 @@ class ImageViewerScreen extends ConsumerStatefulWidget {
 }
 
 class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
-  final TransformationController _transformationController =
-      TransformationController();
+  Key _viewerKey = UniqueKey();
 
   String _getDisplayName(String title) {
     final firstUnderscoreIndex = title.indexOf('_');
@@ -45,7 +44,7 @@ class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
-                _transformationController.value = Matrix4.identity();
+                _viewerKey = UniqueKey();
               });
             },
             tooltip: 'Sıfırla',
@@ -54,7 +53,7 @@ class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
       ),
       body: Center(
         child: InteractiveViewer(
-          transformationController: _transformationController,
+          key: _viewerKey,
           minScale: 0.5,
           maxScale: 4.0,
           child: Image.network(
@@ -103,11 +102,5 @@ class _ImageViewerScreenState extends ConsumerState<ImageViewerScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    super.dispose();
   }
 }

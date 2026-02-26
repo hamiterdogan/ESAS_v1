@@ -14,6 +14,8 @@ import 'package:esas_v1/features/izin_istek/models/talep_yonetim_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
+import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
+import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/features/egitim_istek/repositories/egitim_istek_repository.dart';
 
@@ -151,7 +153,10 @@ class _EgitimIstekDetayScreenState
         onRefresh: () async {
           ref.invalidate(egitimIstekDetayProvider(widget.talepId));
           ref.invalidate(
-            onayDurumuProvider((talepId: widget.talepId, onayTipi: 'Eğitim İstek')),
+            onayDurumuProvider((
+              talepId: widget.talepId,
+              onayTipi: 'Eğitim İstek',
+            )),
           );
         },
         child: ListView(
@@ -640,13 +645,26 @@ class _EgitimIstekDetayScreenState
   }
 
   List<Widget> _buildDosyalarRows(EgitimIstekDetayResponse detay) {
-    // As per request: Ekli dosya 1, Ekli dosya 2...
-    // The model currently has only one file field: dosyaAdi.
-    // Use it if present.
     final rows = <Widget>[];
+    final hasDosyaAciklama =
+        detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty;
 
     if (detay.dosyaAdi != null && detay.dosyaAdi!.isNotEmpty) {
-      rows.add(_buildInfoRow('Ekli Dosya', detay.dosyaAdi!));
+      final dosyaListesi = detay.dosyaAdi!
+          .split('|')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      for (int i = 0; i < dosyaListesi.length; i++) {
+        rows.add(
+          _buildClickableFileRow(
+            dosyaListesi.length > 1 ? 'Ekli Dosya ${i + 1}' : 'Ekli Dosya',
+            dosyaListesi[i],
+            isLast: i == dosyaListesi.length - 1 && !hasDosyaAciklama,
+          ),
+        );
+      }
     } else {
       rows.add(
         const Padding(
@@ -659,7 +677,7 @@ class _EgitimIstekDetayScreenState
       );
     }
 
-    if (detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty) {
+    if (hasDosyaAciklama) {
       rows.add(
         _buildInfoRow('Dosya İçeriği', detay.dosyaAciklama!, isLast: true),
       );
@@ -857,6 +875,104 @@ class _EgitimIstekDetayScreenState
               ],
             ),
           ],
+          if (!isLast) ...[
+            const SizedBox(height: 10),
+            Container(height: 1, color: AppColors.border),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClickableFileRow(
+    String label,
+    String fileName, {
+    bool isLast = false,
+  }) {
+    const String baseUrl =
+        'https://esas.eyuboglu.k12.tr/TestDosyalar/EgitimIstek/';
+    final String fileUrl = '$baseUrl$fileName';
+
+    final displayFileName = fileName.contains('_')
+        ? fileName.substring(fileName.indexOf('_') + 1)
+        : fileName;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label:',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () async {
+              final lowerFileName = fileName.toLowerCase();
+              final isImage =
+                  lowerFileName.endsWith('.png') ||
+                  lowerFileName.endsWith('.jpg') ||
+                  lowerFileName.endsWith('.jpeg') ||
+                  lowerFileName.endsWith('.bmp');
+              final isPdf = lowerFileName.endsWith('.pdf');
+
+              if (isPdf) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PdfViewerScreen(title: fileName, pdfUrl: fileUrl),
+                  ),
+                );
+              } else if (isImage) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ImageViewerScreen(title: fileName, imageUrl: fileUrl),
+                  ),
+                );
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Bu dosya türü uygulama içinde görüntülenemiyor.',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.attach_file,
+                    size: 18,
+                    color: AppColors.primaryDark,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    displayFileName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.primaryDark,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           if (!isLast) ...[
             const SizedBox(height: 10),
             Container(height: 1, color: AppColors.border),

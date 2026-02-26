@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
@@ -1237,7 +1236,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     bool isLast = false,
   }) {
     const String baseUrl =
-        'https://esas.eyuboglu.k12.tr/TestDosyalar/satinalma/';
+        'https://esas.eyuboglu.k12.tr/TestDosyalar/SatinAlma/';
     final String fileUrl = '$baseUrl$fileName';
 
     // Dosya ismini gösterirken ilk "_" karakterine kadar olan kısmı at
@@ -1293,10 +1292,14 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                   ),
                 );
               } else {
-                // Diğer dosyalar için tarayıcıda aç
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Bu dosya türü uygulama içinde görüntülenemiyor.',
+                      ),
+                    ),
+                  );
                 }
               }
             },

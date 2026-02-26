@@ -625,106 +625,106 @@ class _YiyecekIcecekIstekScreenState
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    // 1. Dönem Kontrolü
-    if (_selectedDonem == null) {
-      FocusScope.of(context).unfocus();
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen dönem seçiniz",
-        onDismiss: () {
-          if (!mounted) return;
-          _donemFocusNode.requestFocus();
-          _showDonemBottomSheet();
-        },
-      );
-      return;
-    }
-
-    // 2. Etkinlik Adı Kontrolü
-    if (_selectedEtkinlik == null) {
-      FocusScope.of(context).unfocus();
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen etkinlik adını seçiniz",
-        onDismiss: () {
-          if (!mounted) return;
-          _etkinlikFocusNode.requestFocus();
-          _showEtkinlikBottomSheet();
-        },
-      );
-      return;
-    }
-
-    // 3. Etkinlik Adı "Diğer" ise input kontrolü
-    if (_selectedEtkinlik == 'Diğer' &&
-        _customEtkinlikController.text.trim().isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen etkinlik adını giriniz",
-      );
-      return;
-    }
-
-    // 4. İkram Yapılacak Yer Kontrolü
-    if (_ikramYeriController.text.trim().isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen ikram yapılak yer bilgisi giriniz",
-        onDismiss: () {
-          if (!mounted) return;
-          _ikramYeriFocusNode.requestFocus();
-        },
-      );
-      return;
-    }
-
-    // 5. Açıklama Kontrolü
-    if (_aciklamaController.text.trim().isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen açıklama giriniz",
-        onDismiss: () {
-          if (!mounted) return;
-          _aciklamaFocusNode.requestFocus();
-        },
-      );
-      return;
-    }
-
-    // 6. En az bir ikram kontrolü
-    // 6. En az bir ikram kontrolü
-    if (_addedIkramlar.isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: "Lütfen ikram bilgisi giriniz",
-      );
-      if (!mounted) return;
-      // İkram eklenmemişse direkt ikram ekle sayfasına yönlendir
-      Navigator.push<YiyecekIcecekIkramData>(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const YiyecekIcecekIkramEkleScreen(),
-        ),
-      ).then((result) {
-        if (result != null) {
-          setState(() {
-            _addedIkramlar.add(result);
-          });
-          // Focus on submit button and hide keyboard
-          Future.delayed(const Duration(milliseconds: 300), () {
+      // 1. Dönem Kontrolü
+      if (_selectedDonem == null) {
+        FocusScope.of(context).unfocus();
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen dönem seçiniz",
+          onDismiss: () {
             if (!mounted) return;
-            FocusScope.of(context).unfocus(); // Ensure keyboard is gone
-            if (_submitFocusNode.canRequestFocus) {
-              _submitFocusNode.requestFocus();
-            }
-          });
-        }
-      });
-      return;
-    }
+            _donemFocusNode.requestFocus();
+            _showDonemBottomSheet();
+          },
+        );
+        return;
+      }
 
-    // Validasyon başarılı, özet ekranını göster
-    await _showSummary();
+      // 2. Etkinlik Adı Kontrolü
+      if (_selectedEtkinlik == null) {
+        FocusScope.of(context).unfocus();
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen etkinlik adını seçiniz",
+          onDismiss: () {
+            if (!mounted) return;
+            _etkinlikFocusNode.requestFocus();
+            _showEtkinlikBottomSheet();
+          },
+        );
+        return;
+      }
+
+      // 3. Etkinlik Adı "Diğer" ise input kontrolü
+      if (_selectedEtkinlik == 'Diğer' &&
+          _customEtkinlikController.text.trim().isEmpty) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen etkinlik adını giriniz",
+        );
+        return;
+      }
+
+      // 4. İkram Yapılacak Yer Kontrolü
+      if (_ikramYeriController.text.trim().isEmpty) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen ikram yapılak yer bilgisi giriniz",
+          onDismiss: () {
+            if (!mounted) return;
+            _ikramYeriFocusNode.requestFocus();
+          },
+        );
+        return;
+      }
+
+      // 5. Açıklama Kontrolü
+      if (_aciklamaController.text.trim().isEmpty) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen açıklama giriniz",
+          onDismiss: () {
+            if (!mounted) return;
+            _aciklamaFocusNode.requestFocus();
+          },
+        );
+        return;
+      }
+
+      // 6. En az bir ikram kontrolü
+      // 6. En az bir ikram kontrolü
+      if (_addedIkramlar.isEmpty) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: "Lütfen ikram bilgisi giriniz",
+        );
+        if (!mounted) return;
+        // İkram eklenmemişse direkt ikram ekle sayfasına yönlendir
+        Navigator.push<YiyecekIcecekIkramData>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const YiyecekIcecekIkramEkleScreen(),
+          ),
+        ).then((result) {
+          if (result != null) {
+            setState(() {
+              _addedIkramlar.add(result);
+            });
+            // Focus on submit button and hide keyboard
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (!mounted) return;
+              FocusScope.of(context).unfocus(); // Ensure keyboard is gone
+              if (_submitFocusNode.canRequestFocus) {
+                _submitFocusNode.requestFocus();
+              }
+            });
+          }
+        });
+        return;
+      }
+
+      // Validasyon başarılı, özet ekranını göster
+      await _showSummary();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -794,7 +794,9 @@ class _YiyecekIcecekIstekScreenState
       etkinlikTarihi:
           _selectedDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
       donem: _selectedDonem ?? 'string',
-      etkinlikAdi: _selectedEtkinlik == 'Diğer' ? '0' : (_selectedEtkinlik ?? 'string'),
+      etkinlikAdi: _selectedEtkinlik == 'Diğer'
+          ? '0'
+          : (_selectedEtkinlik ?? 'string'),
       etkinlikAdiDiger: _selectedEtkinlik == 'Diğer'
           ? _customEtkinlikController.text
           : 'string',
@@ -875,10 +877,10 @@ class _YiyecekIcecekIstekScreenState
         // Actual API submission logic moved here (minus the loading dialog which is handled by wrapper)
         final repo = ref.read(yiyecekIcecekRepositoryProvider);
         final emailService = ref.read(emailServiceProvider);
-        
+
         print('Yiyecek İçecek İstek Datası: ${req.toJson()}');
         final onayKayitId = await repo.yiyecekIstekEkle(req);
-        
+
         if (onayKayitId > 0) {
           await emailService.emailIcerikOlustur(
             id: onayKayitId,

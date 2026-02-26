@@ -1357,7 +1357,8 @@ class _PromosyonMalzemesiIstekScreenState
                                                         (urun.urunDetay ?? '')
                                                             .trim();
 
-                                                    final miktar = urun.miktar ?? 0;
+                                                    final miktar =
+                                                        urun.miktar ?? 0;
                                                     final birim =
                                                         ((urun.olcuBirimi ?? '')
                                                                     .trim()
@@ -1377,8 +1378,8 @@ class _PromosyonMalzemesiIstekScreenState
                                                     // Usage: If altKategori exists, use it as title. If not, fallback to anaKategori.
                                                     final titleText =
                                                         altKategori.isNotEmpty
-                                                            ? altKategori
-                                                            : anaKategori;
+                                                        ? altKategori
+                                                        : anaKategori;
                                                     // Since we are showing only Subcategory as title (if exists), we avoid "Main - Sub".
 
                                                     return Column(
@@ -1388,17 +1389,21 @@ class _PromosyonMalzemesiIstekScreenState
                                                       children: [
                                                         Text(
                                                           titleText,
-                                                          style: const TextStyle(
-                                                            fontSize: 16,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                Colors.black,
-                                                          ),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Colors
+                                                                    .black,
+                                                              ),
                                                         ),
                                                         if (urunDetay
                                                             .isNotEmpty) ...[
-                                                          const SizedBox(height: 6),
+                                                          const SizedBox(
+                                                            height: 6,
+                                                          ),
                                                           Text(
                                                             urunDetay,
                                                             style: TextStyle(
@@ -1410,13 +1415,16 @@ class _PromosyonMalzemesiIstekScreenState
                                                             ),
                                                           ),
                                                         ],
-                                                        const SizedBox(height: 6),
+                                                        const SizedBox(
+                                                          height: 6,
+                                                        ),
                                                         Text(
                                                           line3,
                                                           style: TextStyle(
                                                             fontSize:
                                                                 15, // +1px as requested
-                                                            color: Colors.grey
+                                                            color: Colors
+                                                                .grey
                                                                 .shade700,
                                                           ),
                                                         ),

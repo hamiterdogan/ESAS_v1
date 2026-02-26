@@ -210,7 +210,6 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     });
   }
 
-
   Future<void> _scrollToGonderButton() async {
     final context = _gonderButtonKey.currentContext;
     if (context == null) return;
@@ -218,7 +217,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       context,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOut,
-      alignment: 1.0, 
+      alignment: 1.0,
     );
   }
 
@@ -901,7 +900,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                   Focus(
+                  Focus(
                     focusNode: _gonderButtonFocusNode,
                     child: GonderButtonWidget(
                       buttonKey: _gonderButtonKey,
@@ -2420,12 +2419,12 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
     } finally {
       if (mounted) setState(() => _isActionInProgress = false);
     }
-    
+
     if (selectionMade) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-         FocusScope.of(context).unfocus();
-         _gonderButtonFocusNode.requestFocus();
-         _scrollToGonderButton();
+        FocusScope.of(context).unfocus();
+        _gonderButtonFocusNode.requestFocus();
+        _scrollToGonderButton();
       });
     }
   }

@@ -63,84 +63,84 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    FocusScope.of(context).unfocus();
+      FocusScope.of(context).unfocus();
 
-    // Açıklama validation
-    if (_aciklamaController.text.length < 15) {
-      _showStatusBottomSheet(
-        'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
-        isError: true,
+      // Açıklama validation
+      if (_aciklamaController.text.length < 15) {
+        _showStatusBottomSheet(
+          'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
+          isError: true,
+        );
+        return;
+      }
+
+      final requestData = {
+        'teslimTarihi': _teslimTarihi.toIso8601String(),
+        'paketAdedi': _paketAdedi,
+        'aciklama': _aciklamaController.text,
+      };
+
+      final summaryItems = [
+        GenericSummaryItem(
+          label: 'Teslim Tarihi',
+          value:
+              '${_teslimTarihi.day.toString().padLeft(2, '0')}.${_teslimTarihi.month.toString().padLeft(2, '0')}.${_teslimTarihi.year}',
+          multiLine: false,
+        ),
+        GenericSummaryItem(
+          label: 'Paket Adedi',
+          value: '$_paketAdedi Paket',
+          multiLine: false,
+        ),
+        GenericSummaryItem(
+          label: 'Açıklama',
+          value: _aciklamaController.text.isEmpty
+              ? '-'
+              : _aciklamaController.text,
+          multiLine: true,
+        ),
+      ];
+
+      await showGenericSummaryBottomSheet(
+        context: context,
+        requestData: requestData,
+        title: 'A4 Kağıdı İstek',
+        summaryItems: summaryItems,
+        showRequestData: false,
+        cancelButtonLabel: 'Düzenle',
+        onConfirm: () async {
+          // API Call
+          final repo = ref.read(dokumantasyonIstekRepositoryProvider);
+          final result = await repo.dokumantasyonIstekEkle(
+            paket: _paketAdedi,
+            aciklama: _aciklamaController.text,
+            teslimTarihi: _teslimTarihi,
+            isA4Talebi: true,
+            formFile:
+                null, // A4 request usually has no file, but API might require param presence
+          );
+
+          if (result is Failure<int>) {
+            throw Exception(result.message);
+          }
+        },
+        onSuccess: () async {
+          if (!mounted) return;
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: 'A4 kağıdı isteğiniz gönderilmiştir.',
+            onConfirm: () async {
+              ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
+              ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
+              if (!context.mounted) return;
+              context.go('/dokumantasyon_istek');
+            },
+          );
+        },
+        onError: (error) {
+          _showStatusBottomSheet(error, isError: true);
+        },
       );
-      return;
-    }
-
-    final requestData = {
-      'teslimTarihi': _teslimTarihi.toIso8601String(),
-      'paketAdedi': _paketAdedi,
-      'aciklama': _aciklamaController.text,
-    };
-
-    final summaryItems = [
-      GenericSummaryItem(
-        label: 'Teslim Tarihi',
-        value:
-            '${_teslimTarihi.day.toString().padLeft(2, '0')}.${_teslimTarihi.month.toString().padLeft(2, '0')}.${_teslimTarihi.year}',
-        multiLine: false,
-      ),
-      GenericSummaryItem(
-        label: 'Paket Adedi',
-        value: '$_paketAdedi Paket',
-        multiLine: false,
-      ),
-      GenericSummaryItem(
-        label: 'Açıklama',
-        value: _aciklamaController.text.isEmpty
-            ? '-'
-            : _aciklamaController.text,
-        multiLine: true,
-      ),
-    ];
-
-    await showGenericSummaryBottomSheet(
-      context: context,
-      requestData: requestData,
-      title: 'A4 Kağıdı İstek',
-      summaryItems: summaryItems,
-      showRequestData: false,
-      cancelButtonLabel: 'Düzenle',
-      onConfirm: () async {
-        // API Call
-        final repo = ref.read(dokumantasyonIstekRepositoryProvider);
-        final result = await repo.dokumantasyonIstekEkle(
-          paket: _paketAdedi,
-          aciklama: _aciklamaController.text,
-          teslimTarihi: _teslimTarihi,
-          isA4Talebi: true,
-          formFile:
-              null, // A4 request usually has no file, but API might require param presence
-        );
-
-        if (result is Failure<int>) {
-          throw Exception(result.message);
-        }
-      },
-      onSuccess: () async {
-        if (!mounted) return;
-        await IstekBasariliWidget.goster(
-          context: context,
-          message: 'A4 kağıdı isteğiniz gönderilmiştir.',
-          onConfirm: () async {
-            ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
-            ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            context.go('/dokumantasyon_istek');
-          },
-        );
-      },
-      onError: (error) {
-        _showStatusBottomSheet(error, isError: true);
-      },
-    );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

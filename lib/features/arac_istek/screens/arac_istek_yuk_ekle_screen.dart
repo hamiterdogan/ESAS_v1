@@ -114,7 +114,8 @@ class _AracIstekYukEkleScreenState
     if (_tasInacakYukController.text.trim().isNotEmpty) return true;
     if (_aciklamaController.text.trim().isNotEmpty) return true;
 
-    return false;  }
+    return false;
+  }
 
   Future<bool> _confirmExitIfNeeded() async {
     if (!_hasFormData()) return true;
@@ -654,8 +655,6 @@ class _AracIstekYukEkleScreenState
                   const CommonDivider(),
                   const SizedBox(height: 24),
 
-
-
                   // Taşınacak Yük
                   Text(
                     'Taşınacak Yük',
@@ -716,10 +715,12 @@ class _AracIstekYukEkleScreenState
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: _isSubmitting
-                          ? LinearGradient(colors: [
-                              AppColors.gradientStart.withValues(alpha: 0.4),
-                              AppColors.gradientEnd.withValues(alpha: 0.4),
-                            ])
+                          ? LinearGradient(
+                              colors: [
+                                AppColors.gradientStart.withValues(alpha: 0.4),
+                                AppColors.gradientEnd.withValues(alpha: 0.4),
+                              ],
+                            )
                           : AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -759,67 +760,67 @@ class _AracIstekYukEkleScreenState
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    // Form validasyonu
-    if (_entries.isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: 'Lütfen gidilecek yeri seçiniz',
-      );
-      return;
-    }
-    if (_tasInacakYukController.text.trim().isEmpty) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: 'Lütfen taşınacak yük hakkında bilgi giriniz',
-      );
-      _tasInacakYukFocusNode.requestFocus();
-      return;
-    }
-
-    // Açıklama minimum 15 karakter kontrolü
-    if (_aciklamaController.text.length < 15) {
-      await ValidationUyariWidget.goster(
-        context: context,
-        message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
-      );
-      _aciklamaFocusNode.requestFocus();
-      return;
-    }
-
-    // API request oluştur
-    final req = _buildAracIstekEkleReq();
-    final ozetItems = _buildAracIstekOzetItems(req);
-
-    _lockAndUnfocusInputs();
-    await showAracIstekOzetBottomSheet(
-      context: context,
-      request: req,
-      talepTipi: 'Yük',
-      ozetItems: ozetItems,
-      onGonder: () async {
-        await _sendAracIstek(req);
-      },
-      onSuccess: () async {
-        if (!mounted) return;
-        await IstekBasariliWidget.goster(
+      // Form validasyonu
+      if (_entries.isEmpty) {
+        await ValidationUyariWidget.goster(
           context: context,
-          message: 'Araç isteğiniz gönderilmiştir.',
-          onConfirm: () async {
-            ref.invalidate(aracDevamEdenTaleplerProvider);
-            ref.invalidate(aracTamamlananTaleplerProvider);
-            if (!context.mounted) return;
-            context.go('/arac_istek');
-          },
+          message: 'Lütfen gidilecek yeri seçiniz',
         );
-      },
-      onError: (error) {
-        if (!mounted) return;
-        ValidationUyariWidget.goster(
+        return;
+      }
+      if (_tasInacakYukController.text.trim().isEmpty) {
+        await ValidationUyariWidget.goster(
           context: context,
-          message: error.isEmpty ? 'Hata oluştu' : error,
+          message: 'Lütfen taşınacak yük hakkında bilgi giriniz',
         );
-      },
-    );
+        _tasInacakYukFocusNode.requestFocus();
+        return;
+      }
+
+      // Açıklama minimum 15 karakter kontrolü
+      if (_aciklamaController.text.length < 15) {
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Lütfen en az 15 karakter olacak şekilde açıklama giriniz',
+        );
+        _aciklamaFocusNode.requestFocus();
+        return;
+      }
+
+      // API request oluştur
+      final req = _buildAracIstekEkleReq();
+      final ozetItems = _buildAracIstekOzetItems(req);
+
+      _lockAndUnfocusInputs();
+      await showAracIstekOzetBottomSheet(
+        context: context,
+        request: req,
+        talepTipi: 'Yük',
+        ozetItems: ozetItems,
+        onGonder: () async {
+          await _sendAracIstek(req);
+        },
+        onSuccess: () async {
+          if (!mounted) return;
+          await IstekBasariliWidget.goster(
+            context: context,
+            message: 'Araç isteğiniz gönderilmiştir.',
+            onConfirm: () async {
+              ref.invalidate(aracDevamEdenTaleplerProvider);
+              ref.invalidate(aracTamamlananTaleplerProvider);
+              if (!context.mounted) return;
+              context.go('/arac_istek');
+            },
+          );
+        },
+        onError: (error) {
+          if (!mounted) return;
+          ValidationUyariWidget.goster(
+            context: context,
+            message: error.isEmpty ? 'Hata oluştu' : error,
+          );
+        },
+      );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -967,8 +968,6 @@ class _AracIstekYukEkleScreenState
       _entries.add(_YerEntry(yer: yer, adresController: controller));
     });
   }
-
-
 }
 
 class _YerEntry {

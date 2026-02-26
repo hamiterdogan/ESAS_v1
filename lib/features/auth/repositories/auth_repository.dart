@@ -36,4 +36,25 @@ class AuthRepository {
       rethrow;
     }
   }
+
+  /// Şifremi Unuttum isteği gönderir.
+  Future<String> sifremiUnuttum(String email) async {
+    try {
+      final response = await _dio.post(
+        '/Kullanici/SifremiUnuttum',
+        data: {'email': email},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data['mesaj']?.toString() ?? 'Bilinmeyen Hata';
+      }
+      return 'Beklenmeyen bir hata oluştu.';
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response?.data is Map) {
+        return e.response?.data['mesaj']?.toString() ?? 'Bağlantı Hatası';
+      }
+      return 'Bağlantı Hatası: ${e.message}';
+    } catch (e) {
+      return 'Hata: $e';
+    }
+  }
 }

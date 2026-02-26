@@ -40,7 +40,7 @@ class DokumantasyonBaskiIstekReq {
     this.driveLink = '',
     this.departman = '', // Default to empty based on sample
     this.paket = 0, // Default to 0 based on sample
-    this.a4Talebi = true, // Defaulting to true, or infer from kagitTalebi if needed
+    this.a4Talebi = false,
   });
 
   Map<String, dynamic> toJson() {

@@ -10,6 +10,7 @@ import 'package:esas_v1/core/services/auth_storage_service.dart';
 import 'package:esas_v1/core/services/notification_service.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
 import 'package:esas_v1/features/auth/providers/auth_providers.dart';
+import 'package:esas_v1/features/auth/repositories/auth_repository.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 import 'package:esas_v1/features/bildirim/repositories/notification_repository.dart';
 
@@ -309,12 +310,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   // Şifremi Unuttum
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => const SifremiUnuttumBottomSheet(),
+                      );
+                    },
                     child: const Text(
                       'Şifremi Unuttum',
                       style: TextStyle(
                         color: AppColors.primary,
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -347,19 +355,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.borderLight, width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.borderLight, width: 1.2),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
     );
@@ -421,6 +429,205 @@ class _GradientButton extends StatelessWidget {
                   letterSpacing: 0.3,
                 ),
               ),
+      ),
+    );
+  }
+}
+
+class SifremiUnuttumBottomSheet extends StatefulWidget {
+  const SifremiUnuttumBottomSheet({super.key});
+
+  @override
+  State<SifremiUnuttumBottomSheet> createState() =>
+      _SifremiUnuttumBottomSheetState();
+}
+
+class _SifremiUnuttumBottomSheetState extends State<SifremiUnuttumBottomSheet> {
+  final _emailController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _gonder() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null; // Clear any previous error
+    });
+
+    final repo = AuthRepository();
+    final mesaj = await repo.sifremiUnuttum(email);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (mesaj == 'Şifreniz mail adresinize gönderildi.') {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Şifreniz belirttiğiniz mail adresinize gönderilmiştir.',
+          ),
+        ),
+      );
+    } else if (mesaj ==
+        'Girdiğiniz mail adresiyle eşleşen bir kayıt bulunamadı.') {
+      // Inline error message
+      setState(() {
+        _errorMessage = 'Girdiğiniz mail adresi bulunamadı.';
+      });
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mesaj)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const defaultPadding = EdgeInsets.symmetric(horizontal: 24, vertical: 24);
+    final insets = MediaQuery.of(context).viewInsets;
+
+    return Container(
+      padding: defaultPadding.copyWith(
+        bottom: defaultPadding.bottom + insets.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.scaffoldBackground,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 8),
+          const Text(
+            'Şifremi Unuttum',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryDark,
+            ),
+          ),
+          const SizedBox(height: 32),
+          const Text(
+            'E-mail',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            height: 52,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _emailController,
+                    style: const TextStyle(fontSize: 17),
+                    decoration: const InputDecoration(
+                      hintText: 'ad.soyad',
+                      hintStyle: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 14,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    onChanged: (val) {
+                      if (_errorMessage != null) {
+                        setState(() {
+                          _errorMessage = null;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                Container(width: 1, color: const Color(0xFF9FA8BF)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE9EDF4), // Light gray from design
+                    border: Border.all(
+                      color: const Color(0xFF9FA8BF),
+                      width: 1.3,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    '@eyuboglu.k12.tr',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_errorMessage != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage!,
+              style: const TextStyle(
+                color: Color(0xFFD35B5B), // Muted, softer red
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ] else ...[
+            const SizedBox(height: 24),
+          ],
+          _GradientButton(
+            label: 'Gönder',
+            isLoading: _isLoading,
+            onPressed: _isLoading ? () {} : _gonder,
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Geri Dön',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 60),
+        ],
       ),
     );
   }

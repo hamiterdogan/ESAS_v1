@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
@@ -723,6 +722,15 @@ class _DokumantasyonIstekDetayScreenState
       } else {
         rows.add(_buildInfoRow('Paket Adedi', '${detay.paket ?? '-'}'));
       }
+
+      // 5. Açıklama
+      rows.add(
+        _buildInfoRow(
+          'Açıklama',
+          detay.aciklama.isNotEmpty ? detay.aciklama : '-',
+          multiLine: true,
+        ),
+      );
 
       // Update Button for A4 - Only for Authorized (MUYILMAZ)
       if (isAuthorized) {
@@ -1808,10 +1816,14 @@ class _DokumantasyonIstekDetayScreenState
                   ),
                 );
               } else {
-                // Diğer dosyalar için tarayıcıda aç
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Bu dosya türü uygulama içinde görüntülenemiyor.',
+                      ),
+                    ),
+                  );
                 }
               }
             },

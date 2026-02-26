@@ -1,6 +1,5 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
@@ -643,226 +642,238 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    if (_formKey.currentState?.validate() ?? false) {
-      // Form validasyonları
-      if (_baslangicTarihi == null) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Başlangıç tarihi seçiniz',
-        );
-        return;
-      }
-
-      // 1 günlük izin aktif ise bitiş tarihi = başlangıç tarihi
-      DateTime bitisTarih;
-      int bitisSaatValue;
-      int bitisDakikaValue;
-
-      if (_birGunlukIzin) {
-        bitisTarih = _baslangicTarihi!;
-        bitisSaatValue = 17;
-        bitisDakikaValue = 30;
-      } else {
-        if (_bitisTarihi == null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Bitiş tarihi seçiniz')));
-          return;
-        }
-        bitisTarih = _bitisTarihi!;
-        bitisSaatValue = _bitisSaat;
-        bitisDakikaValue = _bitisDakika;
-      }
-
-      // Açıklama minimum 30 karakter kontrolü
-      if (_aciklamaController.text.length < 30) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
-        );
-        _aciklamaFocusNode.requestFocus();
-        return;
-      }
-
-      // Adres boş kontrolü
-      if (_adresController.text.isEmpty) {
-        setState(() {
-          _adresHatali = true;
-        });
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen izin süresince bulunacağınız adresi giriniz',
-        );
-        _adresFocusNode.requestFocus();
-        return;
-      }
-
-      if (_doktorRaporuVar && _doktorRaporuFile == null) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Doktor raporu dosyası seçiniz',
-        );
-        return;
-      }
-
-      // Başlangıç tarihi bitiş tarihinden sonra olamaz
-      if (_baslangicTarihi!.isAfter(bitisTarih)) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message:
-              'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
-        );
-        return;
-      }
-
-      // Başlangıç ve bitiş saatleri aynı olamaz (1 günlük izin aktifken veya tarihler aynıyken)
-      if ((_birGunlukIzin || _baslangicTarihi == _bitisTarihi) &&
-          _baslangicSaat == _bitisSaat &&
-          _baslangicDakika == _bitisDakika) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message:
-              'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
-        );
-        return;
-      }
-
-      try {
-        // İzin nedenleri provider'dan hastalık izin ID'sini al
-        await ref.read(allIzinNedenlerProvider.future);
-
-        // Hastalık izin sebep ID: 4
-        const int izinSebebiId = 4;
-
-        // IzinIstekEkleReq oluştur - API'nin beklediği format
-        final request = IzinIstekEkleReq(
-          izinSebebiId: izinSebebiId,
-          izinBaslangicTarihi: _baslangicTarihi!,
-          izinBitisTarihi: bitisTarih,
-          aciklama: _aciklamaController.text,
-          izindeBulunacagiAdres: _adresController.text,
-          // Opsiyonel alanlar
-          izinBaslangicSaat: _baslangicSaat,
-          izinBaslangicDakika: _baslangicDakika,
-          izinBitisSaat: bitisSaatValue,
-          izinBitisDakika: bitisDakikaValue,
-          doktorRaporu: _doktorRaporuVar,
-          izindeGirilmeyenToplamDersSaati: _girileymeyenDersSaati,
-          baskaPersonelId: _secilenPersonel?.personelId,
-        );
-
-        // Bottom sheet'te verileri göster
-        if (mounted) {
-          final ozetItems = [
-            IzinOzetItem(
-              label: 'İzin Türü',
-              value: 'Hastalık İzni',
-              multiLine: false,
-            ),
-            IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
-            IzinOzetItem(
-              label: 'Başlangıç Tarihi',
-              value: _formatDate(_baslangicTarihi!),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Bitiş Tarihi',
-              value: _formatDate(bitisTarih),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Başlangıç Saati',
-              value:
-                  '${_baslangicSaat.toString().padLeft(2, '0')}:${_baslangicDakika.toString().padLeft(2, '0')}',
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Bitiş Saati',
-              value:
-                  '${bitisSaatValue.toString().padLeft(2, '0')}:${bitisDakikaValue.toString().padLeft(2, '0')}',
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Girilmeyen Toplam Ders Saati',
-              value: _girileymeyenDersSaati.toString(),
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'İzinde Bulunacağı Adres',
-              value: _adresController.text,
-            ),
-            IzinOzetItem(
-              label: 'Hastalık Durumu',
-              value: _acil ? 'Acil' : 'Acil değil',
-              multiLine: false,
-            ),
-            IzinOzetItem(
-              label: 'Doktor Raporu',
-              value: _doktorRaporuVar ? 'Var' : 'Yok',
-              multiLine: false,
-            ),
-            if (_doktorRaporuVar && _doktorRaporuFile != null)
-              IzinOzetItem(
-                label: 'Dosya Adı',
-                value: _doktorRaporuFile!.path.split('/').last.split('\\').last,
-              ),
-          ];
-
-          await showIzinOzetBottomSheet(
-            context: context,
-            request: request,
-            izinTipi: 'Hastalık',
-            ozetItems: ozetItems,
-            onGonder: () async {
-              final repo = ref.read(izinIstekRepositoryProvider);
-              // Doktor raporu varsa dosyayı da gönder
-              final result = await repo.izinIstekEkle(
-                request,
-                file: _doktorRaporuVar ? _doktorRaporuFile : null,
-              );
-              if (result is Failure<int>) {
-                throw Exception(result.message);
-              } else if (result is Success<int>) {
-                if (result.data > 0) {
-                  final emailService = ref.read(emailServiceProvider);
-                  await emailService.emailIcerikOlustur(
-                    id: result.data,
-                    kategori: 'İzin İstek',
-                    aksiyon: 'Oluşturuldu',
-                  );
-                }
-              }
-            },
-            onSuccess: () async {
-              if (!mounted) return;
-              await IstekBasariliWidget.goster(
-                context: context,
-                message: 'Hastalık izni isteğiniz gönderilmiştir.',
-                onConfirm: () async {
-                  ref.invalidate(devamEdenIsteklerimProvider);
-                  ref.invalidate(tamamlananIsteklerimProvider);
-                  if (!context.mounted) return;
-                  context.go('/izin_istek');
-                },
-              );
-            },
-            onError: (error) async {
-              await ValidationUyariWidget.goster(
-                context: context,
-                message: 'Hata: $error',
-              );
-            },
-          );
-        }
-      } catch (e) {
-        if (mounted) {
+      if (_formKey.currentState?.validate() ?? false) {
+        // Form validasyonları
+        if (_baslangicTarihi == null) {
           await ValidationUyariWidget.goster(
             context: context,
-            message: 'Hata oluştu: $e',
+            message: 'Başlangıç tarihi seçiniz',
           );
+          return;
+        }
+
+        // 1 günlük izin aktif ise bitiş tarihi = başlangıç tarihi
+        DateTime bitisTarih;
+        int bitisSaatValue;
+        int bitisDakikaValue;
+
+        if (_birGunlukIzin) {
+          bitisTarih = _baslangicTarihi!;
+          bitisSaatValue = 17;
+          bitisDakikaValue = 30;
+        } else {
+          if (_bitisTarihi == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Bitiş tarihi seçiniz')),
+            );
+            return;
+          }
+          bitisTarih = _bitisTarihi!;
+          bitisSaatValue = _bitisSaat;
+          bitisDakikaValue = _bitisDakika;
+        }
+
+        // Açıklama minimum 30 karakter kontrolü
+        if (_aciklamaController.text.length < 30) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen en az 30 karakter olacak şekilde açıklama giriniz',
+          );
+          _aciklamaFocusNode.requestFocus();
+          return;
+        }
+
+        // Adres boş kontrolü
+        if (_adresController.text.isEmpty) {
+          setState(() {
+            _adresHatali = true;
+          });
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen izin süresince bulunacağınız adresi giriniz',
+          );
+          _adresFocusNode.requestFocus();
+          return;
+        }
+
+        if (_doktorRaporuVar && _doktorRaporuFile == null) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Doktor raporu dosyası seçiniz',
+          );
+          return;
+        }
+
+        // Başlangıç tarihi bitiş tarihinden sonra olamaz
+        if (_baslangicTarihi!.isAfter(bitisTarih)) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message:
+                'İzin başlangıç tarihi izin bitiş tarihinden küçük olmalıdır',
+          );
+          return;
+        }
+
+        // Başlangıç ve bitiş saatleri aynı olamaz (1 günlük izin aktifken veya tarihler aynıyken)
+        if ((_birGunlukIzin || _baslangicTarihi == _bitisTarihi) &&
+            _baslangicSaat == _bitisSaat &&
+            _baslangicDakika == _bitisDakika) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message:
+                'Lütfen başlangıç saati ve bitiş saati değerlerini kontrol ediniz',
+          );
+          return;
+        }
+
+        try {
+          // İzin nedenleri provider'dan hastalık izin ID'sini al
+          await ref.read(allIzinNedenlerProvider.future);
+
+          // Hastalık izin sebep ID: 4
+          const int izinSebebiId = 4;
+
+          // IzinIstekEkleReq oluştur - API'nin beklediği format
+          final request = IzinIstekEkleReq(
+            izinSebebiId: izinSebebiId,
+            izinBaslangicTarihi: _baslangicTarihi!,
+            izinBitisTarihi: bitisTarih,
+            aciklama: _aciklamaController.text,
+            izindeBulunacagiAdres: _adresController.text,
+            // Opsiyonel alanlar
+            izinBaslangicSaat: _baslangicSaat,
+            izinBaslangicDakika: _baslangicDakika,
+            izinBitisSaat: bitisSaatValue,
+            izinBitisDakika: bitisDakikaValue,
+            doktorRaporu: _doktorRaporuVar,
+            izindeGirilmeyenToplamDersSaati: _girileymeyenDersSaati,
+            baskaPersonelId: _secilenPersonel?.personelId,
+          );
+
+          // Bottom sheet'te verileri göster
+          if (mounted) {
+            final ozetItems = [
+              IzinOzetItem(
+                label: 'İzin Türü',
+                value: 'Hastalık İzni',
+                multiLine: false,
+              ),
+              IzinOzetItem(label: 'Açıklama', value: _aciklamaController.text),
+              IzinOzetItem(
+                label: 'Başlangıç Tarihi',
+                value: _formatDate(_baslangicTarihi!),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Bitiş Tarihi',
+                value: _formatDate(bitisTarih),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Başlangıç Saati',
+                value:
+                    '${_baslangicSaat.toString().padLeft(2, '0')}:${_baslangicDakika.toString().padLeft(2, '0')}',
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Bitiş Saati',
+                value:
+                    '${bitisSaatValue.toString().padLeft(2, '0')}:${bitisDakikaValue.toString().padLeft(2, '0')}',
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Girilmeyen Toplam Ders Saati',
+                value: _girileymeyenDersSaati.toString(),
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'İzinde Bulunacağı Adres',
+                value: _adresController.text,
+              ),
+              IzinOzetItem(
+                label: 'Hastalık Durumu',
+                value: _acil ? 'Acil' : 'Acil değil',
+                multiLine: false,
+              ),
+              IzinOzetItem(
+                label: 'Doktor Raporu',
+                value: _doktorRaporuVar ? 'Var' : 'Yok',
+                multiLine: false,
+              ),
+              if (_doktorRaporuVar && _doktorRaporuFile != null)
+                IzinOzetItem(
+                  label: 'Dosya Adı',
+                  value: _doktorRaporuFile!.path
+                      .split('/')
+                      .last
+                      .split('\\')
+                      .last,
+                ),
+            ];
+
+            await showIzinOzetBottomSheet(
+              context: context,
+              request: request,
+              izinTipi: 'Hastalık',
+              ozetItems: ozetItems,
+              onGonder: () async {
+                final repo = ref.read(izinIstekRepositoryProvider);
+                // Doktor raporu varsa dosyayı da gönder
+                final result = await repo.izinIstekEkle(
+                  request,
+                  file: _doktorRaporuVar ? _doktorRaporuFile : null,
+                );
+                if (result is Failure<int>) {
+                  throw Exception(result.message);
+                } else if (result is Success<int>) {
+                  if (result.data > 0) {
+                    final emailService = ref.read(emailServiceProvider);
+                    await emailService.emailIcerikOlustur(
+                      id: result.data,
+                      kategori: 'İzin İstek',
+                      aksiyon: 'Oluşturuldu',
+                    );
+                  }
+                }
+              },
+              onSuccess: () async {
+                if (!mounted) return;
+                await IstekBasariliWidget.goster(
+                  context: context,
+                  message: 'Hastalık izni isteğiniz gönderilmiştir.',
+                  onConfirm: () async {
+                    ref.invalidate(devamEdenIsteklerimProvider);
+                    ref.invalidate(tamamlananIsteklerimProvider);
+                    if (!context.mounted) return;
+                    final navigator = Navigator.of(context);
+                    var poppedRouteCount = 0;
+                    navigator.popUntil((route) {
+                      if (route.isFirst || poppedRouteCount >= 2) {
+                        return true;
+                      }
+                      poppedRouteCount++;
+                      return false;
+                    });
+                  },
+                );
+              },
+              onError: (error) async {
+                await ValidationUyariWidget.goster(
+                  context: context,
+                  message: 'Hata: $error',
+                );
+              },
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            await ValidationUyariWidget.goster(
+              context: context,
+              message: 'Hata oluştu: $e',
+            );
+          }
         }
       }
-    }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

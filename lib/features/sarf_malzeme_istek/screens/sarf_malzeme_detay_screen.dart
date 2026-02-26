@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
@@ -126,7 +125,10 @@ class _SarfMalzemeDetayScreenState
         onRefresh: () async {
           ref.invalidate(sarfMalzemeDetayParalelProvider(widget.talepId));
           ref.invalidate(
-            onayDurumuProvider((talepId: widget.talepId, onayTipi: 'Sarf Malzeme İstek')),
+            onayDurumuProvider((
+              talepId: widget.talepId,
+              onayTipi: 'Sarf Malzeme İstek',
+            )),
           );
         },
         child: ListView(
@@ -584,10 +586,14 @@ class _SarfMalzemeDetayScreenState
                   ),
                 );
               } else {
-                // Diğer dosyalar için tarayıcıda aç
-                final uri = Uri.parse(fileUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Bu dosya türü uygulama içinde görüntülenemiyor.',
+                      ),
+                    ),
+                  );
                 }
               }
             },

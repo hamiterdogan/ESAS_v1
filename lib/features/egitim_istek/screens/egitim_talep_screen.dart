@@ -851,9 +851,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
 
                           // Eğitim ücretleri ekranını güncelle
                           if (_egitimUcretleriData != null) {
-                            _updateTotalCost(
-                              _getSelectedPersonelCount(),
-                            );
+                            _updateTotalCost(_getSelectedPersonelCount());
                           }
                         },
                         onDataLoaded: (data) {
@@ -1582,20 +1580,28 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                             if (result != null) {
                               // Calculate totals from parts
                               final kisiBasiAna =
-                                  int.tryParse(result['kisiBasiToplamAna'] ?? '0') ??
-                                      0;
+                                  int.tryParse(
+                                    result['kisiBasiToplamAna'] ?? '0',
+                                  ) ??
+                                  0;
                               final kisiBasiKusurat =
-                                  int.tryParse(result['kisiBasiToplamKusurat'] ?? '0') ??
-                                      0;
+                                  int.tryParse(
+                                    result['kisiBasiToplamKusurat'] ?? '0',
+                                  ) ??
+                                  0;
                               final kisiBasiToplamTutar =
                                   kisiBasiAna + (kisiBasiKusurat / 100.0);
 
                               final genelToplamAna =
-                                  int.tryParse(result['genelToplamAna'] ?? '0') ??
-                                      0;
+                                  int.tryParse(
+                                    result['genelToplamAna'] ?? '0',
+                                  ) ??
+                                  0;
                               final genelToplamKusurat =
-                                  int.tryParse(result['genelToplamKusurat'] ?? '0') ??
-                                      0;
+                                  int.tryParse(
+                                    result['genelToplamKusurat'] ?? '0',
+                                  ) ??
+                                  0;
                               final genelToplamTutar =
                                   genelToplamAna + (genelToplamKusurat / 100.0);
 
@@ -1655,124 +1661,125 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                         ),
                       ],
                     ),
-                  if (!_ucretsiz && _egitimUcretleriData != null) ...[
-                    const SizedBox(height: 16),
-                    Card(
-                      color: AppColors.textOnPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: AppColors.border, width: 1),
-                      ),
-                      margin: EdgeInsets.zero,
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(12),
+                    if (!_ucretsiz && _egitimUcretleriData != null) ...[
+                      const SizedBox(height: 16),
+                      Card(
+                        color: AppColors.textOnPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: AppColors.border, width: 1),
+                        ),
+                        margin: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.gradientStart
-                                        .withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.calculate_outlined,
-                                    color: AppColors.gradientStart,
-                                    size: 20,
-                                  ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Ücret Özeti',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Kişi Başı Toplam TL Ücret',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: AppColors.textSecondary,
-                                            ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.gradientStart.withValues(
+                                        alpha: 0.1,
                                       ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    Text(
-                                      '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['kisiBasiToplamTutar'] as double? ?? 0)} TL',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimary,
-                                          ),
+                                    child: const Icon(
+                                      Icons.calculate_outlined,
+                                      color: AppColors.gradientStart,
+                                      size: 20,
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                const Divider(),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Genel Toplam TL Ücret',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: AppColors.textSecondary,
-                                            ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['genelToplamTutar'] as double? ?? 0)} TL',
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Ücret Özeti',
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.gradientStart,
+                                            color: AppColors.textPrimary,
                                           ),
                                     ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            const Divider(height: 1),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Kişi Başı Toplam TL Ücret',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['kisiBasiToplamTutar'] as double? ?? 0)} TL',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Divider(),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Genel Toplam TL Ücret',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${NumberFormat('#,##0.00', 'tr_TR').format(_egitimUcretleriData?['genelToplamTutar'] as double? ?? 0)} TL',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.gradientStart,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
                   ],
                   const SizedBox(height: 16),
                   Column(
@@ -2067,7 +2074,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: (_agreeWithDocuments && !_isSubmitting) ? _submitForm : null,
+                        onPressed: (_agreeWithDocuments && !_isSubmitting)
+                            ? _submitForm
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shadowColor: Colors.transparent,
@@ -2601,8 +2610,8 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     final genelToplamTutar = kisiBasiToplamTutar * personelCount;
 
     final genelToplamAna = genelToplamTutar.floor();
-    final genelToplamKusurat =
-        ((genelToplamTutar - genelToplamAna) * 100).round();
+    final genelToplamKusurat = ((genelToplamTutar - genelToplamAna) * 100)
+        .round();
 
     setState(() {
       _egitimUcretleriData = {
@@ -2650,164 +2659,129 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-    // 1️⃣ Eğitimin Adı seçimi zorunlu validasyonu
-    if (_secilenEgitimAdi == null) {
-      await _scrollAndFocusToWidget(_egitimAdiKey, null);
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eğitimin adını seçiniz',
-          onDismiss: () {
-            if (!mounted) return;
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (!mounted) return;
-              _egitimAdiFocusNode.requestFocus();
-              _showEgitimAdiBottomSheet();
-            });
-          },
-        );
-      }
-      return;
-    }
-
-    // DİĞER seçildiğinde eğitim adı zorunlu validasyonu
-    if (_secilenEgitimAdi == 'DİĞER' && _ozelEgitimAdiController.text.isEmpty) {
-      await _scrollAndFocusToWidget(_egitimAdiKey, _ozelEgitimAdiFocusNode);
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eğitimin adını giriniz',
-        );
-      }
-      return;
-    }
-
-    // 2️⃣ Eğitim Türü seçimi zorunlu validasyonu
-    if (_secilenEgitimTuru == null) {
-      await _scrollAndFocusToWidget(_egitimTuruKey, null);
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eğitim türünü seçiniz',
-          onDismiss: () {
-            if (!mounted) return;
-            Future.delayed(const Duration(milliseconds: 100), () {
-              if (!mounted) return;
-              _egitimTuruFocusNode.requestFocus();
-              _showEgitimTuruBottomSheet();
-            });
-          },
-        );
-      }
-      return;
-    }
-
-    // 3️⃣ Eğitim Şirketinin Adı zorunlu validasyonu
-    if (_egitimSirketiAdi.trim().isEmpty) {
-      await _scrollAndFocusToWidget(
-        _egitimSirketiAdiKey,
-        _egitimSirketiAdiFocusNode,
-      );
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eğitim şirketinin adını giriniz',
-        );
-      }
-      return;
-    }
-
-    // 4️⃣ Eğitimin Konusu zorunlu validasyonu
-    if (_egitimKonusu.trim().isEmpty) {
-      await _scrollAndFocusToWidget(_egitimKonusuKey, _egitimKonusuFocusNode);
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen eğitimin konusunu giriniz',
-        );
-      }
-      return;
-    }
-
-    // 4️⃣.1 Web sitesi opsiyonel ama girildiyse format doğru olmalı
-    final webSitesiTrimmed = _webSitesi.trim();
-    if (webSitesiTrimmed.isNotEmpty) {
-      final uri = Uri.tryParse(webSitesiTrimmed);
-      final hasValidProtocol =
-          uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
-      final hasValidHost =
-          uri != null && uri.host.isNotEmpty && uri.host.contains('.');
-
-      if (!hasValidProtocol || !hasValidHost) {
-        // Hata durumunda: uyarı + web sitesi inputuna focus
-        FocusScope.of(context).unfocus();
-        await Future.delayed(Duration.zero);
-        await _scrollAndFocusToWidget(_webSitesiKey, null);
+      // 1️⃣ Eğitimin Adı seçimi zorunlu validasyonu
+      if (_secilenEgitimAdi == null) {
+        await _scrollAndFocusToWidget(_egitimAdiKey, null);
         if (mounted) {
           await ValidationUyariWidget.goster(
             context: context,
-            message: 'web sitesi adresini kontrol ediniz',
+            message: 'Lütfen eğitimin adını seçiniz',
+            onDismiss: () {
+              if (!mounted) return;
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (!mounted) return;
+                _egitimAdiFocusNode.requestFocus();
+                _showEgitimAdiBottomSheet();
+              });
+            },
           );
-        }
-
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              FocusScope.of(context).requestFocus(_webSitesiFocusNode);
-            }
-          });
         }
         return;
       }
-    }
 
-    // Web sitesi geçerliyse (veya boşsa): hiçbir input focus olmasın, klavye kapansın
-    FocusScope.of(context).unfocus();
-
-    // 5️⃣ Şehir / Ülke-Şehir zorunlu validasyonu
-    // - Online: şehir zorunlu
-    // - Online değilse: Yurt dışı kapalıysa şehir zorunlu
-    // - Online değilse: Yurt dışı açıksa ülke/şehir zorunlu
-    if (_online) {
-      if (_secilenSehir == null) {
-        // Şehir seçimi bir TextField olmadığı için keyboard açık kalabiliyor.
-        // Online modda da şehir zorunlu olduğundan klavyeyi kapat.
-        FocusScope.of(context).unfocus();
-        await Future.delayed(Duration.zero);
-        await _scrollAndFocusToWidget(_sehirKey, null);
+      // DİĞER seçildiğinde eğitim adı zorunlu validasyonu
+      if (_secilenEgitimAdi == 'DİĞER' &&
+          _ozelEgitimAdiController.text.isEmpty) {
+        await _scrollAndFocusToWidget(_egitimAdiKey, _ozelEgitimAdiFocusNode);
         if (mounted) {
           await ValidationUyariWidget.goster(
             context: context,
-            message: 'Lütfen şehir seçiniz',
+            message: 'Lütfen eğitimin adını giriniz',
           );
-        }
-
-        // Uyarı kapandıktan sonra şehir seçim ekranını otomatik aç.
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _secilenSehir == null) {
-              _showSehirBottomSheet();
-            }
-          });
         }
         return;
       }
-    } else {
-      if (_egitimYeriYurtDisi) {
-        if (_egitimUlkeSehir.trim().isEmpty) {
-          await _scrollAndFocusToWidget(_ulkeSehirKey, _ulkeSehirFocusNode);
+
+      // 2️⃣ Eğitim Türü seçimi zorunlu validasyonu
+      if (_secilenEgitimTuru == null) {
+        await _scrollAndFocusToWidget(_egitimTuruKey, null);
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen eğitim türünü seçiniz',
+            onDismiss: () {
+              if (!mounted) return;
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (!mounted) return;
+                _egitimTuruFocusNode.requestFocus();
+                _showEgitimTuruBottomSheet();
+              });
+            },
+          );
+        }
+        return;
+      }
+
+      // 3️⃣ Eğitim Şirketinin Adı zorunlu validasyonu
+      if (_egitimSirketiAdi.trim().isEmpty) {
+        await _scrollAndFocusToWidget(
+          _egitimSirketiAdiKey,
+          _egitimSirketiAdiFocusNode,
+        );
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen eğitim şirketinin adını giriniz',
+          );
+        }
+        return;
+      }
+
+      // 4️⃣ Eğitimin Konusu zorunlu validasyonu
+      if (_egitimKonusu.trim().isEmpty) {
+        await _scrollAndFocusToWidget(_egitimKonusuKey, _egitimKonusuFocusNode);
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen eğitimin konusunu giriniz',
+          );
+        }
+        return;
+      }
+
+      // 4️⃣.1 Web sitesi opsiyonel ama girildiyse format doğru olmalı
+      final webSitesiTrimmed = _webSitesi.trim();
+      if (webSitesiTrimmed.isNotEmpty) {
+        final uri = Uri.tryParse(webSitesiTrimmed);
+        final hasValidProtocol =
+            uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
+        final hasValidHost =
+            uri != null && uri.host.isNotEmpty && uri.host.contains('.');
+
+        if (!hasValidProtocol || !hasValidHost) {
+          // Hata durumunda: uyarı + web sitesi inputuna focus
+          FocusScope.of(context).unfocus();
+          await Future.delayed(Duration.zero);
+          await _scrollAndFocusToWidget(_webSitesiKey, null);
           if (mounted) {
             await ValidationUyariWidget.goster(
               context: context,
-              message: 'Lütfen ülke / şehir bilgisini giriniz',
+              message: 'web sitesi adresini kontrol ediniz',
             );
+          }
+
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                FocusScope.of(context).requestFocus(_webSitesiFocusNode);
+              }
+            });
           }
           return;
         }
-      } else {
+      }
+
+      // Web sitesi geçerliyse (veya boşsa): hiçbir input focus olmasın, klavye kapansın
+      FocusScope.of(context).unfocus();
+
+      // 5️⃣ Şehir / Ülke-Şehir zorunlu validasyonu
+      // - Online: şehir zorunlu
+      // - Online değilse: Yurt dışı kapalıysa şehir zorunlu
+      // - Online değilse: Yurt dışı açıksa ülke/şehir zorunlu
+      if (_online) {
         if (_secilenSehir == null) {
           // Şehir seçimi bir TextField olmadığı için keyboard açık kalabiliyor.
-          // Yurt dışı kapalıyken şehir validasyonu patladığında klavyeyi kapat.
+          // Online modda da şehir zorunlu olduğundan klavyeyi kapat.
           FocusScope.of(context).unfocus();
           await Future.delayed(Duration.zero);
           await _scrollAndFocusToWidget(_sehirKey, null);
@@ -2819,7 +2793,6 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           }
 
           // Uyarı kapandıktan sonra şehir seçim ekranını otomatik aç.
-          // (Şehir alanı text input olmadığı için focus yerine seçim sheet'i açıyoruz.)
           if (mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted && _secilenSehir == null) {
@@ -2829,59 +2802,96 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           }
           return;
         }
-      }
-    }
+      } else {
+        if (_egitimYeriYurtDisi) {
+          if (_egitimUlkeSehir.trim().isEmpty) {
+            await _scrollAndFocusToWidget(_ulkeSehirKey, _ulkeSehirFocusNode);
+            if (mounted) {
+              await ValidationUyariWidget.goster(
+                context: context,
+                message: 'Lütfen ülke / şehir bilgisini giriniz',
+              );
+            }
+            return;
+          }
+        } else {
+          if (_secilenSehir == null) {
+            // Şehir seçimi bir TextField olmadığı için keyboard açık kalabiliyor.
+            // Yurt dışı kapalıyken şehir validasyonu patladığında klavyeyi kapat.
+            FocusScope.of(context).unfocus();
+            await Future.delayed(Duration.zero);
+            await _scrollAndFocusToWidget(_sehirKey, null);
+            if (mounted) {
+              await ValidationUyariWidget.goster(
+                context: context,
+                message: 'Lütfen şehir seçiniz',
+              );
+            }
 
-    // 6️⃣ Adres zorunlu validasyonu
-    if (_adres.trim().isEmpty) {
-      await _scrollAndFocusToWidget(_adresKey, _adresFocusNode);
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Lütfen adresi giriniz',
-        );
-      }
-      return;
-    }
-
-    // 7️⃣ Eğitimin Ücreti validasyonu
-    if (!_ucretsiz) {
-      final egitimUcretiAna =
-          _egitimUcretleriData?['egitimUcretiAna'] as String? ?? '';
-      if (egitimUcretiAna.trim().isEmpty) {
-        if (mounted) {
-          await _showEducationCostWarning();
-          if (mounted) {
-            final result = await Navigator.push<Map<String, dynamic>>(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EgitimUcretleriScreen(
-                  initialData: _egitimUcretleriData,
-                  selectedPersonelCount: _getSelectedPersonelCount(),
-                  shouldFocusInput: true,
-                ),
-              ),
-            );
-
-            if (result != null && mounted) {
-              setState(() {
-                _egitimUcretleriData = result;
+            // Uyarı kapandıktan sonra şehir seçim ekranını otomatik aç.
+            // (Şehir alanı text input olmadığı için focus yerine seçim sheet'i açıyoruz.)
+            if (mounted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted && _secilenSehir == null) {
+                  _showSehirBottomSheet();
+                }
               });
             }
+            return;
           }
+        }
+      }
+
+      // 6️⃣ Adres zorunlu validasyonu
+      if (_adres.trim().isEmpty) {
+        await _scrollAndFocusToWidget(_adresKey, _adresFocusNode);
+        if (mounted) {
+          await ValidationUyariWidget.goster(
+            context: context,
+            message: 'Lütfen adresi giriniz',
+          );
         }
         return;
       }
-    }
 
-    // 8️⃣ Eğitim Sonrası Kurum İçi Paylaşım (zorunlu)
-    final isPaylasimOk = await _ensureEgitimSonrasiPaylasimIsComplete();
-    if (!isPaylasimOk) {
-      return;
-    }
+      // 7️⃣ Eğitimin Ücreti validasyonu
+      if (!_ucretsiz) {
+        final egitimUcretiAna =
+            _egitimUcretleriData?['egitimUcretiAna'] as String? ?? '';
+        if (egitimUcretiAna.trim().isEmpty) {
+          if (mounted) {
+            await _showEducationCostWarning();
+            if (mounted) {
+              final result = await Navigator.push<Map<String, dynamic>>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EgitimUcretleriScreen(
+                    initialData: _egitimUcretleriData,
+                    selectedPersonelCount: _getSelectedPersonelCount(),
+                    shouldFocusInput: true,
+                  ),
+                ),
+              );
 
-    // Form gönderme işlemi - Özet ekranını göster
-    await _showSummaryAndSubmit();
+              if (result != null && mounted) {
+                setState(() {
+                  _egitimUcretleriData = result;
+                });
+              }
+            }
+          }
+          return;
+        }
+      }
+
+      // 8️⃣ Eğitim Sonrası Kurum İçi Paylaşım (zorunlu)
+      final isPaylasimOk = await _ensureEgitimSonrasiPaylasimIsComplete();
+      if (!isPaylasimOk) {
+        return;
+      }
+
+      // Form gönderme işlemi - Özet ekranını göster
+      await _showSummaryAndSubmit();
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -3102,7 +3112,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       'egitimSuresiGun': _egitimGun.toString(),
       'egitimSuresiSaat': _egitimSaat.toString(),
       'girilmeyenToplamDersSaati': _girileymeyenDersSaati,
-      'egitiminAdi': _secilenEgitimAdi == 'DİĞER' ? '0' : (_secilenEgitimAdi ?? ''),
+      'egitiminAdi': _secilenEgitimAdi == 'DİĞER'
+          ? '0'
+          : (_secilenEgitimAdi ?? ''),
       'sirketAdi': _egitimSirketiAdi,
       'egitimIcerigi': _egitimKonusu,
       'webSitesi': _webSitesi.trim().isEmpty ? '' : _webSitesi.trim(),
@@ -3477,7 +3489,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             .join(', '); // Comma separated for better fit in detailed list
 
         if (selectedPersonelNames.isNotEmpty) {
-          paylasimItems.add('Paylaşım yapılacak kişiler: $selectedPersonelNames');
+          paylasimItems.add(
+            'Paylaşım yapılacak kişiler: $selectedPersonelNames',
+          );
         } else {
           paylasimItems.add(
             'Paylaşım yapılacak kişiler: ${paylasimPersonelIds.length} kişi seçildi',
