@@ -460,9 +460,11 @@ class NotificationService {
     if (n.contains('sarfmalzeme') || n.contains('sarf')) {
       return '/sarf_malzeme_istek';
     }
-    if (n.contains('bilgiteknoloji')) return '/bilgi_teknolojileri';
+    if (n.contains('bilgiteknoloji')) {
+      return '/teknik_destek/detay/$onayKayitId';
+    }
     if (n.contains('teknikdestek') || n.contains('teknik'))
-      return '/teknik_destek';
+      return '/teknik_destek/detay/$onayKayitId';
     if (kDebugMode) print('⚠️ Bilinmeyen onayTipi: $onayTipi (normalized: $n)');
     return null;
   }
@@ -500,9 +502,9 @@ class NotificationService {
       case 'yiyecek_icecek_istek':
         return '/yiyecek_icecek_istek/detay/$talepId';
       case 'bilgi_teknolojileri':
-        return '/bilgi_teknolojileri';
+        return '/teknik_destek/detay/$talepId';
       case 'teknik_destek':
-        return '/teknik_destek';
+        return '/teknik_destek/detay/$talepId';
       case 'sarf_malzeme_istek':
         return '/sarf_malzeme_istek';
       default:

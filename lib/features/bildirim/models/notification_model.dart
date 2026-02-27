@@ -3,6 +3,7 @@ class BildirimModel {
   final int id;
   final String baslik;
   final String mesaj;
+  final String? deepLink;
   final String bildirimTipi; // talep türü route path (ör: "satin_alma")
   final int? talepId;
   final String? onayTipi;
@@ -16,6 +17,7 @@ class BildirimModel {
     required this.id,
     required this.baslik,
     required this.mesaj,
+    this.deepLink,
     required this.bildirimTipi,
     this.talepId,
     this.onayTipi,
@@ -27,18 +29,66 @@ class BildirimModel {
   });
 
   factory BildirimModel.fromJson(Map<String, dynamic> json) {
+    int? parseInt(dynamic value) {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    bool parseBool(dynamic value) {
+      if (value is bool) return value;
+      if (value is String) {
+        final lower = value.toLowerCase();
+        return lower == 'true' || lower == '1';
+      }
+      if (value is num) return value != 0;
+      return false;
+    }
+
+    final parsedOnayKayitId = parseInt(
+      json['onayKayitId'] ?? json['OnayKayitId'],
+    );
+    final parsedTalepId =
+        parseInt(json['talepId'] ?? json['TalepId']) ?? parsedOnayKayitId;
+    final parsedOnayTipi = (json['onayTipi'] ?? json['OnayTipi'])?.toString();
+    final parsedId = parseInt(json['id'] ?? json['Id']) ?? 0;
+
     return BildirimModel(
-      id: json['id'] as int,
-      baslik: json['baslik'] as String? ?? '',
-      mesaj: json['mesaj'] as String? ?? '',
-      bildirimTipi: json['bildirimTipi'] as String? ?? '',
-      talepId: json['talepId'] as int?,
-      onayTipi: json['onayTipi'] as String?,
-      onayKayitId: json['onayKayitId'] as int?,
-      aksiyonTipi: json['aksiyonTipi'] as String? ?? 'bilgilendirme',
-      okundu: json['okundu'] as bool? ?? false,
-      olusturmaTarihi: DateTime.tryParse(json['olusturmaTarihi'] as String? ?? '') ?? DateTime.now(),
-      gonderenAd: json['gonderenAd'] as String?,
+      id: parsedId,
+      baslik:
+          (json['title'] ?? json['Title'] ?? json['baslik'] ?? json['Baslik'])
+              ?.toString() ??
+          '',
+      mesaj:
+          (json['body'] ?? json['Body'] ?? json['mesaj'] ?? json['Mesaj'])
+              ?.toString() ??
+          '',
+      deepLink: (json['deepLink'] ?? json['DeepLink'])?.toString(),
+      bildirimTipi:
+          (json['bildirimTipi'] ?? json['BildirimTipi'])?.toString() ??
+          parsedOnayTipi ??
+          '',
+      talepId: parsedTalepId,
+      onayTipi: parsedOnayTipi,
+      onayKayitId: parsedOnayKayitId,
+      aksiyonTipi:
+          (json['aksiyonTipi'] ?? json['AksiyonTipi'])?.toString() ??
+          'bilgilendirme',
+      okundu: parseBool(
+        json['isRead'] ?? json['IsRead'] ?? json['okundu'] ?? json['Okundu'],
+      ),
+      olusturmaTarihi:
+          DateTime.tryParse(
+            (json['createdAt'] ??
+                        json['CreatedAt'] ??
+                        json['olusturmaTarihi'] ??
+                        json['OlusturmaTarihi'])
+                    ?.toString() ??
+                '',
+          ) ??
+          DateTime.now(),
+      gonderenAd: (json['gonderenAd'] ?? json['GonderenAd'])?.toString(),
     );
   }
 
@@ -47,31 +97,116 @@ class BildirimModel {
 
   /// Deep link route path
   String? get deepLinkRoute {
+    if (deepLink != null && deepLink!.isNotEmpty) {
+      final uri = Uri.tryParse(deepLink!);
+      if (uri != null && uri.host == 'talep-detay') {
+        final idFromPath = uri.pathSegments.isNotEmpty
+            ? uri.pathSegments.first
+            : null;
+        if (idFromPath != null && idFromPath.isNotEmpty) {
+          final kategori = uri.queryParameters['kategori'];
+          final encodedKategori = kategori != null
+              ? Uri.encodeQueryComponent(kategori)
+              : null;
+          return encodedKategori != null
+              ? '/talep-detay/$idFromPath?kategori=$encodedKategori'
+              : '/talep-detay/$idFromPath';
+        }
+      }
+    }
+
+    final normalizedBildirimTipi = _normalizeValue(bildirimTipi);
+    if (normalizedBildirimTipi == 'bilgiteknolojileri') {
+      return talepId != null
+          ? '/teknik_destek/detay/$talepId'
+          : '/bilgi_teknolojileri';
+    }
+    if (normalizedBildirimTipi == 'teknikdestek') {
+      return talepId != null
+          ? '/teknik_destek/detay/$talepId'
+          : '/teknik_destek';
+    }
+    if (normalizedBildirimTipi == 'sarfmalzemeistek') {
+      return '/sarf_malzeme_istek';
+    }
+
     if (talepId == null) return null;
-    
-    switch (bildirimTipi) {
-      case 'satin_alma':
+
+    final normalizedOnayTipi = _normalizeValue(onayTipi ?? '');
+    if (normalizedOnayTipi.contains('dokumantasyon') ||
+        normalizedOnayTipi.contains('dokuman')) {
+      return '/dokumantasyon/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('izin')) {
+      return '/izin/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('satinalma')) {
+      return '/satin_alma/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('egitim')) {
+      return '/egitim_istek/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('yiyecek') ||
+        normalizedOnayTipi.contains('icecek')) {
+      return '/yiyecek_icecek_istek/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('bilgiteknoloji') ||
+        normalizedOnayTipi.contains('teknikdestek') ||
+        normalizedOnayTipi.contains('teknik')) {
+      return '/teknik_destek/detay/$talepId';
+    }
+    if (normalizedOnayTipi.contains('arac')) {
+      return '/arac/detay/$talepId';
+    }
+
+    switch (normalizedBildirimTipi) {
+      case 'satinalma':
         return '/satin_alma/detay/$talepId';
-      case 'arac_istek':
+      case 'aracistek':
         return '/arac/detay/$talepId';
-      case 'izin_istek':
+      case 'izinistek':
         return '/izin/detay/$talepId';
-      case 'dokumantasyon_istek':
+      case 'dokumantasyonistek':
         return '/dokumantasyon/detay/$talepId';
-      case 'egitim_istek':
+      case 'egitimistek':
         return '/egitim_istek/detay/$talepId';
-      case 'yiyecek_icecek_istek':
+      case 'yiyecekicecekistek':
         return '/yiyecek_icecek_istek/detay/$talepId';
-      case 'bilgi_teknolojileri':
-        return '/bilgi_teknolojileri';
-      case 'teknik_destek':
-        return '/teknik_destek';
-      case 'sarf_malzeme_istek':
-        return '/sarf_malzeme_istek';
+      case 'bilgiteknolojileri':
+      case 'teknikdestek':
+        return '/teknik_destek/detay/$talepId';
       default:
+        final normalizedBaslik = _normalizeValue(baslik);
+        if (normalizedBaslik.contains('dokumantasyon')) {
+          return '/dokumantasyon/detay/$talepId';
+        }
+        if (normalizedBaslik.contains('izin')) {
+          return '/izin/detay/$talepId';
+        }
+        if (normalizedBaslik.contains('bilgiteknoloji') ||
+            normalizedBaslik.contains('teknikdestek') ||
+            normalizedBaslik.contains('teknik')) {
+          return '/teknik_destek/detay/$talepId';
+        }
         return null;
     }
   }
+
+  String _normalizeValue(String value) => value
+      .replaceAll('İ', 'I')
+      .replaceAll('Ğ', 'G')
+      .replaceAll('Ü', 'U')
+      .replaceAll('Ş', 'S')
+      .replaceAll('Ö', 'O')
+      .replaceAll('Ç', 'C')
+      .toLowerCase()
+      .replaceAll('ı', 'i')
+      .replaceAll('ğ', 'g')
+      .replaceAll('ü', 'u')
+      .replaceAll('ş', 's')
+      .replaceAll('ö', 'o')
+      .replaceAll('ç', 'c')
+      .replaceAll(RegExp(r'[^a-z0-9]'), '');
 }
 
 /// Bildirim listesi API response modeli
@@ -89,14 +224,29 @@ class BildirimListResponse {
   });
 
   factory BildirimListResponse.fromJson(Map<String, dynamic> json) {
+    final root = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
+
+    final items =
+        (root['items'] as List<dynamic>? ??
+                root['Items'] as List<dynamic>? ??
+                root['bildirimler'] as List<dynamic>? ??
+                const <dynamic>[])
+            .map((e) => BildirimModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+
     return BildirimListResponse(
-      bildirimler: (json['bildirimler'] as List<dynamic>?)
-              ?.map((e) => BildirimModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      toplamSayfa: json['toplamSayfa'] as int? ?? 0,
-      toplamKayit: json['toplamKayit'] as int? ?? 0,
-      okunmamisSayisi: json['okunmamisSayisi'] as int? ?? 0,
+      bildirimler: items,
+      toplamSayfa: (root['toplamSayfa'] as int?) ?? 1,
+      toplamKayit:
+          (root['totalCount'] as int?) ??
+          (root['TotalCount'] as int?) ??
+          (root['toplamKayit'] as int?) ??
+          items.length,
+      okunmamisSayisi:
+          (root['okunmamisSayisi'] as int?) ??
+          items.where((item) => !item.okundu).length,
     );
   }
 }

@@ -33,6 +33,7 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_det
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknoloji_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolojileri_istek_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/teknik_destek_turu_secim_screen.dart';
+import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_detay_screen.dart';
 import 'package:esas_v1/features/teknik_destek_istek/screens/teknik_destek_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/bildirim/screens/bildirim_screen.dart';
 import 'package:esas_v1/features/profil/screens/profil_screen.dart';
@@ -210,6 +211,13 @@ final appRouter = GoRouter(
           builder: (context, state) => const TeknikDestekTuruSecimScreen(),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/teknik_destek/detay/:id',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return TeknikDestekDetayScreen(talepId: id);
+      },
     ),
     GoRoute(
       path: '/yiyecek_icecek_istek',

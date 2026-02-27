@@ -13,6 +13,7 @@ import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart
 import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.dart';
 import 'package:esas_v1/common/widgets/common_appbar_action_button.dart';
 import 'package:esas_v1/core/services/notification_service.dart';
+import 'package:esas_v1/core/routing/router.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 /// Ana sayfa - Tab navigation ile Ana Sayfa, İsteklerim ve Gelen Kutusu
@@ -23,10 +24,12 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
   late final PageController _pageController;
   bool _isLogoutLoading = false;
+  VoidCallback? _routeInfoListener;
 
   // GlobalKey'ler filtre işlemlerine erişim için
   final GlobalKey<IsteklerimContentState> _isteklerimKey = GlobalKey();
@@ -35,19 +38,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _pageController = PageController(initialPage: _currentIndex);
+    _routeInfoListener = _handleRouteInfoChange;
+    appRouter.routeInformationProvider.addListener(_routeInfoListener!);
     // Keyboard'u otomatik olarak kapat
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).unfocus();
       // Uygulama kapalıyken tıklanan bildirim varsa, detay ekranına git
       NotificationService().consumePendingRoute();
+      _refreshUnreadNotificationBadge();
     });
   }
 
   @override
   void dispose() {
+    final routeInfoListener = _routeInfoListener;
+    if (routeInfoListener != null) {
+      appRouter.routeInformationProvider.removeListener(routeInfoListener);
+      _routeInfoListener = null;
+    }
+    WidgetsBinding.instance.removeObserver(this);
     _pageController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final currentPath = appRouter.routeInformationProvider.value.uri.path;
+    if (currentPath == '/') {
+      _refreshUnreadNotificationBadge();
+    }
+  }
+
+  void _handleRouteInfoChange() {
+    if (!mounted) return;
+    final currentPath = appRouter.routeInformationProvider.value.uri.path;
+    if (currentPath == '/') {
+      _refreshUnreadNotificationBadge();
+    }
+  }
+
+  void _refreshUnreadNotificationBadge() {
+    ref.invalidate(okunmamisBildirimSayisiProvider);
   }
 
   @override
@@ -211,45 +245,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )
               : null,
           actions: [
-            // Bildirim ikonu (bell) + badge
-            Consumer(
-              builder: (context, ref, child) {
-                final bildirimSayisi = ref.watch(
-                  okunmamisBildirimSayisiProvider,
-                );
-                final count = bildirimSayisi.when(
-                  data: (data) => data,
-                  error: (_, __) => 0,
-                  loading: () => 0,
-                );
-                return IconButton(
-                  icon: count > 0
-                      ? Badge(
-                          label: Text(
-                            count > 99 ? '99+' : count.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+            // Bildirim ikonu (bell) + badge — sadece Ana Sayfa'da görünür
+            if (_currentIndex == 0)
+              Consumer(
+                builder: (context, ref, child) {
+                  final bildirimSayisi = ref.watch(
+                    okunmamisBildirimSayisiProvider,
+                  );
+                  final count = bildirimSayisi.when(
+                    data: (data) => data,
+                    error: (_, __) => 0,
+                    loading: () => 0,
+                  );
+                  return IconButton(
+                    icon: count > 0
+                        ? Badge(
+                            label: Text(
+                              count > 99 ? '99+' : count.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          backgroundColor: Colors.red,
-                          child: const Icon(
+                            backgroundColor: Colors.red,
+                            child: const Icon(
+                              Icons.notifications_outlined,
+                              color: AppColors.textOnPrimary,
+                              size: 26,
+                            ),
+                          )
+                        : const Icon(
                             Icons.notifications_outlined,
                             color: AppColors.textOnPrimary,
                             size: 26,
                           ),
-                        )
-                      : const Icon(
-                          Icons.notifications_outlined,
-                          color: AppColors.textOnPrimary,
-                          size: 26,
-                        ),
-                  onPressed: () => context.push('/bildirimler'),
-                  tooltip: 'Bildirimler',
-                );
-              },
-            ),
+                    onPressed: () => context.push('/bildirimler'),
+                    tooltip: 'Bildirimler',
+                  );
+                },
+              ),
             if (_currentIndex != 0)
               CommonAppBarActionButton(
                 label: 'Filtrele',
@@ -270,8 +305,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ? Icons.filter_alt
                     : Icons.filter_alt_outlined,
               ),
-            // Çıkış butonu — her zaman görünür
-            if (_isLogoutLoading)
+            // Çıkış butonu — sadece Ana Sayfa'da görünür
+            if (_currentIndex == 0 && _isLogoutLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14),
                 child: Center(
@@ -285,7 +320,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
               )
-            else
+            else if (_currentIndex == 0)
               IconButton(
                 icon: const Icon(
                   Icons.logout_rounded,

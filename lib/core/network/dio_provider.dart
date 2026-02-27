@@ -80,6 +80,13 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
+        final currentToken = ref.read(tokenProvider);
+        if (currentToken.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $currentToken';
+        } else {
+          options.headers.remove('Authorization');
+        }
+
         final authHeader = options.headers['Authorization']?.toString() ?? '';
         final requestToken = authHeader.startsWith('Bearer ')
             ? authHeader.substring(7)

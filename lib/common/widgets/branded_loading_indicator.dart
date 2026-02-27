@@ -5,7 +5,7 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BrandedLoadingIndicator extends StatefulWidget {
-  static const String defaultLogoAssetPath = 'assets/images/logo_icon.png';
+  static const String defaultLogoAssetPath = 'assets/images/esas_logo_2.png';
 
   final double size;
   final double? strokeWidth;

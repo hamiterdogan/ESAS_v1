@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/bildirim/models/notification_model.dart';
 import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-/// Bildirimler ekranı - tüm kullanıcı bildirimlerini listeler
 class BildirimScreen extends ConsumerStatefulWidget {
   const BildirimScreen({super.key});
 
@@ -16,372 +15,100 @@ class BildirimScreen extends ConsumerStatefulWidget {
 }
 
 class _BildirimScreenState extends ConsumerState<BildirimScreen> {
+  bool _sadeceOkunmayanlar = false;
+  bool _tumunuOkunduIsaretliyor = false;
+  final Set<int> _expandedIds = <int>{};
   final ScrollController _scrollController = ScrollController();
+  late Future<List<BildirimModel>> _bildirimFuture;
+  double _lastScrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    _bildirimFuture = _fetchBildirimler();
+    _scrollController.addListener(_handleScrollChange);
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_handleScrollChange);
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(bildirimListProvider.notifier).loadMore();
+  void _handleScrollChange() {
+    if (_scrollController.hasClients) {
+      _lastScrollOffset = _scrollController.offset;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final bildirimState = ref.watch(bildirimListProvider);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Bildirimler',
-          style: TextStyle(color: AppColors.textOnPrimary),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: AppColors.primaryGradient),
-        ),
-        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          if (bildirimState.bildirimler.any((b) => !b.okundu))
-            IconButton(
-              icon: const Icon(Icons.done_all, color: AppColors.textOnPrimary),
-              tooltip: 'Tümünü okundu işaretle',
-              onPressed: () async {
-                await ref
-                    .read(bildirimListProvider.notifier)
-                    .tumunuOkunduIsaretle();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tüm bildirimler okundu olarak işaretlendi'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-            ),
-        ],
-      ),
-      body: bildirimState.isInitialLoading
-          ? const Center(child: CircularProgressIndicator())
-          : bildirimState.bildirimler.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    await ref.read(bildirimListProvider.notifier).refresh();
-                  },
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8, horizontal: 16),
-                    itemCount: bildirimState.bildirimler.length +
-                        (bildirimState.hasMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= bildirimState.bildirimler.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      return _buildBildirimCard(
-                          bildirimState.bildirimler[index]);
-                    },
-                  ),
-                ),
+  Future<List<BildirimModel>> _fetchBildirimler() async {
+    final repo = ref.read(notificationRepositoryProvider);
+    final result = await repo.bildirimListesiGetir(
+      sadeceOkunmayan: _sadeceOkunmayanlar,
+      take: 40,
     );
+
+    return switch (result) {
+      Success(:final data) =>
+        _sadeceOkunmayanlar
+            ? data.bildirimler.where((item) => !item.okundu).toList()
+            : data.bildirimler,
+      Failure(:final message) => throw Exception(message),
+      Loading() => throw Exception('Bildirimler yüklenemedi'),
+    };
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.notifications_none,
-            size: 80,
-            color: AppColors.textSecondary.withValues(alpha: 0.4),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Henüz bildiriminiz yok',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _yenile() async {
+    setState(() {
+      _bildirimFuture = _fetchBildirimler();
+    });
+    await _bildirimFuture;
   }
 
-  Widget _buildBildirimCard(BildirimModel bildirim) {
-    final timeAgo = _formatTimeAgo(bildirim.olusturmaTarihi);
-    final icon = _getIconForType(bildirim.bildirimTipi);
-    final iconColor = _getColorForType(bildirim.aksiyonTipi);
+  Future<void> _tumunuOkunduIsaretle() async {
+    if (_tumunuOkunduIsaretliyor) return;
 
-    return GestureDetector(
-      onTap: () => _onBildirimTap(bildirim),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: bildirim.okundu
-              ? Colors.white
-              : AppColors.primaryLight.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: bildirim.okundu
-                ? AppColors.borderLight
-                : AppColors.primaryLight.withValues(alpha: 0.3),
-            width: bildirim.okundu ? 1 : 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // İkon
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: iconColor, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  // İçerik
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                bildirim.baslik,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: bildirim.okundu
-                                      ? FontWeight.w500
-                                      : FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            // Okunmadı göstergesi
-                            if (!bildirim.okundu)
-                              Container(
-                                width: 8,
-                                height: 8,
-                                margin: const EdgeInsets.only(left: 6),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primaryDark,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          bildirim.mesaj,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            fontWeight: bildirim.okundu
-                                ? FontWeight.w400
-                                : FontWeight.w500,
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        // Zaman ve gönderen
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.access_time,
-                              size: 13,
-                              color: AppColors.textSecondary.withValues(alpha: 0.6),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              timeAgo,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary.withValues(alpha: 0.6),
-                              ),
-                            ),
-                            if (bildirim.gonderenAd != null) ...[
-                              const SizedBox(width: 12),
-                              Icon(
-                                Icons.person_outline,
-                                size: 13,
-                                color: AppColors.textSecondary.withValues(alpha: 0.6),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  bildirim.gonderenAd!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary.withValues(alpha: 0.6),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              // Aksiyon butonları (onay_bekliyor durumunda)
-              if (bildirim.isActionable) ...[
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _handleAksiyon(bildirim, 'reddet'),
-                        icon: const Icon(Icons.close, size: 18),
-                        label: const Text('Reddet'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.error,
-                          side: const BorderSide(color: AppColors.error),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _handleAksiyon(bildirim, 'onayla'),
-                        icon: const Icon(Icons.check, size: 18),
-                        label: const Text('Onayla'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.success,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Bildirime tıklanınca
-  void _onBildirimTap(BildirimModel bildirim) {
-    // Okundu olarak işaretle
-    if (!bildirim.okundu) {
-      ref.read(bildirimListProvider.notifier).bildirimOkunduIsaretle(bildirim.id);
-    }
-
-    // Deep link varsa git
-    final route = bildirim.deepLinkRoute;
-    if (route != null) {
-      context.push(route);
-    }
-  }
-
-  /// Onay/Red aksiyonu
-  Future<void> _handleAksiyon(BildirimModel bildirim, String aksiyon) async {
-    if (bildirim.onayKayitId == null || bildirim.onayTipi == null) return;
-
-    // Onay diyalogu göster
-    final confirmed = await _showConfirmationDialog(aksiyon);
-    if (confirmed != true) return;
+    setState(() {
+      _tumunuOkunduIsaretliyor = true;
+    });
 
     final repo = ref.read(notificationRepositoryProvider);
-    final result = await repo.bildirimAksiyon(
-      bildirimId: bildirim.id,
-      onayKayitId: bildirim.onayKayitId!,
-      onayTipi: bildirim.onayTipi!,
-      aksiyon: aksiyon,
-    );
+    final result = await repo.tumunuOkunduIsaretle();
 
     if (!mounted) return;
 
     switch (result) {
-      case Success(:final data):
+      case Success():
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data.mesaj ?? (aksiyon == 'onayla'
-                ? 'Talep onaylandı'
-                : 'Talep reddedildi')),
-            backgroundColor:
-                aksiyon == 'onayla' ? AppColors.success : AppColors.error,
-            duration: const Duration(seconds: 2),
-          ),
+          const SnackBar(content: Text('Tüm bildirimler okundu işaretlendi')),
         );
-        // Listeyi yenile
-        ref.read(bildirimListProvider.notifier).refresh();
+        ref.invalidate(okunmamisBildirimSayisiProvider);
+        setState(() {
+          _expandedIds.clear();
+          _bildirimFuture = _fetchBildirimler();
+        });
       case Failure(:final message):
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $message'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $message')));
       case Loading():
         break;
     }
+
+    if (mounted) {
+      setState(() {
+        _tumunuOkunduIsaretliyor = false;
+      });
+    }
   }
 
-  /// Onay/Red doğrulama dialogu
-  Future<bool?> _showConfirmationDialog(String aksiyon) async {
-    final isApproval = aksiyon == 'onayla';
-    return showModalBottomSheet<bool>(
+  Future<bool> _showTumunuOkunduConfirmation() async {
+    final result = await showModalBottomSheet<bool>(
       context: context,
+      isDismissible: false,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (ctx) {
         return Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 60),
           child: Container(
@@ -389,23 +116,21 @@ class _BildirimScreenState extends ConsumerState<BildirimScreen> {
               borderRadius: BorderRadius.circular(20),
               color: Colors.white,
             ),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  isApproval ? Icons.check_circle : Icons.cancel,
-                  color: isApproval ? AppColors.success : AppColors.error,
+                const Icon(
+                  Icons.done_all,
+                  color: AppColors.primaryDark,
                   size: 56,
                 ),
                 const SizedBox(height: 16),
-                Text(
-                  isApproval
-                      ? 'Bu talebi onaylamak istediğinize emin misiniz?'
-                      : 'Bu talebi reddetmek istediğinize emin misiniz?',
+                const Text(
+                  'Tüm bildirimler okundu olarak işaretlenecektir',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
+                  style: TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
                   ),
@@ -415,7 +140,7 @@ class _BildirimScreenState extends ConsumerState<BildirimScreen> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context, false),
+                        onPressed: () => Navigator.pop(ctx, false),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -440,18 +165,17 @@ class _BildirimScreenState extends ConsumerState<BildirimScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: () => Navigator.pop(ctx, true),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isApproval ? AppColors.success : AppColors.error,
+                          backgroundColor: AppColors.primaryDark,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Text(
-                          isApproval ? 'Onayla' : 'Reddet',
-                          style: const TextStyle(
+                        child: const Text(
+                          'Devam',
+                          style: TextStyle(
                             color: AppColors.textOnPrimary,
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
@@ -467,62 +191,290 @@ class _BildirimScreenState extends ConsumerState<BildirimScreen> {
         );
       },
     );
+
+    return result == true;
   }
 
-  /// Bildirim tipi ikonu
-  IconData _getIconForType(String bildirimTipi) {
-    switch (bildirimTipi) {
-      case 'satin_alma':
-        return Icons.shopping_cart;
-      case 'arac_istek':
-        return Icons.directions_car;
-      case 'izin_istek':
-        return Icons.calendar_today;
-      case 'dokumantasyon_istek':
-        return Icons.description;
-      case 'egitim_istek':
-        return Icons.school;
-      case 'yiyecek_icecek_istek':
-        return Icons.restaurant;
-      case 'bilgi_teknolojileri':
-        return Icons.computer;
-      case 'teknik_destek':
-        return Icons.build;
-      case 'sarf_malzeme_istek':
-        return Icons.inventory;
-      default:
-        return Icons.notifications;
+  Future<void> _tumunuOkunduIsaretleOnayli() async {
+    if (_tumunuOkunduIsaretliyor) return;
+    final confirmed = await _showTumunuOkunduConfirmation();
+    if (!confirmed || !mounted) return;
+    await _tumunuOkunduIsaretle();
+  }
+
+  void _lokaldeOkunduGuncelle(int bildirimId) {
+    setState(() {
+      _bildirimFuture = _bildirimFuture.then((items) {
+        final guncelListe = items.map((item) {
+          if (item.id != bildirimId) return item;
+          return BildirimModel(
+            id: item.id,
+            baslik: item.baslik,
+            mesaj: item.mesaj,
+            deepLink: item.deepLink,
+            bildirimTipi: item.bildirimTipi,
+            talepId: item.talepId,
+            onayTipi: item.onayTipi,
+            onayKayitId: item.onayKayitId,
+            aksiyonTipi: item.aksiyonTipi,
+            okundu: true,
+            olusturmaTarihi: item.olusturmaTarihi,
+            gonderenAd: item.gonderenAd,
+          );
+        }).toList();
+
+        if (_sadeceOkunmayanlar) {
+          return guncelListe.where((item) => !item.okundu).toList();
+        }
+        return guncelListe;
+      });
+    });
+  }
+
+  Future<void> _bildirimDetayinaGit(BildirimModel bildirim) async {
+    final previousOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : _lastScrollOffset;
+    final route = bildirim.deepLinkRoute;
+    if (route == null || route.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bu bildirim için detay sayfası bulunamadı'),
+        ),
+      );
+      return;
     }
-  }
 
-  /// Aksiyon tipi rengi
-  Color _getColorForType(String aksiyonTipi) {
-    switch (aksiyonTipi) {
-      case 'onay_bekliyor':
-        return AppColors.warning;
-      case 'gorev_atama':
-        return AppColors.primaryDark;
-      case 'bilgilendirme':
-      default:
-        return AppColors.info;
+    final repo = ref.read(notificationRepositoryProvider);
+    final result = await repo.okunduIsaretle(bildirimId: bildirim.id);
+
+    if (mounted) {
+      switch (result) {
+        case Success():
+          _lokaldeOkunduGuncelle(bildirim.id);
+          ref.invalidate(okunmamisBildirimSayisiProvider);
+        case Failure():
+          break;
+        case Loading():
+          break;
+      }
     }
-  }
 
-  /// Zaman biçimlendirme
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inMinutes < 1) {
-      return 'Şimdi';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} dk önce';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} saat önce';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} gün önce';
+    if (route.startsWith('/dokumantasyon/detay/')) {
+      await context.push(route, extra: bildirim.onayTipi);
     } else {
-      return DateFormat('dd.MM.yyyy HH:mm', 'tr').format(dateTime);
+      await context.push(route);
     }
+
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scrollController.hasClients) return;
+      final maxOffset = _scrollController.position.maxScrollExtent;
+      final targetOffset = previousOffset.clamp(0.0, maxOffset);
+      _scrollController.jumpTo(targetOffset);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
+      appBar: AppBar(
+        title: const Text(
+          'Bildirimler',
+          style: TextStyle(color: AppColors.textOnPrimary),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.primaryGradient),
+        ),
+        iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          onPressed: () => context.pop(),
+        ),
+        actions: [
+          IconButton(
+            onPressed: _tumunuOkunduIsaretliyor
+                ? null
+                : _tumunuOkunduIsaretleOnayli,
+            padding: const EdgeInsets.only(right: 16),
+            icon: _tumunuOkunduIsaretliyor
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.textOnPrimary,
+                      ),
+                    ),
+                  )
+                : const Icon(Icons.done_all, color: AppColors.textOnPrimary),
+          ),
+        ],
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 16, top: 8),
+            child: CustomSwitchWidget(
+              value: _sadeceOkunmayanlar,
+              onChanged: (value) {
+                setState(() {
+                  _sadeceOkunmayanlar = value;
+                  _expandedIds.clear();
+                  _bildirimFuture = _fetchBildirimler();
+                });
+              },
+              label: 'Sadece okunmayanları listele',
+              padding: EdgeInsets.zero,
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder<List<BildirimModel>>(
+              future: _bildirimFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Bildirimler alınamadı',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _yenile,
+                            child: const Text('Tekrar Dene'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final bildirimler = snapshot.data ?? <BildirimModel>[];
+
+                if (bildirimler.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Gösterilecek bildirim bulunamadı',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: _yenile,
+                  child: ListView.separated(
+                    key: const PageStorageKey<String>('bildirimler_listesi'),
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                    itemCount: bildirimler.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final bildirim = bildirimler[index];
+                      final isExpanded = _expandedIds.contains(bildirim.id);
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => _bildirimDetayinaGit(bildirim),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.textOnPrimary,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderLight),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        bildirim.baslik,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: bildirim.okundu ? 15 : 16,
+                                          fontWeight: bildirim.okundu
+                                              ? FontWeight.w400
+                                              : FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          if (isExpanded) {
+                                            _expandedIds.remove(bildirim.id);
+                                          } else {
+                                            _expandedIds.add(bildirim.id);
+                                          }
+                                        });
+                                      },
+                                      icon: Icon(
+                                        isExpanded
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  bildirim.mesaj,
+                                  maxLines: isExpanded ? null : 1,
+                                  overflow: isExpanded
+                                      ? TextOverflow.visible
+                                      : TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: bildirim.okundu
+                                        ? FontWeight.w400
+                                        : FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

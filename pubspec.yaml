@@ -32,6 +32,8 @@ dependencies:
   shared_preferences: ^2.3.4
   flutter_secure_storage: ^9.2.4
   uuid: ^4.5.1
+  flutter_native_splash: ^2.4.7
+
   # state_notifier removed - using Riverpod 3 Notifier pattern
 
 dev_dependencies:
@@ -41,11 +43,13 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
 
 flutter_launcher_icons:
-  image_path: "assets/images/logo_icon.png"
-  image_path_ios: "assets/images/logo_icon.png"
+  image_path: assets/images/splash_screen.png
+  image_path_ios: assets/images/splash_screen.png
   android: true
   ios: true
   remove_alpha_ios: true
+  android_12:
+    image: assets/images/splash_screen.png
 
 flutter:
   uses-material-design: true

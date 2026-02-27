@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,70 +5,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/routing/router.dart';
 import 'core/network/dio_provider.dart';
 import 'core/theme/app_theme.dart';
-import 'core/constants/app_colors.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/auth_storage_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/utils/jwt_decoder.dart';
 import 'features/bildirim/providers/notification_providers.dart';
-import 'common/widgets/branded_loading_indicator.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: AppRoot()));
-}
-
-class AppRoot extends StatefulWidget {
-  const AppRoot({super.key});
-
-  @override
-  State<AppRoot> createState() => _AppRootState();
-}
-
-class _AppRootState extends State<AppRoot> {
-  // Firebase ve diğer kritik başlatma işlemlerini burada yapıyoruz
-  late final Future<void> _initialization;
-
-  @override
-  void initState() {
-    super.initState();
-    _initialization = _init();
-  }
-
-  Future<void> _init() async {
-    await Firebase.initializeApp();
-    // Token loading will be handled in MyApp initState
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _initialization,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return ProviderScope(child: const MyApp());
-        }
-
-        // Açılış (Splash) ekranı
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          home: Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  Image.asset('assets/images/logo_icon.png', width: 120),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -91,16 +36,19 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _loadTokenAndInit() async {
+    // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
+    await Firebase.initializeApp();
+
     final storage = AuthStorageService();
 
-    // 1. Eski SharedPreferences token'ı SecureStorage'a taşı (tek seferlik migrasyon)
+    // 2. Eski SharedPreferences token'ı SecureStorage'a taşı (tek seferlik migrasyon)
     await storage.migrateIfNeeded();
 
-    // 2. Kaydedilmiş token'ı oku
+    // 3. Kaydedilmiş token'ı oku
     final savedToken = await storage.getToken();
 
     if (savedToken != null && savedToken.isNotEmpty) {
-      // 3. JWT expiry kontrolü: süresi dolmuşsa temizle
+      // JWT expiry kontrolü: süresi dolmuşsa temizle
       if (JwtDecoder.isExpired(savedToken)) {
         await storage.clear();
         ref.read(tokenProvider.notifier).setToken('');
@@ -119,12 +67,13 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     // RegisterToken çağrısı login akışında zorunlu olarak yapılır.
     // App start'ta otomatik register yapmayarak eski JWT ile yarış durumlarını engelleriz.
-    
+
     // İşlemler tamamlandı, UI'yi aç
     if (mounted) {
       setState(() {
         _isReady = true;
       });
+      FlutterNativeSplash.remove();
     }
   }
 
@@ -149,7 +98,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       }
     });
 
-    // Token okuması ve yönlendirme tamamlanana kadar Splash göster
+    // Token okuması ve yönlendirme tamamlanana kadar splash ekranı göster
     if (!_isReady) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -157,7 +106,11 @@ class _MyAppState extends ConsumerState<MyApp> {
         home: Scaffold(
           backgroundColor: Colors.white,
           body: Center(
-            child: Image.asset('assets/images/logo_icon.png', width: 120),
+            child: Image.asset(
+              'assets/images/eek_esas_logo.png',
+              width: 400,
+              fit: BoxFit.contain,
+            ),
           ),
         ),
       );
