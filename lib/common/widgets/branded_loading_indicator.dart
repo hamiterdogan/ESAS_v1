@@ -5,7 +5,8 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class BrandedLoadingIndicator extends StatefulWidget {
-  static const String defaultLogoAssetPath = 'assets/images/esas_logo_2.png';
+  static const String defaultLogoAssetPath =
+      'assets/images/esas_logo_loading.png';
 
   final double size;
   final double? strokeWidth;
@@ -111,10 +112,11 @@ class _BrandedLoadingIndicatorState extends State<BrandedLoadingIndicator>
     // makes it nice and big. The ring is on the outside.
     // However, if the ring has significant thickness, we might need padding.
     // The previous implementation used size * 0.8.
-    
+
     // Dynamic stroke width calculation: 8% of size if not provided
-    final double effectiveStrokeWidth = widget.strokeWidth ?? (widget.size * 0.08);
-    
+    final double effectiveStrokeWidth =
+        widget.strokeWidth ?? (widget.size * 0.08);
+
     final logoSize = ((widget.size * 0.55).clamp(16, widget.size)).toDouble();
 
     final indicator = SizedBox(
@@ -208,10 +210,7 @@ class _SegmentedRingPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round;
 
       segmentPaint.shader = SweepGradient(
-        colors: [
-          startColor.withOpacity(1.0),
-          endColor.withOpacity(0.2),
-        ],
+        colors: [startColor.withOpacity(1.0), endColor.withOpacity(0.2)],
         tileMode: TileMode.clamp,
       ).createShader(rect);
 

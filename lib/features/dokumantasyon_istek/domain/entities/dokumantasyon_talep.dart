@@ -44,7 +44,7 @@ class OkulSatirEntity {
   final String okulKodu;
   final String sinif;
   final String seviye;
-  final int numara;
+  final String numara;
   final String adi;
   final String soyadi;
 
@@ -52,7 +52,7 @@ class OkulSatirEntity {
     required this.okulKodu,
     required this.sinif,
     required this.seviye,
-    this.numara = 0,
+    this.numara = '',
     this.adi = '',
     this.soyadi = '',
   });

@@ -374,7 +374,8 @@ class _EgitimIstekDetayScreenState
           'Girilmeyen Toplam Ders Saati',
           '${detay.girilmeyenToplamDersSaati}',
         ),
-      _buildInfoRow('Eğitimin Adı', detay.egitiminAdi),
+      if (detay.egitiminAdi != '0')
+        _buildInfoRow('Eğitimin Adı', detay.egitiminAdi),
       if (detay.egitiminAdiDiger.isNotEmpty)
         _buildInfoRow('Eğitimin Adı (Diğer)', detay.egitiminAdiDiger),
       _buildInfoRow('Eğitim Türü', detay.egitimTuru),

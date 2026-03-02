@@ -229,7 +229,6 @@ class _YiyecekIcecekDetayScreenState
 
     items.add(MapEntry('Dönem', detay.donem));
     items.add(MapEntry('İkram Yeri', detay.ikramYeri));
-    items.add(MapEntry('Alınan Yer', detay.alinanYer));
     items.add(MapEntry('Açıklama', detay.aciklama));
 
     for (int i = 0; i < items.length; i++) {

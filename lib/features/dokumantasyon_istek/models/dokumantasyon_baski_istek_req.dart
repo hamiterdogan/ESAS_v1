@@ -72,7 +72,7 @@ class OkulSatirItem {
   final String sinif;
   final String seviye;
   // Sample shows numara, adi, soyadi as well
-  final int numara;
+  final String numara;
   final String adi;
   final String soyadi;
 
@@ -80,7 +80,7 @@ class OkulSatirItem {
     required this.okulKodu,
     required this.sinif,
     required this.seviye,
-    this.numara = 0,
+    this.numara = '',
     this.adi = '',
     this.soyadi = '',
   });

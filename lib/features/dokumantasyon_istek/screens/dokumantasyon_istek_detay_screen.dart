@@ -62,6 +62,109 @@ class _DokumantasyonIstekDetayScreenState
   bool _isLoadingBaskiBoyutlari = false;
   bool _isUpdating = false;
 
+  int? _parsePositiveInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) {
+      return value > 0 ? value : null;
+    }
+    if (value is double) {
+      final intVal = value.toInt();
+      return intVal > 0 ? intVal : null;
+    }
+
+    final raw = value.toString().trim();
+    final direct = int.tryParse(raw);
+    if (direct != null && direct > 0) return direct;
+
+    final digitMatch = RegExp(r'\d+').firstMatch(raw);
+    if (digitMatch != null) {
+      final extracted = int.tryParse(digitMatch.group(0)!);
+      if (extracted != null && extracted > 0) return extracted;
+    }
+
+    final normalized = raw.replaceAll(',', '.');
+    final asDouble = double.tryParse(normalized);
+    if (asDouble != null) {
+      final intVal = asDouble.toInt();
+      if (intVal > 0) return intVal;
+    }
+
+    return null;
+  }
+
+  int? _resolveStudentCount(
+    DokumantasyonOkulSatir okulSatir, {
+    bool allowNumaraFallback = true,
+  }) {
+    final fromOgrenciSayisi = _parsePositiveInt(okulSatir.ogrenciSayisi);
+    if (fromOgrenciSayisi != null) return fromOgrenciSayisi;
+    if (!allowNumaraFallback) return null;
+    return _parsePositiveInt(okulSatir.numara);
+  }
+
+  bool _hasPersonInfo(DokumantasyonOkulSatir okulSatir) {
+    return (okulSatir.adi ?? '').trim().isNotEmpty ||
+        (okulSatir.soyadi ?? '').trim().isNotEmpty;
+  }
+
+  String _classKey(DokumantasyonOkulSatir okulSatir) {
+    final okul = (okulSatir.okulKodu ?? '-').trim();
+    final sinif = (okulSatir.sinif ?? '-').trim();
+    return '$okul|$sinif';
+  }
+
+  String _classLabel(DokumantasyonOkulSatir okulSatir) {
+    final okul = (okulSatir.okulKodu ?? '').trim().isNotEmpty
+        ? okulSatir.okulKodu!.trim()
+        : '-';
+    final sinif = (okulSatir.sinif ?? '').trim().isNotEmpty
+        ? okulSatir.sinif!.trim()
+        : '-';
+    return '$okul - $sinif';
+  }
+
+  String _buildSelectedClassText(List<DokumantasyonOkulSatir> okulSatirlari) {
+    final classLabels = <String, String>{};
+    final classCounts = <String, int>{};
+    var hasAnyExplicitCount = false;
+    var hasAnyPersonRow = false;
+
+    for (final satir in okulSatirlari) {
+      final key = _classKey(satir);
+      classLabels[key] = _classLabel(satir);
+
+      final hasPerson = _hasPersonInfo(satir);
+      if (hasPerson) hasAnyPersonRow = true;
+
+      final explicitCount = _resolveStudentCount(
+        satir,
+        allowNumaraFallback: !hasPerson,
+      );
+      if (explicitCount != null) {
+        classCounts[key] = explicitCount;
+        hasAnyExplicitCount = true;
+      }
+    }
+
+    if (!hasAnyExplicitCount && hasAnyPersonRow) {
+      for (final satir in okulSatirlari) {
+        if (!_hasPersonInfo(satir)) continue;
+        final key = _classKey(satir);
+        classCounts[key] = (classCounts[key] ?? 0) + 1;
+      }
+    }
+
+    return classLabels.entries
+        .map((entry) {
+          final count = classCounts[entry.key];
+          final countLabel = (count != null && count > 0)
+              ? ' ($count öğrenci)'
+              : '';
+          return '• ${entry.value}$countLabel';
+        })
+        .join('\n');
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -1034,9 +1137,7 @@ class _DokumantasyonIstekDetayScreenState
       }
 
       if (detay.okullarSatir.isNotEmpty) {
-        final siniflar = detay.okullarSatir
-            .map((o) => '• ${o.okulKodu ?? '-'} - ${o.sinif ?? '-'}')
-            .join('\n');
+        final siniflar = _buildSelectedClassText(detay.okullarSatir);
         rows.add(
           _buildInfoRow(
             'Seçilen Sınıflar',
@@ -1223,19 +1324,7 @@ class _DokumantasyonIstekDetayScreenState
 
     // 15. Seçilen Sınıflar
     if (detay.okullarSatir.isNotEmpty) {
-      final siniflar = detay.okullarSatir
-          .map((o) {
-            final sinifLabel = (o.sinif ?? '').isNotEmpty ? o.sinif : '-';
-            final okulLabel = (o.okulKodu ?? '').isNotEmpty ? o.okulKodu : '-';
-            final seviye = (o.seviye ?? '').isNotEmpty ? ' (${o.seviye})' : '';
-            final numara = (o.numara ?? '').isNotEmpty ? ' • ${o.numara}' : '';
-            final isim =
-                ((o.adi ?? '').isNotEmpty || (o.soyadi ?? '').isNotEmpty)
-                ? ' • ${(o.adi ?? '').trim()} ${(o.soyadi ?? '').trim()}'
-                : '';
-            return '• $okulLabel - $sinifLabel$seviye$numara$isim';
-          })
-          .join('\n');
+      final siniflar = _buildSelectedClassText(detay.okullarSatir);
       rows.add(
         _buildInfoRow(
           'Seçilen Sınıflar',

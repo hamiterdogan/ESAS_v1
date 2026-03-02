@@ -854,7 +854,12 @@ class _DokumantasyonBaskiIstekScreenState
         seviye = e.sinif;
       }
 
-      return OkulSatirItem(okulKodu: e.okul, sinif: e.sinif, seviye: seviye);
+      return OkulSatirItem(
+        okulKodu: e.okul,
+        sinif: e.sinif,
+        seviye: seviye,
+        numara: e.ogrenciSayisi.toString(),
+      );
     }).toList();
 
     // Prepare Request Object

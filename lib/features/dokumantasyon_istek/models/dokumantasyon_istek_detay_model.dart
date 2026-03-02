@@ -128,6 +128,7 @@ class DokumantasyonOkulSatir {
   final String? sinif;
   final String? seviye;
   final String? numara;
+  final int? ogrenciSayisi;
   final String? adi;
   final String? soyadi;
 
@@ -136,16 +137,25 @@ class DokumantasyonOkulSatir {
     required this.sinif,
     required this.seviye,
     required this.numara,
+    this.ogrenciSayisi,
     required this.adi,
     required this.soyadi,
   });
 
   factory DokumantasyonOkulSatir.fromJson(Map<String, dynamic> json) {
+    int? parseInt(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      return int.tryParse(v.toString());
+    }
+
     return DokumantasyonOkulSatir(
       okulKodu: json['okulKodu']?.toString(),
       sinif: json['sinif']?.toString(),
       seviye: json['seviye']?.toString(),
       numara: json['numara']?.toString(),
+      ogrenciSayisi: parseInt(json['ogrenciSayisi']),
       adi: json['adi']?.toString(),
       soyadi: json['soyadi']?.toString(),
     );
