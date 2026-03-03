@@ -806,9 +806,9 @@ class _AracIstekYukEkleScreenState
             context: context,
             message: 'Araç isteğiniz gönderilmiştir.',
             onConfirm: () async {
+              if (!context.mounted) return;
               ref.invalidate(aracDevamEdenTaleplerProvider);
               ref.invalidate(aracTamamlananTaleplerProvider);
-              if (!context.mounted) return;
               context.go('/arac_istek');
             },
           );

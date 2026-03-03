@@ -78,10 +78,14 @@ class NotificationService {
     await _createNotificationChannel();
 
     // Foreground mesaj dinle
-    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageSub = FirebaseMessaging.onMessage.listen(
+      _handleForegroundMessage,
+    );
 
     // Bildirime tıklama (app background'dayken)
-    _onMessageOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+    _onMessageOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleMessageOpenedApp,
+    );
 
     // App tamamen kapalıyken bildirime tıklama
     // → route'u pending olarak sakla, HomeScreen mount olduktan sonra navigate et

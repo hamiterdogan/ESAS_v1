@@ -1000,9 +1000,9 @@ class _DokumantasyonBaskiIstekScreenState
             context: context,
             message: 'Dokümantasyon baskı isteğiniz gönderilmiştir.',
             onConfirm: () async {
+              if (!context.mounted) return;
               ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
               ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-              if (!context.mounted) return;
               context.go('/dokumantasyon_istek');
             },
           );

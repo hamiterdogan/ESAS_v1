@@ -12,9 +12,14 @@ import 'core/utils/jwt_decoder.dart';
 import 'features/bildirim/providers/notification_providers.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-void main() {
+void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  
+  // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
+  // NotificationService build içinde hemen çağırıldığı için main'de await edilmeli.
+  await Firebase.initializeApp();
+  
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -37,9 +42,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   }
 
   Future<void> _loadTokenAndInit() async {
-    // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
-    await Firebase.initializeApp();
-
     final storage = AuthStorageService();
 
     // 2. Eski SharedPreferences token'ı SecureStorage'a taşı (tek seferlik migrasyon)

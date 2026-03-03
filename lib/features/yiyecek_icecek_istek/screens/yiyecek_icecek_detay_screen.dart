@@ -47,7 +47,9 @@ class _YiyecekIcecekDetayScreenState
   void initState() {
     super.initState();
     _talepYonetimRepository = ref.read(talepYonetimRepositoryProvider);
-    _devamEdenGelenKutusuNotifier = ref.read(devamEdenGelenKutusuProvider.notifier);
+    _devamEdenGelenKutusuNotifier = ref.read(
+      devamEdenGelenKutusuProvider.notifier,
+    );
   }
 
   @override
@@ -128,7 +130,10 @@ class _YiyecekIcecekDetayScreenState
         onRefresh: () async {
           ref.invalidate(yiyecekIstekDetayParalelProvider(widget.talepId));
           ref.invalidate(
-            onayDurumuProvider((talepId: widget.talepId, onayTipi: 'Yiyecek İçecek İstek')),
+            onayDurumuProvider((
+              talepId: widget.talepId,
+              onayTipi: 'Yiyecek İçecek İstek',
+            )),
           );
         },
         child: ListView(

@@ -22,36 +22,36 @@ final createSatinAlmaTalepUseCaseProvider =
     });
 
 // Providers for Lists
-final binalarProvider = FutureProvider<List<dynamic>>(
+final binalarProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async => (await ref.watch(satinAlmaRepositoryProvider).getBinalar())
       .when(success: (d) => d, failure: (e) => throw e),
 );
-final anaKategorilerProvider = FutureProvider<List<dynamic>>(
+final anaKategorilerProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
       (await ref.watch(satinAlmaRepositoryProvider).getAnaKategoriler()).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),
 );
-final altKategorilerProvider = FutureProvider.family<List<dynamic>, int>(
+final altKategorilerProvider = FutureProvider.autoDispose.family<List<dynamic>, int>(
   (ref, id) async =>
       (await ref.watch(satinAlmaRepositoryProvider).getAltKategoriler(id)).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),
 );
-final birimlerProvider = FutureProvider<List<dynamic>>(
+final birimlerProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async => (await ref.watch(satinAlmaRepositoryProvider).getBirimler())
       .when(success: (d) => d, failure: (e) => throw e),
 );
-final paraBirimleriProvider = FutureProvider<List<dynamic>>(
+final paraBirimleriProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
       (await ref.watch(satinAlmaRepositoryProvider).getParaBirimleri()).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),
 );
-final odemeSekilleriProvider = FutureProvider<List<dynamic>>(
+final odemeSekilleriProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
       (await ref.watch(satinAlmaRepositoryProvider).getOdemeSekilleri()).when(
         success: (d) => d,

@@ -676,9 +676,9 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                   context: context,
                   message: 'Vefat izni isteğiniz gönderilmiştir.',
                   onConfirm: () async {
+                    if (!context.mounted) return;
                     ref.invalidate(devamEdenIsteklerimProvider);
                     ref.invalidate(tamamlananIsteklerimProvider);
-                    if (!context.mounted) return;
                     final navigator = Navigator.of(context);
                     var poppedRouteCount = 0;
                     navigator.popUntil((route) {

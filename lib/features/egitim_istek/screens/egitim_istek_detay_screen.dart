@@ -59,7 +59,9 @@ class _EgitimIstekDetayScreenState
     super.initState();
     _kurumUcretController = TextEditingController();
     _talepYonetimRepository = ref.read(talepYonetimRepositoryProvider);
-    _devamEdenGelenKutusuNotifier = ref.read(devamEdenGelenKutusuProvider.notifier);
+    _devamEdenGelenKutusuNotifier = ref.read(
+      devamEdenGelenKutusuProvider.notifier,
+    );
   }
 
   @override

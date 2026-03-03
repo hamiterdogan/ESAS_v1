@@ -191,7 +191,7 @@ final talepCacheProvider =
     });
 
 // Yeni endpoint: IzinTaleplerimiGetir (parametresiz)
-final izinTalepleriProvider = FutureProvider<IzinTalepleriResponse>((
+final izinTalepleriProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
   ref,
 ) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
@@ -205,7 +205,7 @@ final izinTalepleriProvider = FutureProvider<IzinTalepleriResponse>((
 });
 
 // Onay Bekliyor Talepler (tip: 0)
-final onayBekleyenTaleplerProvider = FutureProvider<IzinTalepleriResponse>((
+final onayBekleyenTaleplerProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
   ref,
 ) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
@@ -219,7 +219,7 @@ final onayBekleyenTaleplerProvider = FutureProvider<IzinTalepleriResponse>((
 });
 
 // Onaylanmış Talepler (tip: 1)
-final onaylananTaleplerProvider = FutureProvider<IzinTalepleriResponse>((
+final onaylananTaleplerProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
   ref,
 ) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
@@ -369,7 +369,7 @@ final gorevlerProvider = FutureProvider.autoDispose<List<Gorev>>((ref) async {
 });
 
 // Görev Yeri listesi provider - GorevYeriDoldur endpoint'i
-final gorevYerleriProvider = FutureProvider<List<GorevYeri>>((ref) async {
+final gorevYerleriProvider = FutureProvider.autoDispose<List<GorevYeri>>((ref) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
   final result = await repo.gorevYerleriniGetir();
 

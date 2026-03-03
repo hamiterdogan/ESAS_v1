@@ -58,14 +58,14 @@ final ikramTurleriProvider = FutureProvider.autoDispose<List<String>>((
 });
 
 final yiyecekIstekDevamEdenTaleplerProvider =
-    FutureProvider<List<YiyecekIstekTalep>>((ref) async {
+    FutureProvider.autoDispose<List<YiyecekIstekTalep>>((ref) async {
       final repository = ref.watch(yiyecekIcecekRepositoryProvider);
       final res = await repository.getYiyecekIstekTaleplerim(tip: 0);
       return res.talepler;
     });
 
 final yiyecekIstekTamamlananTaleplerProvider =
-    FutureProvider<List<YiyecekIstekTalep>>((ref) async {
+    FutureProvider.autoDispose<List<YiyecekIstekTalep>>((ref) async {
       final repository = ref.watch(yiyecekIcecekRepositoryProvider);
       final res = await repository.getYiyecekIstekTaleplerim(tip: 1);
       return res.talepler;

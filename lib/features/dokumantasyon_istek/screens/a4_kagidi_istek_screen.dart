@@ -130,9 +130,9 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
             context: context,
             message: 'A4 kağıdı isteğiniz gönderilmiştir.',
             onConfirm: () async {
+              if (!context.mounted) return;
               ref.invalidate(dokumantasyonDevamEdenTaleplerProvider);
               ref.invalidate(dokumantasyonTamamlananTaleplerProvider);
-              if (!context.mounted) return;
               context.go('/dokumantasyon_istek');
             },
           );

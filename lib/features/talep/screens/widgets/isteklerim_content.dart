@@ -1166,7 +1166,8 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     }
 
     if (state.errorMessage != null && state.talepler.isEmpty) {
-      if (kDebugMode) print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING ERROR STATE');
+      if (kDebugMode)
+        print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING ERROR STATE');
       return RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
@@ -1235,7 +1236,8 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     }
 
     if (state.isInitialLoading) {
-      if (kDebugMode) print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
+      if (kDebugMode)
+        print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
       return const ListShimmer(itemCount: 5);
     }
 

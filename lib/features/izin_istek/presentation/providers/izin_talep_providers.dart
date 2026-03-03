@@ -20,7 +20,7 @@ final createIzinTalepUseCaseProvider = Provider<CreateIzinTalepUseCase>((ref) {
 });
 
 // Providers for Lists
-final izinSebepleriProvider = FutureProvider<List<dynamic>>((ref) async {
+final izinSebepleriProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final repository = ref.watch(izinIstekRepositoryProvider);
   final result = await repository.getIzinSebepleri();
   return result.when(

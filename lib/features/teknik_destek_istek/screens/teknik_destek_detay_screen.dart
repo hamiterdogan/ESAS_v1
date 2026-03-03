@@ -53,7 +53,9 @@ class _TeknikDestekDetayScreenState
     super.initState();
     _btRepository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
     _emailService = ref.read(emailServiceProvider);
-    _devamEdenGelenKutusuNotifier = ref.read(devamEdenGelenKutusuProvider.notifier);
+    _devamEdenGelenKutusuNotifier = ref.read(
+      devamEdenGelenKutusuProvider.notifier,
+    );
   }
 
   Future<void> _pickCamera() async {

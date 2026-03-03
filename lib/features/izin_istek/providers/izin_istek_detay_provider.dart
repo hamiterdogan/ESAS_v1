@@ -12,8 +12,8 @@ final izinIstekDetayRepositoryProvider = Provider<TalepYonetimRepository>((
   final dio = ref.watch(dioProvider);
   return TalepYonetimRepositoryImpl(dio: dio);
 });
-final izinIstekDetayProvider =
-    FutureProvider.autoDispose.family<IzinIstekDetayResponse, int>((ref, id) async {
+final izinIstekDetayProvider = FutureProvider.autoDispose
+    .family<IzinIstekDetayResponse, int>((ref, id) async {
       final repo = ref.watch(izinIstekDetayRepositoryProvider);
       final result = await repo.izinIstekDetayiGetir(id: id);
 
@@ -27,11 +27,8 @@ final izinIstekDetayProvider =
 // Onay durumu getir (onayTipi dinamik)
 typedef OnayDurumuArgs = ({int talepId, String onayTipi});
 
-final onayDurumuProvider =
-    FutureProvider.autoDispose.family<OnayDurumuResponse, OnayDurumuArgs>((
-      ref,
-      args,
-    ) async {
+final onayDurumuProvider = FutureProvider.autoDispose
+    .family<OnayDurumuResponse, OnayDurumuArgs>((ref, args) async {
       final repo = ref.watch(izinIstekDetayRepositoryProvider);
       final result = await repo.onayDurumuGetir(
         talepId: args.talepId,
@@ -46,18 +43,18 @@ final onayDurumuProvider =
     });
 
 // Personel bilgisi getir
-final personelBilgiProvider = FutureProvider.autoDispose<PersonelBilgiResponse>((
-  ref,
-) async {
-  final dio = ref.watch(dioProvider);
-  final personelId = ref.watch(currentPersonelIdProvider);
+final personelBilgiProvider = FutureProvider.autoDispose<PersonelBilgiResponse>(
+  (ref) async {
+    final dio = ref.watch(dioProvider);
+    final personelId = ref.watch(currentPersonelIdProvider);
 
-  try {
-    final response = await dio.get(
-      '/Personel/PersonelBilgiGetir?personelId=$personelId',
-    );
-    return PersonelBilgiResponse.fromJson(response.data);
-  } catch (e) {
-    throw Exception('Personel bilgisi alınamadı: $e');
-  }
-});
+    try {
+      final response = await dio.get(
+        '/Personel/PersonelBilgiGetir?personelId=$personelId',
+      );
+      return PersonelBilgiResponse.fromJson(response.data);
+    } catch (e) {
+      throw Exception('Personel bilgisi alınamadı: $e');
+    }
+  },
+);

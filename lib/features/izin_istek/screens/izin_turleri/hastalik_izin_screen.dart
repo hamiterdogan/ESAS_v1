@@ -842,9 +842,9 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
                   context: context,
                   message: 'Hastalık izni isteğiniz gönderilmiştir.',
                   onConfirm: () async {
+                    if (!context.mounted) return;
                     ref.invalidate(devamEdenIsteklerimProvider);
                     ref.invalidate(tamamlananIsteklerimProvider);
-                    if (!context.mounted) return;
                     final navigator = Navigator.of(context);
                     var poppedRouteCount = 0;
                     navigator.popUntil((route) {

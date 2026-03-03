@@ -2239,9 +2239,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
               context: context,
               message: 'Satın alma isteğiniz gönderilmiştir.',
               onConfirm: () async {
+                if (!context.mounted) return;
                 ref.invalidate(satinAlmaDevamEdenTaleplerProvider);
                 ref.invalidate(satinAlmaTamamlananTaleplerProvider);
-                if (!context.mounted) return;
                 context.go('/satin_alma');
               },
             );

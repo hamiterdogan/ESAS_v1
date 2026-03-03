@@ -373,6 +373,7 @@ class _BilgiTeknolojileriIstekScreenState
                 : '${widget.baslik.replaceAll(' İstek', '')} isteğiniz gönderilmiştir.',
             onConfirm: () async {
               if (widget.destekTuru == 'bilgiTek') {
+                if (!context.mounted) return;
                 // Devam eden ve tamamlanan provider'ları invalidate et
                 ref.invalidate(bilgiTeknolojiDevamEdenTaleplerProvider);
                 ref.invalidate(bilgiTeknolojiTamamlananTaleplerProvider);

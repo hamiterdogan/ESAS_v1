@@ -95,7 +95,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   void initState() {
     super.initState();
     _talepYonetimRepository = ref.read(talepYonetimRepositoryProvider);
-    _devamEdenGelenKutusuNotifier = ref.read(devamEdenGelenKutusuProvider.notifier);
+    _devamEdenGelenKutusuNotifier = ref.read(
+      devamEdenGelenKutusuProvider.notifier,
+    );
     // Ekran açıldığında güncel onay durumunu getir
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.invalidate(onayDurumuProvider);
@@ -1539,6 +1541,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                       context,
                       'Görev ataması başarıyla yapıldı.',
                       onOk: () {
+                        if (!context.mounted) return;
                         ref.invalidate(
                           onayDurumuProvider((
                             talepId: widget.talepId,

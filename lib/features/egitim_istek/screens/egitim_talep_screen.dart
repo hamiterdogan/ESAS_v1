@@ -3570,9 +3570,9 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
           context: context,
           message: 'Eğitim isteğiniz gönderilmiştir.',
           onConfirm: () async {
+            if (!context.mounted) return;
             ref.invalidate(egitimDevamEdenTaleplerProvider);
             ref.invalidate(egitimTamamlananTaleplerProvider);
-            if (!context.mounted) return;
             context.go('/egitim_istek');
           },
         );

@@ -2039,9 +2039,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         context: context,
         message: 'İzin isteğiniz gönderilmiştir.',
         onConfirm: () async {
+          if (!context.mounted) return;
           ref.invalidate(devamEdenIsteklerimProvider);
           ref.invalidate(tamamlananIsteklerimProvider);
-          if (!context.mounted) return;
           context.go('/izin_istek');
         },
       );
