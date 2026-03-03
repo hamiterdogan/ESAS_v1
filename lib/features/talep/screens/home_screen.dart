@@ -82,6 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   void _refreshUnreadNotificationBadge() {
     ref.invalidate(okunmamisBildirimSayisiProvider);
+    ref.invalidate(okunmayanTalepSayisiProvider);
   }
 
   @override

@@ -133,7 +133,8 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
 
       final response = await dio.post(
         '/IzinIstek/IzinTaleplerimiGetir',
-        data: data, // Dio handles Map to JSON conversion automatically usually, but let's check if we need stringify
+        data:
+            data, // Dio handles Map to JSON conversion automatically usually, but let's check if we need stringify
         options: Options(contentType: 'application/json'),
       );
 
@@ -331,12 +332,10 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
   @override
   Future<Result<OkunmayanTalepResponse>> okunmayanTalepSayisiGetir() async {
     try {
-      final response = await dio.get(
-        '/TalepYonetimi/OkunmayanTalepSayisi',
-      );
+      final response = await dio.get('/TalepYonetimi/OkunmayanTalepSayisi');
 
       if (response.statusCode == 200) {
-        final data = OkunmayanTalepResponse.fromJson(response.data);
+        final data = OkunmayanTalepResponse.fromDynamic(response.data);
         return Success(data);
       }
 
@@ -356,10 +355,7 @@ class TalepYonetimRepositoryImpl implements TalepYonetimRepository {
     try {
       final response = await dio.post(
         '/TalepYonetimi/OkunduIsaretle',
-        data: {
-          'onayKayitId': onayKayitId,
-          'onayTipi': onayTipi,
-        },
+        data: {'onayKayitId': onayKayitId, 'onayTipi': onayTipi},
       );
 
       if (response.statusCode == 200) {

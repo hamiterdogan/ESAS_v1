@@ -274,6 +274,13 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
       ),
       child: InkWell(
         onTap: () async {
+          final devamEdenNotifier = ref.read(
+            devamEdenGelenKutusuProvider.notifier,
+          );
+          final tamamlananNotifier = ref.read(
+            tamamlananGelenKutusuProvider.notifier,
+          );
+
           // Eğer okunmamışsa, okundu olarak işaretle
           if (_isUnread) {
             try {
@@ -308,10 +315,12 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
             }
           }
 
+          if (!mounted) return;
+
           // Dönüşte refresh
           if (_isUnread) {
-            ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
-            ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
+            devamEdenNotifier.refresh();
+            tamamlananNotifier.refresh();
             ref.invalidate(okunmayanTalepSayisiProvider);
           }
         },

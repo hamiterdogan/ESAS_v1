@@ -32,15 +32,11 @@ class GelenKutusuContentState extends ConsumerState<GelenKutusuContent>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        // Tab değiştiğinde provider'ı invalidate et - güncel veri çek
-        ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
         if (_tabController.index == 0) {
-          // Devam Eden tabına geçildi
-          ref.invalidate(devamEdenGelenKutusuProvider);
-        } else {
-          // Tamamlanan tabına geçildi
-          ref.invalidate(tamamlananGelenKutusuProvider);
+          ref.invalidate(okunmayanTalepSayisiProvider);
         }
+        // Tab değişiminde provider invalidate etmeyerek flicker'ı azalt
+        // Güncelleme pull-to-refresh ve detail sonrası refresh ile devam eder
         widget.onFilterStateChanged?.call();
       }
     });
@@ -191,6 +187,13 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
 
   // Cache for preventing repeated filter calculations
   int _lastTotal = -1;
+
+  int _loadingSkeletonCount() {
+    if (_lastTotal > 0) {
+      return _lastTotal.clamp(1, 5);
+    }
+    return 2;
+  }
 
   // Seçilen görev yerleri - Çoklu seçim (String olarak görev yeri adı)
 
@@ -1539,7 +1542,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
     // Eğer filtreleme yapılıyorsa ve henüz data yoksa shimmer göster
     if (state.isInitialLoading ||
         (_isFiltering && _displayedTalepler == null)) {
-      return const ListShimmer(itemCount: 5);
+      return ListShimmer(itemCount: _loadingSkeletonCount());
     }
 
     // 5. Verileri işle (Filtreleme & Sıralama - Client Side)

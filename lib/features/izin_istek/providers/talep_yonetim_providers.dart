@@ -384,8 +384,6 @@ final gorevYerleriProvider = FutureProvider.autoDispose<List<GorevYeri>>((
 // Okunmayan talep sayısı provider
 final okunmayanTalepSayisiProvider =
     FutureProvider.autoDispose<OkunmayanTalepResponse>((ref) async {
-      // 5 dakika cache
-      ref.cacheFor(const Duration(minutes: 5));
       final repo = ref.watch(talepYonetimRepositoryProvider);
       final result = await repo.okunmayanTalepSayisiGetir();
 

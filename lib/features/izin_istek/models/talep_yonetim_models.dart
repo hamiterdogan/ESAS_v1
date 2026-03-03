@@ -201,10 +201,48 @@ class OkunmayanTalepResponse {
 
   OkunmayanTalepResponse({required this.talepSayisi});
 
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    if (value is double) return value.toInt();
+    return 0;
+  }
+
   factory OkunmayanTalepResponse.fromJson(Map<String, dynamic> json) {
-    return OkunmayanTalepResponse(
-      talepSayisi: json['talepSayisi'] as int? ?? 0,
-    );
+    if (json.containsKey('talepSayisi')) {
+      return OkunmayanTalepResponse(talepSayisi: _toInt(json['talepSayisi']));
+    }
+
+    if (json.containsKey('okunmayanTalepSayisi')) {
+      return OkunmayanTalepResponse(
+        talepSayisi: _toInt(json['okunmayanTalepSayisi']),
+      );
+    }
+
+    if (json.containsKey('data')) {
+      final data = json['data'];
+      if (data is Map<String, dynamic>) {
+        return OkunmayanTalepResponse.fromJson(data);
+      }
+      return OkunmayanTalepResponse(talepSayisi: _toInt(data));
+    }
+
+    if (json.containsKey('result')) {
+      final result = json['result'];
+      if (result is Map<String, dynamic>) {
+        return OkunmayanTalepResponse.fromJson(result);
+      }
+      return OkunmayanTalepResponse(talepSayisi: _toInt(result));
+    }
+
+    return OkunmayanTalepResponse(talepSayisi: 0);
+  }
+
+  factory OkunmayanTalepResponse.fromDynamic(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return OkunmayanTalepResponse.fromJson(value);
+    }
+    return OkunmayanTalepResponse(talepSayisi: _toInt(value));
   }
 }
 

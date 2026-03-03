@@ -32,15 +32,8 @@ class IsteklerimContentState extends ConsumerState<IsteklerimContent>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        // Tab değiştiğinde provider'ı invalidate et - güncel veri çek
-        ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
-        if (_tabController.index == 0) {
-          // Devam Eden tabına geçildi
-          ref.invalidate(devamEdenIsteklerimProvider);
-        } else {
-          // Tamamlanan tabına geçildi
-          ref.invalidate(tamamlananIsteklerimProvider);
-        }
+        // Tab değişiminde provider invalidate etmeyerek flicker'ı azalt
+        // Güncelleme pull-to-refresh ve detail sonrası refresh ile devam eder
         widget.onFilterStateChanged?.call();
       }
     });
@@ -163,6 +156,13 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
   static const int _pageSize = 20;
   int _lastTotal = -1;
   ProviderSubscription<PaginatedTalepState>? _prefetchSub;
+
+  int _loadingSkeletonCount() {
+    if (_lastTotal > 0) {
+      return _lastTotal.clamp(1, 5);
+    }
+    return 2;
+  }
 
   // Sıralama: true = yeniden eskiye (varsayılan), false = eskiden yeniye
   bool _yenidenEskiye = true;
@@ -1239,7 +1239,7 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
       if (kDebugMode) {
         print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
       }
-      return const ListShimmer(itemCount: 5);
+      return ListShimmer(itemCount: _loadingSkeletonCount());
     }
 
     if (kDebugMode) {
