@@ -1,12 +1,11 @@
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/images/eek_esas_logo.png
+  image: assets/images/esas_logo.png
 
   android_12:
     color: "#ffffff"
-    # To bypass Android 12 circular masking limit, we use a transparent image
-    # and show the full splash inside Flutter immediately.
-    image: assets/images/transparent.png
+    # Android 12 circular safe area: kullan aynı logoyu (merkez %66 safe zone)
+    image: assets/images/esas_logo.png
 
   android: true
   ios: true
