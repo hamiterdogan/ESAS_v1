@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -28,9 +29,10 @@ void main() {
         // TODO: integrate crash reporting (e.g. FirebaseCrashlytics) here
       };
 
-      // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
-      // NotificationService build içinde hemen çağırıldığı için main'de await edilmeli.
-      await Firebase.initializeApp();
+      // 1. Firebase'i başlat (iOS hariç — GoogleService-Info.plist Xcode'da yok)
+      if (!Platform.isIOS && !Platform.isMacOS) {
+        await Firebase.initializeApp();
+      }
 
       runApp(const ProviderScope(child: MyApp()));
     },
@@ -87,7 +89,10 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
 
     // 4. Bildirim servisini başlat (izinler, kanallar, foreground listener'lar)
-    await _initNotificationServiceOnly();
+    // iOS/macOS'ta Firebase yoksa notification service'i atla
+    if (!Platform.isIOS && !Platform.isMacOS) {
+      await _initNotificationServiceOnly();
+    }
 
     // RegisterToken çağrısı login akışında zorunlu olarak yapılır.
     // App start'ta otomatik register yapmayarak eski JWT ile yarış durumlarını engelleriz.

@@ -18,7 +18,10 @@ import 'package:esas_v1/features/bildirim/providers/notification_providers.dart'
 /// Background mesaj handler (top-level function olmalı)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  // iOS hariç Firebase'i initialize et
+  if (!Platform.isIOS) {
+    await Firebase.initializeApp();
+  }
   if (kDebugMode) {
     print('📩 Background mesaj alındı: ${message.messageId}');
   }
