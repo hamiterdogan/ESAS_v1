@@ -51,5 +51,19 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- image_picker: Fotoğraf kütüphanesi erişimi -->
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Dosya eklemek için fotoğraf kütüphanenize erişim gerekiyor.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+		<string>Fotoğrafları kaydetmek için fotoğraf kütüphanenize erişim gerekiyor.</string>
+		<!-- image_picker: Kamera erişimi -->
+		<key>NSCameraUsageDescription</key>
+		<string>Fotoğraf çekmek için kamera erişimi gerekiyor.</string>
+		<!-- image_picker: Mikrofon (video kaydı için) -->
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Video kaydetmek için mikrofon erişimi gerekiyor.</string>
+		<!-- file_picker: Dosya erişimi -->
+		<key>NSDocumentsFolderUsageDescription</key>
+		<string>Dosya seçmek için belgeler klasörüne erişim gerekiyor.</string>
 	</dict>
 </plist>
