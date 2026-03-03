@@ -122,9 +122,9 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
     try {
       final repo = ref.read(satinAlmaRepositoryProvider);
       await repo.guncelleMerkezBankasiDovizKurlari();
-      debugPrint('Döviz kurları güncellendi');
+      if (kDebugMode) debugPrint('Döviz kurları güncellendi');
     } catch (e) {
-      debugPrint('Döviz kurları güncellenirken hata: $e');
+      if (kDebugMode) debugPrint('Döviz kurları güncellenirken hata: $e');
     }
   }
 
@@ -177,7 +177,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       }
     } catch (e) {
       // Hata durumunda sessizce geç
-      debugPrint('Ödeme türleri yüklenemedi: $e');
+      if (kDebugMode) debugPrint('Ödeme türleri yüklenemedi: $e');
     }
   }
 
@@ -211,7 +211,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
       }
     } catch (e) {
       // Hata durumunda sessizce devam et
-      debugPrint('Ödeme türleri yüklenemedi: $e');
+      if (kDebugMode) debugPrint('Ödeme türleri yüklenemedi: $e');
     }
   }
 
@@ -239,7 +239,7 @@ class _EgitimUcretleriScreenState extends ConsumerState<EgitimUcretleriScreen> {
         _calculateTotals();
       }
     } catch (e) {
-      debugPrint('Döviz kuru yüklenemedi: $e');
+      if (kDebugMode) debugPrint('Döviz kuru yüklenemedi: $e');
       onKurFetched(1.0);
     }
   }

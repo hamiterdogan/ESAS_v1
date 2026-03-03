@@ -536,7 +536,7 @@ class GelenKutusuListesiState extends ConsumerState<GelenKutusuListesi> {
         }
       }
     } catch (e) {
-      debugPrint('Filtreleme hatası: $e');
+      if (kDebugMode) debugPrint('Filtreleme hatası: $e');
       if (mounted) {
         setState(() {
           _displayedTalepler = taleplerListesi;

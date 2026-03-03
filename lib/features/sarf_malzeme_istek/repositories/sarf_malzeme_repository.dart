@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_kategori_models.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/models/sarf_malzeme_ekle_req.dart';
@@ -298,8 +296,3 @@ class SarfMalzemeRepository {
     }
   }
 }
-
-final sarfMalzemeRepositoryProvider = Provider<SarfMalzemeRepository>((ref) {
-  final dio = ref.read(dioProvider);
-  return SarfMalzemeRepository(dio);
-});

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,16 +15,33 @@ import 'core/utils/jwt_decoder.dart';
 import 'features/bildirim/providers/notification_providers.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
-void main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
-  // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
-  // NotificationService build içinde hemen çağırıldığı için main'de await edilmeli.
-  await Firebase.initializeApp();
-  
-  runApp(const ProviderScope(child: MyApp()));
+void main() {
+  runZonedGuarded(() async {
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+    // Global Flutter framework error handler
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (kDebugMode) {
+        FlutterError.presentError(details);
+      }
+      // TODO: integrate crash reporting (e.g. FirebaseCrashlytics) here
+    };
+
+    // 1. Firebase'i başlat (AppRoot'tan taşındı — tek splash için)
+    // NotificationService build içinde hemen çağırıldığı için main'de await edilmeli.
+    await Firebase.initializeApp();
+
+    runApp(const ProviderScope(child: MyApp()));
+  }, (error, stack) {
+    // Catches async errors outside Flutter's widget layer
+    if (kDebugMode) {
+      debugPrint('Unhandled error: $error\n$stack');
+    }
+    // TODO: integrate crash reporting (e.g. FirebaseCrashlytics) here
+  });
 }
+
 
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});

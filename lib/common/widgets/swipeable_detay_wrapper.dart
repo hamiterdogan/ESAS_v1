@@ -92,7 +92,7 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       ref.invalidate(okunmayanTalepSayisiProvider);
     } catch (e) {
       // Hata oluşursa sessizce göz ardı et
-      debugPrint('Okundu işareti hatası: $e');
+      if (kDebugMode) debugPrint('Okundu işareti hatası: $e');
     }
   }
 

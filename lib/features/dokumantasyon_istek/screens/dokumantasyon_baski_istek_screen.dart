@@ -129,7 +129,7 @@ class _DokumantasyonBaskiIstekScreenState
         });
       }
     } catch (e) {
-      debugPrint('Error fetching teslim yerleri: $e');
+      if (kDebugMode) debugPrint('Error fetching teslim yerleri: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Teslim yerleri yüklenemedi: $e')),
@@ -244,7 +244,7 @@ class _DokumantasyonBaskiIstekScreenState
         });
       }
     } catch (e) {
-      debugPrint('Error fetching dokuman turleri: $e');
+      if (kDebugMode) debugPrint('Error fetching dokuman turleri: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Doküman türleri yüklenemedi: $e')),
@@ -280,7 +280,7 @@ class _DokumantasyonBaskiIstekScreenState
         });
       }
     } catch (e) {
-      debugPrint('Error fetching baski boyutlari: $e');
+      if (kDebugMode) debugPrint('Error fetching baski boyutlari: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Baskı boyutları yüklenemedi: $e')),
@@ -436,7 +436,7 @@ class _DokumantasyonBaskiIstekScreenState
         }
       }
     } catch (e) {
-      debugPrint('Error picking files: $e');
+      if (kDebugMode) debugPrint('Error picking files: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -458,7 +458,7 @@ class _DokumantasyonBaskiIstekScreenState
         });
       }
     } catch (e) {
-      debugPrint('Kamera seçiminde hata: $e');
+      if (kDebugMode) debugPrint('Kamera seçiminde hata: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -478,7 +478,7 @@ class _DokumantasyonBaskiIstekScreenState
         });
       }
     } catch (e) {
-      debugPrint('Galeri seçiminde hata: $e');
+      if (kDebugMode) debugPrint('Galeri seçiminde hata: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -1559,6 +1559,7 @@ class _DokumantasyonBaskiIstekScreenState
       // UI'nin dialog'u çizmesi için bir frame ver.
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
+      if (!mounted) return;
       setState(() {
         _classSheetLoading = true;
         _classSheetError = null;
@@ -1937,7 +1938,7 @@ class _DokumantasyonBaskiIstekScreenState
         ),
       );
     } catch (e) {
-      debugPrint('Error in class sheet: $e');
+      if (kDebugMode) debugPrint('Error in class sheet: $e');
       if (mounted) {
         BrandedLoadingDialog.hide(context);
       }
@@ -1978,7 +1979,7 @@ class _DokumantasyonBaskiIstekScreenState
       case Success(:final data):
         return data;
       case Failure(:final message):
-        debugPrint('Filtre hatası: $message');
+        if (kDebugMode) debugPrint('Filtre hatası: $message');
         return null;
       case Loading():
         return null;

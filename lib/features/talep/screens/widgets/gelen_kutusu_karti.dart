@@ -284,7 +284,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
                 onayTipi: widget.talep.onayTipi,
               );
             } catch (e) {
-              debugPrint('Okundu işaretleme hatası: $e');
+              if (kDebugMode) debugPrint('Okundu işaretleme hatası: $e');
             }
           }
 

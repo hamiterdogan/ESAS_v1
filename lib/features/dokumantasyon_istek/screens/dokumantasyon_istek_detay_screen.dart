@@ -1968,7 +1968,7 @@ class _DokumantasyonIstekDetayScreenState
         }
       }
     } catch (e) {
-      debugPrint('Doküman türleri yüklenemedi: $e');
+      if (kDebugMode) debugPrint('Doküman türleri yüklenemedi: $e');
     } finally {
       if (mounted) setState(() => _isLoadingDokumanTurleri = false);
     }
@@ -2056,7 +2056,7 @@ class _DokumantasyonIstekDetayScreenState
         }
       }
     } catch (e) {
-      debugPrint('Baskı boyutları yüklenemedi: $e');
+      if (kDebugMode) debugPrint('Baskı boyutları yüklenemedi: $e');
     } finally {
       if (mounted) setState(() => _isLoadingBaskiBoyutlari = false);
     }

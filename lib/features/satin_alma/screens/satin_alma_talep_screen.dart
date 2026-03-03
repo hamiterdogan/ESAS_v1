@@ -347,7 +347,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Failed to initialize default payment method: $e');
+      if (kDebugMode) debugPrint('Failed to initialize default payment method: $e');
     }
   }
 
@@ -357,7 +357,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       await dio.post('/Finans/MerkezBankasiDovizKurlariniGuncelle', data: {});
     } catch (e) {
       // Silently fail - no error messages
-      debugPrint('Exchange rate update failed: $e');
+      if (kDebugMode) debugPrint('Exchange rate update failed: $e');
     }
   }
 

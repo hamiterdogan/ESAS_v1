@@ -1106,6 +1106,7 @@ class _KirtasiyeMalzemesiIstekScreenState
     _aciklamaFocusNode.dispose();
     _searchBinaController.dispose();
     _gonderButtonFocusNode.dispose();
+    _fiyatTeklifIcerikController.dispose();
     super.dispose();
   }
 

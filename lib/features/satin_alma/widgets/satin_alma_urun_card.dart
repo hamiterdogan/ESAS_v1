@@ -816,6 +816,7 @@ class SatinAlmaUrunCardState extends ConsumerState<SatinAlmaUrunCard> {
                                         // Para birimi değiştiğinde önce kuru al, sonra hesapla
                                         await _fetchDovizKuru(item.kod);
 
+                                        if (!context.mounted) return;
                                         Navigator.pop(context);
                                       },
                                     );

@@ -1949,6 +1949,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
       // UI'nin dialog'u çizmesi için bir frame ver.
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
+      if (!mounted) return;
       setState(() {
         _ogrenciSheetLoading = true;
         _ogrenciSheetError = null;
