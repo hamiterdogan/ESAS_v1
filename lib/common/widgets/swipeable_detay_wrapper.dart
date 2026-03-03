@@ -84,6 +84,8 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
         onayTipi: talep.onayTipi,
       );
 
+      if (!mounted) return;
+
       // İşaretlendi olarak kaydet
       _markedAsRead.add(talep.onayKayitId);
 

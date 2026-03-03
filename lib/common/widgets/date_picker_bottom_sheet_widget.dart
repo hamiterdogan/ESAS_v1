@@ -149,8 +149,9 @@ class _DatePickerBottomSheetWidgetState
     return days;
   }
 
-  /// Get first day from the list
+  /// Get first day from the list (fallback to 1 if list is somehow empty)
   int _getFirstSelectableDay(List<int> days, int year, int month) {
+    if (days.isEmpty) return 1;
     return days.first;
   }
 
@@ -165,7 +166,9 @@ class _DatePickerBottomSheetWidgetState
 
     // Ensure values are within bounds
     final years = _getAvailableYears();
-    if (!years.contains(tempYear)) {
+    if (years.isEmpty) {
+      tempYear = _minDate.year;
+    } else if (!years.contains(tempYear)) {
       tempYear = years.first;
     }
 
@@ -179,7 +182,9 @@ class _DatePickerBottomSheetWidgetState
         return StatefulBuilder(
           builder: (context, setModalState) {
             final months = _getAvailableMonths(tempYear);
-            if (!months.contains(tempMonth)) {
+            if (months.isEmpty) {
+              tempMonth = _minDate.month;
+            } else if (!months.contains(tempMonth)) {
               tempMonth = months.first;
             }
 
@@ -216,9 +221,8 @@ class _DatePickerBottomSheetWidgetState
                   SizedBox(
                     height: 150,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(width: 16),
                         // Day Spinner
                         SizedBox(
                           width: 45,
@@ -281,7 +285,9 @@ class _DatePickerBottomSheetWidgetState
                                 tempYear = years[index];
                                 // Recalculate months and days for new year
                                 final newMonths = _getAvailableMonths(tempYear);
-                                if (!newMonths.contains(tempMonth)) {
+                                if (newMonths.isEmpty) {
+                                  tempMonth = _minDate.month;
+                                } else if (!newMonths.contains(tempMonth)) {
                                   tempMonth = newMonths.first;
                                 }
                                 final newDays = _getAvailableDays(
