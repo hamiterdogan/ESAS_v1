@@ -620,7 +620,8 @@ class _TeknikDestekDetayScreenState
     String fileName, {
     bool isLast = false,
   }) {
-    final String fileUrl = '${AppConstants.fileServerBaseUrl}TeknikDestek/$fileName';
+    final String fileUrl =
+        '${AppConstants.fileServerBaseUrl}TeknikDestek/$fileName';
 
     final displayFileName = fileName.contains('_')
         ? fileName.substring(fileName.indexOf('_') + 1)
@@ -943,7 +944,9 @@ class _TeknikDestekDetayScreenState
                           creatorPersonelId,
                       onCloseRequest: (aciklama, rating) async {
                         try {
-                          final repo = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+                          final repo = ref.read(
+                            bilgiTeknolojileriIstekRepositoryProvider,
+                          );
 
                           // 1. If there is an explanation, send it first
                           if (aciklama.trim().isNotEmpty) {
@@ -1000,7 +1003,9 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           if (result is Success) {
-                          ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                            ref
+                                .read(devamEdenGelenKutusuProvider.notifier)
+                                .refresh();
                             ref.invalidate(
                               teknikDestekDetayProvider(widget.talepId),
                             );
@@ -1028,7 +1033,9 @@ class _TeknikDestekDetayScreenState
                       sendOnlyMode: true,
                       onSend: (aciklama) async {
                         try {
-                          final repo = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+                          final repo = ref.read(
+                            bilgiTeknolojileriIstekRepositoryProvider,
+                          );
 
                           // 1. Send Message
                           final messageResult = await repo.aciklamaYaz(
@@ -1092,7 +1099,9 @@ class _TeknikDestekDetayScreenState
                             ),
                           );
 
-                          ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                          ref
+                              .read(devamEdenGelenKutusuProvider.notifier)
+                              .refresh();
                           ref.invalidate(
                             teknikDestekDetayProvider(widget.talepId),
                           ); // Refresh details to show new message

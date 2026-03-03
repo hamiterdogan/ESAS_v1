@@ -899,7 +899,8 @@ class _EgitimIstekDetayScreenState
     String fileName, {
     bool isLast = false,
   }) {
-    final String fileUrl = '${AppConstants.fileServerBaseUrl}EgitimIstek/$fileName';
+    final String fileUrl =
+        '${AppConstants.fileServerBaseUrl}EgitimIstek/$fileName';
 
     final displayFileName = fileName.contains('_')
         ? fileName.substring(fileName.indexOf('_') + 1)

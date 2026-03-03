@@ -1319,7 +1319,8 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
     String fileName, {
     bool isLast = false,
   }) {
-    final String fileUrl = '${AppConstants.fileServerBaseUrl}IzinIstek/$fileName';
+    final String fileUrl =
+        '${AppConstants.fileServerBaseUrl}IzinIstek/$fileName';
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),

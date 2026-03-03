@@ -1244,7 +1244,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     String fileName, {
     bool isLast = false,
   }) {
-    final String fileUrl = '${AppConstants.fileServerBaseUrl}SatinAlma/$fileName';
+    final String fileUrl =
+        '${AppConstants.fileServerBaseUrl}SatinAlma/$fileName';
 
     // Dosya ismini gösterirken ilk "_" karakterine kadar olan kısmı at
     final displayFileName = fileName.contains('_')
