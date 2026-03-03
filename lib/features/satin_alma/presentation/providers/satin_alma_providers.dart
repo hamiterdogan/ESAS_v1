@@ -33,13 +33,12 @@ final anaKategorilerProvider = FutureProvider.autoDispose<List<dynamic>>(
         failure: (e) => throw e,
       ),
 );
-final altKategorilerProvider = FutureProvider.autoDispose.family<List<dynamic>, int>(
-  (ref, id) async =>
-      (await ref.watch(satinAlmaRepositoryProvider).getAltKategoriler(id)).when(
-        success: (d) => d,
-        failure: (e) => throw e,
-      ),
-);
+final altKategorilerProvider = FutureProvider.autoDispose
+    .family<List<dynamic>, int>(
+      (ref, id) async =>
+          (await ref.watch(satinAlmaRepositoryProvider).getAltKategoriler(id))
+              .when(success: (d) => d, failure: (e) => throw e),
+    );
 final birimlerProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async => (await ref.watch(satinAlmaRepositoryProvider).getBirimler())
       .when(success: (d) => d, failure: (e) => throw e),

@@ -20,7 +20,9 @@ final createAracTalepUseCaseProvider = Provider<CreateAracTalepUseCase>((ref) {
 });
 
 // Providers for Data Lists
-final aracTurleriProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+final aracTurleriProvider = FutureProvider.autoDispose<List<dynamic>>((
+  ref,
+) async {
   final repository = ref.watch(aracIstekRepositoryProvider);
   final result = await repository.getAracTurleri();
   return result.when(
@@ -29,7 +31,9 @@ final aracTurleriProvider = FutureProvider.autoDispose<List<dynamic>>((ref) asyn
   );
 });
 
-final gidilecekYerlerProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
+final gidilecekYerlerProvider = FutureProvider.autoDispose<List<dynamic>>((
+  ref,
+) async {
   final repository = ref.watch(aracIstekRepositoryProvider);
   final result = await repository.getGidilecekYerler();
   return result.when(

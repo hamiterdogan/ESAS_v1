@@ -114,7 +114,8 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
       tip: tip,
       pageIndex: pageIndex,
       pageSize: _pageSize,
-      talepBaslangicTarihi: _startDate ??
+      talepBaslangicTarihi:
+          _startDate ??
           DateTime.now()
               .subtract(const Duration(days: 30))
               .toUtc()
@@ -191,46 +192,44 @@ final talepCacheProvider =
     });
 
 // Yeni endpoint: IzinTaleplerimiGetir (parametresiz)
-final izinTalepleriProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
-  ref,
-) async {
-  final repo = ref.watch(talepYonetimRepositoryProvider);
-  final result = await repo.izinTaleplerimiGetir();
+final izinTalepleriProvider = FutureProvider.autoDispose<IzinTalepleriResponse>(
+  (ref) async {
+    final repo = ref.watch(talepYonetimRepositoryProvider);
+    final result = await repo.izinTaleplerimiGetir();
 
-  return switch (result) {
-    Success(:final data) => data,
-    Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Loading'),
-  };
-});
+    return switch (result) {
+      Success(:final data) => data,
+      Failure(:final message) => throw Exception(message),
+      Loading() => throw Exception('Loading'),
+    };
+  },
+);
 
 // Onay Bekliyor Talepler (tip: 0)
-final onayBekleyenTaleplerProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
-  ref,
-) async {
-  final repo = ref.watch(talepYonetimRepositoryProvider);
-  final result = await repo.izinTaleplerimiGetirByTip(tip: 0);
+final onayBekleyenTaleplerProvider =
+    FutureProvider.autoDispose<IzinTalepleriResponse>((ref) async {
+      final repo = ref.watch(talepYonetimRepositoryProvider);
+      final result = await repo.izinTaleplerimiGetirByTip(tip: 0);
 
-  return switch (result) {
-    Success(:final data) => data,
-    Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Loading'),
-  };
-});
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+        Loading() => throw Exception('Loading'),
+      };
+    });
 
 // Onaylanmış Talepler (tip: 1)
-final onaylananTaleplerProvider = FutureProvider.autoDispose<IzinTalepleriResponse>((
-  ref,
-) async {
-  final repo = ref.watch(talepYonetimRepositoryProvider);
-  final result = await repo.izinTaleplerimiGetirByTip(tip: 1);
+final onaylananTaleplerProvider =
+    FutureProvider.autoDispose<IzinTalepleriResponse>((ref) async {
+      final repo = ref.watch(talepYonetimRepositoryProvider);
+      final result = await repo.izinTaleplerimiGetirByTip(tip: 1);
 
-  return switch (result) {
-    Success(:final data) => data,
-    Failure(:final message) => throw Exception(message),
-    Loading() => throw Exception('Loading'),
-  };
-});
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+        Loading() => throw Exception('Loading'),
+      };
+    });
 
 // Devam eden talepler (tip: 0) - İsteklerim tabı için (PAGINATED)
 final devamEdenIsteklerimProvider =
@@ -369,7 +368,9 @@ final gorevlerProvider = FutureProvider.autoDispose<List<Gorev>>((ref) async {
 });
 
 // Görev Yeri listesi provider - GorevYeriDoldur endpoint'i
-final gorevYerleriProvider = FutureProvider.autoDispose<List<GorevYeri>>((ref) async {
+final gorevYerleriProvider = FutureProvider.autoDispose<List<GorevYeri>>((
+  ref,
+) async {
   final repo = ref.watch(talepYonetimRepositoryProvider);
   final result = await repo.gorevYerleriniGetir();
 
