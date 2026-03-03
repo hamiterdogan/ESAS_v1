@@ -1236,8 +1236,9 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     }
 
     if (state.isInitialLoading) {
-      if (kDebugMode)
+      if (kDebugMode) {
         print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
+      }
       return const ListShimmer(itemCount: 5);
     }
 

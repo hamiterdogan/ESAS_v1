@@ -1,11 +1,8 @@
 flutter_native_splash:
   color: "#ffffff"
-  image: assets/images/esas_logo.png
 
   android_12:
     color: "#ffffff"
-    # Android 12 circular safe area: kullan aynı logoyu (merkez %66 safe zone)
-    image: assets/images/esas_logo.png
 
   android: true
   ios: true

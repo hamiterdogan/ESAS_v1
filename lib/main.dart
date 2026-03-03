@@ -12,7 +12,6 @@ import 'core/services/notification_service.dart';
 import 'core/services/auth_storage_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/utils/jwt_decoder.dart';
-import 'features/bildirim/providers/notification_providers.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 void main() {
