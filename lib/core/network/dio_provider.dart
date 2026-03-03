@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
-import 'package:esas_v1/core/services/auth_storage_service.dart';
 
 // Token Notifier
 class TokenNotifier extends Notifier<String> {
@@ -53,21 +52,17 @@ final currentKullaniciAdiProvider = Provider<String>((ref) {
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio();
-  final token = ref.watch(tokenProvider);
 
-  final headers = <String, String>{
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  };
-  if (token.isNotEmpty) {
-    headers['Authorization'] = 'Bearer $token';
-  }
-
+  // Static headers only — auth token is injected per-request by the interceptor below.
+  // Do NOT watch(tokenProvider) here: it would cascade-rebuild every repository on login.
   dio.options = BaseOptions(
     baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
-    headers: headers,
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
   );
 
   // Sadece debug modda log interceptor aktif

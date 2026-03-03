@@ -311,14 +311,19 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
   bool _isActionInProgress = false;
 
   @override
+  void deactivate() {
+    // Form state'i temizle ekran kapanırken (deactivate: ref hâlâ geçerli)
+    ref.invalidate(izinEkleFormProvider);
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _aciklamaFocusNode.dispose();
     _adresFocusNode.dispose();
     _esAdiFocusNode.dispose();
     _hastalikYazinizFocusNode.dispose();
     _diniGunAciklamaFocusNode.dispose();
-    // Form state'i temizle ekran kapanırken
-    ref.invalidate(izinEkleFormProvider);
     super.dispose();
   }
 

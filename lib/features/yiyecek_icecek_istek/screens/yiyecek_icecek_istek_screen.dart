@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -878,7 +879,9 @@ class _YiyecekIcecekIstekScreenState
         final repo = ref.read(yiyecekIcecekRepositoryProvider);
         final emailService = ref.read(emailServiceProvider);
 
-        print('Yiyecek İçecek İstek Datası: ${req.toJson()}');
+        if (kDebugMode) {
+          print('Yiyecek İçecek İstek Datası: ${req.toJson()}');
+        }
         final onayKayitId = await repo.yiyecekIstekEkle(req);
 
         if (onayKayitId > 0) {

@@ -39,14 +39,18 @@ class NotificationService {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  // Riverpod ref - initialization sırasında set edilir
-  WidgetRef? _ref;
+  // Riverpod ProviderContainer - initialization sırasında set edilir
+  ProviderContainer? _container;
 
   // Uygulama kapalıyken tıklanan bildirim için bekleyen route
   String? _pendingRoute;
 
   // FCM token yenileme listener'ı (resetRegistrationFlow için)
   StreamSubscription<String>? _tokenRefreshSubscription;
+
+  // Firebase mesaj listener'ları (resetRegistrationFlow'da iptal edilir)
+  StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
 
   // Android notification channel
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
@@ -74,10 +78,10 @@ class NotificationService {
     await _createNotificationChannel();
 
     // Foreground mesaj dinle
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
     // Bildirime tıklama (app background'dayken)
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+    _onMessageOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
     // App tamamen kapalıyken bildirime tıklama
     // → route'u pending olarak sakla, HomeScreen mount olduktan sonra navigate et
@@ -92,9 +96,9 @@ class NotificationService {
     }
   }
 
-  /// Riverpod ref'i set et (ProviderScope içinden çağrılır)
-  void setRef(WidgetRef ref) {
-    _ref = ref;
+  /// Riverpod ProviderContainer'ı set et (main.dart'tan çağrılır)
+  void setContainer(ProviderContainer container) {
+    _container = container;
   }
 
   /// Uygulama kapalıyken tıklanan bildirim route'unu pending olarak sakla
@@ -203,10 +207,14 @@ class NotificationService {
   }
 
   /// Tüm kayıt akışını sıfırlar (logout/unauthorized senaryolarında).
-  /// Eski listener'ı iptal eder ve Firebase'den token'ı siler.
+  /// Eski listener'ları iptal eder ve Firebase'den token'ı siler.
   Future<void> resetRegistrationFlow() async {
     await _tokenRefreshSubscription?.cancel();
     _tokenRefreshSubscription = null;
+    await _onMessageSub?.cancel();
+    _onMessageSub = null;
+    await _onMessageOpenedSub?.cancel();
+    _onMessageOpenedSub = null;
     try {
       await _messaging.deleteToken();
     } catch (e) {
@@ -302,7 +310,7 @@ class NotificationService {
     _showLocalNotification(message);
 
     // Badge sayısını güncelle
-    _ref?.invalidate(okunmamisBildirimSayisiProvider);
+    _container?.invalidate(okunmamisBildirimSayisiProvider);
   }
 
   /// Local notification göster
@@ -528,7 +536,7 @@ class NotificationService {
     String actionId,
     String? payload,
   ) async {
-    if (payload == null || _ref == null) return;
+    if (payload == null || _container == null) return;
 
     final data = _decodePayload(payload);
     final bildirimIdStr = data['bildirimId'] as String?;
@@ -540,7 +548,7 @@ class NotificationService {
 
     if (bildirimId == null || onayKayitId == null || onayTipi == null) return;
 
-    final repo = _ref!.read(notificationRepositoryProvider);
+    final repo = _container!.read(notificationRepositoryProvider);
     final aksiyon = actionId == 'onayla' ? 'onayla' : 'reddet';
 
     final result = await repo.bildirimAksiyon(
@@ -562,7 +570,7 @@ class NotificationService {
     }
 
     // Badge ve listeyi güncelle
-    _ref!.invalidate(okunmamisBildirimSayisiProvider);
+    _container!.invalidate(okunmamisBildirimSayisiProvider);
   }
 
   /// Payload encode (Map → String)

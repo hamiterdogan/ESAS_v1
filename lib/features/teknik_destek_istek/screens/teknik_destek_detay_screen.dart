@@ -44,6 +44,18 @@ class _TeknikDestekDetayScreenState
   final List<(String path, String fileName)> _selectedFiles = [];
   final ImagePicker _picker = ImagePicker();
 
+  late final BilgiTeknolojileriIstekRepository _btRepository;
+  late final EmailService _emailService;
+  late final dynamic _devamEdenGelenKutusuNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    _btRepository = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
+    _emailService = ref.read(emailServiceProvider);
+    _devamEdenGelenKutusuNotifier = ref.read(devamEdenGelenKutusuProvider.notifier);
+  }
+
   Future<void> _pickCamera() async {
     try {
       final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
@@ -932,9 +944,7 @@ class _TeknikDestekDetayScreenState
                           creatorPersonelId,
                       onCloseRequest: (aciklama, rating) async {
                         try {
-                          final repo = ref.read(
-                            bilgiTeknolojileriIstekRepositoryProvider,
-                          );
+                          final repo = _btRepository;
 
                           // 1. If there is an explanation, send it first
                           if (aciklama.trim().isNotEmpty) {
@@ -991,9 +1001,7 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           if (result is Success) {
-                            ref
-                                .read(devamEdenGelenKutusuProvider.notifier)
-                                .refresh();
+                            _devamEdenGelenKutusuNotifier.refresh();
                             ref.invalidate(
                               teknikDestekDetayProvider(widget.talepId),
                             );
@@ -1021,9 +1029,7 @@ class _TeknikDestekDetayScreenState
                       sendOnlyMode: true,
                       onSend: (aciklama) async {
                         try {
-                          final repo = ref.read(
-                            bilgiTeknolojileriIstekRepositoryProvider,
-                          );
+                          final repo = _btRepository;
 
                           // 1. Send Message
                           final messageResult = await repo.aciklamaYaz(
@@ -1071,7 +1077,7 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           // Email notification logic
-                          final emailService = ref.read(emailServiceProvider);
+                          final emailService = _emailService;
                           await emailService.emailIcerikOlustur(
                             id: widget.talepId,
                             kategori: 'Teknik Destek',
@@ -1087,9 +1093,7 @@ class _TeknikDestekDetayScreenState
                             ),
                           );
 
-                          ref
-                              .read(devamEdenGelenKutusuProvider.notifier)
-                              .refresh();
+                          _devamEdenGelenKutusuNotifier.refresh();
                           ref.invalidate(
                             teknikDestekDetayProvider(widget.talepId),
                           ); // Refresh details to show new message

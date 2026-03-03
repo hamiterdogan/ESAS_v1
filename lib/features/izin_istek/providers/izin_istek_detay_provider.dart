@@ -13,7 +13,7 @@ final izinIstekDetayRepositoryProvider = Provider<TalepYonetimRepository>((
   return TalepYonetimRepositoryImpl(dio: dio);
 });
 final izinIstekDetayProvider =
-    FutureProvider.family<IzinIstekDetayResponse, int>((ref, id) async {
+    FutureProvider.autoDispose.family<IzinIstekDetayResponse, int>((ref, id) async {
       final repo = ref.watch(izinIstekDetayRepositoryProvider);
       final result = await repo.izinIstekDetayiGetir(id: id);
 
@@ -28,7 +28,7 @@ final izinIstekDetayProvider =
 typedef OnayDurumuArgs = ({int talepId, String onayTipi});
 
 final onayDurumuProvider =
-    FutureProvider.family<OnayDurumuResponse, OnayDurumuArgs>((
+    FutureProvider.autoDispose.family<OnayDurumuResponse, OnayDurumuArgs>((
       ref,
       args,
     ) async {
@@ -46,7 +46,7 @@ final onayDurumuProvider =
     });
 
 // Personel bilgisi getir
-final personelBilgiProvider = FutureProvider<PersonelBilgiResponse>((
+final personelBilgiProvider = FutureProvider.autoDispose<PersonelBilgiResponse>((
   ref,
 ) async {
   final dio = ref.watch(dioProvider);

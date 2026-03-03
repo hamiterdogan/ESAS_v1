@@ -1159,12 +1159,14 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     final state = ref.watch(provider);
 
     // DEBUG LOG
-    print(
-      '🖥️ [IsteklerimListesi tip:${widget.tip}] BUILD - isInitialLoading:${state.isInitialLoading}, isLoading:${state.isLoading}, talepler:${state.talepler.length}, error:${state.errorMessage}',
-    );
+    if (kDebugMode) {
+      print(
+        '🖥️ [IsteklerimListesi tip:${widget.tip}] BUILD - isInitialLoading:${state.isInitialLoading}, isLoading:${state.isLoading}, talepler:${state.talepler.length}, error:${state.errorMessage}',
+      );
+    }
 
     if (state.errorMessage != null && state.talepler.isEmpty) {
-      print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING ERROR STATE');
+      if (kDebugMode) print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING ERROR STATE');
       return RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(bilgiTeknolojileriOnayKayitIdSetProvider);
@@ -1233,13 +1235,15 @@ class IsteklerimListesiState extends ConsumerState<IsteklerimListesi> {
     }
 
     if (state.isInitialLoading) {
-      print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
+      if (kDebugMode) print('🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING SHIMMER');
       return const ListShimmer(itemCount: 5);
     }
 
-    print(
-      '🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING LIST with ${state.talepler.length} items',
-    );
+    if (kDebugMode) {
+      print(
+        '🖥️ [IsteklerimListesi tip:${widget.tip}] SHOWING LIST with ${state.talepler.length} items',
+      );
+    }
     // Use cached IDs immediately - don't wait for provider to load
     return _buildTalepList(context, state, _bilgiTekOnayKayitIds);
   }

@@ -28,6 +28,7 @@ class MyApp extends ConsumerStatefulWidget {
 class _MyAppState extends ConsumerState<MyApp> {
   bool _initialized = false;
   bool _isReady = false; // Token kontrolü tamamlanana kadar ekranda kalacak
+  bool _notificationContainerSet = false;
 
   @override
   void initState() {
@@ -87,6 +88,12 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     // 401 hatası dinle: kullanıcıyı bilgilendir ve login'e yönlendir
+    // ProviderContainer''ı NotificationService''e bağla (C1 fix: WidgetRef yerine ProviderContainer kullan)
+    if (!_notificationContainerSet) {
+      _notificationContainerSet = true;
+      NotificationService().setContainer(ProviderScope.containerOf(context));
+    }
+
     ref.listen<bool>(authErrorProvider, (previous, hasError) {
       if (hasError && previous != true) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {

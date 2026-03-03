@@ -23,12 +23,12 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  // Varsayılan kimlik bilgileri sadece debug modda doldurulur
+  // Varsayılan kimlik bilgileri boş bırakılır
   final _kullaniciAdiController = TextEditingController(
-    text: kDebugMode ? 'herdogan' : '',
+    text: '',
   );
   final _sifreController = TextEditingController(
-    text: kDebugMode ? 'schpenaur' : '',
+    text: '',
   );
   bool _sifreGizli = true;
   bool _isLoading = false;
