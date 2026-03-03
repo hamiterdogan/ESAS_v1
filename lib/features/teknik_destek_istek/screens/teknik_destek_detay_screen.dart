@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
@@ -619,9 +620,7 @@ class _TeknikDestekDetayScreenState
     String fileName, {
     bool isLast = false,
   }) {
-    const String baseUrl =
-        'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
-    final String fileUrl = '$baseUrl$fileName';
+    final String fileUrl = '${AppConstants.fileServerBaseUrl}TeknikDestek/$fileName';
 
     final displayFileName = fileName.contains('_')
         ? fileName.substring(fileName.indexOf('_') + 1)
@@ -816,10 +815,8 @@ class _TeknikDestekDetayScreenState
                                           ),
                                           child: GestureDetector(
                                             onTap: () async {
-                                              const String baseUrl =
-                                                  'https://esas.eyuboglu.k12.tr/TestDosyalar/TeknikDestek/';
                                               final String fileUrl =
-                                                  '$baseUrl$fileName';
+                                                  '${AppConstants.fileServerBaseUrl}TeknikDestek/$fileName';
 
                                               final lowerFileName = fileName
                                                   .toLowerCase();
@@ -946,7 +943,7 @@ class _TeknikDestekDetayScreenState
                           creatorPersonelId,
                       onCloseRequest: (aciklama, rating) async {
                         try {
-                          final repo = _btRepository;
+                          final repo = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
 
                           // 1. If there is an explanation, send it first
                           if (aciklama.trim().isNotEmpty) {
@@ -1003,7 +1000,7 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           if (result is Success) {
-                            _devamEdenGelenKutusuNotifier.refresh();
+                          ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                             ref.invalidate(
                               teknikDestekDetayProvider(widget.talepId),
                             );
@@ -1031,7 +1028,7 @@ class _TeknikDestekDetayScreenState
                       sendOnlyMode: true,
                       onSend: (aciklama) async {
                         try {
-                          final repo = _btRepository;
+                          final repo = ref.read(bilgiTeknolojileriIstekRepositoryProvider);
 
                           // 1. Send Message
                           final messageResult = await repo.aciklamaYaz(
@@ -1079,7 +1076,7 @@ class _TeknikDestekDetayScreenState
                           if (!context.mounted) return;
 
                           // Email notification logic
-                          final emailService = _emailService;
+                          final emailService = ref.read(emailServiceProvider);
                           await emailService.emailIcerikOlustur(
                             id: widget.talepId,
                             kategori: 'Teknik Destek',
@@ -1095,7 +1092,7 @@ class _TeknikDestekDetayScreenState
                             ),
                           );
 
-                          _devamEdenGelenKutusuNotifier.refresh();
+                          ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                           ref.invalidate(
                             teknikDestekDetayProvider(widget.talepId),
                           ); // Refresh details to show new message

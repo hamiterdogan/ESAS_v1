@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/core/utils/jwt_decoder.dart';
 
 // Token Notifier
@@ -56,7 +57,7 @@ final dioProvider = Provider<Dio>((ref) {
   // Static headers only — auth token is injected per-request by the interceptor below.
   // Do NOT watch(tokenProvider) here: it would cascade-rebuild every repository on login.
   dio.options = BaseOptions(
-    baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
+    baseUrl: AppConstants.apiBaseUrl,
     connectTimeout: const Duration(seconds: 15),
     receiveTimeout: const Duration(seconds: 15),
     headers: <String, String>{

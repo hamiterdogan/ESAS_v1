@@ -1,6 +1,7 @@
 ﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -218,6 +219,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   Future<void> _showDuplicateFilesBottomSheet(
     List<String> duplicateNames,
   ) async {
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -321,6 +323,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
   }
 
   Future<bool> _showExitConfirmationDialog() async {
+    if (!mounted) return false;
     return AppDialogs.showFormExitConfirm(context);
   }
 
@@ -342,12 +345,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
     try {
       final odemeTurleri = await ref.read(odemeTurleriProvider.future);
       if (odemeTurleri.isNotEmpty) {
+        if (!mounted) return;
         setState(() {
           _selectedOdemeTuru = odemeTurleri.first;
         });
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('Failed to initialize default payment method: $e');
+      if (kDebugMode)
+        debugPrint('Failed to initialize default payment method: $e');
     }
   }
 
@@ -363,6 +368,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
   void _deleteUrun(int index) {
     FocusScope.of(context).unfocus();
+    if (!mounted) return;
     showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppColors.textOnPrimary,
@@ -485,6 +491,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
   void _showSelectedBinalarSheet(List<SatinAlmaBina> allBinalar) async {
     _lockAndUnfocusInputs();
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.textOnPrimary,
@@ -607,6 +614,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
   Future<void> _showBinaBottomSheet() async {
     _lockAndUnfocusInputs();
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -871,7 +879,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                           context.go('/satin_alma');
                         }
                       } else {
-                        context.go('/satin_alma');
+                        if (context.mounted) {
+                          context.go('/satin_alma');
+                        }
                       }
                     },
                     constraints: const BoxConstraints(
@@ -1215,23 +1225,25 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                               motion: const ScrollMotion(),
                               children: [
                                 CustomSlidableAction(
-                                  onPressed: (_) {
-                                    Navigator.push<SatinAlmaUrunBilgisi>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            SatinAlmaUrunEkleScreen(
-                                              initialBilgi: urun,
-                                            ),
-                                      ),
-                                    ).then((result) {
-                                      if (result != null) {
-                                        setState(() {
-                                          _urunler[index] = result;
-                                          _updateGenelToplam();
-                                        });
-                                      }
-                                    });
+                                  onPressed: (_) async {
+                                    if (!mounted) return;
+                                    final result =
+                                        await Navigator.push<SatinAlmaUrunBilgisi>(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                SatinAlmaUrunEkleScreen(
+                                                  initialBilgi: urun,
+                                                ),
+                                          ),
+                                        );
+
+                                    if (result != null) {
+                                      setState(() {
+                                        _urunler[index] = result;
+                                        _updateGenelToplam();
+                                      });
+                                    }
                                   },
                                   backgroundColor: AppColors.primary,
                                   child: Container(
@@ -1635,6 +1647,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: InkWell(
                       onTap: () async {
+                        if (!mounted) return;
                         final result =
                             await Navigator.push<SatinAlmaUrunBilgisi>(
                               context,
@@ -2081,7 +2094,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       if (_alimAmaciController.text.trim().isEmpty) {
         FocusScope.of(context).unfocus();
         await Future.delayed(Duration.zero);
+        if (!mounted) return;
         await _scrollToWidget(_alimAmaciKey);
+        if (!mounted) return;
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen alımın amacını belirtiniz.',
@@ -2097,6 +2112,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
       if (_urunler.isEmpty) {
         FocusScope.of(context).unfocus();
         // Show warning bottom sheet first
+        if (!mounted) return;
         await ValidationUyariWidget.goster(
           context: context,
           message: 'Lütfen en az 1 ürün ekleyiniz.',
@@ -2124,6 +2140,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
       final phoneError = _validatePhone(_saticiTelefonController.text);
       if (phoneError != null) {
+        if (!mounted) return;
         await ValidationUyariWidget.goster(
           context: context,
           message: phoneError,
@@ -2133,6 +2150,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
       final websiteError = _validateWebsite(_webSitesiController.text);
       if (websiteError != null) {
+        if (!mounted) return;
         await ValidationUyariWidget.goster(
           context: context,
           message: websiteError,
@@ -2198,12 +2216,14 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
 
         _lockAndUnfocusInputs();
 
+        if (!mounted) return;
         await showSatinAlmaOzetBottomSheet(
           context: context,
           request: req,
           talepTipi: 'Satın Alma',
           ozetItems: ozetItems,
           onGonder: () async {
+            if (!mounted) return;
             BrandedLoadingDialog.show(context);
             try {
               final repo = ref.read(satinAlmaRepositoryProvider);

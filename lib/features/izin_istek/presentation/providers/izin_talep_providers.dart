@@ -7,7 +7,7 @@ import 'package:esas_v1/features/izin_istek/domain/usecases/create_izin_talep_us
 import 'package:esas_v1/features/izin_istek/presentation/providers/izin_talep_form_notifier.dart';
 
 // Repository
-final izinIstekRepositoryProvider = Provider<IIzinIstekRepository>((ref) {
+final izinTalepFormRepositoryProvider = Provider<IIzinIstekRepository>((ref) {
   final dio = ref.watch(dioProvider);
   final dataSource = IzinIstekRemoteDataSource(dio);
   return IzinIstekRepositoryImpl(dataSource);
@@ -15,7 +15,7 @@ final izinIstekRepositoryProvider = Provider<IIzinIstekRepository>((ref) {
 
 // UseCase
 final createIzinTalepUseCaseProvider = Provider<CreateIzinTalepUseCase>((ref) {
-  final repository = ref.watch(izinIstekRepositoryProvider);
+  final repository = ref.watch(izinTalepFormRepositoryProvider);
   return CreateIzinTalepUseCase(repository);
 });
 
@@ -23,7 +23,7 @@ final createIzinTalepUseCaseProvider = Provider<CreateIzinTalepUseCase>((ref) {
 final izinSebepleriProvider = FutureProvider.autoDispose<List<dynamic>>((
   ref,
 ) async {
-  final repository = ref.watch(izinIstekRepositoryProvider);
+  final repository = ref.watch(izinTalepFormRepositoryProvider);
   final result = await repository.getIzinSebepleri();
   return result.when(
     success: (data) => data,

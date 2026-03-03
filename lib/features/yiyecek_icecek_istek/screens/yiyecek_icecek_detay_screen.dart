@@ -668,7 +668,7 @@ class _YiyecekIcecekDetayScreenState
                   }
 
                   try {
-                    final repository = _talepYonetimRepository;
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Yiyecek İçecek İstek',
                       onayKayitId: widget.talepId,
@@ -685,7 +685,7 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        _devamEdenGelenKutusuNotifier.refresh();
+                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -712,7 +712,7 @@ class _YiyecekIcecekDetayScreenState
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository = _talepYonetimRepository;
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Yiyecek İçecek İstek',
                       onayKayitId: widget.talepId,
@@ -729,7 +729,7 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        _devamEdenGelenKutusuNotifier.refresh();
+                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -757,7 +757,7 @@ class _YiyecekIcecekDetayScreenState
                   if (onaySureciId == null) return;
 
                   try {
-                    final repository = _talepYonetimRepository;
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Yiyecek İçecek İstek',
                       onayKayitId: widget.talepId,
@@ -774,7 +774,7 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        _devamEdenGelenKutusuNotifier.refresh();
+                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -811,7 +811,7 @@ class _YiyecekIcecekDetayScreenState
                   }
 
                   try {
-                    final repository = _talepYonetimRepository;
+                    final repository = ref.read(talepYonetimRepositoryProvider);
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Yiyecek İçecek İstek',
                       onayKayitId: widget.talepId,
@@ -835,7 +835,7 @@ class _YiyecekIcecekDetayScreenState
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        _devamEdenGelenKutusuNotifier.refresh();
+                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(

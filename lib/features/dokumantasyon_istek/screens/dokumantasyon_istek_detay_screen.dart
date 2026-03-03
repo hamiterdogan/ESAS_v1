@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
@@ -1856,9 +1858,8 @@ class _DokumantasyonIstekDetayScreenState
     String fileName, {
     bool isLast = false,
   }) {
-    const String baseUrl =
-        'https://esas.eyuboglu.k12.tr/TestDosyalar/DokumantasyonIstek/';
-    final String fileUrl = '$baseUrl$fileName';
+    final String fileUrl =
+        '${AppConstants.fileServerBaseUrl}DokumantasyonIstek/$fileName';
 
     // Dosya uzantısını kontrol et
     final extension = fileName.toLowerCase().split('.').last;

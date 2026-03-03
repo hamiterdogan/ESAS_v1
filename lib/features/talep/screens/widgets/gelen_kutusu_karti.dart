@@ -8,6 +8,7 @@ import 'package:esas_v1/common/widgets/swipeable_detay_wrapper.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/models/result.dart'; // Result tipi için import
 import 'package:go_router/go_router.dart';
+import 'package:flutter/foundation.dart';
 
 /// Gelen Kutusu kartı widget'ı - Gelen Kutusu listesindeki kartlar
 class GelenKutusuKarti extends ConsumerStatefulWidget {
@@ -175,7 +176,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
 
     try {
       final repository = ref.read(talepYonetimRepositoryProvider);
-      
+
       // OnayDurumuGuncelleRequest oluştur
       // Not: Beklet kademe vs. şuan varsayılan null/false
       final request = OnayDurumuGuncelleRequest(
@@ -238,7 +239,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
 
   bool _shouldShowQuickActions() {
     final currentUser = ref.watch(currentKullaniciAdiProvider);
-    
+
     // 1. Kullanıcı CEYUBOGLU mu?
     if (currentUser != 'CEYUBOGLU') return false;
 
@@ -247,7 +248,8 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
 
     // 3. Onay bekleyen bir durum mu? (Basitçe 'Onay Bekliyor' içerenler)
     final durumLower = widget.talep.onayDurumu.toLowerCase();
-    if (!durumLower.contains('onay bekliyor') && !durumLower.contains('devam eden')) {
+    if (!durumLower.contains('onay bekliyor') &&
+        !durumLower.contains('devam eden')) {
       return false;
     }
 
@@ -267,10 +269,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: _isUnread
-            ? const BorderSide(
-                color: Color(0x33004D40),
-                width: 1.5,
-              )
+            ? const BorderSide(color: Color(0x33004D40), width: 1.5)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -402,9 +401,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
                 style: TextStyle(
                   fontSize: _isUnread ? 18 : 17,
                   color: _isUnread ? AppColors.primary : Colors.black,
-                  fontWeight: _isUnread
-                      ? FontWeight.w700
-                      : FontWeight.normal,
+                  fontWeight: _isUnread ? FontWeight.w700 : FontWeight.normal,
                 ),
               ),
               const SizedBox(height: 4),
@@ -470,7 +467,7 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
                   color: AppColors.textTertiary,
                 ),
               ),
-              
+
               // Hızlı Aksiyon Butonları (Sadece CEYUBOGLU & Devam Eden)
               if (showActions) ...[
                 const SizedBox(height: 12),
@@ -479,59 +476,59 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
                 if (_isLoading)
                   const Center(
                     child: SizedBox(
-                      width: 24, 
-                      height: 24, 
+                      width: 24,
+                      height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
                 else
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => _handleQuickAction(true), // Onayla
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.success,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _handleQuickAction(true), // Onayla
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.success,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Onayla',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => _handleQuickAction(false), // Reddet
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Reddet',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                          child: const Text(
+                            'Onayla',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _handleQuickAction(false), // Reddet
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.error,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Reddet',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ],
           ),

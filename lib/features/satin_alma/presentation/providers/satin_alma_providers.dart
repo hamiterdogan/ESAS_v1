@@ -8,7 +8,7 @@ import 'package:esas_v1/features/satin_alma/presentation/providers/satin_alma_fo
 import 'package:esas_v1/common/providers/file_attachment_provider.dart';
 
 // Repository
-final satinAlmaRepositoryProvider = Provider<ISatinAlmaRepository>((ref) {
+final satinAlmaTalepFormRepositoryProvider = Provider<ISatinAlmaRepository>((ref) {
   final dio = ref.watch(dioProvider);
   final dataSource = SatinAlmaRemoteDataSource(dio);
   return SatinAlmaRepositoryImpl(dataSource);
@@ -17,18 +17,18 @@ final satinAlmaRepositoryProvider = Provider<ISatinAlmaRepository>((ref) {
 // UseCase
 final createSatinAlmaTalepUseCaseProvider =
     Provider<CreateSatinAlmaTalepUseCase>((ref) {
-      final repository = ref.watch(satinAlmaRepositoryProvider);
+      final repository = ref.watch(satinAlmaTalepFormRepositoryProvider);
       return CreateSatinAlmaTalepUseCase(repository);
     });
 
 // Providers for Lists
 final binalarProvider = FutureProvider.autoDispose<List<dynamic>>(
-  (ref) async => (await ref.watch(satinAlmaRepositoryProvider).getBinalar())
+  (ref) async => (await ref.watch(satinAlmaTalepFormRepositoryProvider).getBinalar())
       .when(success: (d) => d, failure: (e) => throw e),
 );
 final anaKategorilerProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
-      (await ref.watch(satinAlmaRepositoryProvider).getAnaKategoriler()).when(
+      (await ref.watch(satinAlmaTalepFormRepositoryProvider).getAnaKategoriler()).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),
@@ -36,23 +36,23 @@ final anaKategorilerProvider = FutureProvider.autoDispose<List<dynamic>>(
 final altKategorilerProvider = FutureProvider.autoDispose
     .family<List<dynamic>, int>(
       (ref, id) async =>
-          (await ref.watch(satinAlmaRepositoryProvider).getAltKategoriler(id))
+          (await ref.watch(satinAlmaTalepFormRepositoryProvider).getAltKategoriler(id))
               .when(success: (d) => d, failure: (e) => throw e),
     );
 final birimlerProvider = FutureProvider.autoDispose<List<dynamic>>(
-  (ref) async => (await ref.watch(satinAlmaRepositoryProvider).getBirimler())
+  (ref) async => (await ref.watch(satinAlmaTalepFormRepositoryProvider).getBirimler())
       .when(success: (d) => d, failure: (e) => throw e),
 );
 final paraBirimleriProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
-      (await ref.watch(satinAlmaRepositoryProvider).getParaBirimleri()).when(
+      (await ref.watch(satinAlmaTalepFormRepositoryProvider).getParaBirimleri()).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),
 );
 final odemeSekilleriProvider = FutureProvider.autoDispose<List<dynamic>>(
   (ref) async =>
-      (await ref.watch(satinAlmaRepositoryProvider).getOdemeSekilleri()).when(
+      (await ref.watch(satinAlmaTalepFormRepositoryProvider).getOdemeSekilleri()).when(
         success: (d) => d,
         failure: (e) => throw e,
       ),

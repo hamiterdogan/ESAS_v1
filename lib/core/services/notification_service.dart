@@ -186,6 +186,7 @@ class NotificationService {
       }
 
       // Token yenilendiğinde eski kaydı sıfırla ve yeniden kayıt yap
+      await _tokenRefreshSubscription?.cancel();
       _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((
         newToken,
       ) async {

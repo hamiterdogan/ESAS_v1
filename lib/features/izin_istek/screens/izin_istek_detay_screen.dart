@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -1318,9 +1319,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
     String fileName, {
     bool isLast = false,
   }) {
-    const String baseUrl =
-        'https://esas.eyuboglu.k12.tr/TestDosyalar/IzinIstek/';
-    final String fileUrl = '$baseUrl$fileName';
+    final String fileUrl = '${AppConstants.fileServerBaseUrl}IzinIstek/$fileName';
 
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
