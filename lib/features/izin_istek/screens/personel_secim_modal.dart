@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 
 class PersonelSecimModal extends ConsumerWidget {
@@ -68,7 +69,7 @@ class PersonelSecimModal extends ConsumerWidget {
                       color: AppColors.error,
                     ),
                     const SizedBox(height: 16),
-                    Text('Hata: $error'),
+                    Text(AppDialogs.userFriendlyErrorMessage(error)),
                   ],
                 ),
               ),

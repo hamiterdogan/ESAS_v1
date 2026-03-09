@@ -671,7 +671,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
                     await emailService.emailIcerikOlustur(
                       id: result.data,
                       kategori: 'İzin İstek',
-                      aksiyon: 'Oluşturuldu',
+                      aksiyon: 'Onay Bekliyor',
                     );
                   }
                 }

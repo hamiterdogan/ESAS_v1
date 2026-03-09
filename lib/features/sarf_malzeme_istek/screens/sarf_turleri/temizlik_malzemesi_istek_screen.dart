@@ -268,8 +268,8 @@ class _TemizlikMalzemesiIstekScreenState
             final emailService = ref.read(emailServiceProvider);
             await emailService.emailIcerikOlustur(
               id: result.data,
-              kategori: 'Temizlik Malzemesi',
-              aksiyon: 'Oluşturuldu',
+              kategori: 'Sarf Malzeme İstek',
+              aksiyon: 'Onay Bekliyor',
             );
           }
         }

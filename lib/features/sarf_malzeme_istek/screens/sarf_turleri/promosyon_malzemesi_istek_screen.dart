@@ -269,8 +269,8 @@ class _PromosyonMalzemesiIstekScreenState
             final emailService = ref.read(emailServiceProvider);
             await emailService.emailIcerikOlustur(
               id: result.data,
-              kategori: 'Promosyon Malzemesi',
-              aksiyon: 'Oluşturuldu',
+              kategori: 'Sarf Malzeme İstek',
+              aksiyon: 'Onay Bekliyor',
             );
           }
         }

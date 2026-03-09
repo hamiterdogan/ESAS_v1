@@ -1396,7 +1396,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           await emailService.emailIcerikOlustur(
             id: data,
             kategori: 'Araç İstek',
-            aksiyon: 'Oluşturuldu',
+            aksiyon: 'Onay Bekliyor',
           );
         }
         return;

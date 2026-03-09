@@ -9,6 +9,10 @@ final emailServiceProvider = Provider<EmailService>((ref) {
 
 class EmailService {
   final Dio _dio;
+  final Map<String, Future<void>> _pendingRequests = {};
+  final Map<String, DateTime> _recentRequests = {};
+
+  static const Duration _duplicateWindow = Duration(seconds: 5);
 
   EmailService(this._dio);
 
@@ -17,15 +21,49 @@ class EmailService {
     required String kategori,
     required String aksiyon,
   }) async {
+    final requestKey = '$id|$kategori|$aksiyon';
+    final now = DateTime.now();
+    final lastSentAt = _recentRequests[requestKey];
+
+    if (lastSentAt != null && now.difference(lastSentAt) < _duplicateWindow) {
+      log('Duplicate email trigger skipped for $requestKey');
+      return;
+    }
+
+    final pendingRequest = _pendingRequests[requestKey];
+    if (pendingRequest != null) {
+      log('In-flight email trigger reused for $requestKey');
+      return pendingRequest;
+    }
+
+    final requestFuture = _sendEmailRequest(
+      id: id,
+      kategori: kategori,
+      aksiyon: aksiyon,
+      requestKey: requestKey,
+    );
+
+    _pendingRequests[requestKey] = requestFuture;
+
+    try {
+      await requestFuture;
+    } finally {
+      _pendingRequests.remove(requestKey);
+    }
+  }
+
+  Future<void> _sendEmailRequest({
+    required int id,
+    required String kategori,
+    required String aksiyon,
+    required String requestKey,
+  }) async {
     try {
       await _dio.post(
         '/Email/EmailIcerikOlustur',
-        data: {
-          'id': id,
-          'kategori': kategori,
-          'aksiyon': aksiyon,
-        },
+        data: {'id': id, 'kategori': kategori, 'aksiyon': aksiyon},
       );
+      _recentRequests[requestKey] = DateTime.now();
       log('Email trigger sent for id: $id, kategori: $kategori');
     } catch (e) {
       log('Email trigger failed: $e');

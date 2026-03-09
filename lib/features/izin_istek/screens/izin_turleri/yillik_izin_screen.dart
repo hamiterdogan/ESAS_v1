@@ -670,7 +670,7 @@ class _YillikIzinScreenState extends ConsumerState<YillikIzinScreen> {
                     await emailService.emailIcerikOlustur(
                       id: result.data,
                       kategori: 'İzin İstek',
-                      aksiyon: 'Oluşturuldu',
+                      aksiyon: 'Onay Bekliyor',
                     );
                   }
                 }

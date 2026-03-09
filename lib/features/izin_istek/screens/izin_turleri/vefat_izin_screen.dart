@@ -665,7 +665,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
                     await emailService.emailIcerikOlustur(
                       id: result.data,
                       kategori: 'İzin İstek',
-                      aksiyon: 'Oluşturuldu',
+                      aksiyon: 'Onay Bekliyor',
                     );
                   }
                 }

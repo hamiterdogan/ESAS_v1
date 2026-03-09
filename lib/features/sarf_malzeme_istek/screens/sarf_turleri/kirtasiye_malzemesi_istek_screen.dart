@@ -269,8 +269,8 @@ class _KirtasiyeMalzemesiIstekScreenState
             final emailService = ref.read(emailServiceProvider);
             await emailService.emailIcerikOlustur(
               id: result.data,
-              kategori: 'Kırtasiye Malzemesi',
-              aksiyon: 'Oluşturuldu',
+              kategori: 'Sarf Malzeme İstek',
+              aksiyon: 'Onay Bekliyor',
             );
           }
         }

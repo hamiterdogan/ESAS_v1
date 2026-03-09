@@ -1228,7 +1228,9 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                                   onPressed: (_) async {
                                     if (!mounted) return;
                                     final result =
-                                        await Navigator.push<SatinAlmaUrunBilgisi>(
+                                        await Navigator.push<
+                                          SatinAlmaUrunBilgisi
+                                        >(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
@@ -2238,7 +2240,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
                     await emailService.emailIcerikOlustur(
                       id: data,
                       kategori: 'Satın Alma',
-                      aksiyon: 'Oluşturuldu',
+                      aksiyon: 'Onay Bekliyor',
                     );
                   }
                   return;

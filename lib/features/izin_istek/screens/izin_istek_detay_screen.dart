@@ -6,6 +6,7 @@ import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_istek_detay_model.dart';
@@ -120,7 +121,7 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
             Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-              'Detay yüklenemedi\n$error',
+              AppDialogs.userFriendlyErrorMessage(error),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.error),
             ),
@@ -1134,7 +1135,6 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
         multiLine: false,
       ),
     );
-
 
     // İzinde Bulunacağı Adres - her zaman göster (son eleman)
     rows.add(

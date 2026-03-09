@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 
 class IzinDetayScreen extends ConsumerWidget {
@@ -25,7 +26,7 @@ class IzinDetayScreen extends ConsumerWidget {
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
-            Text('Hata: $error'),
+            Text(AppDialogs.userFriendlyErrorMessage(error)),
           ],
         ),
       ),

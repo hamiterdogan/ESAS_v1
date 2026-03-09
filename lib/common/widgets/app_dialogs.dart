@@ -4,6 +4,44 @@ import 'package:esas_v1/core/constants/app_colors.dart';
 class AppDialogs {
   AppDialogs._();
 
+  static const String genericErrorMessage = 'Bir hata oluştu';
+
+  static String userFriendlyErrorMessage(
+    Object? error, {
+    String fallback = genericErrorMessage,
+  }) {
+    final rawMessage = error?.toString().trim() ?? '';
+    if (rawMessage.isEmpty) return fallback;
+
+    final normalizedMessage = rawMessage.toLowerCase();
+    const technicalPatterns = [
+      'exception:',
+      'dioexception',
+      'socketexception',
+      'requestoptions.validatestatus',
+      'status code of',
+      'response has a status code',
+      'xmlhttprequest',
+      'formatexception',
+      'typeerror',
+      'stack trace',
+      'null check operator',
+      'developer.mozilla.org',
+    ];
+
+    for (final pattern in technicalPatterns) {
+      if (normalizedMessage.contains(pattern)) {
+        return fallback;
+      }
+    }
+
+    if (rawMessage.length > 140) {
+      return fallback;
+    }
+
+    return rawMessage.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+  }
+
   static Future<bool> showFormExitConfirm(BuildContext context) async {
     return await showModalBottomSheet<bool>(
           context: context,
@@ -146,7 +184,7 @@ class AppDialogs {
             Text('Hata'),
           ],
         ),
-        content: Text(message),
+        content: Text(userFriendlyErrorMessage(message)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -156,6 +194,7 @@ class AppDialogs {
       ),
     );
   }
+
   static Future<bool> showConfirmation(
     BuildContext context,
     String message, {

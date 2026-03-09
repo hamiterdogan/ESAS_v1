@@ -12,7 +12,6 @@ import 'package:esas_v1/core/screens/pdf_viewer_screen.dart';
 import 'package:esas_v1/core/screens/image_viewer_screen.dart';
 import 'dart:io';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_detay_model.dart';
-import 'package:esas_v1/features/satin_alma/models/odeme_turu.dart'; // Added
 import 'package:esas_v1/features/satin_alma/models/satin_alma_guncelle_req.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/providers/file_attachment_provider.dart';
@@ -85,12 +84,44 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   // Added for update feature
   final TextEditingController _odemeVadesiController = TextEditingController();
   DateTime? _selectedSonTeslimTarihi;
-  OdemeTuru? _selectedOdemeSekli;
 
   bool _paymentFieldsInitialized = false;
 
   late final TalepYonetimRepository _talepYonetimRepository;
   late final dynamic _devamEdenGelenKutusuNotifier;
+
+  DateTime? _tryParseTarih(String tarih) {
+    try {
+      return DateTime.tryParse(tarih);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _syncEditableFieldsFromDetay(
+    SatinAlmaDetayResponse detay, {
+    bool force = false,
+  }) {
+    if (force || !_vendorFieldsInitialized) {
+      _saticiFirmaController.text = detay.saticiFirma;
+      _saticiTelefonController.text = detay.saticiTel ?? '';
+      _webSitesiController.text = detay.webSitesi ?? '';
+      _selectedSonTeslimTarihi = _tryParseTarih(detay.sonTeslimTarihi);
+      _vendorFieldsInitialized = true;
+    }
+
+    if (force || !_paymentFieldsInitialized) {
+      _selectedOdemeSekliId = detay.odemeSekliId > 0
+          ? detay.odemeSekliId
+          : null;
+      _isPesin = detay.pesin;
+      _vadeGun = detay.odemeVadesiGun > 0 ? detay.odemeVadesiGun : 30;
+      _odemeVadesiController.text = detay.odemeVadesiGun > 0
+          ? '${detay.odemeVadesiGun}'
+          : '';
+      _paymentFieldsInitialized = true;
+    }
+  }
 
   Future<void> _refreshDetayData() async {
     final onayDurumuArgs = (talepId: widget.talepId, onayTipi: 'Satın Alma');
@@ -108,6 +139,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     setState(() {
       _localUrunler = List.from(refreshedDetay.detay.urunlerSatir);
       _dovizKurlariGuncellendi = false;
+      _syncEditableFieldsFromDetay(refreshedDetay.detay, force: true);
     });
 
     await _updateDovizKurlari();
@@ -156,24 +188,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
           _updateDovizKurlari();
         }
 
-        // Initialize vendor fields once
-        if (!_vendorFieldsInitialized) {
-          _saticiFirmaController.text = paralelData.detay.saticiFirma;
-          _saticiTelefonController.text = paralelData.detay.saticiTel ?? '';
-          _webSitesiController.text = paralelData.detay.webSitesi ?? '';
-          _vendorFieldsInitialized = true;
-        }
-
-        // Initialize payment fields once
-        if (!_paymentFieldsInitialized) {
-          _selectedOdemeSekliId = paralelData.detay.odemeSekliId;
-          _isPesin = paralelData.detay.pesin;
-          _vadeGun = paralelData.detay.odemeVadesiGun ?? 30;
-          if (_vadeGun == 0)
-            _vadeGun =
-                30; // Default to 30 if 0 comes from API for non-pesin (safety)
-          _paymentFieldsInitialized = true;
-        }
+        _syncEditableFieldsFromDetay(paralelData.detay);
 
         return _buildContent(
           context,
@@ -364,11 +379,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                             saticiFirma: _saticiFirmaController.text,
                             saticiTel: _saticiTelefonController.text,
                             webSitesi: _webSitesiController.text,
-                            odemeSekliId: _selectedOdemeSekli?.id,
-                            odemeVadesiGun: int.tryParse(
-                              _odemeVadesiController.text,
-                            ),
-                            pesin: _selectedOdemeSekli?.id == 1,
+                            odemeSekliId: _selectedOdemeSekliId,
+                            odemeVadesiGun: _isPesin ? 0 : _vadeGun,
+                            pesin: _isPesin,
                             urunSatir: urunSatirListesi,
                           );
 
@@ -383,13 +396,8 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                             AppDialogs.showSuccess(
                               context,
                               'Güncelleme başarılı.',
-                              onOk: () {
-                                ref.invalidate(
-                                  satinAlmaDetayProvider(widget.talepId),
-                                );
-                                ref.invalidate(
-                                  satinAlmaDetayParalelProvider(widget.talepId),
-                                );
+                              onOk: () async {
+                                await _refreshDetayData();
                               },
                             );
                           } else if (result is Failure) {
@@ -671,7 +679,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-              'Detay yüklenemedi\n$error',
+              AppDialogs.userFriendlyErrorMessage(error),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.error),
             ),
@@ -722,12 +730,10 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     // Date Formatting
     String teslimTarihiStr = detay.sonTeslimTarihi;
     DateTime? parsedDate;
-    try {
-      parsedDate = DateTime.tryParse(detay.sonTeslimTarihi);
-      if (parsedDate != null) {
-        teslimTarihiStr = DateFormat('dd.MM.yyyy').format(parsedDate);
-      }
-    } catch (_) {}
+    parsedDate = _tryParseTarih(detay.sonTeslimTarihi);
+    if (parsedDate != null) {
+      teslimTarihiStr = DateFormat('dd.MM.yyyy').format(parsedDate);
+    }
 
     final kullaniciAdi = ref.watch(currentKullaniciAdiProvider);
     final bool canEdit =
@@ -744,9 +750,6 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
     }
 
     if (canEdit) {
-      // Initialize if first load
-      _selectedSonTeslimTarihi ??= parsedDate;
-
       items.add(MapEntry('Son Teslim Tarihi', 'EDITABLE_DATE'));
     } else {
       items.add(MapEntry('Son Teslim Tarihi', teslimTarihiStr));
@@ -2311,6 +2314,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                           onTap: () {
                             setState(() {
                               _isPesin = true;
+                              _odemeVadesiController.clear();
                             });
                             Navigator.pop(context);
                           },
@@ -2326,6 +2330,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
                           onTap: () {
                             setState(() {
                               _isPesin = false;
+                              _odemeVadesiController.text = '$_vadeGun';
                             });
                             Navigator.pop(context);
                           },
@@ -2379,6 +2384,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
               onValueChanged: (val) {
                 setState(() {
                   _vadeGun = val;
+                  _odemeVadesiController.text = '$val';
                 });
               },
             ),

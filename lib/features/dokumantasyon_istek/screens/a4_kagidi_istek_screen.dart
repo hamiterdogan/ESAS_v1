@@ -13,6 +13,7 @@ import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/repositories/dokumantasyon_istek_repository.dart';
 import 'package:esas_v1/features/dokumantasyon_istek/providers/dokumantasyon_talep_providers.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 import 'package:esas_v1/core/models/result.dart'; // Ensure Result import
 
 class A4KagidiIstekScreen extends ConsumerStatefulWidget {
@@ -122,6 +123,13 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
 
           if (result is Failure<int>) {
             throw Exception(result.message);
+          } else if (result is Success<int> && result.data > 0) {
+            final emailService = ref.read(emailServiceProvider);
+            await emailService.emailIcerikOlustur(
+              id: result.data,
+              kategori: 'Dokümantasyon İstek',
+              aksiyon: 'Onay Bekliyor',
+            );
           }
         },
         onSuccess: () async {

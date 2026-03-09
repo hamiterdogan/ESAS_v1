@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
@@ -345,7 +346,7 @@ class _TeknikDestekDetayScreenState
             Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-              'Detay yüklenemedi\n$error',
+              AppDialogs.userFriendlyErrorMessage(error),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.error),
             ),
@@ -1053,12 +1054,8 @@ class _TeknikDestekDetayScreenState
                       sendOnlyMode: true,
                       onSend: (aciklama) async {
                         try {
-                          final repo = ref.read(
-                            bilgiTeknolojileriIstekRepositoryProvider,
-                          );
-
                           // 1. Send Message
-                          final messageResult = await repo.aciklamaYaz(
+                          final messageResult = await _btRepository.aciklamaYaz(
                             teknikDestekId: widget.talepId,
                             aciklama: aciklama,
                           );
@@ -1076,9 +1073,9 @@ class _TeknikDestekDetayScreenState
                             return;
                           }
 
-                          // 2. Upload Files (if any)
+                          // 2. Upload Files first when the user attached any file.
                           if (_selectedFiles.isNotEmpty) {
-                            final uploadResult = await repo
+                            final uploadResult = await _btRepository
                                 .teknikDestekCozumDosyaYukle(
                                   onayKayitId: widget.talepId,
                                   onayTipi: 'Teknik Destek',
@@ -1096,15 +1093,13 @@ class _TeknikDestekDetayScreenState
                                   backgroundColor: AppColors.error,
                                 ),
                               );
-                              // We don't return here because the message was sent successfully
+                              return;
                             }
                           }
 
                           if (!context.mounted) return;
 
-                          // Email notification logic
-                          final emailService = ref.read(emailServiceProvider);
-                          await emailService.emailIcerikOlustur(
+                          await _emailService.emailIcerikOlustur(
                             id: widget.talepId,
                             kategori: 'Teknik Destek',
                             aksiyon: 'Devam Ediyor',
@@ -1119,9 +1114,7 @@ class _TeknikDestekDetayScreenState
                             ),
                           );
 
-                          ref
-                              .read(devamEdenGelenKutusuProvider.notifier)
-                              .refresh();
+                          _devamEdenGelenKutusuNotifier.refresh();
                           ref.invalidate(
                             teknikDestekDetayProvider(widget.talepId),
                           ); // Refresh details to show new message

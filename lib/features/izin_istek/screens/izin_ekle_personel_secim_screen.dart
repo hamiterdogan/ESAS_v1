@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
 import 'package:esas_v1/features/personel/models/personel_models.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 
 class IzinEklePersonelSecimScreen extends ConsumerWidget {
   const IzinEklePersonelSecimScreen({super.key});
@@ -86,7 +87,7 @@ class IzinEklePersonelSecimScreen extends ConsumerWidget {
                         color: AppColors.error,
                       ),
                       const SizedBox(height: 16),
-                      Text('Hata: $error'),
+                      Text(AppDialogs.userFriendlyErrorMessage(error)),
                     ],
                   ),
                 ),

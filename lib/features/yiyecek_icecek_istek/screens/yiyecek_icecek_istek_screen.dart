@@ -888,7 +888,7 @@ class _YiyecekIcecekIstekScreenState
           await emailService.emailIcerikOlustur(
             id: onayKayitId,
             kategori: 'Yiyecek İçecek',
-            aksiyon: 'Oluşturuldu',
+            aksiyon: 'Onay Bekliyor',
           );
         }
       },

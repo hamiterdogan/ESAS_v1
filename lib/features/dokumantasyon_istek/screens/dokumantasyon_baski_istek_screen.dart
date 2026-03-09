@@ -990,7 +990,7 @@ class _DokumantasyonBaskiIstekScreenState
               await emailService.emailIcerikOlustur(
                 id: result.data,
                 kategori: 'Dokümantasyon İstek',
-                aksiyon: 'Oluşturuldu',
+                aksiyon: 'Onay Bekliyor',
               );
             }
           }

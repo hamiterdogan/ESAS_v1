@@ -11,6 +11,7 @@ import 'package:esas_v1/features/arac_istek/models/arac_istek_ekle_req.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_talep_form_models.dart';
 import 'package:esas_v1/features/arac_istek/widgets/yer_ekle_button.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_talep_providers.dart';
+import 'package:esas_v1/core/services/email_service.dart';
 
 class AracIstekYukEkleScreen extends ConsumerStatefulWidget {
   final int tuId;
@@ -831,7 +832,15 @@ class _AracIstekYukEkleScreenState
     final result = await repo.aracIstekEkle(req);
 
     switch (result) {
-      case Success():
+      case Success(:final data):
+        if (data != null && data > 0) {
+          final emailService = ref.read(emailServiceProvider);
+          await emailService.emailIcerikOlustur(
+            id: data,
+            kategori: 'Araç İstek',
+            aksiyon: 'Onay Bekliyor',
+          );
+        }
         return;
       case Failure(:final message):
         throw Exception(message);

@@ -329,138 +329,160 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Dini Gün Seçimi (BottomSheet)
-                  Consumer(builder: (context, ref, child) {
-                    final currentPersonelId = ref.watch(currentPersonelIdProvider);
-                    final personelId = _secilenPersonel?.personelId ?? currentPersonelId;
-                    final personelBilgiAsync = ref.watch(personelBilgiByIdProvider(personelId));
-                    
-                    return personelBilgiAsync.when(
-                      data: (personelBilgi) {
-                        final stringDini = personelBilgi.dini?.trim().toLowerCase();
-                        if (stringDini == 'islam' || stringDini == 'i̇slam') {
-                          return const SizedBox.shrink();
-                        }
-                        
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Dini Gün',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontSize:
-                                    (Theme.of(
-                                          context,
-                                        ).textTheme.titleSmall?.fontSize ??
-                                        14) +
-                                    1,
-                                color: AppColors.inputLabelColor,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Consumer(
-                              builder: (context, ref, child) {
-                                final diniGunlerAsync = ref.watch(
-                                  diniGunlerProvider(personelId),
-                                );
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final currentPersonelId = ref.watch(
+                        currentPersonelIdProvider,
+                      );
+                      final personelId =
+                          _secilenPersonel?.personelId ?? currentPersonelId;
+                      final personelBilgiAsync = ref.watch(
+                        personelBilgiByIdProvider(personelId),
+                      );
 
-                                return diniGunlerAsync.when(
-                                  data: (gunler) {
-                                    if (gunler.isEmpty) {
-                                      return const Text(
-                                        'Dini gün bulunamadı',
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 13,
+                      return personelBilgiAsync.when(
+                        data: (personelBilgi) {
+                          final stringDini = personelBilgi.dini
+                              ?.trim()
+                              .toLowerCase();
+                          if (stringDini == 'islam' || stringDini == 'i̇slam') {
+                            return const SizedBox.shrink();
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Dini Gün',
+                                style: Theme.of(context).textTheme.titleSmall
+                                    ?.copyWith(
+                                      fontSize:
+                                          (Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall
+                                                  ?.fontSize ??
+                                              14) +
+                                          1,
+                                      color: AppColors.inputLabelColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              Consumer(
+                                builder: (context, ref, child) {
+                                  final diniGunlerAsync = ref.watch(
+                                    diniGunlerProvider(personelId),
+                                  );
+
+                                  return diniGunlerAsync.when(
+                                    data: (gunler) {
+                                      if (gunler.isEmpty) {
+                                        return const Text(
+                                          'Dini gün bulunamadı',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 13,
+                                          ),
+                                        );
+                                      }
+
+                                      // Index sınırlarını kontrol et
+                                      if (_secilenDiniGunIndex >=
+                                          gunler.length) {
+                                        _secilenDiniGunIndex = 0;
+                                      }
+
+                                      // Seçilen dini gün adını güncelle
+                                      final secilenGunAdi =
+                                          _secilenDiniGunAdi ??
+                                          gunler[_secilenDiniGunIndex].izinGunu;
+
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _showDiniGunBottomSheet(gunler);
+                                        },
+                                        child: Container(
+                                          height: 46,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: AppColors.border,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            color: AppColors.textOnPrimary,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  secilenGunAdi,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    color:
+                                                        AppColors.textPrimary,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.arrow_drop_down,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       );
-                                    }
-
-                                    // Index sınırlarını kontrol et
-                                    if (_secilenDiniGunIndex >= gunler.length) {
-                                      _secilenDiniGunIndex = 0;
-                                    }
-
-                                    // Seçilen dini gün adını güncelle
-                                    final secilenGunAdi =
-                                        _secilenDiniGunAdi ??
-                                        gunler[_secilenDiniGunIndex].izinGunu;
-
-                                    return GestureDetector(
-                                      onTap: () {
-                                        _showDiniGunBottomSheet(gunler);
-                                      },
-                                      child: Container(
-                                        height: 46,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: AppColors.border),
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: AppColors.textOnPrimary,
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                secilenGunAdi,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  color: AppColors.textPrimary,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                    },
+                                    loading: () => const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                AppColors.primary,
                                               ),
-                                            ),
-                                            const Icon(
-                                              Icons.arrow_drop_down,
-                                              color: AppColors.textPrimary,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  loading: () => const Center(
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          AppColors.primary,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  error: (error, stack) => Text(
-                                    'Hata: $error',
-                                    style: const TextStyle(
-                                      color: AppColors.error,
-                                      fontSize: 12,
+                                    error: (error, stack) => Text(
+                                      'Hata: $error',
+                                      style: const TextStyle(
+                                        color: AppColors.error,
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          );
+                        },
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
                             ),
-                            const SizedBox(height: 24),
-                          ],
-                        );
-                      },
-                      loading: () => const Center(
-                        child: Padding(
-                           padding: EdgeInsets.symmetric(vertical: 16.0),
-                           child: SizedBox(
-                             width: 24,
-                             height: 24,
-                             child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                           ),
+                          ),
                         ),
-                      ),
-                      error: (e, st) => const SizedBox.shrink(),
-                    );
-                  }),
+                        error: (e, st) => const SizedBox.shrink(),
+                      );
+                    },
+                  ),
 
                   // Girilmeyen Ders Saati Spinner
                   NumericSpinnerWidget(
@@ -632,7 +654,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           // Başkası adına istekte bulunuluyorsa onun ID'si, değilse dini günleri çekmek için current user
           final personelIdForDiniGun =
               _secilenPersonel?.personelId ?? currentPersonelId;
-              
+
           final personelBilgi = await ref.read(
             personelBilgiByIdProvider(personelIdForDiniGun).future,
           );
@@ -685,7 +707,8 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 value: _formatDate(bitisTarih),
                 multiLine: false,
               ),
-              if (!isIslam) IzinOzetItem(label: 'Dini Gün', value: secilenDiniGun),
+              if (!isIslam)
+                IzinOzetItem(label: 'Dini Gün', value: secilenDiniGun),
               IzinOzetItem(
                 label: 'Girilmeyen Toplam Ders Saati',
                 value: _girileymeyenDersSaati.toString(),
@@ -713,7 +736,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                     await emailService.emailIcerikOlustur(
                       id: result.data,
                       kategori: 'İzin İstek',
-                      aksiyon: 'Oluşturuldu',
+                      aksiyon: 'Onay Bekliyor',
                     );
                   }
                 }

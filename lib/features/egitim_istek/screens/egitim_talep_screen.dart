@@ -3566,7 +3566,7 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
             await emailService.emailIcerikOlustur(
               id: result.data,
               kategori: 'Eğitim İstek',
-              aksiyon: 'Oluşturuldu',
+              aksiyon: 'Onay Bekliyor',
             );
           }
         }

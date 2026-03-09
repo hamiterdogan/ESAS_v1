@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/models/result.dart';
+import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/screens/bilgi_teknolojileri_hizmet_ekle_screen.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/bilgi_teknolojileri_hizmet_data.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/models/teknik_destek_talep_models.dart';
@@ -19,6 +20,7 @@ import 'package:esas_v1/features/satin_alma/models/satin_alma_bina.dart';
 import 'package:esas_v1/features/satin_alma/repositories/satin_alma_repository.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/common_divider.dart';
+import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -292,6 +294,8 @@ class _BilgiTeknolojileriIstekScreenState
   Future<void> _showOzetAndSubmit() async {
     if (!mounted) return;
 
+    final currentPersonelId = ref.read(currentPersonelIdProvider);
+
     // Prepare request
     final hizmetler = _addedHizmetler
         .map(
@@ -303,7 +307,7 @@ class _BilgiTeknolojileriIstekScreenState
         .toList();
 
     final request = TeknikDestekTalepEkleRequest(
-      personelId: 0,
+      personelId: currentPersonelId,
       bina: _resolveSelectedBinaName(),
       hizmetTuru: _resolveHizmetTuruForRequest(),
       aciklama: _aciklamaController.text.trim(),
@@ -445,8 +449,8 @@ class _BilgiTeknolojileriIstekScreenState
             final emailService = ref.read(emailServiceProvider);
             await emailService.emailIcerikOlustur(
               id: response.onayKayitId,
-              kategori: widget.baslik,
-              aksiyon: 'Oluşturuldu',
+              kategori: _resolveEmailKategori(),
+              aksiyon: 'Onay Bekliyor',
             );
           }
         } else {
@@ -478,6 +482,10 @@ class _BilgiTeknolojileriIstekScreenState
       default:
         return 'Bilgi Teknolojileri';
     }
+  }
+
+  String _resolveEmailKategori() {
+    return 'Teknik Destek';
   }
 
   Future<void> _uploadFiles(int onayKayitId) async {
@@ -982,28 +990,38 @@ class _BilgiTeknolojileriIstekScreenState
                               ),
                             ],
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                hizmet.kategori,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: AppColors.textPrimary,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      hizmet.kategori,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    if (hizmet.hizmetDetayi.isNotEmpty)
+                                      Text(
+                                        hizmet.hizmetDetayi,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              if (hizmet.hizmetDetayi.isNotEmpty)
-                                Text(
-                                  hizmet.hizmetDetayi,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              const SizedBox(width: 12),
+                              const CardDuzenlemeIkon(),
                             ],
                           ),
                         ),

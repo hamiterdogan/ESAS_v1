@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/arac_istek/models/arac_istek_detay_model.dart';
 import 'package:esas_v1/features/arac_istek/providers/arac_istek_detay_provider.dart';
@@ -194,7 +195,7 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
             Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-              'Detay yüklenemedi\n$error',
+              AppDialogs.userFriendlyErrorMessage(error),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.error),
             ),

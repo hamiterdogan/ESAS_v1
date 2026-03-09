@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/common/widgets/onay_form_content.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_istek_detay_model.dart';
@@ -203,7 +204,7 @@ class _YiyecekIcecekDetayScreenState
             Icon(Icons.error_outline, size: 80, color: AppColors.error),
             const SizedBox(height: 16),
             Text(
-              'Detay yüklenemedi\n$error',
+              AppDialogs.userFriendlyErrorMessage(error),
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.error),
             ),
@@ -685,7 +686,9 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -729,7 +732,9 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -774,7 +779,9 @@ class _YiyecekIcecekDetayScreenState
 
                     switch (result) {
                       case Success():
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -835,7 +842,9 @@ class _YiyecekIcecekDetayScreenState
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
+                        ref
+                            .read(devamEdenGelenKutusuProvider.notifier)
+                            .refresh();
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(

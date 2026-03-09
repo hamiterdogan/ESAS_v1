@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -57,6 +59,25 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
   bool _showValidationWarning = false;
   bool _isCloseRequestActive = false;
   int? _selectedRating;
+  bool _isActionInProgress = false;
+
+  Future<void> _runGuardedAction(FutureOr<void> Function() action) async {
+    if (_isActionInProgress) return;
+
+    setState(() {
+      _isActionInProgress = true;
+    });
+
+    try {
+      await action();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isActionInProgress = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -123,21 +144,27 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (_aciklamaController.text.trim().isEmpty) {
-                      await ValidationUyariWidget.goster(
-                        context: context,
-                        message: 'Lütfen mesajınızı yazınız',
-                        onDismiss: () {
-                          _aciklamaFocusNode.requestFocus();
+                  onPressed: _isActionInProgress
+                      ? null
+                      : () async {
+                          if (_aciklamaController.text.trim().isEmpty) {
+                            await ValidationUyariWidget.goster(
+                              context: context,
+                              message: 'Lütfen mesajınızı yazınız',
+                              onDismiss: () {
+                                _aciklamaFocusNode.requestFocus();
+                              },
+                            );
+                            return;
+                          }
+                          if (widget.onSend != null) {
+                            await _runGuardedAction(() async {
+                              await widget.onSend!(
+                                _aciklamaController.text.trim(),
+                              );
+                            });
+                          }
                         },
-                      );
-                      return;
-                    }
-                    if (widget.onSend != null) {
-                      widget.onSend!(_aciklamaController.text);
-                    }
-                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
@@ -151,17 +178,28 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Transform.rotate(
-                        angle: -0.7854,
-                        child: const Icon(Icons.send, size: 18),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text('Gönder'),
-                    ],
-                  ),
+                  child: _isActionInProgress
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.textOnPrimary,
+                            ),
+                          ),
+                        )
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Transform.rotate(
+                              angle: -0.7854,
+                              child: const Icon(Icons.send, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text('Gönder'),
+                          ],
+                        ),
                 ),
               ),
             ),
@@ -236,25 +274,41 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                 child: SizedBox(
                   height: 36,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _showConfirmationSheet(
-                        context,
-                        'Onayla',
-                        AppColors.success,
-                        () {
-                          if (widget.onApprove != null) {
-                            widget.onApprove!(_aciklamaController.text);
-                          }
-                        },
-                      );
-                    },
+                    onPressed: _isActionInProgress
+                        ? null
+                        : () {
+                            _showConfirmationSheet(
+                              context,
+                              'Onayla',
+                              AppColors.success,
+                              () async {
+                                if (widget.onApprove == null) return;
+                                await _runGuardedAction(
+                                  () => widget.onApprove!(
+                                    _aciklamaController.text,
+                                  ),
+                                );
+                              },
+                            );
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       foregroundColor: AppColors.textOnPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       textStyle: const TextStyle(fontSize: 17),
                     ),
-                    child: const Text('Onayla'),
+                    child: _isActionInProgress
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.textOnPrimary,
+                              ),
+                            ),
+                          )
+                        : const Text('Onayla'),
                   ),
                 ),
               ),
@@ -263,25 +317,41 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                 child: SizedBox(
                   height: 36,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _showConfirmationSheet(
-                        context,
-                        'Reddet',
-                        AppColors.error,
-                        () {
-                          if (widget.onReject != null) {
-                            widget.onReject!(_aciklamaController.text);
-                          }
-                        },
-                      );
-                    },
+                    onPressed: _isActionInProgress
+                        ? null
+                        : () {
+                            _showConfirmationSheet(
+                              context,
+                              'Reddet',
+                              AppColors.error,
+                              () async {
+                                if (widget.onReject == null) return;
+                                await _runGuardedAction(
+                                  () => widget.onReject!(
+                                    _aciklamaController.text,
+                                  ),
+                                );
+                              },
+                            );
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.error,
                       foregroundColor: AppColors.textOnPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       textStyle: const TextStyle(fontSize: 17),
                     ),
-                    child: const Text('Reddet'),
+                    child: _isActionInProgress
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.textOnPrimary,
+                              ),
+                            ),
+                          )
+                        : const Text('Reddet'),
                   ),
                 ),
               ),
@@ -290,28 +360,44 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                 child: SizedBox(
                   height: 36,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _showConfirmationSheet(
-                        context,
-                        'Geri Gönder',
-                        AppColors.warning,
-                        () {
-                          if (widget.onReturn != null) {
-                            widget.onReturn!(_aciklamaController.text);
-                          }
-                        },
-                      );
-                    },
+                    onPressed: _isActionInProgress
+                        ? null
+                        : () {
+                            _showConfirmationSheet(
+                              context,
+                              'Geri Gönder',
+                              AppColors.warning,
+                              () async {
+                                if (widget.onReturn == null) return;
+                                await _runGuardedAction(
+                                  () => widget.onReturn!(
+                                    _aciklamaController.text,
+                                  ),
+                                );
+                              },
+                            );
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.warning,
                       foregroundColor: AppColors.textOnPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       textStyle: const TextStyle(fontSize: 17),
                     ),
-                    child: const FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text('Geri Gönder'),
-                    ),
+                    child: _isActionInProgress
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.textOnPrimary,
+                              ),
+                            ),
+                          )
+                        : const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text('Geri Gönder'),
+                          ),
                   ),
                 ),
               ),
@@ -344,11 +430,13 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
                         context,
                         'Beklet',
                         Colors.blueGrey,
-                        () {
+                        () async {
                           if (widget.onHold != null) {
-                            widget.onHold!(
-                              _aciklamaController.text,
-                              _bekletKademe,
+                            await Future.sync(
+                              () => widget.onHold!(
+                                _aciklamaController.text,
+                                _bekletKademe,
+                              ),
                             );
                           }
                         },
@@ -420,99 +508,123 @@ class _OnayFormContentState extends ConsumerState<OnayFormContent> {
     BuildContext context,
     String actionName,
     Color color,
-    VoidCallback onConfirm, {
+    Future<void> Function() onConfirm, {
     String? customMessage,
   }) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.scaffoldBackground,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+      builder: (sheetContext) {
+        var isConfirming = false;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) => Container(
+            decoration: const BoxDecoration(
+              color: AppColors.scaffoldBackground,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              customMessage ?? _getConfirmationMessage(actionName),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Row(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.textTertiary),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Vazgeç',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  customMessage ?? _getConfirmationMessage(actionName),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton(
+                          onPressed: isConfirming
+                              ? null
+                              : () => Navigator.pop(sheetContext),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: AppColors.textTertiary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Vazgeç',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Close sheet
-                        onConfirm(); // Execute action
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        actionName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textOnPrimary,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: isConfirming
+                              ? null
+                              : () async {
+                                  setSheetState(() {
+                                    isConfirming = true;
+                                  });
+                                  Navigator.pop(sheetContext);
+                                  await onConfirm();
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: isConfirming
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.textOnPrimary,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  actionName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textOnPrimary,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 60),
               ],
             ),
-            const SizedBox(height: 60),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

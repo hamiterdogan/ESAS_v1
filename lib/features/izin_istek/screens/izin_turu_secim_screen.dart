@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/izin_istek/models/izin_nedeni.dart';
 import 'package:esas_v1/features/izin_istek/providers/izin_istek_providers.dart';
@@ -59,7 +60,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
           children: [
             const Icon(Icons.error_outline, size: 48, color: AppColors.error),
             const SizedBox(height: 16),
-            Text('Hata: $error'),
+            Text(AppDialogs.userFriendlyErrorMessage(error)),
           ],
         ),
       ),
@@ -136,8 +137,7 @@ class _IzinTuruSecimScreenState extends ConsumerState<IzinTuruSecimScreen> {
               ),
               body: body,
             ),
-            if (isLoading)
-              const BrandedLoadingOverlay(),
+            if (isLoading) const BrandedLoadingOverlay(),
           ],
         ),
       ),

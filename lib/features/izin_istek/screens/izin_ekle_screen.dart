@@ -2032,7 +2032,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
           await emailService.emailIcerikOlustur(
             id: data,
             kategori: 'İzin İstek',
-            aksiyon: 'Oluşturuldu',
+            aksiyon: 'Onay Bekliyor',
           );
         }
       }
