@@ -92,11 +92,11 @@ class TalepKarti extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 3,
+      elevation: 2, // Changed to 2 as requested, but with subtle shadow
       // PERFORMANCE: Sabit renk kullan, withValues her build'da yeni Color nesnesi oluşturur
       shadowColor: const Color(
-        0x1F000000,
-      ), // Colors.black.withValues(alpha: 0.12) equivalent
+        0x0C000000,
+      ), // Very subtle shadow (approx 0.05 alpha)
       color: AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(

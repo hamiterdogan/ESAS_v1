@@ -584,9 +584,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
-                    final devamEdenNotifier = ref.read(
-                      devamEdenGelenKutusuProvider.notifier,
-                    );
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -604,7 +601,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                     switch (result) {
                       case Success():
                         // Listeyi yenile ve geri dön
-                        devamEdenNotifier.refresh();
+                        ref.invalidate(devamEdenGelenKutusuProvider);
+                        ref.invalidate(tamamlananGelenKutusuProvider);
+                        ref.invalidate(okunmayanTalepSayisiProvider);
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -633,9 +632,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
-                    final devamEdenNotifier = ref.read(
-                      devamEdenGelenKutusuProvider.notifier,
-                    );
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -652,7 +648,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                     switch (result) {
                       case Success():
-                        devamEdenNotifier.refresh();
+                        ref.invalidate(devamEdenGelenKutusuProvider);
+                        ref.invalidate(tamamlananGelenKutusuProvider);
+                        ref.invalidate(okunmayanTalepSayisiProvider);
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -681,9 +679,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
-                    final devamEdenNotifier = ref.read(
-                      devamEdenGelenKutusuProvider.notifier,
-                    );
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -700,7 +695,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                     switch (result) {
                       case Success():
-                        devamEdenNotifier.refresh();
+                        ref.invalidate(devamEdenGelenKutusuProvider);
+                        ref.invalidate(tamamlananGelenKutusuProvider);
+                        ref.invalidate(okunmayanTalepSayisiProvider);
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -738,9 +735,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
-                    final devamEdenNotifier = ref.read(
-                      devamEdenGelenKutusuProvider.notifier,
-                    );
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: onayTipi,
                       onayKayitId: widget.talepId,
@@ -767,7 +761,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        devamEdenNotifier.refresh();
+                        ref.invalidate(devamEdenGelenKutusuProvider);
+                        ref.invalidate(tamamlananGelenKutusuProvider);
+                        ref.invalidate(okunmayanTalepSayisiProvider);
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -804,9 +800,6 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
 
                   try {
                     final repository = ref.read(talepYonetimRepositoryProvider);
-                    final devamEdenNotifier = ref.read(
-                      devamEdenGelenKutusuProvider.notifier,
-                    );
                     final request = OnayDurumuGuncelleRequest(
                       onayTipi: 'Araç İstek',
                       onayKayitId: widget.talepId,
@@ -832,7 +825,9 @@ class _AracIstekDetayScreenState extends ConsumerState<AracIstekDetayScreen> {
                             backgroundColor: AppColors.success,
                           ),
                         );
-                        devamEdenNotifier.refresh();
+                        ref.invalidate(devamEdenGelenKutusuProvider);
+                        ref.invalidate(tamamlananGelenKutusuProvider);
+                        ref.invalidate(okunmayanTalepSayisiProvider);
                         Navigator.pop(context);
                       case Failure(message: final message):
                         ScaffoldMessenger.of(context).showSnackBar(

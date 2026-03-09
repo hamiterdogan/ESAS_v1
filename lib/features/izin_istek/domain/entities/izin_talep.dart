@@ -17,6 +17,7 @@ class IzinTalep {
   final int? baskaPersonelId;
   final int? dolduranPersonelId;
   final String? diniGun;
+  final String? hastalik;
   final DateTime? dogumTarihi;
   final DateTime? evlilikTarihi;
   final String? esAdi;
@@ -40,6 +41,7 @@ class IzinTalep {
     this.baskaPersonelId,
     this.dolduranPersonelId,
     this.diniGun,
+    this.hastalik,
     this.dogumTarihi,
     this.evlilikTarihi,
     this.esAdi,

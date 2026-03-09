@@ -1131,6 +1131,16 @@ class _DokumantasyonIstekDetayScreenState
         );
       }
 
+      if (detay.ogrenciSayisi != null) {
+        rows.add(
+          _buildInfoRow(
+            'Toplam Öğrenci Sayısı',
+            '${detay.ogrenciSayisi}',
+            multiLine: false,
+          ),
+        );
+      }
+
       if (detay.okullarSatir.isNotEmpty) {
         final siniflar = _buildSelectedClassText(detay.okullarSatir);
         rows.add(
@@ -1314,6 +1324,16 @@ class _DokumantasyonIstekDetayScreenState
     if (detay.dosyaAciklama?.isNotEmpty == true) {
       rows.add(
         _buildInfoRow('Dosya İçeriği', detay.dosyaAciklama!, multiLine: true),
+      );
+    }
+
+    if (detay.ogrenciSayisi != null) {
+      rows.add(
+        _buildInfoRow(
+          'Toplam Öğrenci Sayısı',
+          '${detay.ogrenciSayisi}',
+          multiLine: false,
+        ),
       );
     }
 

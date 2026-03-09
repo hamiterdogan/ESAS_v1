@@ -90,8 +90,8 @@ class _SwipeableDetayWrapperState extends ConsumerState<SwipeableDetayWrapper> {
       _markedAsRead.add(talep.onayKayitId);
 
       // Provider'ları yenile
-      ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
-      ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
+      ref.invalidate(devamEdenGelenKutusuProvider);
+      ref.invalidate(tamamlananGelenKutusuProvider);
       ref.invalidate(okunmayanTalepSayisiProvider);
     } catch (e) {
       // Hata oluşursa sessizce göz ardı et

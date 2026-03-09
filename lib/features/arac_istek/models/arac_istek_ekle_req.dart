@@ -42,7 +42,7 @@ class AracIstekEkleReq {
   Map<String, dynamic> toJson() {
     String formatDate(DateTime date) => date.toUtc().toIso8601String();
 
-    return {
+    final map = <String, dynamic>{
       'personelId': personelId,
       'gidilecekTarih': formatDate(gidilecekTarih),
       'gidisSaat': gidisSaat,
@@ -62,6 +62,13 @@ class AracIstekEkleReq {
       'tasinacakYuk': tasinacakYuk,
       'meb': meb,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }
 

@@ -20,6 +20,7 @@ class IzinTalepModel extends IzinTalep {
     super.baskaPersonelId,
     super.dolduranPersonelId,
     super.diniGun,
+    super.hastalik,
     super.dogumTarihi,
     super.evlilikTarihi,
     super.esAdi,
@@ -45,13 +46,14 @@ class IzinTalepModel extends IzinTalep {
       baskaPersonelId: entity.baskaPersonelId,
       dolduranPersonelId: entity.dolduranPersonelId,
       diniGun: entity.diniGun,
+      hastalik: entity.hastalik,
       dogumTarihi: entity.dogumTarihi,
       evlilikTarihi: entity.evlilikTarihi,
       esAdi: entity.esAdi,
     );
   }
 
- Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     String formatDate(DateTime date) {
       return date.toUtc().toIso8601String();
     }
@@ -70,7 +72,7 @@ class IzinTalepModel extends IzinTalep {
       'FilePath': '',
       'DosyaAciklama': '',
       'DiniGun': diniGun ?? '',
-      'Hastalik': '',
+      'Hastalik': izinSebebiId == 4 ? hastalik : null,
       'EsAdi': esAdi ?? '',
       'EvlilikTarihi': evlilikTarihi != null
           ? formatDate(evlilikTarihi!)
@@ -82,12 +84,12 @@ class IzinTalepModel extends IzinTalep {
 
     // simplified switch, logic copied from request model
     final extraData = <String, dynamic>{
-        'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
-        'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
-        'IzinBitisSaat': izinBitisSaat ?? 17,
-        'IzinBitisDakika': izinBitisDakika ?? 30,
+      'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
+      'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
+      'IzinBitisSaat': izinBitisSaat ?? 17,
+      'IzinBitisDakika': izinBitisDakika ?? 30,
     };
-    
+
     return {...baseData, ...extraData};
   }
 }

@@ -14,6 +14,7 @@ import 'package:esas_v1/features/izin_istek/providers/talep_yonetim_providers.da
 import 'package:esas_v1/core/services/email_service.dart';
 import 'package:esas_v1/features/izin_istek/widgets/guideline_card_with_toggle.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
+import 'package:esas_v1/features/izin_istek/providers/izin_istek_detay_provider.dart';
 
 class DiniIzinScreen extends ConsumerStatefulWidget {
   const DiniIzinScreen({super.key});
@@ -328,119 +329,138 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                   const SizedBox(height: 24),
 
                   // Dini Gün Seçimi (BottomSheet)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dini Gün',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontSize:
-                              (Theme.of(
-                                    context,
-                                  ).textTheme.titleSmall?.fontSize ??
-                                  14) +
-                              1,
-                          color: AppColors.inputLabelColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          // JWT token'dan decode edilen current user PersonelId
-                          final currentPersonelId = ref.watch(
-                            currentPersonelIdProvider,
-                          );
-                          // Başkası adına istekte bulunuluyorsa onun ID'si, değilse current user
-                          final personelId =
-                              _secilenPersonel?.personelId ?? currentPersonelId;
-                          final diniGunlerAsync = ref.watch(
-                            diniGunlerProvider(personelId),
-                          );
-
-                          return diniGunlerAsync.when(
-                            data: (gunler) {
-                              if (gunler.isEmpty) {
-                                return const Text(
-                                  'Dini gün bulunamadı',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 13,
-                                  ),
+                  Consumer(builder: (context, ref, child) {
+                    final currentPersonelId = ref.watch(currentPersonelIdProvider);
+                    final personelId = _secilenPersonel?.personelId ?? currentPersonelId;
+                    final personelBilgiAsync = ref.watch(personelBilgiByIdProvider(personelId));
+                    
+                    return personelBilgiAsync.when(
+                      data: (personelBilgi) {
+                        final stringDini = personelBilgi.dini?.trim().toLowerCase();
+                        if (stringDini == 'islam' || stringDini == 'i̇slam') {
+                          return const SizedBox.shrink();
+                        }
+                        
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dini Gün',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontSize:
+                                    (Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall?.fontSize ??
+                                        14) +
+                                    1,
+                                color: AppColors.inputLabelColor,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final diniGunlerAsync = ref.watch(
+                                  diniGunlerProvider(personelId),
                                 );
-                              }
 
-                              // Index sınırlarını kontrol et
-                              if (_secilenDiniGunIndex >= gunler.length) {
-                                _secilenDiniGunIndex = 0;
-                              }
+                                return diniGunlerAsync.when(
+                                  data: (gunler) {
+                                    if (gunler.isEmpty) {
+                                      return const Text(
+                                        'Dini gün bulunamadı',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 13,
+                                        ),
+                                      );
+                                    }
 
-                              // Seçilen dini gün adını güncelle
-                              final secilenGunAdi =
-                                  _secilenDiniGunAdi ??
-                                  gunler[_secilenDiniGunIndex].izinGunu;
+                                    // Index sınırlarını kontrol et
+                                    if (_secilenDiniGunIndex >= gunler.length) {
+                                      _secilenDiniGunIndex = 0;
+                                    }
 
-                              return GestureDetector(
-                                onTap: () {
-                                  _showDiniGunBottomSheet(gunler);
-                                },
-                                child: Container(
-                                  height: 46,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: AppColors.border),
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: AppColors.textOnPrimary,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          secilenGunAdi,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: AppColors.textPrimary,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
+                                    // Seçilen dini gün adını güncelle
+                                    final secilenGunAdi =
+                                        _secilenDiniGunAdi ??
+                                        gunler[_secilenDiniGunIndex].izinGunu;
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        _showDiniGunBottomSheet(gunler);
+                                      },
+                                      child: Container(
+                                        height: 46,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: AppColors.textOnPrimary,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                secilenGunAdi,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            const Icon(
+                                              Icons.arrow_drop_down,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const Icon(
-                                        Icons.arrow_drop_down,
-                                        color: AppColors.textPrimary,
+                                    );
+                                  },
+                                  loading: () => const Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppColors.primary,
+                                        ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            loading: () => const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primary,
+                                  error: (error, stack) => Text(
+                                    'Hata: $error',
+                                    style: const TextStyle(
+                                      color: AppColors.error,
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
-                            error: (error, stack) => Text(
-                              'Hata: $error',
-                              style: const TextStyle(
-                                color: AppColors.error,
-                                fontSize: 12,
-                              ),
-                            ),
-                          );
-                        },
+                            const SizedBox(height: 24),
+                          ],
+                        );
+                      },
+                      loading: () => const Center(
+                        child: Padding(
+                           padding: EdgeInsets.symmetric(vertical: 16.0),
+                           child: SizedBox(
+                             width: 24,
+                             height: 24,
+                             child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                           ),
+                        ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
+                      error: (e, st) => const SizedBox.shrink(),
+                    );
+                  }),
 
                   // Girilmeyen Ders Saati Spinner
                   NumericSpinnerWidget(
@@ -612,12 +632,19 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
           // Başkası adına istekte bulunuluyorsa onun ID'si, değilse dini günleri çekmek için current user
           final personelIdForDiniGun =
               _secilenPersonel?.personelId ?? currentPersonelId;
+              
+          final personelBilgi = await ref.read(
+            personelBilgiByIdProvider(personelIdForDiniGun).future,
+          );
+          final stringDini = personelBilgi?.dini?.trim().toLowerCase();
+          final bool isIslam = stringDini == 'islam' || stringDini == 'i̇slam';
+
           final diniGunlerAsync = await ref.read(
             diniGunlerProvider(personelIdForDiniGun).future,
           );
 
-          // Seçilen dini günü al
-          final secilenDiniGun = diniGunlerAsync.isNotEmpty
+          // Seçilen dini günü al (İslam ise boş gönder)
+          final secilenDiniGun = (!isIslam && diniGunlerAsync.isNotEmpty)
               ? diniGunlerAsync[_secilenDiniGunIndex].izinGunu
               : '';
 
@@ -658,7 +685,7 @@ class _DiniIzinScreenState extends ConsumerState<DiniIzinScreen> {
                 value: _formatDate(bitisTarih),
                 multiLine: false,
               ),
-              IzinOzetItem(label: 'Dini Gün', value: secilenDiniGun),
+              if (!isIslam) IzinOzetItem(label: 'Dini Gün', value: secilenDiniGun),
               IzinOzetItem(
                 label: 'Girilmeyen Toplam Ders Saati',
                 value: _girileymeyenDersSaati.toString(),

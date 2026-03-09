@@ -19,12 +19,19 @@ class SarfMalzemeEkleReq {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'binaId': binaId,
       'talebinAmaci': talebinAmaci,
       'talepTuru': talepTuru,
       'urunSatir': urunSatir.map((e) => e.toJson()).toList(),
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }
 
@@ -46,7 +53,7 @@ class SarfMalzemeUrunSatir {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       'satinAlmaAnaKategoriId': satinAlmaAnaKategoriId,
       'satinAlmaAltKategoriId': satinAlmaAltKategoriId ?? 0,
@@ -54,5 +61,12 @@ class SarfMalzemeUrunSatir {
       'miktar': miktar,
       'birimId': birimId,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }

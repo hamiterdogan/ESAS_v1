@@ -35,7 +35,7 @@ class DiniIzinIstekReq {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'personelId': personelId,
       'izinSebebiId': izinSebebiId,
       'baslangicTarih': baslangicTarih.toIso8601String(),
@@ -44,5 +44,12 @@ class DiniIzinIstekReq {
       'izindeKaldigiAdres': izindeKaldigiAdres,
       'girileymeyenDersSaati': girileymeyenDersSaati,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }

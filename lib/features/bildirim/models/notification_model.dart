@@ -127,7 +127,9 @@ class BildirimModel {
           : '/teknik_destek';
     }
     if (normalizedBildirimTipi == 'sarfmalzemeistek') {
-      return '/sarf_malzeme_istek';
+      return talepId != null
+          ? '/sarf_malzeme_istek/detay/$talepId'
+          : '/sarf_malzeme_istek';
     }
 
     if (talepId == null) return null;
@@ -158,6 +160,10 @@ class BildirimModel {
     if (normalizedOnayTipi.contains('arac')) {
       return '/arac/detay/$talepId';
     }
+    if (normalizedOnayTipi.contains('sarfmalzeme') ||
+        normalizedOnayTipi.contains('sarf')) {
+      return '/sarf_malzeme_istek/detay/$talepId';
+    }
 
     switch (normalizedBildirimTipi) {
       case 'satinalma':
@@ -175,6 +181,8 @@ class BildirimModel {
       case 'bilgiteknolojileri':
       case 'teknikdestek':
         return '/teknik_destek/detay/$talepId';
+      case 'sarfmalzemeistek':
+        return '/sarf_malzeme_istek/detay/$talepId';
       default:
         final normalizedBaslik = _normalizeValue(baslik);
         if (normalizedBaslik.contains('dokumantasyon')) {

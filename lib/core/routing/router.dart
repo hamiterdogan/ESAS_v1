@@ -26,6 +26,7 @@ import 'package:esas_v1/features/egitim_istek/screens/egitim_talep_yonetim_scree
 import 'package:esas_v1/features/egitim_istek/screens/egitim_talep_screen.dart';
 import 'package:esas_v1/features/egitim_istek/screens/egitim_istek_detay_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_talep_yonetim_screen.dart';
+import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_detay_screen.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/screens/sarf_malzeme_turu_secim_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_talep_yonetim_screen.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/screens/yiyecek_icecek_istek_screen.dart';
@@ -176,6 +177,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/sarf_malzeme_istek',
       builder: (context, state) => const SarfMalzemeTalepYonetimScreen(),
+    ),
+    GoRoute(
+      path: '/sarf_malzeme_istek/detay/:id',
+      builder: (context, state) {
+        final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+        return SarfMalzemeDetayScreen(talepId: id);
+      },
     ),
     GoRoute(
       path: '/sarf_malzeme_istek/tur-secim',

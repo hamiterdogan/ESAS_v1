@@ -1135,15 +1135,6 @@ class _IzinIstekDetayScreenState extends ConsumerState<IzinIstekDetayScreen> {
       ),
     );
 
-    // Hesaplanan İzin Günü - değer varsa göster
-    if (detay.hesaplananIzinGunu != null && detay.hesaplananIzinGunu! > 0) {
-      rows.add(
-        _buildInfoRow(
-          'Hesaplanan İzin Günü',
-          detay.hesaplananIzinGunu.toString(),
-        ),
-      );
-    }
 
     // İzinde Bulunacağı Adres - her zaman göster (son eleman)
     rows.add(

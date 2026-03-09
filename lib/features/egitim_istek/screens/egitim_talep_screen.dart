@@ -3179,6 +3179,13 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
       'aldigiEgitimUcreti': _aldigiEgitimUcreti,
     };
 
+    for (final key in payload.keys.toList()) {
+      final val = payload[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        payload[key] = null;
+      }
+    }
+
     // Özet verilerini hazırla
     final summaryItems = <GenericSummaryItem>[];
 

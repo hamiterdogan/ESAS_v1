@@ -58,3 +58,14 @@ final personelBilgiProvider = FutureProvider.autoDispose<PersonelBilgiResponse>(
     }
   },
 );
+
+final personelBilgiByIdProvider =
+    FutureProvider.autoDispose.family<PersonelBilgiResponse, int>((ref, id) async {
+  final dio = ref.watch(dioProvider);
+  try {
+    final response = await dio.get('/Personel/PersonelBilgiGetir?personelId=$id');
+    return PersonelBilgiResponse.fromJson(response.data);
+  } catch (e) {
+    throw Exception('Personel bilgisi alınamadı: $e');
+  }
+});

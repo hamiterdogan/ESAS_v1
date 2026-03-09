@@ -19,6 +19,7 @@ class IzinIstekEkleReq {
   final int? baskaPersonelId;
   final int? dolduranPersonelId;
   final String? diniGun;
+  final String? hastalik;
   final DateTime? dogumTarihi;
   final DateTime? evlilikTarihi;
   final String? esAdi;
@@ -42,6 +43,7 @@ class IzinIstekEkleReq {
     this.baskaPersonelId,
     this.dolduranPersonelId,
     this.diniGun,
+    this.hastalik,
     this.dogumTarihi,
     this.evlilikTarihi,
     this.esAdi,
@@ -74,6 +76,7 @@ class IzinIstekEkleReq {
       baskaPersonelId: json['baskaPersonelId'] as int?,
       dolduranPersonelId: json['dolduranPersonelId'] as int?,
       diniGun: json['diniGun'] as String?,
+      hastalik: json['hastalik'] as String? ?? json['Hastalik'] as String?,
       dogumTarihi: json['dogumTarihi'] != null
           ? DateTime.tryParse(json['dogumTarihi'].toString())
           : null,
@@ -111,7 +114,7 @@ class IzinIstekEkleReq {
       'FilePath': '',
       'DosyaAciklama': '',
       'DiniGun': diniGun ?? '',
-      'Hastalik': '',
+      'Hastalik': izinSebebiId == 4 ? hastalik : null,
       'EsAdi': esAdi ?? '',
       'EvlilikTarihi': evlilikTarihi != null
           ? formatDate(evlilikTarihi!)
@@ -121,18 +124,21 @@ class IzinIstekEkleReq {
           : formatDate(DateTime.now()),
     };
 
+    Map<String, dynamic> result;
+
     switch (izinSebebiId) {
       case 1: // Yıllık İzin
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
 
       case 2: // Evlilik İzni
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
@@ -145,34 +151,37 @@ class IzinIstekEkleReq {
         };
 
       case 3: // Vefat İzni
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
 
       case 4: // Hastalık İzni
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
 
       case 5: // Mazeret İzni
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
 
       case 6: // Dini İzin
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
@@ -180,9 +189,10 @@ class IzinIstekEkleReq {
           'IzinBitisDakika': izinBitisDakika ?? 30,
           'DiniGun': diniGun ?? '',
         };
+        break;
 
       case 7: // Doğum İzni
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
@@ -192,25 +202,37 @@ class IzinIstekEkleReq {
               ? formatDate(dogumTarihi!)
               : formatDate(DateTime.now()),
         };
+        break;
 
       case 8: // Kurum Görevlendirmesi
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
 
       default:
-        return {
+        result = {
           ...baseData,
           'IzinBaslangicSaat': izinBaslangicSaat ?? 8,
           'IzinBaslangicDakika': izinBaslangicDakika ?? 0,
           'IzinBitisSaat': izinBitisSaat ?? 17,
           'IzinBitisDakika': izinBitisDakika ?? 30,
         };
+        break;
     }
+
+    for (final key in result.keys.toList()) {
+      final val = result[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        result[key] = null;
+      }
+    }
+
+    return result;
   }
 
   /// FormData için Map döndürür (multipart/form-data olarak gönderilmek üzere)

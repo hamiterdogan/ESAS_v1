@@ -24,7 +24,7 @@ class SatinAlmaGuncelleReq {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'satinAlmaId': satinAlmaId,
       if (odemeSekliId != null) 'odemeSekliId': odemeSekliId,
       if (personelId != null) 'personelId': personelId,
@@ -37,6 +37,13 @@ class SatinAlmaGuncelleReq {
       if (saticiTel != null) 'saticiTel': saticiTel,
       if (webSitesi != null) 'webSitesi': webSitesi,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }
 
@@ -64,7 +71,7 @@ class UrunSatirGuncelle {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       'satinAlmaAnaKategoriId': satinAlmaAnaKategoriId,
       'satinAlmaAltKategoriId': satinAlmaAltKategoriId,
@@ -75,5 +82,12 @@ class UrunSatirGuncelle {
       if (digerUrun != null) 'digerUrun': digerUrun,
       'birimFiyati': birimFiyati,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }

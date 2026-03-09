@@ -2010,6 +2010,9 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
         izinBitisTarihi: formState.bitisTarihi,
         aciklama: formState.aciklama.trim(),
         izindeBulunacagiAdres: formState.izindeBulunacagiAdres.trim(),
+        hastalik: formState.secilenSebebiId == 4
+            ? (formState.hastalikDurumu == 'acil' ? 'Acil' : 'Acil Değil')
+            : null,
         baskaPersonelId: formState.secilenPersonel?.personelId,
       );
       final result = await ref

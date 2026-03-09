@@ -264,7 +264,7 @@ class _SarfMalzemeDetayScreenState
     }
 
     items.add(MapEntry('İstekte Bulunulan Okullar', binalarStr));
-    items.add(MapEntry('Alımın Amacı', detay.talebinAmaci));
+    items.add(MapEntry('Talebin Amacı', detay.talebinAmaci));
 
     if (detay.dosyaAciklama != null && detay.dosyaAciklama!.isNotEmpty) {
       items.add(MapEntry('Dosya Açıklama', detay.dosyaAciklama!));
@@ -277,7 +277,7 @@ class _SarfMalzemeDetayScreenState
           (detay.dosyaAdi == null || detay.dosyaAdi!.isEmpty);
 
       final multiLineFields = [
-        'Alımın Amacı',
+        'Talebin Amacı',
         'Dosya Açıklama',
         'İstekte Bulunulan Okullar',
       ];

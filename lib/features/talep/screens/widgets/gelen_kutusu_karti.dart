@@ -204,8 +204,8 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
             ),
           );
           // Listeyi yenile
-          ref.read(devamEdenGelenKutusuProvider.notifier).refresh();
-          ref.read(tamamlananGelenKutusuProvider.notifier).refresh();
+          ref.invalidate(devamEdenGelenKutusuProvider);
+          ref.invalidate(tamamlananGelenKutusuProvider);
           ref.invalidate(okunmayanTalepSayisiProvider);
           break;
         case Failure(:final message):
@@ -263,8 +263,10 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shadowColor: const Color(0x1F000000),
+      elevation: 2, // Changed to 2 as requested, but with subtle shadow
+      shadowColor: const Color(
+        0x0C000000,
+      ), // Very subtle shadow (approx 0.05 alpha)
       color: AppColors.textOnPrimary,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -274,13 +276,6 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
       ),
       child: InkWell(
         onTap: () async {
-          final devamEdenNotifier = ref.read(
-            devamEdenGelenKutusuProvider.notifier,
-          );
-          final tamamlananNotifier = ref.read(
-            tamamlananGelenKutusuProvider.notifier,
-          );
-
           // Eğer okunmamışsa, okundu olarak işaretle
           if (_isUnread) {
             try {
@@ -319,8 +314,8 @@ class _GelenKutusuKartiState extends ConsumerState<GelenKutusuKarti> {
 
           // Dönüşte refresh
           if (_isUnread) {
-            devamEdenNotifier.refresh();
-            tamamlananNotifier.refresh();
+            ref.invalidate(devamEdenGelenKutusuProvider);
+            ref.invalidate(tamamlananGelenKutusuProvider);
             ref.invalidate(okunmayanTalepSayisiProvider);
           }
         },

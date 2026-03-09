@@ -474,7 +474,7 @@ class NotificationService {
       return '/yiyecek_icecek_istek/detay/$onayKayitId';
     }
     if (n.contains('sarfmalzeme') || n.contains('sarf')) {
-      return '/sarf_malzeme_istek';
+      return '/sarf_malzeme_istek/detay/$onayKayitId';
     }
     if (n.contains('bilgiteknoloji')) {
       return '/teknik_destek/detay/$onayKayitId';
@@ -522,7 +522,7 @@ class NotificationService {
       case 'teknik_destek':
         return '/teknik_destek/detay/$talepId';
       case 'sarf_malzeme_istek':
-        return '/sarf_malzeme_istek';
+        return '/sarf_malzeme_istek/detay/$talepId';
       default:
         return null;
     }

@@ -92,6 +92,27 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
   late final TalepYonetimRepository _talepYonetimRepository;
   late final dynamic _devamEdenGelenKutusuNotifier;
 
+  Future<void> _refreshDetayData() async {
+    final onayDurumuArgs = (talepId: widget.talepId, onayTipi: 'Satın Alma');
+
+    ref.invalidate(satinAlmaDetayProvider(widget.talepId));
+
+    final refreshedDetay = await ref.refresh(
+      satinAlmaDetayParalelProvider(widget.talepId).future,
+    );
+
+    final _ = await ref.refresh(onayDurumuProvider(onayDurumuArgs).future);
+
+    if (!mounted) return;
+
+    setState(() {
+      _localUrunler = List.from(refreshedDetay.detay.urunlerSatir);
+      _dovizKurlariGuncellendi = false;
+    });
+
+    await _updateDovizKurlari();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -123,8 +144,9 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
       satinAlmaDetayParalelProvider(widget.talepId),
     );
 
-    final isLoading = paralelAsync.isLoading;
+    final isInitialLoading = paralelAsync.isLoading && !paralelAsync.hasValue;
     final body = paralelAsync.when(
+      skipLoadingOnRefresh: true,
       data: (paralelData) {
         _localUrunler ??= List.from(paralelData.detay.urunlerSatir);
 
@@ -207,7 +229,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             body: body,
           ),
         ),
-        if (isLoading) const BrandedLoadingOverlay(),
+        if (isInitialLoading) const BrandedLoadingOverlay(),
       ],
     );
   }
@@ -240,15 +262,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(satinAlmaDetayParalelProvider(widget.talepId));
-          ref.invalidate(
-            onayDurumuProvider((
-              talepId: widget.talepId,
-              onayTipi: 'Satın Alma',
-            )),
-          );
-        },
+        onRefresh: _refreshDetayData,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
@@ -663,10 +677,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                ref.invalidate(satinAlmaDetayProvider(widget.talepId));
-                ref.invalidate(personelBilgiProvider);
-              },
+              onPressed: _refreshDetayData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
                 foregroundColor: AppColors.textOnPrimary,

@@ -18,7 +18,7 @@ class DokumantasyonIstekGuncelleReq {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'id': id,
       if (baskiAdedi != null) 'baskiAdedi': baskiAdedi,
       if (kagitTalebi != null) 'kagitTalebi': kagitTalebi,
@@ -27,5 +27,12 @@ class DokumantasyonIstekGuncelleReq {
       if (toplamSayfa != null) 'toplamSayfa': toplamSayfa,
       if (paket != null) 'paket': paket,
     };
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+    return map;
   }
 }

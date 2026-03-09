@@ -206,12 +206,6 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
       setState(() {
         _doktorRaporuFile = File(result.files.single.path!);
       });
-      if (mounted) {
-        await ValidationUyariWidget.goster(
-          context: context,
-          message: 'Dosya yüklendi: ${result.files.single.name}',
-        );
-      }
     }
   }
 
@@ -740,6 +734,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
             izinBitisTarihi: bitisTarih,
             aciklama: _aciklamaController.text,
             izindeBulunacagiAdres: _adresController.text,
+            hastalik: _acil ? 'Acil' : 'Acil Değil',
             // Opsiyonel alanlar
             izinBaslangicSaat: _baslangicSaat,
             izinBaslangicDakika: _baslangicDakika,
@@ -792,7 +787,7 @@ class _HastalikIzinScreenState extends ConsumerState<HastalikIzinScreen> {
               ),
               IzinOzetItem(
                 label: 'Hastalık Durumu',
-                value: _acil ? 'Acil' : 'Acil değil',
+                value: _acil ? 'Acil' : 'Acil Değil',
                 multiLine: false,
               ),
               IzinOzetItem(

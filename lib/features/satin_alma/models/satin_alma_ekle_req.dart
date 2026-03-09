@@ -58,6 +58,13 @@ class SatinAlmaEkleReq {
       map['webSitesi'] = webSitesi;
     }
 
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
+    }
+
     return map;
   }
 }
@@ -99,6 +106,13 @@ class SatinAlmaUrunSatir {
     // Optional: Para Birimi (Kod - BirimAdi değil)
     if (paraBirimi != null && paraBirimi!.isNotEmpty) {
       map['paraBirimi'] = paraBirimi;
+    }
+
+    for (final key in map.keys.toList()) {
+      final val = map[key];
+      if (val is String && (val.isEmpty || val.toLowerCase() == 'string')) {
+        map[key] = null;
+      }
     }
 
     return map;

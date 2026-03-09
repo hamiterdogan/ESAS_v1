@@ -71,4 +71,9 @@ const List<DevUser> kDevUsers = [
     sifre: "naczo",
     token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiMTE2IiwiRW1haWwiOiJ0ZXN0b3pjYW5AZXl1Ym9nbHUuazEyLnRyIiwiS3VsbGFuaWNpQWRpIjoiT1pDQU4iLCJHb3JldklkIjoiODgiLCJuYmYiOjE3Njk1ODg3NjQsImV4cCI6MTgwMDY5Mjc2NCwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3QifQ.OU8Qo0mF56tiGcjIlJsQ1PSTh8P3xOMemt5Nvk2BUa4",
   ),
+  DevUser(
+    kullaniciAdi: "TATCI",
+    sifre: "201EC64",
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJQZXJzb25lbElkIjoiNDk0OSIsIkVtYWlsIjoidHVuYS5hdGNpQGV5dWJvZ2x1LmsxMi50ciIsIkt1bGxhbmljaUFkaSI6IlRBVENJIiwiR29yZXZJZCI6IjExMyIsIm5iZiI6MTc3MjcxMjU5NiwiZXhwIjoxODAzODE2NTk2LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0IiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdCJ9.z7ej6CwkMqkQ0PbWTcmuITOH28FB8ebvLAsr8aEdz9Q",
+  ),
 ];

@@ -62,11 +62,15 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
   @override
   PaginatedTalepState build() {
     // Auto-load on first access via microtask to avoid build-time state mutation
-    Future.microtask(() => loadInitial());
+    Future.microtask(() {
+      if (!ref.mounted) return;
+      loadInitial();
+    });
     return const PaginatedTalepState(isInitialLoading: true);
   }
 
   Future<void> updateDateFilter(String? newStartDate) async {
+    if (!ref.mounted) return;
     if (_startDate == newStartDate) return;
 
     _startDate = newStartDate;
@@ -76,6 +80,7 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
   }
 
   Future<void> loadInitial() async {
+    if (!ref.mounted) return;
     // If already initialized or loading, skip
     if (state.talepler.isNotEmpty ||
         (state.isLoading && !state.isInitialLoading)) {
@@ -87,18 +92,22 @@ class _PaginatedTalepNotifier extends Notifier<PaginatedTalepState> {
   }
 
   Future<void> loadMore() async {
+    if (!ref.mounted) return;
     if (state.isLoading || !state.hasMore) return;
     await _fetchPage(state.pageIndex + 1);
   }
 
   Future<void> refresh() async {
+    if (!ref.mounted) return;
     state = const PaginatedTalepState();
     await loadInitial();
   }
 
   Future<void> _fetchPage(int pageIndex) async {
+    if (!ref.mounted) return;
     state = state.copyWith(isLoading: true, errorMessage: null);
 
+    if (!ref.mounted) return;
     final repository = ref.read(talepYonetimRepositoryProvider);
 
     // Tip 2 ve 3 (Gelen Kutusu) için diğer repository'lerden de veri çekilebilir

@@ -21,6 +21,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
+import 'package:esas_v1/features/bilgi_teknolojileri_istek/providers/teknik_destek_talep_providers.dart';
 import 'package:esas_v1/core/services/email_service.dart';
 
 class TeknikDestekDetayScreen extends ConsumerStatefulWidget {
@@ -138,6 +139,20 @@ class _TeknikDestekDetayScreenState
     });
   }
 
+  Future<void> _refreshDetayData() async {
+    final onayArgs = (talepId: widget.talepId, onayTipi: 'Teknik Destek');
+
+    ref.invalidate(teknikDestekDetayParalelProvider(widget.talepId));
+
+    await Future.wait([
+      ref.refresh(teknikDestekDetayProvider(widget.talepId).future),
+      ref.refresh(personelBilgiProvider.future),
+      ref.refresh(onayDurumuProvider(onayArgs).future),
+    ]);
+
+    ref.invalidate(teknikDestekDetayParalelProvider(widget.talepId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final paralelAsync = ref.watch(
@@ -241,15 +256,7 @@ class _TeknikDestekDetayScreenState
 
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(teknikDestekDetayParalelProvider(widget.talepId));
-          ref.invalidate(
-            onayDurumuProvider((
-              talepId: widget.talepId,
-              onayTipi: 'Teknik Destek',
-            )),
-          );
-        },
+        onRefresh: _refreshDetayData,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(
@@ -344,9 +351,8 @@ class _TeknikDestekDetayScreenState
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                ref.invalidate(teknikDestekDetayProvider(widget.talepId));
-                ref.invalidate(personelBilgiProvider);
+              onPressed: () async {
+                await _refreshDetayData();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.gradientStart,
@@ -1009,6 +1015,20 @@ class _TeknikDestekDetayScreenState
                             ref.invalidate(
                               teknikDestekDetayProvider(widget.talepId),
                             );
+
+                            ref.invalidate(
+                              teknikDestekDevamEdenTaleplerProvider,
+                            );
+                            ref.invalidate(
+                              teknikDestekTamamlananTaleplerProvider,
+                            );
+                            ref.invalidate(
+                              bilgiTeknolojiDevamEdenTaleplerProvider,
+                            );
+                            ref.invalidate(
+                              bilgiTeknolojiTamamlananTaleplerProvider,
+                            );
+
                             Navigator.pop(context);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(

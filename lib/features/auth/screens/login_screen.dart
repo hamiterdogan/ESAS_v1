@@ -270,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     controller: _kullaniciAdiController,
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
-                    decoration: _inputDecoration('TC Kimlik veya E-posta'),
+                    decoration: _inputDecoration('Kullanıcı Adı'),
                   ),
                   const SizedBox(height: 20),
 
