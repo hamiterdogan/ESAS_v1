@@ -976,95 +976,77 @@ class _EgitimTalepScreenState extends ConsumerState<EgitimTalepScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Column(
+                    key: _egitimTuruKey,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Eğitim Türü Input
-                      Expanded(
-                        flex: 130,
-                        child: Column(
-                          key: _egitimTuruKey,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Eğitim Türü',
-                              style: Theme.of(context).textTheme.titleSmall
-                                  ?.copyWith(
-                                    fontSize:
-                                        (Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall?.fontSize ??
-                                            14) +
-                                        1,
-                                    color: AppColors.inputLabelColor,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Focus(
-                              focusNode: _egitimTuruFocusNode,
-                              child: GestureDetector(
-                                onTap: () => _showEgitimTuruBottomSheet(),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 14,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.textOnPrimary,
-                                    border: Border.all(
-                                      color: AppColors.borderStandartColor,
-                                      width: 0.75,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          _secilenEgitimTuru ??
-                                              'Eğitim türünü seçiniz',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: _secilenEgitimTuru != null
-                                                ? AppColors.textPrimary
-                                                : Colors.grey.shade600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.chevron_right,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Eğitim Türü',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontSize:
+                              (Theme.of(
+                                    context,
+                                  ).textTheme.titleSmall?.fontSize ??
+                                  14) +
+                              1,
+                          color: AppColors.inputLabelColor,
                         ),
                       ),
-                      const SizedBox(width: 24),
-                      // Online Toggle
-                      Expanded(
-                        flex: 60,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 28.0),
-                          child: OnayToggleWidget(
-                            initialValue: _online,
-                            label: 'Online',
-                            onChanged: (value) {
-                              setState(() {
-                                _online = value;
-                              });
-                            },
+                      const SizedBox(height: 8),
+                      Focus(
+                        focusNode: _egitimTuruFocusNode,
+                        child: GestureDetector(
+                          onTap: () => _showEgitimTuruBottomSheet(),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.textOnPrimary,
+                              border: Border.all(
+                                color: AppColors.borderStandartColor,
+                                width: 0.75,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _secilenEgitimTuru ??
+                                        'Eğitim türünü seçiniz',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: _secilenEgitimTuru != null
+                                          ? AppColors.textPrimary
+                                          : Colors.grey.shade600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  OnayToggleWidget(
+                    initialValue: _online,
+                    label: 'Online',
+                    onChanged: (value) {
+                      setState(() {
+                        _online = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                   Column(

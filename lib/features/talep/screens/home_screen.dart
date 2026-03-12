@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
 import 'package:esas_v1/core/constants/dev_users.dart';
-import 'package:esas_v1/core/services/auth_service.dart';
+
 import 'package:esas_v1/features/talep/screens/widgets/ana_sayfa_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/isteklerim_content.dart';
 import 'package:esas_v1/features/talep/screens/widgets/gelen_kutusu_content.dart';
@@ -28,7 +28,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
   int _currentIndex = 0;
   late final PageController _pageController;
-  bool _isLogoutLoading = false;
+
   VoidCallback? _routeInfoListener;
 
   // GlobalKey'ler filtre işlemlerine erişim için
@@ -125,126 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             decoration: BoxDecoration(gradient: AppColors.primaryGradient),
           ),
           iconTheme: const IconThemeData(color: AppColors.textOnPrimary),
-          leading: _currentIndex == 0
-              ? Consumer(
-                  builder: (context, ref, child) {
-                    final kullaniciAdi = ref.watch(currentKullaniciAdiProvider);
-                    return Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          if (kDebugMode) {
-                            // Debug modda: kullanıcı değiştirme menüsü
-                            showModalBottomSheet(
-                              context: context,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(20),
-                                ),
-                              ),
-                              builder: (context) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 20,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        'Kullanıcı Değiştir (Dev)',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primaryDark,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Flexible(
-                                        child: ListView.separated(
-                                          shrinkWrap: true,
-                                          itemCount: kDevUsers.length,
-                                          separatorBuilder: (context, index) =>
-                                              const Divider(),
-                                          itemBuilder: (context, index) {
-                                            final user = kDevUsers[index];
-                                            return ListTile(
-                                              title: Text(
-                                                user.kullaniciAdi,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              onTap: () {
-                                                ref
-                                                    .read(
-                                                      tokenProvider.notifier,
-                                                    )
-                                                    .setToken(user.token);
-                                                ref.invalidate(
-                                                  talepYonetimRepositoryProvider,
-                                                );
-                                                ref.invalidate(
-                                                  okunmayanTalepSayisiProvider,
-                                                );
-                                                ref.invalidate(
-                                                  devamEdenIsteklerimProvider,
-                                                );
-                                                ref.invalidate(
-                                                  tamamlananIsteklerimProvider,
-                                                );
-                                                ref.invalidate(
-                                                  devamEdenGelenKutusuProvider,
-                                                );
-                                                ref.invalidate(
-                                                  tamamlananGelenKutusuProvider,
-                                                );
-                                                ref.invalidate(
-                                                  bilgiTeknolojileriOnayKayitIdSetProvider,
-                                                );
-                                                ref.invalidate(
-                                                  bilgiTeknolojileriGelenKutusuOnayKayitIdSetProvider,
-                                                );
-                                                Navigator.pop(context);
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          } else {
-                            // Production modda: profil ekranına git
-                            context.push('/profil');
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              kullaniciAdi,
-                              style: const TextStyle(
-                                color: AppColors.textOnPrimary,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                )
-              : null,
+          automaticallyImplyLeading: false,
           actions: [
             // Bildirim ikonu (bell) + badge — sadece Ana Sayfa'da görünür
             if (_currentIndex == 0)
@@ -306,30 +187,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     ? Icons.filter_alt
                     : Icons.filter_alt_outlined,
               ),
-            // Çıkış butonu — sadece Ana Sayfa'da görünür
-            if (_currentIndex == 0 && _isLogoutLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 14),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.textOnPrimary,
-                    ),
-                  ),
-                ),
-              )
-            else if (_currentIndex == 0)
+            // Profil butonu — sadece Ana Sayfa'da görünür
+            if (_currentIndex == 0)
               IconButton(
                 icon: const Icon(
-                  Icons.logout_rounded,
+                  Icons.person_outline_rounded,
                   color: AppColors.textOnPrimary,
-                  size: 24,
+                  size: 26,
                 ),
-                tooltip: 'Çıkış Yap',
-                onPressed: _logout,
+                tooltip: 'Profilim',
+                onPressed: () => context.push('/profil'),
               ),
           ],
         ),
@@ -500,114 +367,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Future<void> _logout() async {
-    final confirmed = await _showLogoutConfirmation();
-    if (!confirmed || !mounted) return;
 
-    setState(() => _isLogoutLoading = true);
-    // AuthService: UnregisterToken → deleteToken() → clear storage → /login
-    await AuthService().logout(ref);
-    // logout() içinde appRouter.go('/login') çağrıldığı için mounted kontrolüne gerek yok
-  }
-
-  Future<bool> _showLogoutConfirmation() async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isDismissible: false,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 60),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white,
-            ),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon
-                const Icon(
-                  Icons.logout_rounded,
-                  color: AppColors.primaryDark,
-                  size: 56,
-                ),
-                const SizedBox(height: 16),
-
-                // Message
-                const Text(
-                  'Oturumu kapatmak istediğinize emin misiniz?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Buttons
-                Row(
-                  children: [
-                    // Vazgeç Button
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, false),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: const BorderSide(
-                              color: AppColors.primaryDark,
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                        child: const Text(
-                          'Vazgeç',
-                          style: TextStyle(
-                            color: AppColors.primaryDark,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Devam Button
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryDark,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Devam',
-                          style: TextStyle(
-                            color: AppColors.textOnPrimary,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    return result == true;
-  }
 
   void _showExitConfirmationBottomSheet() {
     showModalBottomSheet(

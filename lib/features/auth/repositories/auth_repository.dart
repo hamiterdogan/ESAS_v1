@@ -1,18 +1,28 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:esas_v1/features/auth/models/login_model.dart';
 
 class AuthRepository {
   final Dio _dio;
 
-  AuthRepository()
-    : _dio = Dio(
-        BaseOptions(
-          baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
-          headers: {'Content-Type': 'application/json', 'Accept': '*/*'},
-        ),
-      );
+  AuthRepository() : _dio = _buildDio();
+
+  static Dio _buildDio() {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: 'https://esasapi.eyuboglu.k12.tr/api',
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {'Content-Type': 'application/json', 'Accept': '*/*'},
+      ),
+    );
+    (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () =>
+        HttpClient()
+          ..badCertificateCallback = (cert, host, port) =>
+              host == 'esasapi.eyuboglu.k12.tr';
+    return dio;
+  }
 
   /// Giriş yap. Başarılı → LoginResponse, 401 → null, diğer hata → exception.
   Future<LoginResponse?> girisYap({

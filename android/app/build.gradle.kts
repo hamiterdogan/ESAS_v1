@@ -47,4 +47,7 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    // TLS güncellemesi: eski Android cihazlarda Play Services SSL yığınını
+    // uygulamayı başlatmadan önce güncellemek için gerekli.
+    implementation("com.google.android.gms:play-services-base:18.5.0")
 }

@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -105,6 +107,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
         ),
       );
+      (freshDio.httpClientAdapter as IOHttpClientAdapter).createHttpClient =
+          () =>
+              HttpClient()
+                ..badCertificateCallback = (cert, host, port) =>
+                    host == 'esasapi.eyuboglu.k12.tr';
 
       if (kDebugMode) {
         freshDio.interceptors.add(
@@ -154,19 +161,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (!mounted) return;
       context.go('/');
+    } on DioException catch (e) {
+      // DioException'ı ayrıca yakala: type ve e.error (orijinal Java exception) kontrol edilebilir.
+      if (!mounted) return;
+      if (kDebugMode) {
+        print('💥 DioException → type: ${e.type}');
+        print('   message : ${e.message}');
+        print('   error   : ${e.error}');
+      }
+      // e.error alanında orijinal Java/ObjC exception detayı bulunur.
+      final detail = '${e.message ?? ''} ${e.error ?? ''}'.toLowerCase();
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        _showHataBilgisi(
+          'Bağlantı zaman aşımı. Lütfen internet bağlantınızı kontrol edin.',
+        );
+      } else if (detail.contains('handshake') ||
+          detail.contains('certificate') ||
+          detail.contains('pkix') ||
+          detail.contains('trust anchor') ||
+          detail.contains('sslhandshake') ||
+          detail.contains('certpath') ||
+          detail.contains('ssl') ||
+          detail.contains('tls')) {
+        _showHataBilgisi(
+          'Sunucu güvenlik doğrulaması başarısız oldu. '
+          'Eski cihazlarda TLS/sertifika uyumsuzluğu olabilir.',
+        );
+      } else {
+        // connectionError, unknown vb. → sunucuya ulaşılamıyor
+        _showHataBilgisi(
+          'Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.',
+        );
+      }
     } on Exception catch (e) {
       if (!mounted) return;
+      if (kDebugMode) print('💥 Beklenmeyen hata (${e.runtimeType}): $e');
       final msg = e.toString().toLowerCase();
       if (msg.contains('timeout') || msg.contains('süre')) {
         _showHataBilgisi(
           'Bağlantı zaman aşımı. Lütfen internet bağlantınızı kontrol edin.',
         );
-      } else if (msg.contains('connection') || msg.contains('socket')) {
+      } else if (msg.contains('handshake') ||
+          msg.contains('certificate') ||
+          msg.contains('ssl') ||
+          msg.contains('tls')) {
+        _showHataBilgisi(
+          'Sunucu güvenlik doğrulaması başarısız oldu. '
+          'Eski cihazlarda TLS/sertifika uyumsuzluğu olabilir.',
+        );
+      } else {
         _showHataBilgisi(
           'Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.',
         );
-      } else {
-        _showHataBilgisi('Bağlantı hatası oluştu. Lütfen tekrar deneyin.');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -234,97 +282,101 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Logo
-                  Center(
-                    child: Image.asset(
-                      'assets/images/eek_logo_yatay.png',
-                      width: 380,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Başlık
-                  const Text(
-                    'ESAS Kullanıcı Girişi',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 36),
-
-                  // Kullanıcı Adı
-                  _buildLabel('Kullanıcı Adı'),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _kullaniciAdiController,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.next,
-                    decoration: _inputDecoration('Kullanıcı Adı'),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Şifre
-                  _buildLabel('Şifre'),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _sifreController,
-                    obscureText: _sifreGizli,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _girisYap(),
-                    decoration: _inputDecoration('').copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _sifreGizli
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          color: AppColors.textTertiary,
-                        ),
-                        onPressed: () =>
-                            setState(() => _sifreGizli = !_sifreGizli),
+          child: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Logo
+                    Center(
+                      child: Image.asset(
+                        'assets/images/eek_logo_yatay.png',
+                        width: 380,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 4),
 
-                  // Giriş butonu
-                  _GradientButton(
-                    label: 'Giriş',
-                    onPressed: _isLoading ? () {} : _girisYap,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Şifremi Unuttum
-                  TextButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => const SifremiUnuttumBottomSheet(),
-                      );
-                    },
-                    child: const Text(
-                      'Şifremi Unuttum',
+                    // Başlık
+                    const Text(
+                      'ESAS Kullanıcı Girişi',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryDark,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 36),
+
+                    // Kullanıcı Adı
+                    _buildLabel('Kullanıcı Adı'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _kullaniciAdiController,
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
+                      decoration: _inputDecoration('Kullanıcı Adı'),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Şifre
+                    _buildLabel('Şifre'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _sifreController,
+                      obscureText: _sifreGizli,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _girisYap(),
+                      decoration: _inputDecoration('').copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _sifreGizli
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: AppColors.textTertiary,
+                          ),
+                          onPressed: () =>
+                              setState(() => _sifreGizli = !_sifreGizli),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Giriş butonu
+                    _GradientButton(
+                      label: 'Giriş',
+                      onPressed: _isLoading ? () {} : _girisYap,
+                      isLoading: _isLoading,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Şifremi Unuttum
+                    TextButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) =>
+                              const SifremiUnuttumBottomSheet(),
+                        );
+                      },
+                      child: const Text(
+                        'Şifremi Unuttum',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

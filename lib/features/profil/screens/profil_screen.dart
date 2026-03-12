@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
+import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
+import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/services/auth_service.dart';
 import 'package:esas_v1/core/services/auth_storage_service.dart';
+import 'package:esas_v1/core/services/device_registration_service.dart';
+import 'package:esas_v1/features/bildirim/providers/notification_providers.dart';
 
 /// Kullanıcı profil bilgileri ve logout işlemi
 class ProfilScreen extends ConsumerStatefulWidget {
@@ -13,7 +19,11 @@ class ProfilScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfilScreenState extends ConsumerState<ProfilScreen> {
+  static const String _bildirimleriKapatKey = 'profil_bildirimleri_kapat_aktif';
+
   _ProfilData? _profilData;
+  bool _bildirimleriKapat = false;
+  bool _isBildirimTercihiLoading = false;
   bool _isLogoutLoading = false;
 
   @override
@@ -28,8 +38,8 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     final soyadi = await storage.getSoyadi();
     final kullaniciAdi = await storage.getKullaniciAdi();
     final email = await storage.getEmail();
-    final departmanId = await storage.getDepartmanId();
-    final gorevId = await storage.getGorevId();
+    final prefs = await SharedPreferences.getInstance();
+    final bildirimleriKapat = prefs.getBool(_bildirimleriKapatKey) ?? false;
 
     if (mounted) {
       setState(() {
@@ -37,9 +47,50 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
           adSoyad: '${adi ?? ''} ${soyadi ?? ''}'.trim(),
           kullaniciAdi: kullaniciAdi ?? '-',
           email: email,
-          departmanId: departmanId,
-          gorevId: gorevId,
         );
+        _bildirimleriKapat = bildirimleriKapat;
+      });
+    }
+  }
+
+  Future<void> _bildirimTercihiniGuncelle(bool value) async {
+    if (_isBildirimTercihiLoading) return;
+
+    final oncekiDeger = _bildirimleriKapat;
+
+    setState(() {
+      _bildirimleriKapat = value;
+      _isBildirimTercihiLoading = true;
+    });
+
+    final repo = ref.read(notificationRepositoryProvider);
+    final deviceId = await DeviceRegistrationService().getDeviceId();
+    final result = await repo.bildirimTercihiGuncelle(
+      deviceId: deviceId,
+      notification: value,
+    );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success():
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool(_bildirimleriKapatKey, value);
+      case Failure(:final message):
+        setState(() {
+          _bildirimleriKapat = oncekiDeger;
+        });
+        await ValidationUyariWidget.goster(
+          context: context,
+          message: 'Bildirim tercihi güncellenemedi. $message',
+        );
+      case Loading():
+        break;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isBildirimTercihiLoading = false;
       });
     }
   }
@@ -211,14 +262,6 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '@${_profilData!.kullaniciAdi}',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -240,22 +283,74 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                           value: _profilData!.email!,
                         ),
                       ],
-                      if (_profilData!.departmanId != null) ...[
-                        const Divider(height: 1),
-                        _InfoRow(
-                          icon: Icons.business_outlined,
-                          label: 'Departman ID',
-                          value: _profilData!.departmanId.toString(),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  _InfoCard(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                      ],
-                      if (_profilData!.gorevId != null) ...[
-                        const Divider(height: 1),
-                        _InfoRow(
-                          icon: Icons.work_outline,
-                          label: 'Görev ID',
-                          value: _profilData!.gorevId.toString(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  _bildirimleriKapat
+                                      ? Icons.notifications_off_outlined
+                                      : Icons.notifications_active_outlined,
+                                  size: 20,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Bildirim Tercihi',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.textTertiary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _bildirimleriKapat
+                                            ? 'Bildirimler kapalı'
+                                            : 'Bildirimler açık',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: AppColors.textPrimary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            CustomSwitchWidget(
+                              value: _bildirimleriKapat,
+                              onChanged: _isBildirimTercihiLoading
+                                  ? null
+                                  : _bildirimTercihiniGuncelle,
+                              label: _isBildirimTercihiLoading
+                                  ? 'Bildirimleri Kapat (güncelleniyor...)'
+                                  : 'Bildirimleri Kapat',
+                              spacing: 12,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 28),
@@ -263,32 +358,46 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                   // Çıkış Yap butonu
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _isLogoutLoading ? null : _logout,
-                      icon: _isLogoutLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.logout_rounded),
-                      label: Text(
-                        _isLogoutLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: _isLogoutLoading
+                            ? LinearGradient(
+                                colors: [
+                                  AppColors.primary.withValues(alpha: 0.4),
+                                  AppColors.primaryDark.withValues(alpha: 0.4),
+                                ],
+                              )
+                            : AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade600,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.red.shade200,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      child: ElevatedButton.icon(
+                        onPressed: _isLogoutLoading ? null : _logout,
+                        icon: _isLogoutLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.logout_rounded),
+                        label: Text(
+                          _isLogoutLoading ? 'Çıkış yapılıyor...' : 'Çıkış Yap',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          disabledBackgroundColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
@@ -313,15 +422,11 @@ class _ProfilData {
   final String adSoyad;
   final String kullaniciAdi;
   final String? email;
-  final int? departmanId;
-  final int? gorevId;
 
   const _ProfilData({
     required this.adSoyad,
     required this.kullaniciAdi,
     this.email,
-    this.departmanId,
-    this.gorevId,
   });
 }
 

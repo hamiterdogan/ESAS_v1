@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/repositories/base_repository.dart';
 import 'package:esas_v1/features/bildirim/models/notification_model.dart';
@@ -26,6 +27,11 @@ abstract class NotificationRepository {
   Future<Result<bool>> okunduIsaretle({required int bildirimId});
 
   Future<Result<bool>> tumunuOkunduIsaretle();
+
+  Future<Result<bool>> bildirimTercihiGuncelle({
+    required String deviceId,
+    required bool notification,
+  });
 
   Future<Result<BildirimAksiyonResponse>> bildirimAksiyon({
     required int bildirimId,
@@ -159,6 +165,22 @@ class NotificationRepositoryImpl extends BaseRepository
         },
       );
       return handleResponse(response, (data) => true);
+    } on DioException catch (e) {
+      return handleError(e);
+    }
+  }
+
+  @override
+  Future<Result<bool>> bildirimTercihiGuncelle({
+    required String deviceId,
+    required bool notification,
+  }) async {
+    try {
+      final response = await _dio.post(
+        AppConstants.bildirimTercihiGuncelleEndpoint,
+        data: {'deviceId': deviceId, 'notification': notification},
+      );
+      return handleResponse(response, (_) => true);
     } on DioException catch (e) {
       return handleError(e);
     }

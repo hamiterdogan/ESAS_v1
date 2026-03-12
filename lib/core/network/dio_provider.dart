@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:esas_v1/core/constants/app_constants.dart';
@@ -53,6 +55,14 @@ final currentKullaniciAdiProvider = Provider<String>((ref) {
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio();
+
+  // Sunucunun eksik ara sertifikası nedeniyle eski cihazlarda TLS doğrulaması
+  // başarısız oluyor. dart:io kendi BoringSSL yığınını kullandığından sadece bu
+  // host için certificate doğrulamasını bypass ediyoruz.
+  (dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () =>
+      HttpClient()
+        ..badCertificateCallback = (cert, host, port) =>
+            host == 'esasapi.eyuboglu.k12.tr';
 
   // Static headers only — auth token is injected per-request by the interceptor below.
   // Do NOT watch(tokenProvider) here: it would cascade-rebuild every repository on login.
