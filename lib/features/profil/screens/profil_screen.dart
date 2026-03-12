@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/models/result.dart';
@@ -285,69 +284,58 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 28),
 
-                  _InfoCard(
+                  Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                      Switch(
+                        value: !_bildirimleriKapat,
+                        onChanged: _isBildirimTercihiLoading
+                            ? null
+                            : (value) => _bildirimTercihiniGuncelle(!value),
+                        activeTrackColor: AppColors.gradientStart.withValues(
+                          alpha: 0.5,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        activeThumbColor: AppColors.gradientEnd,
+                        inactiveTrackColor: AppColors.textOnPrimary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  _bildirimleriKapat
-                                      ? Icons.notifications_off_outlined
-                                      : Icons.notifications_active_outlined,
-                                  size: 20,
+                            Icon(
+                              !_bildirimleriKapat
+                                  ? Icons.notifications_active_rounded
+                                  : Icons.notifications_off_rounded,
+                              color: !_bildirimleriKapat
+                                  ? AppColors.primary
+                                  : AppColors.textTertiary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                (!_bildirimleriKapat)
+                                    ? 'Bildirimler açık'
+                                    : 'Bildirimler kapalı',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            if (_isBildirimTercihiLoading) ...[
+                              const SizedBox(width: 8),
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
                                   color: AppColors.primary,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Bildirim Tercihi',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.textTertiary,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        _bildirimleriKapat
-                                            ? 'Bildirimler kapalı'
-                                            : 'Bildirimler açık',
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          color: AppColors.textPrimary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            CustomSwitchWidget(
-                              value: _bildirimleriKapat,
-                              onChanged: _isBildirimTercihiLoading
-                                  ? null
-                                  : _bildirimTercihiniGuncelle,
-                              label: _isBildirimTercihiLoading
-                                  ? 'Bildirimleri Kapat (güncelleniyor...)'
-                                  : 'Bildirimleri Kapat',
-                              spacing: 12,
-                              padding: EdgeInsets.zero,
-                            ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
