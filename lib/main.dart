@@ -14,6 +14,7 @@ import 'core/services/auth_storage_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/utils/jwt_decoder.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'core/utils/clamped_text_scaler.dart';
 
 void main() {
   runZonedGuarded(
@@ -138,6 +139,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
+        builder: ClampedTextScaler.builder,
         home: Scaffold(
           backgroundColor: Colors.white,
           body: Center(
@@ -156,6 +158,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       title: 'ESAS - İzin İstek',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      builder: ClampedTextScaler.builder,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
