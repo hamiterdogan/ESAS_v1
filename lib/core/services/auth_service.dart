@@ -38,7 +38,7 @@ class AuthService {
     // 3. Local FCM kayıt işaretini temizle (sonraki login'de yeniden register olsun)
     await DeviceRegistrationService().clearRegistration();
 
-    // 4. AuthStorage'ı temizle (token - SecureStorage + kullanıcı verileri - SP)
+    // 4. AuthStorage'ı temizle
     await AuthStorageService().clear();
 
     // 5. Riverpod token'ını sıfırla (Dio header'dan Bearer kaldırılır)

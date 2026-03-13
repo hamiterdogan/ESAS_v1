@@ -1,15 +1,9 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:esas_v1/features/auth/models/login_model.dart';
 
 /// Kullanıcı oturum bilgilerini saklar.
-/// Token → FlutterSecureStorage (şifreli)
-/// Diğer kullanıcı verileri → SharedPreferences
+/// Token ve kullanıcı verileri → SharedPreferences
 class AuthStorageService {
-  // Secure Storage — sadece token için
-  static const _secureStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
   static const _keyToken = 'auth_token';
 
   // SharedPreferences anahtarları
@@ -31,13 +25,12 @@ class AuthStorageService {
   ];
 
   // ---------------------------------------------------------------------------
-  // Migrasyon: Eski SharedPreferences token'ı SecureStorage'a taşı
+  // Geçiş uyumluluğu: artık tüm kayıtlar SharedPreferences'ta tutuluyor.
   // ---------------------------------------------------------------------------
   Future<void> migrateIfNeeded() async {
     final prefs = await SharedPreferences.getInstance();
-    final legacyToken = prefs.getString(_keyToken);
-    if (legacyToken != null && legacyToken.isNotEmpty) {
-      await _secureStorage.write(key: _keyToken, value: legacyToken);
+    final token = prefs.getString(_keyToken);
+    if (token != null && token.isEmpty) {
       await prefs.remove(_keyToken);
     }
   }
@@ -49,12 +42,9 @@ class AuthStorageService {
     // Eski/çakışan token kayıtlarını temizle, sonra yeni token'ı yaz
     await _clearTokenEverywhere();
 
-    // Token → SecureStorage
-    await _secureStorage.write(key: _keyToken, value: response.token);
-
-    // Kullanıcı bilgileri → SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final futures = [
+      prefs.setString(_keyToken, response.token),
       prefs.setInt(_keyPersonelId, response.personelId),
       prefs.setString(_keyAdi, response.adi),
       prefs.setString(_keySoyadi, response.soyadi),
@@ -80,7 +70,8 @@ class AuthStorageService {
   // ---------------------------------------------------------------------------
 
   Future<String?> getToken() async {
-    return _secureStorage.read(key: _keyToken);
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyToken);
   }
 
   Future<int?> getPersonelId() async {
@@ -142,10 +133,9 @@ class AuthStorageService {
   // Temizle (logout / token expire)
   // ---------------------------------------------------------------------------
   Future<void> clear() async {
-    // Token'ı olası tüm local kaynaklardan sil
+    // Token'ı ve kullanıcı verilerini local kaynaklardan sil
     await _clearTokenEverywhere();
 
-    // SharedPreferences'ten kullanıcı verilerini sil
     final prefs = await SharedPreferences.getInstance();
     await Future.wait([
       prefs.remove(_keyPersonelId),
@@ -160,10 +150,6 @@ class AuthStorageService {
   }
 
   Future<void> _clearTokenEverywhere() async {
-    for (final key in _legacyTokenKeys) {
-      await _secureStorage.delete(key: key);
-    }
-
     final prefs = await SharedPreferences.getInstance();
     await Future.wait(_legacyTokenKeys.map(prefs.remove));
   }

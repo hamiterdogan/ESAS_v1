@@ -67,7 +67,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   Future<void> _loadTokenAndInit() async {
     final storage = AuthStorageService();
 
-    // 2. Eski SharedPreferences token'ı SecureStorage'a taşı (tek seferlik migrasyon)
+    // 2. Local auth kaydını normalize et
     await storage.migrateIfNeeded();
 
     // 3. Kaydedilmiş token'ı oku
