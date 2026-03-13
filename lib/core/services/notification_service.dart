@@ -7,7 +7,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:esas_v1/core/models/result.dart';
 import 'package:esas_v1/core/services/device_registration_service.dart';
@@ -18,8 +17,8 @@ import 'package:esas_v1/features/bildirim/providers/notification_providers.dart'
 /// Background mesaj handler (top-level function olmalı)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // iOS hariç Firebase'i initialize et
-  if (!Platform.isIOS) {
+  // iOS/macOS hariç Firebase'i initialize et
+  if (!Platform.isIOS && !Platform.isMacOS) {
     await Firebase.initializeApp();
   }
   if (kDebugMode) {
@@ -34,7 +33,6 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -65,8 +63,30 @@ class NotificationService {
     playSound: true,
   );
 
+  bool get _isFirebaseReady {
+    if (Platform.isIOS || Platform.isMacOS) return false;
+    try {
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  FirebaseMessaging? get _messagingOrNull {
+    if (!_isFirebaseReady) return null;
+    return FirebaseMessaging.instance;
+  }
+
   /// Servisi başlat
   Future<void> initialize() async {
+    final messaging = _messagingOrNull;
+    if (messaging == null) {
+      if (kDebugMode) {
+        print('⚠️ NotificationService.initialize atlandı: Firebase henüz hazır değil.');
+      }
+      return;
+    }
+
     // Background handler kaydet (sync, hemen)
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -74,7 +94,7 @@ class NotificationService {
     final results = await Future.wait([
       _requestPermission(),
       _setupLocalNotifications(),
-      _messaging.getInitialMessage(),
+      messaging.getInitialMessage(),
     ]);
 
     // Android notification channel (local notifications hazır olduktan sonra)
@@ -159,8 +179,16 @@ class NotificationService {
     NotificationRepository repo, {
     bool forceRefresh = false,
   }) async {
+    final messaging = _messagingOrNull;
+    if (messaging == null) {
+      if (kDebugMode) {
+        print('⚠️ FCM token alınamadı: Firebase henüz hazır değil.');
+      }
+      return null;
+    }
+
     try {
-      final token = await _messaging.getToken();
+      final token = await messaging.getToken();
       if (token != null) {
         if (kDebugMode) {
           print('\n🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
@@ -190,7 +218,7 @@ class NotificationService {
 
       // Token yenilendiğinde eski kaydı sıfırla ve yeniden kayıt yap
       await _tokenRefreshSubscription?.cancel();
-      _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((
+      _tokenRefreshSubscription = messaging.onTokenRefresh.listen((
         newToken,
       ) async {
         if (kDebugMode) {
@@ -223,8 +251,10 @@ class NotificationService {
     _onMessageSub = null;
     await _onMessageOpenedSub?.cancel();
     _onMessageOpenedSub = null;
+    final messaging = _messagingOrNull;
+    if (messaging == null) return;
     try {
-      await _messaging.deleteToken();
+      await messaging.deleteToken();
     } catch (e) {
       if (kDebugMode) print('⚠️ FCM deleteToken hatası: $e');
     }
@@ -232,7 +262,10 @@ class NotificationService {
 
   /// İzin iste
   Future<void> _requestPermission() async {
-    final settings = await _messaging.requestPermission(
+    final messaging = _messagingOrNull;
+    if (messaging == null) return;
+
+    final settings = await messaging.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -247,7 +280,7 @@ class NotificationService {
     }
 
     // iOS foreground ayarları
-    await _messaging.setForegroundNotificationPresentationOptions(
+    await messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
@@ -464,8 +497,9 @@ class NotificationService {
     final n = _normalizeOnayTipi(onayTipi);
     if (n.contains('satinalma')) return '/satin_alma/detay/$onayKayitId';
     if (n.contains('izin')) return '/izin/detay/$onayKayitId';
-    if (n.contains('arac') || n.contains('arac'))
+    if (n.contains('arac') || n.contains('arac')) {
       return '/arac/detay/$onayKayitId';
+    }
     if (n.contains('dokumantasyon') || n.contains('dokuman')) {
       return '/dokumantasyon/detay/$onayKayitId';
     }
@@ -479,8 +513,9 @@ class NotificationService {
     if (n.contains('bilgiteknoloji')) {
       return '/teknik_destek/detay/$onayKayitId';
     }
-    if (n.contains('teknikdestek') || n.contains('teknik'))
+    if (n.contains('teknikdestek') || n.contains('teknik')) {
       return '/teknik_destek/detay/$onayKayitId';
+    }
     if (kDebugMode) print('⚠️ Bilinmeyen onayTipi: $onayTipi (normalized: $n)');
     return null;
   }
