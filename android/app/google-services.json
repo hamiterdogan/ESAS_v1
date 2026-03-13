@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:316264164023:android:e9d85176aa072964b93b32",
+        "mobilesdk_app_id": "1:316264164023:android:237967afb27060afb93b32",
         "android_client_info": {
-          "package_name": "com.eyuboglu.esas"
+          "package_name": "com.eyb.esas"
         }
       },
       "oauth_client": [],

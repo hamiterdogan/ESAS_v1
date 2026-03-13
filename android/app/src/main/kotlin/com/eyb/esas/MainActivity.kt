@@ -1,4 +1,4 @@
-package com.eyuboglu.esas
+package com.eyb.esas
 
 import android.os.Bundle
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException

@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.eyuboglu.esas</string>
+	<string>com.eyb.esas</string>
 	<key>PROJECT_ID</key>
 	<string>eyubogluesas</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:316264164023:ios:8f374744ac37754fb93b32</string>
+	<string>1:316264164023:ios:3d774b332664909fb93b32</string>
 </dict>
 </plist>
