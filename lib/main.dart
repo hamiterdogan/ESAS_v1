@@ -30,8 +30,8 @@ void main() {
         // TODO: integrate crash reporting (e.g. FirebaseCrashlytics) here
       };
 
-      // 1. Firebase'i başlat (iOS hariç — GoogleService-Info.plist Xcode'da yok)
-      if (!Platform.isIOS && !Platform.isMacOS) {
+      // 1. Firebase'i başlat (macOS hariç)
+      if (!Platform.isMacOS) {
         await Firebase.initializeApp();
       }
 
@@ -90,8 +90,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
 
     // 4. Bildirim servisini başlat (izinler, kanallar, foreground listener'lar)
-    // iOS/macOS'ta Firebase yoksa notification service'i atla
-    if (!Platform.isIOS && !Platform.isMacOS) {
+    // macOS'ta Firebase akışı yoksa notification service'i atla
+    if (!Platform.isMacOS) {
       await _initNotificationServiceOnly();
     }
 
