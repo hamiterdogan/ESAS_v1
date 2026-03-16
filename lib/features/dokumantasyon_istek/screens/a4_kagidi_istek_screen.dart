@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:esas_v1/common/index.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
@@ -214,8 +215,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
           }
         }
       },
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(

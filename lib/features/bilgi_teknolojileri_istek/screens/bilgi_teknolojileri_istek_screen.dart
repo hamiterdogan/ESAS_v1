@@ -24,6 +24,7 @@ import 'package:esas_v1/common/widgets/card_duzenleme_ikon.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
@@ -770,10 +771,7 @@ class _BilgiTeknolojileriIstekScreenState
           }
         }
       },
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(

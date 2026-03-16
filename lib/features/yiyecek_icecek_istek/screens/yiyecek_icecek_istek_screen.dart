@@ -19,6 +19,7 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_istek_ekle_
 import 'package:esas_v1/common/widgets/aciklama_field_widget.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/widgets/yiyecek_icecek_ozet_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/common/widgets/okul_secim_widget.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
@@ -1015,10 +1016,7 @@ class _YiyecekIcecekIstekScreenState
           }
         }
       },
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(

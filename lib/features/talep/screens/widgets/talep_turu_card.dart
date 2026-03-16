@@ -12,25 +12,26 @@ class TalepTuruCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onTap: () {
-        context.go(talep.routePath);
-      },
-      child: Card(
-        color: Color.lerp(
-          Theme.of(context).scaffoldBackgroundColor,
-          AppColors.textOnPrimary,
-          0.65,
-        ) ?? AppColors.textOnPrimary,
-        elevation: 3,
-        shadowColor: AppColors.textPrimary.withValues(alpha: 0.15),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.3),
-            width: 0.5,
-          ),
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      color: Color.lerp(
+        Theme.of(context).scaffoldBackgroundColor,
+        AppColors.textOnPrimary,
+        0.65,
+      ) ?? AppColors.textOnPrimary,
+      elevation: 3,
+      shadowColor: AppColors.textPrimary.withValues(alpha: 0.15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Colors.grey.withValues(alpha: 0.3),
+          width: 0.5,
         ),
+      ),
+      child: InkWell(
+        onTap: () {
+          context.go(talep.routePath);
+        },
         child: Padding(
           padding: const EdgeInsets.only(left: 6, right: 6, top: 8, bottom: 6),
           child: Column(
@@ -54,7 +55,11 @@ class TalepTuruCard extends ConsumerWidget {
                     ],
                   ),
                   child: Center(
-                    child: Icon(talep.icon, size: 52, color: AppColors.textOnPrimary),
+                    child: Icon(
+                      talep.icon,
+                      size: 52,
+                      color: AppColors.textOnPrimary,
+                    ),
                   ),
                 ),
               ),
