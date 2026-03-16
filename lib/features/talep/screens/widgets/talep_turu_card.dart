@@ -14,19 +14,18 @@ class TalepTuruCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      color: Color.lerp(
-        Theme.of(context).scaffoldBackgroundColor,
-        AppColors.textOnPrimary,
-        0.65,
-      ) ?? AppColors.textOnPrimary,
+      color:
+          Color.lerp(
+            Theme.of(context).scaffoldBackgroundColor,
+            AppColors.textOnPrimary,
+            0.65,
+          ) ??
+          AppColors.textOnPrimary,
       elevation: 3,
       shadowColor: AppColors.textPrimary.withValues(alpha: 0.15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.3),
-          width: 0.5,
-        ),
+        side: BorderSide(color: Colors.grey.withValues(alpha: 0.3), width: 0.5),
       ),
       child: InkWell(
         onTap: () {
