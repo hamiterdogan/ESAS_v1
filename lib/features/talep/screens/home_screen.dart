@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math' as math;
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
@@ -227,11 +228,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 child: _buildBottomNavigation(okunmayanTalepSayisiState),
               )
             : Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: _androidBottomNavigationInset(context),
+                ),
                 child: _buildBottomNavigation(okunmayanTalepSayisiState),
               ),
       ),
     );
+  }
+
+  double _androidBottomNavigationInset(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final safeBottomInset = math.max(
+      mediaQuery.viewPadding.bottom,
+      mediaQuery.systemGestureInsets.bottom,
+    );
+
+    return math.max(safeBottomInset, 12);
   }
 
   Widget _buildBottomNavigation(AsyncValue<dynamic> okunmayanTalepSayisiState) {
@@ -376,8 +391,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       curve: Curves.easeOut,
     );
   }
-
-
 
   void _showExitConfirmationBottomSheet() {
     showModalBottomSheet(

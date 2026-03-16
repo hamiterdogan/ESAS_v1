@@ -20,7 +20,7 @@ class ClampedTextScaler {
   static const double _minScale = 0.9;
 
   /// Maximum allowed text scale factor.
-  static const double _maxScale = 1.15;
+  static const double _maxScale = 1.20;
 
   /// A [TransitionBuilder] that overrides [MediaQueryData.textScaler]
   /// with a clamped value.
@@ -30,9 +30,7 @@ class ClampedTextScaler {
     final clampedScale = math.min(math.max(systemScale, _minScale), _maxScale);
 
     return MediaQuery(
-      data: mediaQuery.copyWith(
-        textScaler: TextScaler.linear(clampedScale),
-      ),
+      data: mediaQuery.copyWith(textScaler: TextScaler.linear(clampedScale)),
       child: child ?? const SizedBox.shrink(),
     );
   }
