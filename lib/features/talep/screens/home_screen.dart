@@ -220,63 +220,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             ),
           ],
         ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.scaffoldBackground,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Container(
-              height: 62,
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.textPrimary.withValues(alpha: 0.15),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+        bottomNavigationBar: Platform.isIOS
+            ? SafeArea(
+                top: false,
+                minimum: const EdgeInsets.only(left: 16, right: 16),
+                child: _buildBottomNavigation(okunmayanTalepSayisiState),
+              )
+            : Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 50),
+                child: _buildBottomNavigation(okunmayanTalepSayisiState),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Ana Sayfa
-                  _buildNavItem(
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home,
-                    label: 'Ana Sayfa',
-                    isSelected: _currentIndex == 0,
-                    onTap: () => _setTabIndex(0),
-                  ),
-                  // İsteklerim
-                  _buildNavItem(
-                    icon: Icons.assignment_outlined,
-                    activeIcon: Icons.assignment,
-                    label: 'İsteklerim',
-                    isSelected: _currentIndex == 1,
-                    onTap: () => _setTabIndex(1),
-                  ),
-                  // Gelen Kutusu
-                  _buildNavItem(
-                    icon: Icons.inbox_outlined,
-                    activeIcon: Icons.inbox,
-                    label: 'Gelen Kutusu',
-                    isSelected: _currentIndex == 2,
-                    onTap: () => _setTabIndex(2),
-                    badgeCount: okunmayanTalepSayisiState.when(
-                      data: (data) => data.talepSayisi,
-                      error: (_, __) => 0,
-                      loading: () => 0,
-                    ),
-                  ),
-                ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation(AsyncValue<dynamic> okunmayanTalepSayisiState) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.scaffoldBackground,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        height: 62,
+        decoration: BoxDecoration(
+          gradient: AppColors.primaryGradient,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textPrimary.withValues(alpha: 0.15),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // Ana Sayfa
+            _buildNavItem(
+              icon: Icons.home_outlined,
+              activeIcon: Icons.home,
+              label: 'Ana Sayfa',
+              isSelected: _currentIndex == 0,
+              onTap: () => _setTabIndex(0),
+            ),
+            // İsteklerim
+            _buildNavItem(
+              icon: Icons.assignment_outlined,
+              activeIcon: Icons.assignment,
+              label: 'İsteklerim',
+              isSelected: _currentIndex == 1,
+              onTap: () => _setTabIndex(1),
+            ),
+            // Gelen Kutusu
+            _buildNavItem(
+              icon: Icons.inbox_outlined,
+              activeIcon: Icons.inbox,
+              label: 'Gelen Kutusu',
+              isSelected: _currentIndex == 2,
+              onTap: () => _setTabIndex(2),
+              badgeCount: okunmayanTalepSayisiState.when(
+                data: (data) => data.talepSayisi,
+                error: (_, __) => 0,
+                loading: () => 0,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
