@@ -1,0 +1,19 @@
+# Keep iOS project metadata on LF across Windows and macOS.
+ios/Podfile text eol=lf
+ios/Podfile.lock text eol=lf
+ios/**/*.pbxproj text eol=lf
+ios/**/*.plist text eol=lf
+ios/**/*.entitlements text eol=lf
+ios/**/*.xcconfig text eol=lf
+ios/**/*.xcworkspacedata text eol=lf
+ios/**/*.xcscheme text eol=lf
+
+# Match the same behavior for macOS Xcode project files.
+macos/Podfile text eol=lf
+macos/Podfile.lock text eol=lf
+macos/**/*.pbxproj text eol=lf
+macos/**/*.plist text eol=lf
+macos/**/*.entitlements text eol=lf
+macos/**/*.xcconfig text eol=lf
+macos/**/*.xcworkspacedata text eol=lf
+macos/**/*.xcscheme text eol=lf
