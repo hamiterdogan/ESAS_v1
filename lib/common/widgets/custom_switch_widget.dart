@@ -23,20 +23,18 @@ class CustomSwitchWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelText = Text(
       label,
+      maxLines: 2,
+      softWrap: true,
+      overflow: TextOverflow.ellipsis,
       style: const TextStyle(fontSize: 14, color: AppColors.inputLabelColor),
-    );
-
-    final fittedLabel = FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerLeft,
-      child: labelText,
     );
 
     return Row(
       mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          decoration: BoxDecoration(shape: BoxShape.circle),
+          decoration: const BoxDecoration(shape: BoxShape.circle),
           padding: padding,
           child: Switch(
             value: value,
@@ -47,7 +45,7 @@ class CustomSwitchWidget extends StatelessWidget {
           ),
         ),
         SizedBox(width: spacing),
-        if (compact) fittedLabel else Expanded(child: fittedLabel),
+        if (compact) labelText else Expanded(child: labelText),
       ],
     );
   }

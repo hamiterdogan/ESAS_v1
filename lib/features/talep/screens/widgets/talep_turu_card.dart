@@ -79,11 +79,11 @@ class TalepTuruCard extends ConsumerWidget {
       softWrap: true,
       style: const TextStyle(
         color: AppColors.textPrimary,
-        fontSize: 15,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
         height: 1.3,
       ),
-      maxLines: 3,
+      maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );
   }

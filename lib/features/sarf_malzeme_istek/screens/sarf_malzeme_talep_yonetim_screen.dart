@@ -324,29 +324,39 @@ class _SarfMalzemeTalepCard extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'Süreç No: ',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                      Expanded(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Flexible(
+                              child: Text(
+                                'Süreç No: ',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                '${talep.onayKayitId}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '${talep.onayKayitId}',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const Spacer(),
-                      Transform.translate(
-                        offset: const Offset(38, 0),
-                        child: TalepYonetimHelper.buildStatusBadge(
-                          talep.onayDurumu,
-                        ),
-                      ),
+                      const SizedBox(width: 8),
+                      TalepYonetimHelper.buildStatusBadge(talep.onayDurumu),
                     ],
                   ),
                   const SizedBox(height: 6),
