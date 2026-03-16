@@ -201,8 +201,7 @@ class _KurumGorevlendirmesiIzinScreenState
           }
         }
       },
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           resizeToAvoidBottomInset: false,

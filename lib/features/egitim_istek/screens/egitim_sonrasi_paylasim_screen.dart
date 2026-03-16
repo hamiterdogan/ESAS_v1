@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/date_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
@@ -317,10 +318,7 @@ class _EgitimSonrasiPaylasimsScreenState
             ),
           ),
         ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
+        body: DismissKeyboardOnPointerDown(
           child: SafeArea(
             child: Column(
               children: [

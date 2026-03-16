@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/core/constants/app_constants.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
@@ -203,8 +204,7 @@ class _SatinAlmaDetayScreenState extends ConsumerState<SatinAlmaDetayScreen> {
 
     return Stack(
       children: [
-        GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
+        DismissKeyboardOnPointerDown(
           child: Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
             appBar: AppBar(

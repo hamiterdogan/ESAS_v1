@@ -907,10 +907,7 @@ class _SatinAlmaTalepScreenState extends ConsumerState<SatinAlmaTalepScreen> {
             ),
           ),
         ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
+        body: DismissKeyboardOnPointerDown(
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),

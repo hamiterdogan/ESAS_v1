@@ -403,8 +403,7 @@ class _AracIstekYukEkleScreenState
           ),
           elevation: 0,
         ),
-        body: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
+        body: DismissKeyboardOnPointerDown(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
             child: SingleChildScrollView(

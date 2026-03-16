@@ -95,8 +95,7 @@ class _IzinIstekTalepScreenState extends ConsumerState<IzinIstekTalepScreen> {
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.scaffoldBackground,
       appBar: const _GradientAppBar(title: 'İzin İstek', onBackLabel: 'back'),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      body: DismissKeyboardOnPointerDown(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 60),
           child: Form(

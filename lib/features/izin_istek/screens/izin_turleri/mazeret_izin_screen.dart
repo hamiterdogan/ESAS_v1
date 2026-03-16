@@ -199,8 +199,7 @@ class _MazeretIzinScreenState extends ConsumerState<MazeretIzinScreen> {
           }
         }
       },
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(

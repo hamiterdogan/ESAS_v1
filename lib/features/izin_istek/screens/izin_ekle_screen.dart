@@ -351,12 +351,7 @@ class _IzinEkleScreenState extends ConsumerState<IzinEkleScreen> {
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
           ),
         ),
-        body: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            // Klavyeyi kapat
-            FocusScope.of(context).unfocus();
-          },
+        body: DismissKeyboardOnPointerDown(
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(16, 16, 16, bottomInset + 80),
             child: Column(

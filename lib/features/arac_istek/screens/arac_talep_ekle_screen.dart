@@ -367,12 +367,7 @@ class _AracTalepEkleScreenState extends ConsumerState<AracTalepEkleScreen> {
           ),
           elevation: 0,
         ),
-        body: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            // Klavyeyi kapat
-            FocusScope.of(context).unfocus();
-          },
+        body: DismissKeyboardOnPointerDown(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 60),
             child: SingleChildScrollView(

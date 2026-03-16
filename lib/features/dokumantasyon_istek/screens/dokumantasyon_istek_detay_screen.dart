@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/app_dialogs.dart';
 import 'package:esas_v1/core/constants/app_constants.dart';
@@ -199,8 +200,7 @@ class _DokumantasyonIstekDetayScreenState
       error: (error, stack) => _buildError(context, error),
     );
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
+    return DismissKeyboardOnPointerDown(
       child: Stack(
         children: [
           Scaffold(

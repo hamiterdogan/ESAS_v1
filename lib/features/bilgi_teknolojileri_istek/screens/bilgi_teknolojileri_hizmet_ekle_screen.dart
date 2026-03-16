@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
 import 'package:esas_v1/features/bilgi_teknolojileri_istek/repositories/bilgi_teknolojileri_istek_repository.dart';
@@ -276,9 +277,7 @@ class _BilgiTeknolojileriHizmetEkleScreenState
         elevation: 0,
       ),
       body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+        child: DismissKeyboardOnPointerDown(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(

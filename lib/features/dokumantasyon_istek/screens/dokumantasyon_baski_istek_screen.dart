@@ -10,6 +10,7 @@ import 'package:esas_v1/common/widgets/generic_summary_bottom_sheet.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/file_photo_upload_widget.dart';
 import 'package:esas_v1/common/widgets/istek_basarili_widget.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/common/widgets/custom_switch_widget.dart';
 import 'package:esas_v1/core/network/dio_provider.dart';
@@ -1065,9 +1066,7 @@ class _DokumantasyonBaskiIstekScreenState
           ),
           elevation: 0,
         ),
-        body: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+        body: DismissKeyboardOnPointerDown(
           child: SingleChildScrollView(
             controller: _scrollController,
             padding: const EdgeInsets.all(16),

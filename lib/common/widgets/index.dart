@@ -19,6 +19,7 @@ export 'istek_basarili_widget.dart';
 export 'talep_yonetim_helper.dart';
 export 'gradient_appbar.dart';
 export 'file_photo_upload_widget.dart';
+export 'dismiss_keyboard_on_pointer_down.dart';
 export 'talep_filter_bottom_sheet.dart';
 export 'common_divider.dart';
 

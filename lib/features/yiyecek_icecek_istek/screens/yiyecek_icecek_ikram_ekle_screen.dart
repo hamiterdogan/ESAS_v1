@@ -6,6 +6,7 @@ import 'package:esas_v1/features/yiyecek_icecek_istek/models/yiyecek_icecek_ikra
 import 'package:esas_v1/common/widgets/time_picker_bottom_sheet_widget.dart';
 import 'package:esas_v1/common/widgets/numeric_spinner_widget.dart';
 import 'package:esas_v1/common/widgets/branded_loading_indicator.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/features/yiyecek_icecek_istek/providers/yiyecek_icecek_providers.dart';
 import 'package:esas_v1/common/widgets/validation_uyari_widget.dart';
 
@@ -544,9 +545,7 @@ class _YiyecekIcecekIkramEkleScreenState
         elevation: 0,
       ),
       body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+        child: DismissKeyboardOnPointerDown(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(

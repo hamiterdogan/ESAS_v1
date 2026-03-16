@@ -287,8 +287,7 @@ class _VefatIzinScreenState extends ConsumerState<VefatIzinScreen> {
           }
         }
       },
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+      child: DismissKeyboardOnPointerDown(
         child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           appBar: AppBar(

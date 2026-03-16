@@ -263,9 +263,7 @@ class _A4KagidiIstekScreenState extends ConsumerState<A4KagidiIstekScreen> {
               ),
             ),
           ),
-          body: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () => FocusScope.of(context).unfocus(),
+          body: DismissKeyboardOnPointerDown(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(

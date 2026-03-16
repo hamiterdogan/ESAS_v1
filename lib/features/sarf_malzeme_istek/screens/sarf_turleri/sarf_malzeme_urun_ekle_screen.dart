@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:esas_v1/common/widgets/dismiss_keyboard_on_pointer_down.dart';
 import 'package:esas_v1/core/constants/app_colors.dart';
 import 'package:esas_v1/features/satin_alma/models/satin_alma_urun_bilgisi.dart';
 import 'package:esas_v1/features/sarf_malzeme_istek/widgets/sarf_malzeme_urun_card.dart';
@@ -47,9 +48,7 @@ class _SarfMalzemeUrunEkleScreenState
         elevation: 0,
       ),
       body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+        child: DismissKeyboardOnPointerDown(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: SarfMalzemeUrunCard(
